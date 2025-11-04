@@ -18,7 +18,7 @@ export default function App() {
   }, [user]);
 
   return (
-    <Router>
+    <Router basename="/Proyecto-Eyes-Settings">
       <Routes>
         <Route path="/" element={<Home user={user} setUser={setUser} />} />
         {/* 👇 se cambia /admin por /admin/* para permitir rutas internas */}
