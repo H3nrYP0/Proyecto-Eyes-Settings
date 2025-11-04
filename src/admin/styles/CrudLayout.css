@@ -1,0 +1,269 @@
+/* === RESET CRÍTICO === */
+.crud-layout {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  margin: 0 !important;
+  padding: 20px 0 !important;
+  background: #f5f6fa;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* === CABECERA DEL CRUD === */
+.crud-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  width: 100%;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+}
+
+.crud-header h2 {
+  color: #1e3a8a;
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+.crud-header p {
+  color: #555;
+  font-size: 0.95rem;
+  margin-top: 6px;
+}
+
+.crud-add-btn {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.crud-add-btn:hover {
+  background: #1e40af;
+  transform: scale(1.05);
+}
+
+/* === CONTENEDOR PRINCIPAL DE TABLA === */
+.crud-content {
+  width: 100%;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+/* === CONTENEDOR RESPONSIVE PARA TABLAS === */
+.table-responsive-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  margin: 0 auto !important;
+  padding: 0 10px !important;
+  box-sizing: border-box;
+  border-radius: 12px;
+}
+
+/* === CONTENEDOR DE LA TABLA === */
+.crud-center {
+  width: 100% !important;
+  max-width: 100% !important;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+  padding: 10px 0;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* === TABLA PRINCIPAL === */
+.crud-table {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 auto;
+  border-collapse: collapse;
+  text-align: left;
+  background: white;
+  box-sizing: border-box;
+  table-layout: fixed;
+}
+
+.crud-table thead {
+  background: #1e3a8a;
+  color: white;
+  position: sticky;
+  left: 0;
+}
+
+.crud-table th,
+.crud-table td {
+  padding: 14px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Definir anchos de columnas específicos */
+.crud-table th:nth-child(1),
+.crud-table td:nth-child(1) {
+  width: 30%;
+  min-width: 150px;
+}
+
+.crud-table th:nth-child(2),
+.crud-table td:nth-child(2) {
+  width: 50%;
+  min-width: 200px;
+}
+
+.crud-table th:nth-child(3),
+.crud-table td:nth-child(3) {
+  width: 20%;
+  min-width: 120px;
+}
+
+.crud-table th:first-child,
+.crud-table td:first-child {
+  border-top-left-radius: 8px;
+}
+
+.crud-table th:last-child,
+.crud-table td:last-child {
+  border-top-right-radius: 8px;
+}
+
+.crud-table tr:last-child td {
+  border-bottom: none;
+}
+
+.crud-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+/* === BOTONES DE ACCIÓN === */
+.actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  width: 100%;
+}
+
+.actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: transform 0.2s ease;
+  padding: 5px;
+}
+
+.actions button:hover {
+  transform: scale(1.2);
+}
+
+/* === ESTADOS === */
+.status-active {
+  background: #dcfce7;
+  color: #166534;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.status-inactive {
+  background: #fecaca;
+  color: #dc2626;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* === COMPATIBILIDAD GLOBAL === */
+.dashboard-main .admin-content,
+.admin-content .crud-layout {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* === RESPONSIVE PARA TABLAS === */
+@media (max-width: 1024px) {
+  .crud-header {
+    padding: 0 15px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .crud-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .table-responsive-container {
+    padding: 0 5px;
+  }
+}
+
+@media (max-width: 768px) {
+  .crud-layout {
+    padding: 15px 0;
+  }
+  
+  .crud-center {
+    border-radius: 8px;
+    margin: 0 5px;
+  }
+  
+  .crud-table {
+    font-size: 0.85rem;
+    table-layout: auto;
+  }
+  
+  .crud-table th,
+  .crud-table td {
+    padding: 10px 12px;
+  }
+  
+  .table-responsive-container {
+    margin: 0 -5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .crud-layout {
+    padding: 10px 0;
+  }
+  
+  .table-responsive-container {
+    margin: 0 -10px;
+    padding: 0 5px;
+  }
+  
+  .crud-center {
+    border-radius: 6px;
+    margin: 0 2px;
+  }
+  
+  .crud-table th,
+  .crud-table td {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+  }
+  
+  .actions {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .actions button {
+    font-size: 1rem;
+  }
+}

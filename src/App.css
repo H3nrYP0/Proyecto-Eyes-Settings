@@ -1,0 +1,113 @@
+/* === RESET GENERAL PARA EL ROOT === */
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  display: block;
+}
+
+/* === ESTILOS DE LA HOME (Página principal del cliente) === */
+.home-page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+/* === LOGO (solo si se usa en Home.jsx) === */
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+/* === TARJETAS Y TEXTO === */
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+/* ========================================================= */
+/* === FIX: ADMIN LAYOUT Y DASHBOARD (para ancho completo) === */
+/* ========================================================= */
+
+/* Asegura que el área administrativa no esté limitada por max-width */
+.admin-layout,
+.dashboard-main,
+.admin-content,
+.crud-layout,
+.dashboard-page {
+  max-width: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-align: left !important;
+  background: #f6f7fb;
+  box-sizing: border-box;
+}
+
+/* FIX CRÍTICO: Elimina cualquier limitación de ancho en el dashboard */
+.dashboard-page {
+  max-width: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Contenedor específico para el dashboard */
+.dashboard-page .dashboard-grid {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+/* Opcional: mejora scroll dentro del área admin */
+.admin-content {
+  overflow-y: auto;
+  min-height: 100vh;
+}
+
+/* Evita que los estilos de Home afecten el Admin */
+.admin-layout * {
+  text-align: initial;
+}
+
+/* FIX PARA TABLAS CRUD */
+.crud-layout {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.table-responsive-container {
+  width: 100% !important;
+  max-width: none !important;
+  overflow-x: auto !important;
+}
