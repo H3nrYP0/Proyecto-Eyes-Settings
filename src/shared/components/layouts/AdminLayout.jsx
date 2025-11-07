@@ -1,100 +1,90 @@
-import { useState } from "react";
-import { Routes, Route } from "react-router-dom";
+// src/shared/components/layouts/AdminLayout.jsx
+import { Routes, Route, Navigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
-import "../styles/DashboardSidebar.css";
+import Header from "./Header";
+import { useState } from "react";
 
-// 🧩 Páginas del Admin
-import Dashboard from "../pages/Dashboard";
+// Features
+import Dashboard from "../../../features/ventas/pages/Dashboard";
+import Ventas from "../../../features/ventas/pages/Ventas";
+import Clientes from "../../../features/ventas/pages/Clientes";
+import Pedidos from "../../../features/ventas/pages/Pedidos";
+import Abonos from "../../../features/ventas/pages/Abonos";
+import Compras from "../../../features/compras/pages/Compras";
+import Categorias from "../../../features/compras/pages/Categorias";
+import Marcas from "../../../features/compras/pages/Marcas";
+import Products from "../../../features/compras/pages/Products";
+import Proveedores from "../../../features/compras/pages/Proveedores";
+import CrearMarca from "../../../features/compras/pages/CrearMarca";
+import Servicios from "../../../features/servicios/pages/Servicios";
+import Empleados from "../../../features/servicios/pages/Empleados";
+import Agenda from "../../../features/servicios/pages/Agenda";
+import Horarios from "../../../features/servicios/pages/Horarios";
+import CampanasSalud from "../../../features/servicios/pages/CampanasSalud";
+import GestionUsuarios from "../../../features/usuarios/pages/GestionUsuarios";
+import GestionAcceso from "../../../features/usuarios/pages/GestionAcceso";
+import Roles from "../../../features/configuracion/pages/Roles";
+import Permisos from "../../../features/configuracion/pages/Permisos";
 
-// Configuración
-import Roles from "../pages/Configuracion/Roles";
-import Permisos from "../pages/Configuracion/Permisos";
 
-// Usuarios
-import GestionUsuarios from "../pages/Usuarios/GestionUsuarios";
-import GestionAcceso from "../pages/Usuarios/GestionAcceso";
-
-// Compras
-import Categorias from "../pages/Compras/Categorias";
-import Productos from "../pages/Compras/Productos";
-import Marcas from "../pages/Compras/Marcas";
-import Proveedores from "../pages/Compras/Proveedores";
-import Compras from "../pages/Compras/Compras";
-
-// Páginas de creación/edición para Marcas
-import CrearMarca from "../pages/Compras/CrearMarca";
-
-// Servicios
-import Servicios from "../pages/Servicios/Servicios";
-import Agenda from "../pages/Servicios/Agenda";
-import Horarios from "../pages/Servicios/Horarios";
-import CampanasSalud from "../pages/Servicios/CampanasSalud";
-import Empleados from "../pages/Servicios/Empleados";
-
-// Ventas
-import Clientes from "../pages/Ventas/Clientes";
-import Pedidos from "../pages/Ventas/Pedidos";
-import Abonos from "../pages/Ventas/Abonos";
-import Ventas from "../pages/Ventas/Ventas";
-
-export default function AdminLayout({ user }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
-  const handleLogout = () => {
-    alert("Sesión cerrada");
-    window.location.href = "/";
-  };
+export default function AdminLayout({ user, setUser }) {
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
     <div className="admin-layout">
-      <Sidebar
-        isOpen={isSidebarOpen}
-        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-        onLogout={handleLogout}
-        user={user}
+      <Sidebar 
+        isOpen={sidebarOpen} 
+        onToggle={() => setSidebarOpen(!sidebarOpen)} 
+        user={user} 
       />
-
-      <div className="dashboard-main">
-        <div className="admin-content">
+      
+      <div className={`main-content ${sidebarOpen ? 'sidebar-expanded' : 'sidebar-collapsed'}`}>
+        <Header 
+          user={user} 
+          setUser={setUser} 
+          onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+          sidebarOpen={sidebarOpen}
+        />
+        
+        <div className="content-area">
           <Routes>
-            {/* Página principal */}
-            <Route path="/" element={<Dashboard />} />
-
-            {/* ========== CONFIGURACIÓN ========== */}
-            <Route path="roles" element={<Roles />} />
-            <Route path="permisos" element={<Permisos />} />
-
-            {/* ========== USUARIOS ========== */}
-            <Route path="gestion-usuarios" element={<GestionUsuarios />} />
-            <Route path="gestion-acceso" element={<GestionAcceso />} />
-
-            {/* ========== COMPRAS ========== */}
-            {/* Rutas específicas de Marcas PRIMERO */}
-            <Route path="marcas/crear" element={<CrearMarca />} />
-            <Route path="marcas/editar/:id" element={<CrearMarca />} />
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard user={user} />} />
             
-            {/* Rutas generales DESPUÉS */}
-            <Route path="categorias" element={<Categorias />} />
-            <Route path="productos" element={<Productos />} />
-            <Route path="marcas" element={<Marcas />} />
-            <Route path="proveedores" element={<Proveedores />} />
+            {/* Compras */}
             <Route path="compras" element={<Compras />} />
-
-            {/* ========== SERVICIOS ========== */}
-            <Route path="servicios" element={<Servicios />} />
-            <Route path="agenda" element={<Agenda />} />
-            <Route path="horarios" element={<Horarios />} />
-            <Route path="campanas-salud" element={<CampanasSalud />} />
-            <Route path="empleados" element={<Empleados />} />
-
-            {/* ========== VENTAS ========== */}
-            <Route path="clientes" element={<Clientes />} />
-            <Route path="pedidos" element={<Pedidos />} />
-            <Route path="abonos" element={<Abonos />} />
+            <Route path="compras/categorias" element={<Categorias />} />
+            <Route path="compras/marcas" element={<Marcas />} />
+            <Route path="compras/productos" element={<Products />} />
+            <Route path="compras/proveedores" element={<Proveedores />} />
+            <Route path="compras/crear-marca" element={<CrearMarca />} />
+            <Route path="compras/editar-marca/:id" element={<CrearMarca />} />
+            
+            {/* Ventas */}
             <Route path="ventas" element={<Ventas />} />
-
-            {/* Ruta de fallback para páginas no encontradas */}
-            <Route path="*" element={<div className="not-found">Página no encontrada</div>} />
+            <Route path="ventas/clientes" element={<Clientes />} />
+            <Route path="ventas/pedidos" element={<Pedidos />} />
+            <Route path="ventas/abonos" element={<Abonos />} />
+            
+            {/* Servicios */}
+            <Route path="servicios" element={<Servicios />} />
+            <Route path="servicios/empleados" element={<Empleados />} />
+            <Route path="servicios/agenda" element={<Agenda />} />
+            <Route path="servicios/horarios" element={<Horarios />} />
+            <Route path="servicios/campanas-salud" element={<CampanasSalud />} />
+            
+            {/* Usuarios */}
+            <Route path="usuarios" element={<GestionUsuarios />} />
+            <Route path="usuarios/gestion-acceso" element={<GestionAcceso />} />
+            
+            {/* Configuración */}
+            <Route path="configuracion/roles" element={<Roles />} />
+            <Route path="configuracion/permisos" element={<Permisos />} />
+            
+            <Route path="*" element={<div className="not-found">
+              <h2>Página no encontrada</h2>
+              <p>La página que buscas no existe.</p>
+            </div>} />
           </Routes>
         </div>
       </div>
