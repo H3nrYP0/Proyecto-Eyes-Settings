@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 // Importar estilos globales principales
-import "/src/shared/styles/globals/index.css";
+import "/src/shared/styles/globals/app.css";
+import "/src/shared/styles/globals/reset.css";
+import "/src/shared/styles/globals/variables.css";
 
 import Home from "../features/home/pages/Home";
-import AdminLayout from "../shared/components/layouts/AdminLayout";
+import OpticaDashboardLayout from "../shared/components/layouts/OpticaDashboardLayout";
 import Login from "../features/auth/pages/Login";
 
 export default function App() {
@@ -71,7 +73,7 @@ export default function App() {
             path="/admin/*" 
             element={
               user ? (
-                <AdminLayout 
+                <OpticaDashboardLayout 
                   user={user} 
                   setUser={setUser} 
                   onLogout={handleLogout}
