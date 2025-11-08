@@ -1,0 +1,14 @@
+/* === IMPORTAR TODOS LOS ESTILOS === */
+
+/* Globales */
+@import '../globals/index.css';
+
+/* Componentes */
+@import '../components/CrudLayout.css';
+@import '../components/CrudForm.css';
+@import '../components/Modal.css';
+@import '../components/Sidebar.css';
+
+/* Features */
+@import '../features/Dashboard.css';
+@import '../features/Home.css';

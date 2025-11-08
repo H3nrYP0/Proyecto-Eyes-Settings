@@ -7,11 +7,6 @@ import Home from "../features/home/pages/Home";
 import AdminLayout from "../shared/components/layouts/AdminLayout";
 import Login from "../features/auth/pages/Login";
 
-// ELIMINAR importaciones de CSS que no existen
-// import "../styles/globals/index.css";
-// import "../styles/globals/reset.css";
-// import "../styles/globals/variables.css";
-
 export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);

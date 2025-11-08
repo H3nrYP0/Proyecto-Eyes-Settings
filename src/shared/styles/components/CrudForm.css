@@ -1,171 +1,120 @@
 /* === FORMULARIO CRUD === */
 .crud-form {
   background: white;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-2xl);
   max-width: 600px;
   margin: 0 auto;
 }
 
+.form-header {
+  margin-bottom: var(--spacing-2xl);
+  text-align: center;
+}
+
+.form-header h3 {
+  color: var(--primary-color);
+  font-size: var(--font-size-2xl);
+  margin-bottom: var(--spacing-sm);
+}
+
+.form-header p {
+  color: var(--gray-600);
+  font-size: var(--font-size-sm);
+}
+
+/* === GRUPOS DE FORMULARIO === */
 .form-group {
-  margin-bottom: 25px;
+  margin-bottom: var(--spacing-xl);
 }
 
 .form-label {
   display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: #374151;
-  font-size: 0.95rem;
+  margin-bottom: var(--spacing-sm);
+  font-weight: 500;
+  color: var(--gray-700);
 }
 
-.form-input {
+.form-control {
   width: 100%;
-  padding: 12px 15px;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  box-sizing: border-box;
-  background: white;
+  padding: var(--spacing-md);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-base);
+  transition: var(--transition-normal);
+  background-color: white;
 }
 
-.form-input:focus {
+.form-control:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.form-input.error {
-  border-color: #dc2626;
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+.form-control.error {
+  border-color: var(--error-color);
 }
 
-.error-message {
-  color: #dc2626;
-  font-size: 0.85rem;
-  margin-top: 5px;
-  display: block;
-  font-weight: 500;
+.form-text {
+  font-size: var(--font-size-sm);
+  color: var(--gray-500);
+  margin-top: var(--spacing-xs);
 }
 
-.form-help {
-  color: #6b7280;
-  font-size: 0.85rem;
-  margin-top: 8px;
-  font-style: italic;
+.form-error {
+  color: var(--error-color);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-xs);
 }
 
-/* === OPCIONES DE ESTADO === */
-.status-options {
+/* === FILA DE FORMULARIO === */
+.form-row {
   display: flex;
-  gap: 15px;
-  margin-top: 8px;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
 }
 
-.status-option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  padding: 10px 15px;
-  border-radius: 8px;
-  border: 2px solid #e5e7eb;
-  transition: all 0.3s ease;
-  background: white;
+.form-row .form-group {
+  flex: 1;
+  margin-bottom: 0;
 }
 
-.status-option:hover {
-  border-color: #3b82f6;
-  background: #f8fafc;
-}
-
-.status-option input[type="radio"] {
-  margin: 0;
-}
-
-.status-option span {
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  min-width: 80px;
-  text-align: center;
-}
-
-/* === BOTONES FORMULARIO === */
+/* === ACCIONES DEL FORMULARIO === */
 .form-actions {
   display: flex;
-  gap: 12px;
+  gap: var(--spacing-md);
   justify-content: flex-end;
-  margin-top: 30px;
-  padding-top: 25px;
-  border-top: 1px solid #e5e7eb;
+  margin-top: var(--spacing-2xl);
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid var(--gray-200);
 }
 
-.btn {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.95rem;
-  min-width: 120px;
-}
-
-.btn-primary {
-  background: #2563eb;
-  color: white;
-}
-
-.btn-primary:hover {
-  background: #1d4ed8;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
-}
-
-.btn-secondary {
-  background: #6b7280;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background: #4b5563;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(107, 114, 128, 0.3);
-}
-
-.btn-danger {
-  background: #dc2626;
-  color: white;
-}
-
-.btn-danger:hover {
-  background: #b91c1c;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
-}
-
-/* === RESPONSIVE FORMULARIO === */
+/* === RESPONSIVE FORM === */
 @media (max-width: 768px) {
   .crud-form {
-    padding: 20px;
-    margin: 0 10px;
+    padding: var(--spacing-xl);
+    margin: 0 var(--spacing-md);
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: var(--spacing-md);
   }
   
   .form-actions {
     flex-direction: column;
   }
   
-  .btn {
-    min-width: auto;
+  .form-actions .btn {
     width: 100%;
   }
-  
-  .status-options {
-    flex-direction: column;
-    gap: 10px;
+}
+
+@media (max-width: 480px) {
+  .crud-form {
+    padding: var(--spacing-lg);
+    margin: 0;
+    border-radius: 0;
   }
 }

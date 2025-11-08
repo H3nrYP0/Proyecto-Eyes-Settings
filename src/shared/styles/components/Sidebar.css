@@ -1,0 +1,217 @@
+/* === SIDEBAR === */
+.sidebar {
+  width: 250px;
+  background-color: var(--primary-color);
+  color: white;
+  transition: width var(--transition-normal);
+  overflow: hidden;
+  position: fixed;
+  height: 100vh;
+  z-index: 100;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar.closed {
+  width: 60px;
+}
+
+/* === HEADER DEL SIDEBAR === */
+.sidebar-header {
+  padding: var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  min-height: 70px;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  white-space: nowrap;
+}
+
+.sidebar-brand h2 {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  margin: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.sidebar.closed .sidebar-brand h2 {
+  opacity: 0;
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: var(--font-size-lg);
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  border-radius: var(--border-radius-sm);
+  transition: var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toggle-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* === MENÚ DEL SIDEBAR === */
+.sidebar-menu {
+  flex: 1;
+  padding: var(--spacing-md) 0;
+  overflow-y: auto;
+}
+
+.menu-group {
+  margin-bottom: var(--spacing-lg);
+}
+
+.menu-header {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: var(--font-size-xs);
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  transition: opacity var(--transition-normal);
+}
+
+.sidebar.closed .menu-header {
+  opacity: 0;
+}
+
+.menu-item {
+  padding: var(--spacing-md) var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: var(--transition-normal);
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+}
+
+.menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.menu-item.active {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-left: 4px solid var(--accent-color);
+  color: white;
+}
+
+.menu-icon {
+  margin-right: var(--spacing-md);
+  width: 20px;
+  text-align: center;
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+}
+
+.menu-text {
+  transition: opacity var(--transition-normal);
+  font-weight: 500;
+}
+
+.sidebar.closed .menu-text {
+  opacity: 0;
+}
+
+/* === SUBMENÚ === */
+.submenu {
+  margin-left: var(--spacing-xl);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.submenu .menu-item {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: var(--font-size-sm);
+}
+
+/* === FOOTER DEL SIDEBAR === */
+.sidebar-footer {
+  padding: var(--spacing-lg);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  white-space: nowrap;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: white;
+  flex-shrink: 0;
+}
+
+.user-details {
+  transition: opacity var(--transition-normal);
+}
+
+.sidebar.closed .user-details {
+  opacity: 0;
+}
+
+.user-name {
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  margin-bottom: 2px;
+}
+
+.user-role {
+  font-size: var(--font-size-xs);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* === RESPONSIVE SIDEBAR === */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    transform: translateX(-100%);
+    z-index: 1000;
+  }
+  
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  
+  .sidebar.closed {
+    width: 100%;
+    transform: translateX(-100%);
+  }
+  
+  .mobile-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: none;
+  }
+  
+  .mobile-overlay.show {
+    display: block;
+  }
+}

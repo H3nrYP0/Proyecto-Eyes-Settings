@@ -1,4 +1,4 @@
-
+/* === VARIABLES GLOBALES === */
 :root {
   /* Colores principales */
   --primary-color: #1e3a8a;
@@ -11,6 +11,7 @@
   --success-color: #10b981;
   --warning-color: #f59e0b;
   --error-color: #ef4444;
+  --info-color: #3b82f6;
   
   /* Escala de grises */
   --gray-50: #f8fafc;
@@ -32,6 +33,7 @@
   --font-size-lg: 1.125rem;
   --font-size-xl: 1.25rem;
   --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
   
   /* Espaciado */
   --spacing-xs: 0.25rem;
@@ -51,6 +53,11 @@
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  
+  /* Transiciones */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
   
   /* Breakpoints */
   --breakpoint-sm: 640px;
