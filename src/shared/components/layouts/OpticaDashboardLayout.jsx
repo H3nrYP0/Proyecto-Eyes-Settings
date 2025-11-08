@@ -1,101 +1,116 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+// src/shared/components/layouts/OpticaDashboardLayout.jsx - CORREGIDO
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
-// Components
+// ESTOS SON LOS COMPONENTES DE LAYOUT
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 
-// Features - Organizados por módulos
+// ESTAS SON LAS FEATURES DE VENTAS
 import Dashboard from "../../../features/ventas/pages/Dashboard";
-
-// Módulo de Ventas
 import Ventas from "../../../features/ventas/pages/Ventas";
 import Clientes from "../../../features/ventas/pages/Clientes";
 import Pedidos from "../../../features/ventas/pages/Pedidos";
 import Abonos from "../../../features/ventas/pages/Abonos";
 
-// Módulo de Compras
+// ESTAS SON LAS FEATURES DE COMPRAS
 import Compras from "../../../features/compras/pages/Compras";
 import Categorias from "../../../features/compras/pages/Categorias";
 import Marcas from "../../../features/compras/pages/Marcas";
 import Products from "../../../features/compras/pages/Products";
 import Proveedores from "../../../features/compras/pages/Proveedores";
-import CrearMarca from "../../../features/compras/pages/CrearMarca";
 
-// Módulo de Servicios
+// ESTAS SON LAS FEATURES DE SERVICIOS
 import Servicios from "../../../features/servicios/pages/Servicios";
 import Empleados from "../../../features/servicios/pages/Empleados";
 import Agenda from "../../../features/servicios/pages/Agenda";
 import Horarios from "../../../features/servicios/pages/Horarios";
 import CampanasSalud from "../../../features/servicios/pages/CampanasSalud";
 
-// Módulo de Usuarios
+// ESTAS SON LAS FEATURES DE USUARIOS
 import GestionUsuarios from "../../../features/usuarios/pages/GestionUsuarios";
 import GestionAcceso from "../../../features/usuarios/pages/GestionAcceso";
 
-// Módulo de Configuración
+// ESTAS SON LAS FEATURES DE CONFIGURACIÓN
 import Roles from "../../../features/configuracion/pages/Roles";
 import Permisos from "../../../features/configuracion/pages/Permisos";
 
-// Styles
+// ESTOS SON LOS ESTILOS DEL LAYOUT
 import "/src/shared/styles/layouts/OpticaDashboardLayout.css";
 
+// ESTE ES EL LAYOUT PRINCIPAL DEL DASHBOARD ADMIN
 export default function OpticaDashboardLayout({ user, setUser }) {
+  // ESTE ESTADO CONTROLA SI EL SIDEBAR ESTÁ ABIERTO O CERRADO
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const navigate = useNavigate();
 
+  // ESTA FUNCIÓN MANEJA EL TOGGLE DEL SIDEBAR
   const handleToggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
+  // ESTA FUNCIÓN MANEJA EL CIERRE DE SESIÓN
   const handleLogout = () => {
-    // Lógica de cierre de sesión
+    localStorage.removeItem("user");
     setUser(null);
+    navigate("/login", { replace: true });
   };
+
+  // ESTA VALIDACIÓN REDIRIGE AL LOGIN SI NO HAY USUARIO
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
     <div className="optica-dashboard-layout">
-      <Sidebar 
-        isOpen={sidebarOpen} 
-        onToggle={handleToggleSidebar} 
-        user={user} 
-      />
       
-      <div className={`main-content ${sidebarOpen ? 'sidebar-expanded' : 'sidebar-collapsed'}`}>
-        <Header 
-          user={user} 
+      {/* ESTE ES EL SIDEBAR DE NAVEGACIÓN */}
+      <Sidebar
+        isOpen={sidebarOpen}
+        onToggle={handleToggleSidebar}
+        user={user}
+        onLogout={handleLogout}
+      />
+
+      {/* ESTE ES EL CONTENIDO PRINCIPAL */}
+      <div className={`main-content ${sidebarOpen ? "sidebar-expanded" : "sidebar-collapsed"}`}>
+        
+        {/* ESTE ES EL HEADER SUPERIOR */}
+        <Header
+          user={user}
           onLogout={handleLogout}
           onToggleSidebar={handleToggleSidebar}
           sidebarOpen={sidebarOpen}
         />
-        
+
+        {/* ESTA ES EL ÁREA DONDE SE RENDERIZAN LAS PÁGINAS */}
         <main className="content-area">
           <Routes>
-            {/* Redirección por defecto */}
+            
+            {/* ESTA RUTA REDIRIGE AL DASHBOARD POR DEFECTO */}
             <Route index element={<Navigate to="dashboard" replace />} />
-            
-            {/* Dashboard */}
+
+            {/* ESTAS SON LAS RUTAS DEL DASHBOARD PRINCIPAL */}
             <Route path="dashboard" element={<Dashboard user={user} />} />
-            
-            {/* Módulo de Compras */}
-            <Route path="compras">
-              <Route index element={<Compras />} />
-              <Route path="categorias" element={<Categorias />} />
-              <Route path="marcas" element={<Marcas />} />
-              <Route path="productos" element={<Products />} />
-              <Route path="proveedores" element={<Proveedores />} />
-              <Route path="crear-marca" element={<CrearMarca />} />
-              <Route path="editar-marca/:id" element={<CrearMarca />} />
-            </Route>
-            
-            {/* Módulo de Ventas */}
+
+            {/* ESTAS SON LAS RUTAS DEL MÓDULO DE VENTAS */}
             <Route path="ventas">
               <Route index element={<Ventas />} />
               <Route path="clientes" element={<Clientes />} />
               <Route path="pedidos" element={<Pedidos />} />
               <Route path="abonos" element={<Abonos />} />
             </Route>
-            
-            {/* Módulo de Servicios */}
+
+            {/* ESTAS SON LAS RUTAS DEL MÓDULO DE COMPRAS */}
+            <Route path="compras">
+              <Route index element={<Compras />} />
+              <Route path="categorias" element={<Categorias />} />
+              <Route path="marcas" element={<Marcas />} />
+              <Route path="productos" element={<Products />} />
+              <Route path="proveedores" element={<Proveedores />} />
+            </Route>
+
+            {/* ESTAS SON LAS RUTAS DEL MÓDULO DE SERVICIOS */}
             <Route path="servicios">
               <Route index element={<Servicios />} />
               <Route path="empleados" element={<Empleados />} />
@@ -103,34 +118,37 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               <Route path="horarios" element={<Horarios />} />
               <Route path="campanas-salud" element={<CampanasSalud />} />
             </Route>
-            
-            {/* Módulo de Usuarios */}
+
+            {/* ESTAS SON LAS RUTAS DEL MÓDULO DE USUARIOS */}
             <Route path="usuarios">
               <Route index element={<GestionUsuarios />} />
               <Route path="gestion-acceso" element={<GestionAcceso />} />
             </Route>
-            
-            {/* Módulo de Configuración */}
+
+            {/* ESTAS SON LAS RUTAS DEL MÓDULO DE CONFIGURACIÓN */}
             <Route path="configuracion">
               <Route path="roles" element={<Roles />} />
               <Route path="permisos" element={<Permisos />} />
             </Route>
-            
-            {/* Página 404 */}
-            <Route path="*" element={
-              <div className="not-found-page">
-                <div className="not-found-content">
-                  <h2>Página no encontrada</h2>
-                  <p>La página que buscas no existe en el sistema.</p>
-                  <button 
-                    className="btn-primary" 
-                    onClick={() => window.history.back()}
-                  >
-                    Volver atrás
-                  </button>
+
+            {/* ESTA ES LA RUTA 404 PARA PÁGINAS NO ENCONTRADAS */}
+            <Route
+              path="*"
+              element={
+                <div className="not-found-page">
+                  <div className="not-found-content">
+                    <h2>Página no encontrada</h2>
+                    <p>La página que buscas no existe en el sistema.</p>
+                    <button
+                      className="btn-primary"
+                      onClick={() => window.history.back()}
+                    >
+                      Volver atrás
+                    </button>
+                  </div>
                 </div>
-              </div>
-            } />
+              }
+            />
           </Routes>
         </main>
       </div>
