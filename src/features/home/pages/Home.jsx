@@ -1,11 +1,20 @@
-// src/features/home/pages/Home.jsx
-import React from 'react';
-// ELIMINAR esta importación si el archivo no existe
-// import '../../../shared/styles/features/Home.css';
+import { useNavigate } from "react-router-dom";
+import "/src/shared/styles/features/Home.css";
 
 const Home = ({ user, setUser }) => {
+  const navigate = useNavigate();
+
+  const handleLoginClick = () => {
+    navigate("/login");
+  };
+
   const handleLogout = () => {
     setUser(null);
+  };
+
+  const handleDashboardAccess = () => {
+    if (user) navigate("/admin/dashboard");
+    else navigate("/login");
   };
 
   return (
@@ -19,46 +28,30 @@ const Home = ({ user, setUser }) => {
           {user ? (
             <>
               <span className="user-welcome">Hola, {user?.name}</span>
-              <button 
-                className="btn btn-primary"
-                onClick={() => window.location.href = '/admin'}
-              >
-                Panel Admin
+              <button className="btn btn-primary" onClick={handleDashboardAccess}>
+                Ir al Dashboard
               </button>
-              <button 
-                className="btn btn-danger"
-                onClick={handleLogout}
-              >
+              <button className="btn btn-danger" onClick={handleLogout}>
                 Cerrar Sesión
               </button>
             </>
           ) : (
-            <>
-              <button 
-                className="btn btn-primary"
-                onClick={() => window.location.href = '/login'}
-              >
-                Iniciar Sesión
-              </button>
-            </>
+            <button className="btn btn-primary" onClick={handleLoginClick}>
+              Entrar al Sistema
+            </button>
           )}
         </div>
       </nav>
 
       <main className="home-content">
         <div className="hero-section">
-          <h2>Bienvenido a Visual Outlet</h2>
-          <p>Tu sistema integral de gestión para ópticas</p>
-          {!user && (
-            <div className="hero-actions">
-              <button 
-                className="btn btn-primary btn-large"
-                onClick={() => window.location.href = '/login'}
-              >
-                Comenzar
-              </button>
-            </div>
-          )}
+          <h2>Visual Outlet</h2>
+          <p>Sistema de gestión administrativa para ópticas</p>
+          <div className="hero-actions">
+            <button className="btn btn-primary btn-large" onClick={handleDashboardAccess}>
+              Acceder al Panel Admin
+            </button>
+          </div>
         </div>
       </main>
     </div>

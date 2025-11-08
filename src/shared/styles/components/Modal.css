@@ -1,4 +1,4 @@
-/* === MODAL FIXED POSITION === */
+/* === MODAL OVERLAY === */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -9,21 +9,22 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9999; /* Alto z-index para estar por encima de todo */
-  padding: 20px;
+  z-index: 1000;
+  padding: var(--spacing-md);
+  backdrop-filter: blur(4px);
 }
 
+/* === MODAL CONTENT === */
 .modal-content {
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
   width: 100%;
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
   animation: modalAppear 0.3s ease;
   position: relative;
-  z-index: 10000; /* Más alto que el overlay */
 }
 
 @keyframes modalAppear {
@@ -37,81 +38,119 @@
   }
 }
 
+/* === MODAL HEADER === */
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 25px;
-  border-bottom: 1px solid #e5e7eb;
-  background: #f8fafc;
-  border-radius: 12px 12px 0 0;
+  padding: var(--spacing-xl);
+  border-bottom: 1px solid var(--gray-200);
+  background: var(--gray-50);
+  border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
 }
 
 .modal-header h3 {
   margin: 0;
-  color: #1e3a8a;
-  font-size: 1.3rem;
+  color: var(--primary-color);
+  font-size: var(--font-size-xl);
   font-weight: 600;
 }
 
 .modal-close {
   background: none;
   border: none;
-  font-size: 1.5rem;
+  font-size: var(--font-size-xl);
   cursor: pointer;
-  color: #64748b;
-  padding: 0;
-  width: 30px;
-  height: 30px;
+  color: var(--gray-500);
+  padding: var(--spacing-xs);
+  border-radius: var(--border-radius-sm);
+  transition: var(--transition-normal);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  transition: all 0.3s ease;
+  width: 32px;
+  height: 32px;
 }
 
 .modal-close:hover {
-  background: #e5e7eb;
-  color: #374151;
+  background: var(--gray-200);
+  color: var(--gray-700);
 }
 
+/* === MODAL BODY === */
 .modal-body {
-  padding: 25px;
+  padding: var(--spacing-xl);
 }
 
-/* === CONFIRMACIÓN ELIMINAR === */
-.confirmation-actions {
+/* === MODAL FOOTER === */
+.modal-footer {
+  padding: var(--spacing-xl);
+  border-top: 1px solid var(--gray-200);
+  background: var(--gray-50);
+  border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
   display: flex;
-  gap: 12px;
+  gap: var(--spacing-md);
   justify-content: flex-end;
-  margin-top: 25px;
-  padding-top: 20px;
-  border-top: 1px solid #e5e7eb;
+}
+
+/* === MODAL DE CONFIRMACIÓN === */
+.confirmation-modal .modal-body {
+  text-align: center;
+}
+
+.confirmation-icon {
+  font-size: 3rem;
+  color: var(--warning-color);
+  margin-bottom: var(--spacing-lg);
+}
+
+.confirmation-text {
+  color: var(--gray-700);
+  margin-bottom: var(--spacing-lg);
+  line-height: 1.6;
 }
 
 .warning-text {
-  color: #dc2626;
-  font-size: 0.9rem;
-  margin-top: 10px;
-  padding: 12px;
+  color: var(--error-color);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-md);
   background: #fef2f2;
-  border-radius: 6px;
+  border-radius: var(--border-radius-md);
   border: 1px solid #fecaca;
   font-weight: 500;
 }
 
 /* === RESPONSIVE MODAL === */
 @media (max-width: 768px) {
-  .modal-content {
-    margin: 10px;
-    max-width: calc(100% - 20px);
+  .modal-overlay {
+    padding: var(--spacing-sm);
   }
   
-  .confirmation-actions {
+  .modal-content {
+    max-width: 100%;
+    margin: var(--spacing-sm);
+  }
+  
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: var(--spacing-lg);
+  }
+  
+  .modal-footer {
     flex-direction: column;
   }
   
-  .confirmation-actions .btn {
+  .modal-footer .btn {
     width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: var(--spacing-md);
   }
 }

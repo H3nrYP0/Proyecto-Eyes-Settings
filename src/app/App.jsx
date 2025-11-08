@@ -1,69 +1,47 @@
-// src/app/App.jsx
 import { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router } from "react-router-dom";
 
-// RUTAS CORREGIDAS - desde src/app/
-import Home from "../features/home/pages/Home";
-import AdminLayout from "../shared/components/layouts/AdminLayout";
-import Login from "../features/auth/pages/Login";
+// Estilos globales
+import "/src/shared/styles/globals/app.css";
+import "/src/shared/styles/globals/reset.css";
+import "/src/shared/styles/globals/variables.css";
 
-// ELIMINAR importaciones de CSS que no existen
-// import "../styles/globals/index.css";
-// import "../styles/globals/reset.css";
-// import "../styles/globals/variables.css";
+import AppRoutes from "./AppRoutes";
 
 export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // 🔹 Cargar usuario guardado al iniciar
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
+    if (savedUser) setUser(JSON.parse(savedUser));
     setLoading(false);
   }, []);
 
+  // 🔹 Guardar o limpiar usuario en localStorage
   useEffect(() => {
-    if (user) {
-      localStorage.setItem("user", JSON.stringify(user));
-    } else {
-      localStorage.removeItem("user");
-    }
+    if (user) localStorage.setItem("user", JSON.stringify(user));
+    else localStorage.removeItem("user");
   }, [user]);
+
+  const handleLogin = (userData) => setUser(userData);
+  const handleLogout = () => setUser(null);
 
   if (loading) {
     return (
       <div className="loading-container">
-        <div className="loading-spinner">Cargando Visual Outlet...</div>
+        <div className="loading-spinner"></div>
+        <p>Cargando Visual Outlet...</p>
       </div>
     );
   }
 
   return (
     <Router>
-      <div className="app">
-        <Routes>
-          <Route path="/" element={<Home user={user} setUser={setUser} />} />
-          <Route 
-            path="/login" 
-            element={
-              user ? <Navigate to="/admin" replace /> : <Login setUser={setUser} />
-            } 
-          />
-          <Route 
-            path="/admin/*" 
-            element={
-              user ? (
-                <AdminLayout user={user} setUser={setUser} />
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            } 
-          />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </div>
+      <AppRoutes user={user} setUser={setUser} onLogin={handleLogin} onLogout={handleLogout} />
     </Router>
   );
 }
+
+

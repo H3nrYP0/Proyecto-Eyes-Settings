@@ -1,4 +1,5 @@
-import "../../styles/components/CrudLayout.css";
+// Styles
+import "/src/shared/styles/components/CrudLayout.css";
 
 export default function CrudLayout({ title, description, onAddClick, children }) {
   return (

@@ -1,11 +1,12 @@
-import "../../../shared/styles/features/Dashboard.css";
 import { useState } from "react";
 
+// Styles
+import "/src/shared/styles/features/Dashboard.css";
 
 export default function Dashboard() {
   const [timeFilter, setTimeFilter] = useState("mes"); // "dia", "semana", "mes", "año"
 
-  // Datos de ejemplo que cambian según el filtro
+  // ✅ FUNCIÓN getChartData DEFINIDA - REEMPLAZA EL COMENTARIO CON ESTO
   const getChartData = () => {
     switch (timeFilter) {
       case "dia":
@@ -41,7 +42,7 @@ export default function Dashboard() {
           ],
           metrics: {
             clientes: 28,
-            cites: 25,
+            citas: 25,
             productos: 45,
             ventas: "$1.2M",
             conversion: "68%",
@@ -236,7 +237,7 @@ export default function Dashboard() {
           {/* Productos Más Vendidos */}
           <div className="metrics-card">
             <div className="chart-header">
-              <h3 className="metrics-title">Productos Más Vendidos</h3>
+              <h3 className="chart-title">Productos Más Vendidos</h3>
               <span className="chart-period">
                 {timeFilter === "dia" ? "Hoy" : 
                  timeFilter === "semana" ? "Esta semana" :
@@ -264,7 +265,7 @@ export default function Dashboard() {
           {/* Métricas Operativas */}
           <div className="metrics-card">
             <div className="chart-header">
-              <h3 className="metrics-title">Métricas Operativas</h3>
+              <h3 className="chart-title">Métricas Operativas</h3>
               <span className="chart-period">
                 {timeFilter === "dia" ? "Hoy" : 
                  timeFilter === "semana" ? "Esta semana" :
