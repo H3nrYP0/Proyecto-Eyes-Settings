@@ -1,9 +1,18 @@
-// src/features/home/pages/Home.jsx
-import React from 'react';
-// ELIMINAR esta importación si el archivo no existe
-// import '../../../shared/styles/features/Home.css';
+// Styles
+import "/src/shared/styles/features/Home.css";
 
 const Home = ({ user, setUser }) => {
+  const handleLogin = () => {
+    // Para desarrollo, simula un login automático
+    const demoUser = {
+      name: "Usuario Demo",
+      email: "demo@visualoutlet.com",
+      role: "admin"
+    };
+    setUser(demoUser);
+    window.location.href = '/admin/dashboard';
+  };
+
   const handleLogout = () => {
     setUser(null);
   };
@@ -21,9 +30,9 @@ const Home = ({ user, setUser }) => {
               <span className="user-welcome">Hola, {user?.name}</span>
               <button 
                 className="btn btn-primary"
-                onClick={() => window.location.href = '/admin'}
+                onClick={() => window.location.href = '/admin/dashboard'}
               >
-                Panel Admin
+                Ir al Dashboard
               </button>
               <button 
                 className="btn btn-danger"
@@ -35,10 +44,10 @@ const Home = ({ user, setUser }) => {
           ) : (
             <>
               <button 
-                className="btn btn-primary"
-                onClick={() => window.location.href = '/login'}
+                className="btn btn-primary btn-large"
+                onClick={handleLogin}
               >
-                Iniciar Sesión
+                Entrar al Sistema
               </button>
             </>
           )}
@@ -47,15 +56,15 @@ const Home = ({ user, setUser }) => {
 
       <main className="home-content">
         <div className="hero-section">
-          <h2>Bienvenido a Visual Outlet</h2>
-          <p>Tu sistema integral de gestión para ópticas</p>
+          <h2>Visual Outlet</h2>
+          <p>Sistema de gestión administrativa para ópticas</p>
           {!user && (
             <div className="hero-actions">
               <button 
                 className="btn btn-primary btn-large"
-                onClick={() => window.location.href = '/login'}
+                onClick={handleLogin}
               >
-                Comenzar
+                Acceder al Panel Admin
               </button>
             </div>
           )}

@@ -1,4 +1,3 @@
-// src/shared/components/layouts/AdminLayout.jsx
 import { Routes, Route, Navigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
@@ -26,6 +25,8 @@ import GestionAcceso from "../../../features/usuarios/pages/GestionAcceso";
 import Roles from "../../../features/configuracion/pages/Roles";
 import Permisos from "../../../features/configuracion/pages/Permisos";
 
+// Styles
+import "/src/shared/styles/layouts/AdminLayout.css";
 
 export default function AdminLayout({ user, setUser }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);

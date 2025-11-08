@@ -1,8 +1,9 @@
-// src/app/App.jsx
 import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
-// RUTAS CORREGIDAS - desde src/app/
+// Importar estilos globales principales
+import "/src/shared/styles/globals/index.css";
+
 import Home from "../features/home/pages/Home";
 import AdminLayout from "../shared/components/layouts/AdminLayout";
 import Login from "../features/auth/pages/Login";
@@ -27,10 +28,19 @@ export default function App() {
     }
   }, [user]);
 
+  const handleLogin = (userData) => {
+    setUser(userData);
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+  };
+
   if (loading) {
     return (
       <div className="loading-container">
-        <div className="loading-spinner">Cargando Visual Outlet...</div>
+        <div className="loading-spinner"></div>
+        <p>Cargando Visual Outlet...</p>
       </div>
     );
   }
@@ -39,18 +49,33 @@ export default function App() {
     <Router>
       <div className="app">
         <Routes>
-          <Route path="/" element={<Home user={user} setUser={setUser} />} />
+          <Route 
+            path="/" 
+            element={
+              <Home 
+                user={user} 
+                setUser={setUser} 
+                onLoginClick={() => window.location.href = '/login'}
+              />
+            } 
+          />
           <Route 
             path="/login" 
             element={
-              user ? <Navigate to="/admin" replace /> : <Login setUser={setUser} />
+              user ? 
+              <Navigate to="/admin/dashboard" replace /> : 
+              <Login setUser={handleLogin} />
             } 
           />
           <Route 
             path="/admin/*" 
             element={
               user ? (
-                <AdminLayout user={user} setUser={setUser} />
+                <AdminLayout 
+                  user={user} 
+                  setUser={setUser} 
+                  onLogout={handleLogout}
+                />
               ) : (
                 <Navigate to="/login" replace />
               )

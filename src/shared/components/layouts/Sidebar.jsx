@@ -1,5 +1,8 @@
 import { useNavigate, useLocation } from "react-router-dom";
 
+// Styles
+import "/src/shared/styles/components/Sidebar.css";
+
 const menuStructure = [
   {
     key: "dashboard",

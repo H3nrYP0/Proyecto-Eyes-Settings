@@ -1,5 +1,7 @@
 import { useEffect } from "react";
-import "../styles/CrudLayout.css";
+
+// Styles
+import "/src/shared/styles/components/Modal.css";
 
 export default function Modal({ isOpen, onClose, title, children }) {
   useEffect(() => {

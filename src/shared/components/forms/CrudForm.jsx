@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import "../styles/CrudLayout.css";
+
+// Styles
+import "/src/shared/styles/components/CrudForm.css";
 
 export default function CrudForm({ 
   title, 
