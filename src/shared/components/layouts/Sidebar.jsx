@@ -48,7 +48,7 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
   const menuSections = [
     {
       id: "dashboard",
-      title: "Dashboard Principal",
+      title: "Dashboard ",
       icon: "dashboard-icon",
       // ESTOS SON LOS ITEMS DEL DASHBOARD
       items: [
@@ -57,7 +57,7 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
     },
     {
       id: "ventas",
-      title: "Módulo de Ventas",
+      title: "Ventas",
       icon: "ventas-icon",
       // ESTOS SON LOS ITEMS DEL MÓDULO DE VENTAS
       items: [
@@ -69,7 +69,7 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
     },
     {
       id: "compras",
-      title: "Compras e Inventario", 
+      title: "Compras", 
       icon: "compras-icon",
       // ESTOS SON LOS ITEMS DEL MÓDULO DE COMPRAS
       items: [
@@ -82,7 +82,7 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
     },
     {
       id: "servicios",
-      title: "Servicios Ópticos",
+      title: "Servicios",
       icon: "servicios-icon",
       // ESTOS SON LOS ITEMS DEL MÓDULO DE SERVICIOS
       items: [
@@ -95,7 +95,7 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
     },
     {
       id: "usuarios", 
-      title: "Gestión de Usuarios",
+      title: "Usuarios",
       icon: "usuarios-icon",
       // ESTOS SON LOS ITEMS DEL MÓDULO DE USUARIOS
       items: [
@@ -122,7 +122,7 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
       {/* ESTA ES LA CABECERA DEL SIDEBAR */}
       <div className="sidebar-header">
         <h1>Visual Outlet</h1>
-        <p>Sistema de Gestión para Ópticas</p>
+        <p>Sistema de Gestión</p>
         <button className="sidebar-toggle" onClick={onToggle}>
           {isOpen ? "◀" : "▶"}
         </button>
