@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CrudLayout from "../../../shared/components/layouts/CrudLayout";
 import "../../../shared/styles/components/CrudLayout.css";
+import Modal from "../../../shared/components/ui/Modal";
+
 
 // Datos de ejemplo
 const marcasIniciales = [
