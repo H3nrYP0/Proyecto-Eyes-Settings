@@ -10,9 +10,12 @@ export default function CrudTable({ columns = [], data = [], actions = [] }) {
       <table className="crud-table" aria-label="Tabla genérica">
         <thead>
           <tr>
-            {columns.map((col) => (
-              <th key={col.field || col.header}>{col.header}</th>
+            {columns.map(col => (
+              col.field === "id"
+                ? null
+                : <th key={col.field}>{col.header}</th>
             ))}
+
             {actions && actions.length > 0 && <th>Acciones</th>}
           </tr>
         </thead>
@@ -27,11 +30,16 @@ export default function CrudTable({ columns = [], data = [], actions = [] }) {
           ) : (
             data.map((row) => (
               <tr key={row.id ?? JSON.stringify(row)}>
-                {columns.map((col) => (
-                  <td key={col.field || col.header}>
-                    {typeof col.render === "function" ? col.render(row) : row[col.field]}
-                  </td>
-                ))}
+                  {columns.map((col) => (
+                    col.field === "id"
+                      ? null
+                      : (
+                          <td key={col.field || col.header}>
+                            {typeof col.render === "function" ? col.render(row) : row[col.field]}
+                          </td>
+                        )
+                  ))}
+
 
                 {actions && actions.length > 0 && (
                   <td className="actions">
