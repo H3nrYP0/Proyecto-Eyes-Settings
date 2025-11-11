@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter as Router } from "react-router-dom";
+import { BrowserRouter } from "react-router-dom";
 
 // Estilos globales
 import "/src/shared/styles/globals/app.css";
@@ -38,10 +38,13 @@ export default function App() {
   }
 
   return (
-    <Router>
-      <AppRoutes user={user} setUser={setUser} onLogin={handleLogin} onLogout={handleLogout} />
-    </Router>
+    <BrowserRouter basename="/Proyecto-Eyes-Settings">
+      <AppRoutes 
+        user={user}
+        setUser={setUser}
+        onLogin={handleLogin}
+        onLogout={handleLogout}
+      />
+    </BrowserRouter>
   );
 }
-
-

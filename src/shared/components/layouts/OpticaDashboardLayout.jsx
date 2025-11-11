@@ -16,6 +16,8 @@ import Abonos from "../../../features/ventas/pages/Abonos";
 // ESTAS SON LAS FEATURES DE COMPRAS
 import Compras from "../../../features/compras/pages/Compras";
 import Categorias from "../../../features/compras/pages/Categorias";
+import CrudCategoria from "../../../features/compras/pages/CrudCategoria";
+
 import Marcas from "../../../features/compras/pages/Marcas";
 import Products from "../../../features/compras/pages/Products";
 import Proveedores from "../../../features/compras/pages/Proveedores";
@@ -104,11 +106,11 @@ export default function OpticaDashboardLayout({ user, setUser }) {
             {/* ESTAS SON LAS RUTAS DEL MÓDULO DE COMPRAS */}
             <Route path="compras">
               <Route index element={<Compras />} />
-              
+              <Route path="categorias" element={<Categorias />} />
               <Route path="categorias/crear" element={<CrudCategoria mode="crear" />} />
               <Route path="categorias/editar/:id" element={<CrudCategoria mode="editar" />} />
 
-              <Route path="categorias" element={<Categorias />} />
+              
               <Route path="marcas" element={<Marcas />} />
               <Route path="productos" element={<Products />} />
               <Route path="proveedores" element={<Proveedores />} />

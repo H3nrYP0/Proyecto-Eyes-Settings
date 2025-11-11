@@ -2,7 +2,7 @@
 // Renderiza una tabla simple basada en columnas, datos y acciones
 // Autor: (Tu nombre) - Proyecto Eyes Settings
 
-import "./crud-table.css";
+
 
 export default function CrudTable({ columns, data, actions }) {
   return (
