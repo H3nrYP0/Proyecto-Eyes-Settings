@@ -154,3 +154,61 @@
 .btn-secondary:hover {
   background: var(--gray-300);
 }
+
+
+.estado-btn {
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: 0.2s;
+}
+
+.estado-btn.activo {
+  background: #d4ffd8;
+  color: #15803d;
+}
+
+.estado-btn.inactivo {
+  background: #ffe1e1;
+  color: #b91c1c;
+}
+
+/* Botones de acción */
+.crud-action-btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border: none;
+  margin-right: 6px;
+  transition: 0.15s;
+}
+
+/* Ver */
+.crud-view {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+.crud-view:hover {
+  background: #bae6fd;
+}
+
+/* Editar */
+.crud-edit {
+  background: #fef3c7;
+  color: #b45309;
+}
+.crud-edit:hover {
+  background: #fde68a;
+}
+
+/* Eliminar */
+.crud-delete {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+.crud-delete:hover {
+  background: #fecaca;
+}

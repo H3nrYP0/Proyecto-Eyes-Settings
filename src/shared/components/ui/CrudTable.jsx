@@ -1,48 +1,52 @@
-// Componente de tabla reutilizable para módulos CRUD
-// Renderiza una tabla simple basada en columnas, datos y acciones
-// Autor: (Tu nombre) - Proyecto Eyes Settings
+// src/shared/components/ui/CrudTable.jsx
+// Tabla genérica que soporta columnas simples y columnas con "render" (función).
+import React from "react";
+/* IMPORTA CSS desde tu carpeta de estilos compartida (ajusta la ruta si la tienes en otro sitio) */
+import "/src/shared/styles/components/crud-table.css";
 
-
-
-export default function CrudTable({ columns, data, actions }) {
+export default function CrudTable({ columns = [], data = [], actions = [] }) {
   return (
-    <div className="crud-table-container">
-      <table className="crud-table">
+    <div className="table-responsive-container">
+      <table className="crud-table" aria-label="Tabla genérica">
         <thead>
           <tr>
             {columns.map((col) => (
-              <th key={col.field}>{col.header}</th>
+              <th key={col.field || col.header}>{col.header}</th>
             ))}
-            {actions && <th>Acciones</th>}
+            {actions && actions.length > 0 && <th>Acciones</th>}
           </tr>
         </thead>
 
         <tbody>
-          {data.length === 0 ? (
+          {(!data || data.length === 0) ? (
             <tr>
-              <td colSpan={columns.length + 1} className="no-data">
-                No hay datos para mostrar
+              <td colSpan={(columns.length) + (actions && actions.length > 0 ? 1 : 0)} style={{ textAlign: "center", padding: 24 }}>
+                No hay registros.
               </td>
             </tr>
           ) : (
-            data.map((row, index) => (
-              <tr key={index}>
+            data.map((row) => (
+              <tr key={row.id ?? JSON.stringify(row)}>
                 {columns.map((col) => (
-                  <td key={col.field}>{row[col.field]}</td>
+                  <td key={col.field || col.header}>
+                    {typeof col.render === "function" ? col.render(row) : row[col.field]}
+                  </td>
                 ))}
 
-                {actions && (
-                  <td className="crud-actions">
-                    {actions.map((action, i) => (
+                {actions && actions.length > 0 && (
+                  <td className="actions">
+                    {actions.map((action, idx) => (
                       <button
-                        key={i}
-                        className={`crud-action-btn ${action.type}`}
-                        onClick={() => action.onClick(row)}
+                        key={idx}
+                        className={`crud-action-btn crud-${action.type}`}
+                        onClick={() => action.onClick?.(row)}
+                        type="button"
                       >
                         {action.label}
                       </button>
                     ))}
                   </td>
+
                 )}
               </tr>
             ))

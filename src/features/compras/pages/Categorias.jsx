@@ -39,6 +39,17 @@ export default function Categorias() {
     },
   ]);
 
+  // ✅ Función para alternar el estado
+  const toggleEstado = (id) => {
+    setCategorias((prev) =>
+      prev.map((c) =>
+        c.id === id
+          ? { ...c, estado: c.estado === "activa" ? "inactiva" : "activa" }
+          : c
+      )
+    );
+  };
+
   // ✅ Estado del buscador
   const [search, setSearch] = useState("");
 
@@ -52,7 +63,22 @@ export default function Categorias() {
     { field: "id", header: "ID" },
     { field: "nombre", header: "Nombre" },
     { field: "descripcion", header: "Descripción" },
-    { field: "estado", header: "Estado" },
+
+    // ✅ Aquí convertimos el estado en botón
+    {
+      field: "estado",
+      header: "Estado",
+      render: (item) => (
+        <button
+          className={`estado-btn ${
+            item.estado === "activa" ? "activo" : "inactivo"
+          }`}
+          onClick={() => toggleEstado(item.id)}
+        >
+          {item.estado === "activa" ? "✅ Activa" : "⛔ Inactiva"}
+        </button>
+      ),
+    },
   ];
 
   // ✅ Acciones de la tabla
