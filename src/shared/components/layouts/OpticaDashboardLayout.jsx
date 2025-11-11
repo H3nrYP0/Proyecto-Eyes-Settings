@@ -104,6 +104,10 @@ export default function OpticaDashboardLayout({ user, setUser }) {
             {/* ESTAS SON LAS RUTAS DEL MÓDULO DE COMPRAS */}
             <Route path="compras">
               <Route index element={<Compras />} />
+              
+              <Route path="categorias/crear" element={<CrudCategoria mode="crear" />} />
+              <Route path="categorias/editar/:id" element={<CrudCategoria mode="editar" />} />
+
               <Route path="categorias" element={<Categorias />} />
               <Route path="marcas" element={<Marcas />} />
               <Route path="productos" element={<Products />} />

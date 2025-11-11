@@ -1,87 +1,113 @@
+// Página principal del listado de Categorías
+// Usa CrudLayout + CrudTable con datos quemados temporalmente
+// Autor: (Tu nombre) - Proyecto Eyes Settings
+
+import { useState } from "react";
 import CrudLayout from "../../../shared/components/layouts/CrudLayout";
-import "../../../shared/styles/components/CrudLayout.css";
+import CrudTable from "../../../shared/components/ui/CrudTable";
+import "../../../shared/styles/components/crud-table.css";
+import { useNavigate } from "react-router-dom";
 
 export default function Categorias() {
-  const handleAddCategoria = () => {
-    alert("Agregar nueva categoría");
+  const navigate = useNavigate();
+
+  // ✅ Datos quemados temporales con la estructura real del proyecto
+  const [categorias, setCategorias] = useState([
+    {
+      id: 1,
+      nombre: "Monturas",
+      descripcion: "Armazones y monturas para lentes oftálmicos",
+      estado: "activa",
+    },
+    {
+      id: 2,
+      nombre: "Lentes de Sol",
+      descripcion: "Gafas de sol con protección UV",
+      estado: "activa",
+    },
+    {
+      id: 3,
+      nombre: "Lentes de Contacto",
+      descripcion: "Lentes blandos y rígidos",
+      estado: "activa",
+    },
+    {
+      id: 4,
+      nombre: "Accesorios",
+      descripcion: "Estuches, paños y productos de limpieza",
+      estado: "activa",
+    },
+  ]);
+
+  // ✅ Estado del buscador
+  const [search, setSearch] = useState("");
+
+  // ✅ Filtrado básico
+  const filtered = categorias.filter((c) =>
+    c.nombre.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // ✅ Columnas de la tabla (solo las que definiste)
+  const columns = [
+    { field: "id", header: "ID" },
+    { field: "nombre", header: "Nombre" },
+    { field: "descripcion", header: "Descripción" },
+    { field: "estado", header: "Estado" },
+  ];
+
+  // ✅ Acciones de la tabla
+  const actions = [
+    {
+      label: "Ver Detalles",
+      type: "view",
+      onClick: (item) =>
+        navigate(`/admin/compras/categorias/detalle/${item.id}`),
+    },
+    {
+      label: "Editar",
+      type: "edit",
+      onClick: (item) =>
+        navigate(`/admin/compras/categorias/editar/${item.id}`),
+    },
+    {
+      label: "Eliminar",
+      type: "delete",
+      onClick: (item) => handleDelete(item.id),
+    },
+  ];
+
+  // ✅ Eliminar categoría (simulado)
+  const handleDelete = (id) => {
+    const confirmDelete = window.confirm(
+      "¿Seguro que deseas eliminar esta categoría?"
+    );
+    if (!confirmDelete) return;
+
+    alert(`✅ Categoría con ID ${id} eliminada (simulado)`);
+
+    // Lógica temporal
+    setCategorias(categorias.filter((c) => c.id !== id));
   };
 
   return (
     <CrudLayout
       title="📁 Categorías de Productos"
-      description="Administra las categorías para organizar los productos de la óptica."
-      onAddClick={handleAddCategoria}
+      description="Administra las categorías de productos para organizar tu inventario."
+      onAddClick={() => navigate("/admin/compras/categorias/crear")}
     >
-      <div className="crud-center">
-        <table className="crud-table">
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Descripción</th>
-              <th>Productos Asociados</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Lentes de Sol</td>
-              <td>Lentes para protección solar con diferentes estilos y marcas</td>
-              <td>15 productos</td>
-              <td><span className="status-active">Activa</span></td>
-              <td className="actions">
-                <button title="Editar">✏️</button>
-                <button title="Ver productos">📦</button>
-                <button title="Eliminar">🗑️</button>
-              </td>
-            </tr>
-            <tr>
-              <td>Lentes de Contacto</td>
-              <td>Lentes de contacto de diferentes tipos y duración</td>
-              <td>8 productos</td>
-              <td><span className="status-active">Activa</span></td>
-              <td className="actions">
-                <button title="Editar">✏️</button>
-                <button title="Ver productos">📦</button>
-                <button title="Eliminar">🗑️</button>
-              </td>
-            </tr>
-            <tr>
-              <td>Monturas</td>
-              <td>Armazones para lentes oftálmicos en diversos materiales</td>
-              <td>22 productos</td>
-              <td><span className="status-active">Activa</span></td>
-              <td className="actions">
-                <button title="Editar">✏️</button>
-                <button title="Ver productos">📦</button>
-                <button title="Eliminar">🗑️</button>
-              </td>
-            </tr>
-            <tr>
-              <td>Accesorios</td>
-              <td>Estuches, líquidos de limpieza y otros accesorios</td>
-              <td>12 productos</td>
-              <td><span className="status-active">Activa</span></td>
-              <td className="actions">
-                <button title="Editar">✏️</button>
-                <button title="Ver productos">📦</button>
-                <button title="Eliminar">🗑️</button>
-              </td>
-            </tr>
-            <tr>
-              <td>Lentes Oftálmicos</td>
-              <td>Lentes con graduación para monturas</td>
-              <td>18 productos</td>
-              <td><span className="status-active">Activa</span></td>
-              <td className="actions">
-                <button title="Editar">✏️</button>
-                <button title="Ver productos">📦</button>
-                <button title="Eliminar">🗑️</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      {/* ✅ Buscador */}
+      <div className="search-bar-row">
+        <input
+          className="search-input"
+          type="text"
+          placeholder="Buscar categorías..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </div>
+
+      {/* ✅ Tabla */}
+      <CrudTable columns={columns} data={filtered} actions={actions} />
     </CrudLayout>
   );
 }
