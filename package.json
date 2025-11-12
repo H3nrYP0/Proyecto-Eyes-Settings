@@ -13,8 +13,13 @@
   },
   "homepage": "https://h3nryp0.github.io/Proyecto-Eyes-Settings/",
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^5.18.0",
+    "@mui/material": "^5.18.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-icons": "^5.5.0",
     "react-router-dom": "^7.9.5"
   },
   "devDependencies": {
