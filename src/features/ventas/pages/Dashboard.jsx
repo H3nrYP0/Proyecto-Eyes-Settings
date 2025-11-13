@@ -1,12 +1,13 @@
+// src/features/ventas/pages/Dashboard.jsx
 import { useState } from "react";
 
 // Styles
 import "/src/shared/styles/features/Dashboard.css";
 
 export default function Dashboard() {
-  const [timeFilter, setTimeFilter] = useState("mes"); // "dia", "semana", "mes", "año"
+  const [timeFilter, setTimeFilter] = useState("mes"); // "dia", "mes", "año"
 
-  // ✅ FUNCIÓN getChartData DEFINIDA - REEMPLAZA EL COMENTARIO CON ESTO
+  // Función que genera datos según el filtro de tiempo
   const getChartData = () => {
     switch (timeFilter) {
       case "dia":
@@ -27,33 +28,21 @@ export default function Dashboard() {
             ventas: "$450K",
             conversion: "72%",
             nuevosClientes: 4
-          }
-        };
-      case "semana":
-        return {
-          salesLabels: ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"],
-          salesData: [85, 60, 45, 70, 90, 55, 75],
-          purchaseLabels: ["Sem1", "Sem2", "Sem3", "Sem4"],
-          purchaseData: [60, 90, 40, 75],
-          products: [
-            { name: "Lentes de Contacto Acuwe", percentage: 30 },
-            { name: "Montura Ray-Ban Aviator", percentage: 20 },
-            { name: "Gafas de Sol Oakley", percentage: 15 }
-          ],
-          metrics: {
-            clientes: 28,
-            citas: 25,
-            productos: 45,
-            ventas: "$1.2M",
-            conversion: "68%",
-            nuevosClientes: 8
+          },
+          kpis: {
+            examenesProgramados: 5,
+            lentesPorEntregar: 8,
+            campanasActivas: 3,
+            inventarioCritico: 12,
+            satisfaccionCliente: "4.8/5",
+            citasEfectivas: 8
           }
         };
       case "mes":
         return {
-          salesLabels: ["1/08", "2/08", "3/08", "4/08", "5/08", "6/08", "7/08"],
-          salesData: [85, 60, 45, 70, 90, 55, 75],
-          purchaseLabels: ["vie", "sáb", "dom", "lun", "mar", "mié", "jue"],
+          salesLabels: ["Sem1", "Sem2", "Sem3", "Sem4"],
+          salesData: [85, 60, 45, 70],
+          purchaseLabels: ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul"],
           purchaseData: [60, 90, 40, 75, 85, 50, 65],
           products: [
             { name: "Lentes de Contacto Acuwe", percentage: 27 },
@@ -67,6 +56,14 @@ export default function Dashboard() {
             ventas: "$1.2M",
             conversion: "65%",
             nuevosClientes: 3
+          },
+          kpis: {
+            examenesProgramados: 15,
+            lentesPorEntregar: 25,
+            campanasActivas: 2,
+            inventarioCritico: 8,
+            satisfaccionCliente: "4.7/5",
+            citasEfectivas: 25
           }
         };
       case "año":
@@ -87,13 +84,21 @@ export default function Dashboard() {
             ventas: "$14.5M",
             conversion: "70%",
             nuevosClientes: 45
+          },
+          kpis: {
+            examenesProgramados: 120,
+            lentesPorEntregar: 89,
+            campanasActivas: 4,
+            inventarioCritico: 5,
+            satisfaccionCliente: "4.9/5",
+            citasEfectivas: 128
           }
         };
       default:
         return {
-          salesLabels: ["1/08", "2/08", "3/08", "4/08", "5/08", "6/08", "7/08"],
-          salesData: [85, 60, 45, 70, 90, 55, 75],
-          purchaseLabels: ["vie", "sáb", "dom", "lun", "mar", "mié", "jue"],
+          salesLabels: ["Sem1", "Sem2", "Sem3", "Sem4"],
+          salesData: [85, 60, 45, 70],
+          purchaseLabels: ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul"],
           purchaseData: [60, 90, 40, 75, 85, 50, 65],
           products: [
             { name: "Lentes de Contacto Acuwe", percentage: 27 },
@@ -107,6 +112,14 @@ export default function Dashboard() {
             ventas: "$1.2M",
             conversion: "65%",
             nuevosClientes: 3
+          },
+          kpis: {
+            examenesProgramados: 15,
+            lentesPorEntregar: 25,
+            campanasActivas: 2,
+            inventarioCritico: 8,
+            satisfaccionCliente: "4.7/5",
+            citasEfectivas: 25
           }
         };
     }
@@ -132,12 +145,6 @@ export default function Dashboard() {
                 Día
               </button>
               <button 
-                className={`filter-btn ${timeFilter === "semana" ? "active" : ""}`}
-                onClick={() => setTimeFilter("semana")}
-              >
-                Semana
-              </button>
-              <button 
                 className={`filter-btn ${timeFilter === "mes" ? "active" : ""}`}
                 onClick={() => setTimeFilter("mes")}
               >
@@ -154,26 +161,53 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* KPIs Principales */}
+      <div className="kpis-grid">
+        <div className="kpi-card">
+          <div className="kpi-value">{chartData.kpis.examenesProgramados}</div>
+          <div className="kpi-label">Exámenes Programados</div>
+        </div>
+        <div className="kpi-card">
+          <div className="kpi-value">{chartData.kpis.lentesPorEntregar}</div>
+          <div className="kpi-label">Lentes por Entregar</div>
+        </div>
+        <div className="kpi-card">
+          <div className="kpi-value">{chartData.kpis.campanasActivas}</div>
+          <div className="kpi-label">Campañas Activas</div>
+        </div>
+        <div className="kpi-card">
+          <div className="kpi-value">{chartData.kpis.inventarioCritico}</div>
+          <div className="kpi-label">Inventario Crítico</div>
+        </div>
+        <div className="kpi-card">
+          <div className="kpi-value">{chartData.kpis.satisfaccionCliente}</div>
+          <div className="kpi-label">Satisfacción Cliente</div>
+        </div>
+        <div className="kpi-card">
+          <div className="kpi-value">{chartData.kpis.citasEfectivas}</div>
+          <div className="kpi-label">Citas Efectivas</div>
+        </div>
+      </div>
+
       <div className="dashboard-grid">
         {/* Columna izquierda - Gráficas */}
         <div className="dashboard-column">
           {/* Totales de Ventas */}
           <div className="chart-card">
             <div className="chart-header">
-              <h3 className="chart-title">Totales de Ventas</h3>
+              <h3 className="chart-title">Tendencias de Ventas</h3>
               <span className="chart-period">
                 {timeFilter === "dia" ? "Hoy" : 
-                 timeFilter === "semana" ? "Esta semana" :
                  timeFilter === "mes" ? "Este mes" : "Este año"}
               </span>
             </div>
             <div className="sales-chart">
               <div className="chart-y-axis">
-                <span>600000</span>
-                <span>450000</span>
-                <span>300000</span>
-                <span>150000</span>
-                <span>0</span>
+                <span>100%</span>
+                <span>75%</span>
+                <span>50%</span>
+                <span>25%</span>
+                <span>0%</span>
               </div>
               <div className="chart-content">
                 <div className="chart-bars">
@@ -194,23 +228,22 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Totales de Compras */}
+          {/* Ventas por Categoría */}
           <div className="chart-card">
             <div className="chart-header">
-              <h3 className="chart-title">Totales de Compras</h3>
+              <h3 className="chart-title">Ventas por Categoría</h3>
               <span className="chart-period">
                 {timeFilter === "dia" ? "Hoy" : 
-                 timeFilter === "semana" ? "Esta semana" :
                  timeFilter === "mes" ? "Este mes" : "Este año"}
               </span>
             </div>
             <div className="purchases-chart">
               <div className="chart-y-axis">
-                <span>4</span>
-                <span>3</span>
-                <span>2</span>
-                <span>1</span>
-                <span>0</span>
+                <span>100%</span>
+                <span>75%</span>
+                <span>50%</span>
+                <span>25%</span>
+                <span>0%</span>
               </div>
               <div className="chart-content">
                 <div className="chart-bars">
@@ -240,7 +273,6 @@ export default function Dashboard() {
               <h3 className="chart-title">Productos Más Vendidos</h3>
               <span className="chart-period">
                 {timeFilter === "dia" ? "Hoy" : 
-                 timeFilter === "semana" ? "Esta semana" :
                  timeFilter === "mes" ? "Este mes" : "Este año"}
               </span>
             </div>
@@ -265,10 +297,9 @@ export default function Dashboard() {
           {/* Métricas Operativas */}
           <div className="metrics-card">
             <div className="chart-header">
-              <h3 className="chart-title">Métricas Operativas</h3>
+              <h3 className="chart-title">Métricas de Servicios</h3>
               <span className="chart-period">
                 {timeFilter === "dia" ? "Hoy" : 
-                 timeFilter === "semana" ? "Esta semana" :
                  timeFilter === "mes" ? "Este mes" : "Este año"}
               </span>
             </div>
@@ -286,7 +317,7 @@ export default function Dashboard() {
                 <span className="metric-value">{chartData.metrics.productos}</span>
               </div>
               <div className="metric-row">
-                <span className="metric-label">Ventas del {timeFilter === "dia" ? "Día" : timeFilter === "semana" ? "Semana" : timeFilter === "mes" ? "Mes" : "Año"}</span>
+                <span className="metric-label">Ventas Totales</span>
                 <span className="metric-value">{chartData.metrics.ventas}</span>
               </div>
               <div className="metric-row">
