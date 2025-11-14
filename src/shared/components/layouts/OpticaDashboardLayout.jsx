@@ -1,4 +1,4 @@
-// src/shared/components/layouts/OpticaDashboardLayout.jsx - CORREGIDO
+// src/shared/components/layouts/OpticaDashboardLayout.jsx - COMPLETO
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
@@ -19,6 +19,11 @@ import Categorias from "../../../features/compras/pages/Categorias";
 import Marcas from "../../../features/compras/pages/Marcas";
 import Products from "../../../features/compras/pages/Products";
 import Proveedores from "../../../features/compras/pages/Proveedores";
+import CrearProveedor from "../../../features/compras/pages/CrearProveedor";
+import EditarProveedor from "../../../features/compras/pages/EditarProveedor";
+import CrearCompra from "../../../features/compras/pages/CrearCompra";
+import EditarCompra from "../../../features/compras/pages/EditarCompra";
+import DetalleCompra from "../../../features/compras/pages/DetalleCompra";
 
 // ESTAS SON LAS FEATURES DE SERVICIOS
 import Servicios from "../../../features/servicios/pages/Servicios";
@@ -101,13 +106,20 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               <Route path="abonos" element={<Abonos />} />
             </Route>
 
-            {/* ESTAS SON LAS RUTAS DEL MÓDULO DE COMPRAS */}
+            {/* ESTAS SON LAS RUTAS DEL MÓDULO DE COMPRAS - ACTUALIZADAS */}
             <Route path="compras">
               <Route index element={<Compras />} />
+              <Route path="crear" element={<CrearCompra />} />
+              <Route path="editar/:id" element={<EditarCompra />} />
+              <Route path="detalle/:id" element={<DetalleCompra />} />
               <Route path="categorias" element={<Categorias />} />
               <Route path="marcas" element={<Marcas />} />
               <Route path="productos" element={<Products />} />
-              <Route path="proveedores" element={<Proveedores />} />
+              <Route path="proveedores">
+                <Route index element={<Proveedores />} />
+                <Route path="crear" element={<CrearProveedor />} />
+                <Route path="editar/:id" element={<EditarProveedor />} />
+              </Route>
             </Route>
 
             {/* ESTAS SON LAS RUTAS DEL MÓDULO DE SERVICIOS */}
