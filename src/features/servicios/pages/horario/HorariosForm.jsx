@@ -3,14 +3,13 @@ import { empleadosList, diasList } from "../../../../lib/data/horariosData";
 
 export default function HorariosForm({ mode, initialData, onSubmit, onCancel }) {
   
-  // Estado base del formulario
+  // Estado base del formulario - sin duración
   const [form, setForm] = useState({
     empleado: "",
     dia: "",
     horaInicio: "",
     horaFinal: "",
-    duracion: "0 horas",
-    estado: "activo",
+    estado: "activo", // ✅ Siempre activo por defecto
   });
 
   // Calcular duración automáticamente cuando cambian las horas
@@ -29,10 +28,8 @@ export default function HorariosForm({ mode, initialData, onSubmit, onCancel }) 
         return `${diffHoras} horas`;
       };
 
-      setForm(prev => ({
-        ...prev,
-        duracion: calcularDuracion()
-      }));
+      // La duración se calcula pero no se muestra en el form
+      console.log("Duración calculada:", calcularDuracion());
     }
   }, [form.horaInicio, form.horaFinal]);
 
@@ -44,7 +41,6 @@ export default function HorariosForm({ mode, initialData, onSubmit, onCancel }) 
         dia: initialData.dia || "",
         horaInicio: initialData.horaInicio || "",
         horaFinal: initialData.horaFinal || "",
-        duracion: initialData.duracion || "0 horas",
         estado: initialData.estado || "activo",
       });
     }
@@ -67,6 +63,8 @@ export default function HorariosForm({ mode, initialData, onSubmit, onCancel }) 
 
   // Solo lectura en modo detalle
   const readOnly = mode === "detalle";
+  // No mostrar estado en modo crear
+  const showEstado = mode !== "crear";
 
   return (
     <form className="crud-form" onSubmit={handleSubmit}>
@@ -135,32 +133,21 @@ export default function HorariosForm({ mode, initialData, onSubmit, onCancel }) 
         />
       </div>
 
-      {/* DURACIÓN (Calculada automáticamente) */}
-      <div className="form-group">
-        <label>Duración</label>
-        <input
-          type="text"
-          name="duracion"
-          value={form.duracion}
-          disabled
-          className="disabled-input"
-        />
-        <small>Calculada automáticamente</small>
-      </div>
-
-      {/* ESTADO */}
-      <div className="form-group">
-        <label>Estado</label>
-        <select
-          name="estado"
-          value={form.estado}
-          onChange={handleChange}
-          disabled={readOnly}
-        >
-          <option value="activo">Activo</option>
-          <option value="inactivo">Inactivo</option>
-        </select>
-      </div>
+      {/* ESTADO - Solo mostrar en editar y detalle */}
+      {showEstado && (
+        <div className="form-group">
+          <label>Estado</label>
+          <select
+            name="estado"
+            value={form.estado}
+            onChange={handleChange}
+            disabled={readOnly}
+          >
+            <option value="activo">Activo</option>
+            <option value="inactivo">Inactivo</option>
+          </select>
+        </div>
+      )}
 
       {/* BOTONES */}
       <div className="crud-form-actions">

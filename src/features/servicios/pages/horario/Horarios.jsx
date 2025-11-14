@@ -75,7 +75,7 @@ export default function Horarios() {
     { field: "dia", header: "Día" },
     { field: "horaInicio", header: "Hora Inicio" },
     { field: "horaFinal", header: "Hora Final" },
-    { field: "duracion", header: "Duración" },
+
     {
       field: "estado",
       header: "Estado",
