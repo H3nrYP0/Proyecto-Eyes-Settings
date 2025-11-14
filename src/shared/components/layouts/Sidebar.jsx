@@ -117,8 +117,7 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
       icon: "configuracion-icon",
       // Items del módulo de configuración
       items: [
-        { name: "Roles", path: "/admin/configuracion/roles", icon: "roles-icon" },
-        { name: "Permisos", path: "/admin/configuracion/permisos", icon: "permissions-icon" }
+        { name: "Roles", path: "/admin/configuracion/roles", icon: "roles-icon" }
       ]
     }
   ];
