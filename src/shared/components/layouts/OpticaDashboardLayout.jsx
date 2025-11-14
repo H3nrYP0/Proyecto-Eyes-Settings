@@ -29,7 +29,9 @@ import Agenda from "../../../features/servicios/pages/agenda/Agenda";
 import CrudAgenda from "../../../features/servicios/pages/agenda/CrudAgenda";
 
 
-import Horarios from "../../../features/servicios/pages/Horarios";
+import Horarios from "../../../features/servicios/pages//horario/Horarios";
+import CrudHorarios from "../../../features/servicios/pages/horario/CrudHorarios";
+
 import CampanasSalud from "../../../features/servicios/pages/CampanasSalud";
 
 // ESTAS SON LAS FEATURES DE USUARIOS
@@ -130,6 +132,9 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               <Route path="agenda/detalle/:id" element={<CrudAgenda mode="detalle" />} />
 
               <Route path="horarios" element={<Horarios />} />
+              <Route path="horarios/crear" element={<CrudHorarios mode="crear" />} />
+              <Route path="horarios/editar/:id" element={<CrudHorarios mode="editar" />} />
+              <Route path="horarios/detalle/:id" element={<CrudHorarios mode="detalle" />} />
               <Route path="campanas-salud" element={<CampanasSalud />} />
             </Route>
 
