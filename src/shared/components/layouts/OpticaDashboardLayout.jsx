@@ -25,7 +25,8 @@ import Proveedores from "../../../features/compras/pages/Proveedores";
 // ESTAS SON LAS FEATURES DE SERVICIOS
 import Servicios from "../../../features/servicios/pages/Servicios";
 import Empleados from "../../../features/servicios/pages/Empleados";
-import Agenda from "../../../features/servicios/pages/Agenda";
+import Agenda from "../../../features/servicios/pages/agenda/Agenda";
+import CrudAgenda from "../../../features/servicios/pages/agenda/CrudAgenda";
 
 
 import Horarios from "../../../features/servicios/pages/Horarios";
@@ -124,7 +125,9 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               <Route index element={<Servicios />} />
               <Route path="empleados" element={<Empleados />} />
               <Route path="agenda" element={<Agenda />} />
-
+              <Route path="agenda/crear" element={<CrudAgenda mode="crear" />} />
+              <Route path="agenda/editar/:id" element={<CrudAgenda mode="editar" />} />
+              <Route path="agenda/detalle/:id" element={<CrudAgenda mode="detalle" />} />
 
               <Route path="horarios" element={<Horarios />} />
               <Route path="campanas-salud" element={<CampanasSalud />} />

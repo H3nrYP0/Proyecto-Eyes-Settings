@@ -1,73 +1,50 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import CrudLayout from "../../../shared/components/layouts/CrudLayout";
-import CrudTable from "../../../shared/components/ui/CrudTable";
-import "../../../shared/styles/components/crud-table.css";
+
+import CrudLayout from "../../../../shared/components/layouts/CrudLayout";
+import CrudTable from "../../../../shared/components/ui/CrudTable";
+import "../../../../shared/styles/components/crud-table.css";
+
+// 🔗 Importamos las funciones reales del mini backend
+import {
+  getAllAgenda,
+  deleteAgenda,
+  updateEstadoAgenda,
+} from "../../../../lib/data/agendaData";
 
 export default function Agenda() {
   const navigate = useNavigate();
 
-  // ✅ Datos temporales
-  const [citas, setCitas] = useState([
-    {
-      id: 1,
-      cliente: "Laura Martínez",
-      servicio: "Examen de la Vista",
-      fecha: "2024-01-20",
-      hora: "09:00 AM",
-      duracion: "30 min",
-      metodoPago: "Efectivo",
-      estado: "pendiente",
-    },
-    {
-      id: 2,
-      cliente: "Roberto Silva",
-      servicio: "Adaptación Lentes",
-      fecha: "2024-01-19",
-      hora: "02:30 PM",
-      duracion: "45 min",
-      metodoPago: "Tarjeta Crédito",
-      estado: "completada",
-    },
-    {
-      id: 3,
-      cliente: "María González",
-      servicio: "Limpieza y Ajuste",
-      fecha: "2024-01-18",
-      hora: "11:00 AM",
-      duracion: "15 min",
-      metodoPago: "Efectivo",
-      estado: "cancelada",
-    },
-  ]);
+  // 🔥 Cargar datos reales
+  const [citas, setCitas] = useState([]);
 
-  // ✅ Toggle de estado
+  useEffect(() => {
+    setCitas(getAllAgenda());
+  }, []);
+
+  // 🔥 Toggle de estado usando agendaData.js
   const toggleEstado = (id) => {
-    setCitas((prev) =>
-      prev.map((c) =>
-        c.id === id
-          ? {
-              ...c,
-              estado:
-                c.estado === "pendiente"
-                  ? "completada"
-                  : c.estado === "completada"
-                  ? "cancelada"
-                  : "pendiente",
-            }
-          : c
-      )
-    );
+    const updated = updateEstadoAgenda(id);
+    setCitas([...updated]); // recarga de estado real
   };
 
-  // ✅ Buscador
+  // 🔥 Borrar usando agendaData.js
+  const handleDelete = (id) => {
+    if (!confirm("¿Eliminar esta cita?")) return;
+
+    const updated = deleteAgenda(id);
+    setCitas([...updated]); // recarga de datos
+  };
+
+  // 🔥 Buscador
   const [search, setSearch] = useState("");
   const filtered = citas.filter((c) =>
     c.cliente.toLowerCase().includes(search.toLowerCase())
   );
 
-  // ✅ Columnas (idéntico formato a Categorías)
+  // 🔥 Columnas de la tabla
   const columns = [
+    { field: "id", header: "ID" },
     { field: "cliente", header: "Cliente" },
     { field: "servicio", header: "Servicio" },
     { field: "fecha", header: "Fecha" },
@@ -99,7 +76,7 @@ export default function Agenda() {
     },
   ];
 
-  // ✅ Acciones (idéntico formato a Categorías)
+  // 🔥 Acciones como Categorías
   const actions = [
     {
       label: "Ver Detalle",
@@ -119,12 +96,6 @@ export default function Agenda() {
       onClick: (item) => handleDelete(item.id),
     },
   ];
-
-  // ✅ Eliminar (simulado)
-  const handleDelete = (id) => {
-    if (!confirm("¿Eliminar esta cita?")) return;
-    setCitas(citas.filter((c) => c.id !== id));
-  };
 
   return (
     <CrudLayout
