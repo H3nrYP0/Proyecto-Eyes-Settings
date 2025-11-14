@@ -66,40 +66,31 @@ export default function Agenda() {
     cita.cliente.toLowerCase().includes(search.toLowerCase())
   );
 
-  // =============================
-  //          COLUMNAS
-  // =============================
-  const columns = [
-    { field: "id", header: "ID" },
-    { field: "cliente", header: "Cliente" },
-    { field: "servicio", header: "Servicio" },
-    { field: "fecha", header: "Fecha" },
-    { field: "hora", header: "Hora" },
-    { field: "duracion", header: "Duración" },
-    { field: "metodoPago", header: "Pago" },
-    {
-      field: "estado",
-      header: "Estado",
-      render: (item) => (
-        <button
-          className={`estado-btn ${
-            item.estado === "pendiente"
-              ? "pendiente"
-              : item.estado === "completada"
-              ? "completada"
-              : "cancelada"
-          }`}
-          onClick={() => toggleEstado(item.id)}
-        >
-          {item.estado === "pendiente"
-            ? "🟡 Pendiente"
-            : item.estado === "completada"
-            ? "✅ Completada"
-            : "❌ Cancelada"}
-        </button>
-      ),
-    },
-  ];
+// =============================
+//          COLUMNAS
+// =============================
+const columns = [
+  { field: "id", header: "ID" },
+  { field: "cliente", header: "Cliente" },
+  { field: "servicio", header: "Servicio" },
+  { field: "empleado", header: "Empleado" },
+  { field: "fecha", header: "Fecha" },
+  { field: "hora", header: "Hora" },
+  { field: "duracion", header: "Duración" },
+  { field: "metodo_pago", header: "Pago" },
+  {
+    field: "estado",
+    header: "Estado",
+    render: (item) => (
+      <button
+        className={`estado-btn ${item.estado === "pendiente" ? "pendiente" : item.estado === "completada" ? "completada" : "cancelada"}`}
+        onClick={() => toggleEstado(item.id)}
+      >
+        {item.estado === "pendiente" ? "🟡 Pendiente" : item.estado === "completada" ? "✅ Completada" : "❌ Cancelada"}
+      </button>
+    ),
+  },
+];
 
   // =============================
   //          ACCIONES
