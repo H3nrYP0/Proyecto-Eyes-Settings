@@ -5,7 +5,11 @@ import CrudLayout from "../../../../shared/components/layouts/CrudLayout";
 import CrudTable from "../../../../shared/components/ui/CrudTable";
 import "../../../../shared/styles/components/crud-table.css";
 
-// 🔗 Importamos las funciones reales del mini backend
+// Modal reutilizable
+import Modal from "../../../../shared/components/ui/Modal";
+import "../../../../shared/styles/components/modal.css";
+
+// Importamos las funciones del backend
 import {
   getAllAgenda,
   deleteAgenda,
@@ -15,34 +19,56 @@ import {
 export default function Agenda() {
   const navigate = useNavigate();
 
-  // 🔥 Cargar datos reales
   const [citas, setCitas] = useState([]);
+  const [search, setSearch] = useState("");
 
+  const [modalDelete, setModalDelete] = useState({
+    open: false,
+    id: null,
+    cliente: "",
+  });
+
+  // Cargar datos
   useEffect(() => {
-    setCitas(getAllAgenda());
+    const agendaData = getAllAgenda();
+    setCitas(agendaData);
   }, []);
 
-  // 🔥 Toggle de estado usando agendaData.js
+  // =============================
+  //    MODAL DE ELIMINACIÓN
+  // =============================
+  const handleDelete = (id, cliente) => {
+    setModalDelete({
+      open: true,
+      id,
+      cliente,
+    });
+  };
+
+  const confirmDelete = () => {
+    const updated = deleteAgenda(modalDelete.id);
+    setCitas([...updated]);
+    setModalDelete({ open: false, id: null, cliente: "" });
+  };
+
+  // =============================
+  //    CAMBIAR ESTADO
+  // =============================
   const toggleEstado = (id) => {
     const updated = updateEstadoAgenda(id);
-    setCitas([...updated]); // recarga de estado real
+    setCitas([...updated]);
   };
 
-  // 🔥 Borrar usando agendaData.js
-  const handleDelete = (id) => {
-    if (!confirm("¿Eliminar esta cita?")) return;
-
-    const updated = deleteAgenda(id);
-    setCitas([...updated]); // recarga de datos
-  };
-
-  // 🔥 Buscador
-  const [search, setSearch] = useState("");
-  const filtered = citas.filter((c) =>
-    c.cliente.toLowerCase().includes(search.toLowerCase())
+  // =============================
+  //          BUSCADOR
+  // =============================
+  const filteredCitas = citas.filter((cita) =>
+    cita.cliente.toLowerCase().includes(search.toLowerCase())
   );
 
-  // 🔥 Columnas de la tabla
+  // =============================
+  //          COLUMNAS
+  // =============================
   const columns = [
     { field: "id", header: "ID" },
     { field: "cliente", header: "Cliente" },
@@ -51,7 +77,6 @@ export default function Agenda() {
     { field: "hora", header: "Hora" },
     { field: "duracion", header: "Duración" },
     { field: "metodoPago", header: "Pago" },
-
     {
       field: "estado",
       header: "Estado",
@@ -76,24 +101,24 @@ export default function Agenda() {
     },
   ];
 
-  // 🔥 Acciones como Categorías
+  // =============================
+  //          ACCIONES
+  // =============================
   const actions = [
     {
       label: "Ver Detalle",
       type: "view",
-      onClick: (item) =>
-        navigate(`/admin/servicios/agenda/detalle/${item.id}`),
+      onClick: (item) => navigate(`/admin/servicios/agenda/detalle/${item.id}`),
     },
     {
       label: "Editar",
       type: "edit",
-      onClick: (item) =>
-        navigate(`/admin/servicios/agenda/editar/${item.id}`),
+      onClick: (item) => navigate(`/admin/servicios/agenda/editar/${item.id}`),
     },
     {
       label: "Eliminar",
       type: "delete",
-      onClick: (item) => handleDelete(item.id),
+      onClick: (item) => handleDelete(item.id, item.cliente),
     },
   ];
 
@@ -103,7 +128,7 @@ export default function Agenda() {
       description="Gestiona las citas de tus clientes."
       onAddClick={() => navigate("/admin/servicios/agenda/crear")}
     >
-      {/* Buscador */}
+      {/* BUSCADOR */}
       <div className="search-bar-row">
         <input
           className="search-input"
@@ -114,8 +139,25 @@ export default function Agenda() {
         />
       </div>
 
-      {/* Tabla */}
-      <CrudTable columns={columns} data={filtered} actions={actions} />
+      {/* TABLA */}
+      <CrudTable 
+        columns={columns} 
+        data={filteredCitas} 
+        actions={actions} 
+      />
+
+      {/* MODAL DE CONFIRMACIÓN */}
+      <Modal
+        open={modalDelete.open}
+        type="warning"
+        title="¿Eliminar Cita?"
+        message={`Esta acción eliminará la cita de "${modalDelete.cliente}" y no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        showCancel={true}
+        onConfirm={confirmDelete}
+        onCancel={() => setModalDelete({ open: false, id: null, cliente: "" })}
+      />
     </CrudLayout>
   );
 }
