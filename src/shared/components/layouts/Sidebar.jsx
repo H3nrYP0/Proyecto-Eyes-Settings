@@ -113,7 +113,7 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
     },
     {
       id: "seguridad",
-      title: "seguridad",
+      title: "Seguridad",
       icon: "seguridad-icon",
       // Items del módulo de configuración
       items: [
