@@ -26,6 +26,8 @@ import Proveedores from "../../../features/compras/pages/Proveedores";
 import Servicios from "../../../features/servicios/pages/Servicios";
 import Empleados from "../../../features/servicios/pages/Empleados";
 import Agenda from "../../../features/servicios/pages/Agenda";
+
+
 import Horarios from "../../../features/servicios/pages/Horarios";
 import CampanasSalud from "../../../features/servicios/pages/CampanasSalud";
 
@@ -109,6 +111,7 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               <Route path="categorias" element={<Categorias />} />
               <Route path="categorias/crear" element={<CrudCategoria mode="crear" />} />
               <Route path="categorias/editar/:id" element={<CrudCategoria mode="editar" />} />
+              <Route path="categorias/detalle/:id" element={<CrudCategoria mode="detalle" />} />
 
               
               <Route path="marcas" element={<Marcas />} />
@@ -121,6 +124,8 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               <Route index element={<Servicios />} />
               <Route path="empleados" element={<Empleados />} />
               <Route path="agenda" element={<Agenda />} />
+
+
               <Route path="horarios" element={<Horarios />} />
               <Route path="campanas-salud" element={<CampanasSalud />} />
             </Route>

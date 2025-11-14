@@ -1,26 +1,30 @@
 // src/features/compras/pages/CategoriaForm.jsx
-// FORMULARIO REUTILIZABLE PARA CREAR Y EDITAR CATEGORÍAS
+// FORMULARIO REUTILIZABLE PARA CREAR, EDITAR Y VER DETALLE DE CATEGORÍAS
 
 import { useState, useEffect } from "react";
 
 export default function CategoriaForm({ mode, initialData, onSubmit, onCancel }) {
+  const isDetail = mode === "detalle"; // ⬅️ Nuevo modo
+
   // ESTADO DEL FORMULARIO
   const [formData, setFormData] = useState({
     id: "",
     nombre: "",
     descripcion: "",
-    estado: "activa", // Valor por defecto (pero oculto en crear)
+    estado: "activa",
   });
 
-  // CARGAR DATOS EN MODO EDITAR
+  // CARGAR DATOS EN EDITAR O DETALLE
   useEffect(() => {
-    if (mode === "editar" && initialData) {
+    if ((mode === "editar" || mode === "detalle") && initialData) {
       setFormData(initialData);
     }
   }, [mode, initialData]);
 
-  // MANEJO DE CAMBIOS EN INPUTS
+  // MANEJO DE CAMBIOS EN INPUTS (deshabilitado en detalle)
   const handleChange = (e) => {
+    if (isDetail) return; // ⬅️ Bloquea cambios en detalle
+
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -30,6 +34,7 @@ export default function CategoriaForm({ mode, initialData, onSubmit, onCancel })
   // MANEJO DEL SUBMIT
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (isDetail) return; // ⬅️ No permitir submit en detalle
     onSubmit(formData);
   };
 
@@ -37,7 +42,7 @@ export default function CategoriaForm({ mode, initialData, onSubmit, onCancel })
     <form className="categoria-form" onSubmit={handleSubmit}>
 
       {/* ID - SOLO SE USA EN EDITAR (OCULTO) */}
-      {mode === "editar" && (
+      {(mode === "editar" || mode === "detalle") && (
         <input type="hidden" name="id" value={formData.id} />
       )}
 
@@ -53,6 +58,7 @@ export default function CategoriaForm({ mode, initialData, onSubmit, onCancel })
           value={formData.nombre}
           onChange={handleChange}
           required
+          disabled={isDetail} // ⬅️ Bloqueado en detalle
         />
       </div>
 
@@ -67,17 +73,19 @@ export default function CategoriaForm({ mode, initialData, onSubmit, onCancel })
           value={formData.descripcion}
           onChange={handleChange}
           required
+          disabled={isDetail} // ⬅️ Bloqueado en detalle
         ></textarea>
       </div>
 
-      {/* ESTADO — SOLO EN EDITAR */}
-      {mode === "editar" && (
+      {/* ESTADO — SOLO EN EDITAR Y DETALLE */}
+      {(mode === "editar" || mode === "detalle") && (
         <div className="form-group">
           <label>Estado</label>
           <select
             name="estado"
             value={formData.estado}
             onChange={handleChange}
+            disabled={isDetail} // ⬅️ Bloqueado en detalle
           >
             <option value="activa">Activa</option>
             <option value="inactiva">Inactiva</option>
@@ -87,11 +95,17 @@ export default function CategoriaForm({ mode, initialData, onSubmit, onCancel })
 
       {/* BOTONES */}
       <div className="form-actions">
-        <button type="submit" className="btn-primary">
-          {mode === "crear" ? "Crear Categoría" : "Guardar Cambios"}
-        </button>
+
+        {/* ⛔ Ocultar botón guardar en detalle */}
+        {!isDetail && (
+          <button type="submit" className="btn-primary">
+            {mode === "crear" ? "Crear Categoría" : "Guardar Cambios"}
+          </button>
+        )}
+
+        {/* Este botón siempre aparece */}
         <button type="button" className="btn-secondary" onClick={onCancel}>
-          Cancelar
+          {isDetail ? "Volver" : "Cancelar"}
         </button>
       </div>
     </form>

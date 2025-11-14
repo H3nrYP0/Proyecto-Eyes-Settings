@@ -8,10 +8,14 @@ import CrudTable from "../../../shared/components/ui/CrudTable";
 import "../../../shared/styles/components/crud-table.css";
 import { useNavigate } from "react-router-dom";
 
+// Modal reutilizable
+import Modal from "../../../shared/components/ui/Modal";
+import "../../../shared/styles/components/modal.css";
+
 export default function Categorias() {
   const navigate = useNavigate();
 
-  // ✅ Datos quemados temporales con la estructura real del proyecto
+  // ✅ Datos quemados temporales
   const [categorias, setCategorias] = useState([
     {
       id: 1,
@@ -39,7 +43,31 @@ export default function Categorias() {
     },
   ]);
 
-  // ✅ Función para alternar el estado
+  // =============================
+  //    MODAL DE ELIMINACIÓN
+  // =============================
+  const [modalDelete, setModalDelete] = useState({
+    open: false,
+    id: null,
+  });
+
+  // Abrir modal
+  const handleDelete = (id) => {
+    setModalDelete({
+      open: true,
+      id,
+    });
+  };
+
+  // Confirmar eliminación
+  const confirmDelete = () => {
+    setCategorias((prev) => prev.filter((c) => c.id !== modalDelete.id));
+    setModalDelete({ open: false, id: null });
+  };
+
+  // =============================
+  //    ACTIVAR / DESACTIVAR
+  // =============================
   const toggleEstado = (id) => {
     setCategorias((prev) =>
       prev.map((c) =>
@@ -50,29 +78,29 @@ export default function Categorias() {
     );
   };
 
-  // ✅ Estado del buscador
+  // =============================
+  //          BUSCADOR
+  // =============================
   const [search, setSearch] = useState("");
 
-  // ✅ Filtrado básico
   const filtered = categorias.filter((c) =>
     c.nombre.toLowerCase().includes(search.toLowerCase())
   );
 
-  // ✅ Columnas de la tabla (solo las que definiste)
+  // =============================
+  //          COLUMNAS
+  // =============================
   const columns = [
     { field: "id", header: "ID" },
     { field: "nombre", header: "Nombre" },
     { field: "descripcion", header: "Descripción" },
 
-    // ✅ Aquí convertimos el estado en botón
     {
       field: "estado",
       header: "Estado",
       render: (item) => (
         <button
-          className={`estado-btn ${
-            item.estado === "activa" ? "activo" : "inactivo"
-          }`}
+          className={`estado-btn ${item.estado === "activa" ? "activo" : "inactivo"}`}
           onClick={() => toggleEstado(item.id)}
         >
           {item.estado === "activa" ? "✅ Activa" : "⛔ Inactiva"}
@@ -81,7 +109,9 @@ export default function Categorias() {
     },
   ];
 
-  // ✅ Acciones de la tabla
+  // =============================
+  //          ACCIONES
+  // =============================
   const actions = [
     {
       label: "Ver Detalles",
@@ -102,26 +132,16 @@ export default function Categorias() {
     },
   ];
 
-  // ✅ Eliminar categoría (simulado)
-  const handleDelete = (id) => {
-    const confirmDelete = window.confirm(
-      "¿Seguro que deseas eliminar esta categoría?"
-    );
-    if (!confirmDelete) return;
-
-    alert(`✅ Categoría con ID ${id} eliminada (simulado)`);
-
-    // Lógica temporal
-    setCategorias(categorias.filter((c) => c.id !== id));
-  };
-
+  // =============================
+  //          RENDER
+  // =============================
   return (
     <CrudLayout
       title="📁 Categorías de Productos"
       description="Administra las categorías de productos para organizar tu inventario."
       onAddClick={() => navigate("/admin/compras/categorias/crear")}
     >
-      {/* ✅ Buscador */}
+      {/* Buscador */}
       <div className="search-bar-row">
         <input
           className="search-input"
@@ -132,8 +152,23 @@ export default function Categorias() {
         />
       </div>
 
-      {/* ✅ Tabla */}
+      {/* Tabla */}
       <CrudTable columns={columns} data={filtered} actions={actions} />
+
+      {/* =============================
+           MODAL DE CONFIRMACIÓN
+         ============================= */}
+      <Modal
+        open={modalDelete.open}
+        type="warning"
+        title="¿Eliminar Categoría?"
+        message="Esta acción no se puede deshacer."
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        showCancel={true}
+        onConfirm={confirmDelete}
+        onCancel={() => setModalDelete({ open: false, id: null })}
+      />
     </CrudLayout>
   );
 }
