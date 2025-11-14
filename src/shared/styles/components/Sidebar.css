@@ -110,7 +110,7 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* ✅ CORREGIDO: Estilos para secciones deshabilitadas - mayor especificidad */
+/* Estilos para secciones deshabilitadas */
 .section-header.section-header-disabled {
   opacity: 0.4 !important;
   cursor: not-allowed !important;
@@ -157,7 +157,6 @@
   text-align: left;
   font-weight: 600;
   font-size: var(--font-size-sm);
-  text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
