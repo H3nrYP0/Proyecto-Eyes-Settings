@@ -1,12 +1,16 @@
+Aviso de Uso de Software Open Source
+
 Este software ha sido desarrollado por el equipo de Visual Outtle © 2025.
 
-El proyecto utiliza las siguientes tecnologías open source:
+El proyecto utiliza las siguientes tecnologías open source, cada una con su licencia correspondiente:
 
-- React © Meta Platforms, Inc. — Licencia MIT — https://react.dev
-- Material UI © MUI, Inc. — Licencia MIT — https://mui.com
-- Apache ECharts © Apache Software Foundation — Licencia Apache 2.0 — https://echarts.apache.org
+React © Meta Platforms, Inc. — Licencia MIT — https://react.dev
 
-Estas bibliotecas se utilizan a través de sus APIs públicas sin modificar su código fuente original.
-Visual Outtle reconoce y respeta los derechos de autor y las condiciones de uso establecidas por cada proyecto open source.
+Material UI (MUI) © MUI, Inc. — Licencia MIT — https://mui.com
+
+Apache ECharts © Apache Software Foundation — Licencia Apache 2.0 — https://echarts.apache.org
+
+Estas bibliotecas se emplean únicamente a través de sus APIs públicas y no se ha modificado su código fuente original.
+Visual Outtle reconoce y respeta los derechos de autor, marcas registradas y las condiciones de uso de cada proyecto open source.
 
 © 2025 Visual Outtle — Todos los derechos reservados.
