@@ -1,46 +1,51 @@
-// src/features/compras/pages/CrudCategoria.jsx
-// PÁGINA PARA CREAR, EDITAR O VER DETALLE DE CATEGORÍAS
-
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
-import CrudLayout from "../../../shared/components/layouts/CrudLayout";
-import CategoriaForm from "./CategoriaForm";
+import CrudLayout from "../../../../shared/components/layouts/CrudLayout";
+import CategoriasForm from "./CategoriasForm";
 
-export default function CrudCategoria({ mode }) {
+// Importamos mini-backend
+import {
+  getCategoriaById,
+  createCategoria,
+  updateCategoria,
+} from "../../../../lib/data/categoriasData";
+
+export default function CrudCategorias({ mode }) {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  // Si estamos en editar o detalle → se carga la categoría
   const [loading, setLoading] = useState(mode !== "crear");
   const [categoriaData, setCategoriaData] = useState(null);
 
-  // CARGAR DATOS EN EDITAR / DETALLE (SIMULADO)
+  // Cargar datos en editar/detalle
   useEffect(() => {
-    if ((mode === "editar" || mode === "detalle") && id) {
-      setTimeout(() => {
-        setCategoriaData({
-          id,
-          nombre: "Categoría de ejemplo",
-          descripcion: "Descripción cargada desde datos simulados",
-          estado: "activa",
-        });
-        setLoading(false);
-      }, 300);
-    } else {
+    if (mode === "crear") {
       setLoading(false);
+      return;
     }
-  }, [mode, id]);
 
-  // SUBMIT DEL FORMULARIO
+    const categoria = getCategoriaById(Number(id));
+
+    if (!categoria) {
+      alert("❌ Esta categoría no existe.");
+      navigate("/admin/compras/categorias");
+      return;
+    }
+
+    setCategoriaData(categoria);
+    setLoading(false);
+  }, [mode, id, navigate]);
+
+  // Guardado
   const handleSubmit = (data) => {
-    console.log("DATOS GUARDADOS:", data);
-
-    alert(
-      mode === "crear"
-        ? "✅ Categoría creada correctamente"
-        : "✅ Cambios guardados correctamente"
-    );
+    if (mode === "crear") {
+      createCategoria(data);
+      alert("✅ Categoría creada correctamente");
+    } else {
+      updateCategoria(Number(id), data);
+      alert("✅ Cambios guardados correctamente");
+    }
 
     navigate("/admin/compras/categorias");
   };
@@ -60,17 +65,18 @@ export default function CrudCategoria({ mode }) {
           ? "Crear Categoría"
           : mode === "editar"
           ? "Editar Categoría"
-          : "Detalle de Categoría"
+          : "Detalle de la Categoría"
       }
       description={
         mode === "crear"
           ? "Complete los campos para registrar una nueva categoría."
           : mode === "editar"
-          ? "Modifique los campos necesarios y guarde los cambios."
+          ? "Modifique los campos necesarios."
           : "Visualice toda la información de esta categoría."
       }
+      hideAddButton={true}
     >
-      <CategoriaForm
+      <CategoriasForm
         mode={mode}
         initialData={categoriaData}
         onSubmit={handleSubmit}
