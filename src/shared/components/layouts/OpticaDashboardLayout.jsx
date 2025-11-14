@@ -12,6 +12,23 @@ import Ventas from "../../../features/ventas/pages/Ventas";
 import Clientes from "../../../features/ventas/pages/Clientes";
 import Pedidos from "../../../features/ventas/pages/Pedidos";
 import Abonos from "../../../features/ventas/pages/Abonos";
+//COMPONENTS VENTAS
+import NuevaVenta from "../../../features/ventas/components/ventas/NuevaVenta";
+import EditarVenta from "../../../features/ventas/components/ventas/EditarVenta";
+import DetalleVenta from "../../../features/ventas/components/ventas/DetalleVenta";
+//COMPONENTS CLIENTES
+import NuevoCliente from "../../../features/ventas/components/clientes/NuevoCliente";
+import DetalleCliente from "../../../features/ventas/components/clientes/DetalleCliente";
+import EditarCliente from "../../../features/ventas/components/clientes/EditarCliente";
+import HistorialFormula from "../../../features/ventas/components/clientes/HistorialFormula";
+//COMPONENTS ABONOS
+import NuevoAbono from "../../../features/ventas/components/abonos/NuevoAbono"; 
+import DetalleAbono from "../../../features/ventas/components/abonos/DetalleAbono";
+import EditarAbono from "../../../features/ventas/components/abonos/EditarAbono";
+//COMPONENTS PEDIDOS
+import NuevoPedido from "../../../features/ventas/components/pedidos/NuevoPedido";
+import DetallePedido from "../../../features/ventas/components/pedidos/DetallePedido";
+import EditarPedido from "../../../features/ventas/components/pedidos/EditarPedido";
 
 // ESTAS SON LAS FEATURES DE COMPRAS
 import Compras from "../../../features/compras/pages/Compras";
@@ -96,9 +113,28 @@ export default function OpticaDashboardLayout({ user, setUser }) {
             {/* ESTAS SON LAS RUTAS DEL MÓDULO DE VENTAS */}
             <Route path="ventas">
               <Route index element={<Ventas />} />
-              <Route path="clientes" element={<Clientes />} />
-              <Route path="pedidos" element={<Pedidos />} />
-              <Route path="abonos" element={<Abonos />} />
+              <Route path="clientes">
+                <Route index element={<Clientes />} />
+                <Route path="nuevo" element={<NuevoCliente />} />
+                <Route path="editar" element={<EditarCliente />} />
+                <Route path="detalle" element={<DetalleCliente />} />
+                <Route path="historial-formula" element={<HistorialFormula />} />
+              </Route>
+              <Route path="abonos">
+                <Route index element={<Abonos />} />
+                <Route path="nuevo" element={<NuevoAbono />} />
+                <Route path="editar" element={<EditarAbono />} />
+                <Route path="detalle" element={<DetalleAbono />} />
+              </Route>
+              <Route path="pedidos">
+                <Route index element={<Pedidos />} />
+                <Route path="nuevo" element={<NuevoPedido />} />
+                <Route path="editar" element={<EditarPedido />} />
+                <Route path="detalle" element={<DetallePedido />} />
+              </Route>
+              <Route path="nueva" element={<NuevaVenta />} />
+              <Route path="detalle/:id" element={<DetalleVenta />} />
+              <Route path="editar/:id" element={<EditarVenta />} />
             </Route>
 
             {/* ESTAS SON LAS RUTAS DEL MÓDULO DE COMPRAS */}
