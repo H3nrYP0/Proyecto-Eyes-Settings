@@ -1,3 +1,4 @@
+// src/app/App.jsx - CORREGIDO
 import { useState, useEffect } from "react";
 import { BrowserRouter as Router } from "react-router-dom";
 
@@ -43,5 +44,3 @@ export default function App() {
     </Router>
   );
 }
-
-
