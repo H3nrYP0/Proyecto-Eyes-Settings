@@ -44,7 +44,7 @@ export default function Products() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const handleAddProduct = () => {
-    navigate("nuevo"); 
+    navigate("agregar"); 
   };
 
   const handleEdit = (productId) => {

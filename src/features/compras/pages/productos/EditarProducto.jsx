@@ -112,23 +112,7 @@ export default function EditarProducto() {
     }
   };
 
-  // Función para resetear formulario a valores originales
-  const handleReset = () => {
-    if (window.confirm("¿Restaurar los valores originales del producto?")) {
-      setFormData({
-        id: productData.id || "",
-        name: productData.name || "",
-        salePrice: productData.salePrice || 0,
-        purchasePrice: productData.purchasePrice || 0,
-        currentStock: productData.currentStock || 0,
-        minStock: productData.minStock || 10,
-        category: productData.category || "Óptica",
-        brand: productData.brand || "Óptica Premium",
-        status: productData.status || "active"
-      });
-    }
-  };
-
+  
   return (
     <CrudLayout
       title="✏️ Editar Producto"
@@ -284,13 +268,7 @@ export default function EditarProducto() {
               ← Cancelar
             </button>
             
-            <button 
-              type="button" 
-              className="btn btn-warning"
-              onClick={handleReset}
-            >
-              🔄 Restaurar Original
-            </button>
+          
             
             <button 
               type="submit" 

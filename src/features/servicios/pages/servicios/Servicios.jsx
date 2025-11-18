@@ -55,7 +55,7 @@ export default function Servicios() {
 
   // Navegar a agregar nuevo servicio
   const handleAddServicio = () => {
-    navigate("nuevo");
+    navigate("agregar");
   };
 
   // Navegar a editar servicio

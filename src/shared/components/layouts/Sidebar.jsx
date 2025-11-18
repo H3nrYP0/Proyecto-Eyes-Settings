@@ -1,24 +1,32 @@
 import { useState, useEffect } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { 
+  Box,
+  Button
+} from "@mui/material";
+import { 
+  Logout as LogoutIcon,
+  PersonOutlineOutlined as PersonOutlineOutlinedIcon
+} from "@mui/icons-material";
 import { ROLES } from "../../constants/roles";
 import "/src/shared/styles/components/Sidebar.css";
 
-// ESTE ES EL COMPONENTE SIDEBAR - NAVEGACIÓN PRINCIPAL DEL SISTEMA
+// Componente Sidebar - Navegación principal del sistema
 export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
-  // ESTADO PARA CONTROLAR QUÉ SECCIÓN ESTÁ ABIERTA
+  // Estado para controlar qué sección está abierta
   const [activeSection, setActiveSection] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
 
-  // ESTA FUNCIÓN VERIFICA SI EL USUARIO TIENE PERMISO PARA UNA SECCIÓN
+  // Función que verifica si el usuario tiene permiso para una sección
   const hasPermission = (section) => {
-    // SI ES ADMIN, TIENE ACCESO TOTAL
+    // Si es admin, tiene acceso total
     if (user?.role === ROLES.ADMIN) return true;
     if (!user?.permissions) return false;
     return user.permissions.includes('*') || user.permissions.includes(section);
   };
 
-  // ESTA FUNCIÓN DETERMINA LA SECCIÓN ACTIVA BASADA EN LA URL
+  // Función que determina la sección activa basada en la URL
   const getActiveSectionFromPath = (pathname) => {
     if (pathname.includes('/compras')) return 'compras';
     if (pathname.includes('/ventas')) return 'ventas';
@@ -29,13 +37,13 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
     return null;
   };
 
-  // ESTE EFFECT ACTUALIZA LA SECCIÓN ACTIVA CUANDO CAMBIA LA URL
+  // Effect que actualiza la sección activa cuando cambia la URL
   useEffect(() => {
     const currentSection = getActiveSectionFromPath(location.pathname);
     setActiveSection(currentSection);
   }, [location.pathname]);
 
-  // ESTA FUNCIÓN MANEJA EL CLIC EN UNA SECCIÓN DEL MENÚ
+  // Función que maneja el clic en una sección del menú
   const toggleSection = (section) => {
     if (!hasPermission(section)) {
       alert('No tienes permisos para acceder a esta sección');
@@ -44,13 +52,13 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
     setActiveSection(activeSection === section ? null : section);
   };
 
-  // ESTE ES EL MENÚ COMPLETO CON TODAS LAS FEATURES DEL SISTEMA
+  // Menú completo con todas las features del sistema
   const menuSections = [
     {
       id: "dashboard",
       title: "Dashboard ",
       icon: "dashboard-icon",
-      // ESTOS SON LOS ITEMS DEL DASHBOARD
+      // Items del dashboard
       items: [
         { name: "Resumen General", path: "/admin/dashboard", icon: "home-icon" }
       ]
@@ -59,7 +67,7 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
       id: "ventas",
       title: "Ventas",
       icon: "ventas-icon",
-      // ESTOS SON LOS ITEMS DEL MÓDULO DE VENTAS
+      // Items del módulo de ventas
       items: [
         { name: "Ventas", path: "/admin/ventas", icon: "sales-icon" },
         { name: "Clientes", path: "/admin/ventas/clientes", icon: "users-icon" },
@@ -71,7 +79,7 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
       id: "compras",
       title: "Compras", 
       icon: "compras-icon",
-      // ESTOS SON LOS ITEMS DEL MÓDULO DE COMPRAS
+      // Items del módulo de compras
       items: [
         { name: "Compras", path: "/admin/compras", icon: "purchase-icon" },
         { name: "Productos", path: "/admin/compras/productos", icon: "products-icon" },
@@ -84,7 +92,7 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
       id: "servicios",
       title: "Servicios",
       icon: "servicios-icon",
-      // ESTOS SON LOS ITEMS DEL MÓDULO DE SERVICIOS
+      // Items del módulo de servicios
       items: [
         { name: "Servicios", path: "/admin/servicios", icon: "services-icon" },
         { name: "Agenda", path: "/admin/servicios/agenda", icon: "calendar-icon" },
@@ -97,7 +105,7 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
       id: "usuarios", 
       title: "Usuarios",
       icon: "usuarios-icon",
-      // ESTOS SON LOS ITEMS DEL MÓDULO DE USUARIOS
+      // Items del módulo de usuarios
       items: [
         { name: "Usuarios", path: "/admin/usuarios", icon: "users-icon" },
         { name: "Gestión de Acceso", path: "/admin/usuarios/gestion-acceso", icon: "security-icon" }
@@ -107,7 +115,7 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
       id: "configuracion",
       title: "Configuración",
       icon: "configuracion-icon",
-      // ESTOS SON LOS ITEMS DEL MÓDULO DE CONFIGURACIÓN
+      // Items del módulo de configuración
       items: [
         { name: "Roles", path: "/admin/configuracion/roles", icon: "roles-icon" },
         { name: "Permisos", path: "/admin/configuracion/permisos", icon: "permissions-icon" }
@@ -115,11 +123,11 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
     }
   ];
 
-  // ESTE ES EL RENDER PRINCIPAL DEL SIDEBAR
+  // Render principal del sidebar
   return (
     <aside className={`admin-sidebar ${isOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
       
-      {/* ESTA ES LA CABECERA DEL SIDEBAR */}
+      {/* Cabecera del sidebar */}
       <div className="sidebar-header">
         <h1>Visual Outlet</h1>
         <p>Sistema de Gestión</p>
@@ -128,7 +136,7 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
         </button>
       </div>
 
-      {/* ESTA ES LA NAVEGACIÓN PRINCIPAL */}
+      {/* Navegación principal */}
       <nav className="sidebar-nav">
         <div className="nav-scroll-container">
           {menuSections.map((section) => {
@@ -138,7 +146,7 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
             return (
               <div key={section.id} className="nav-section">
                 
-                {/* ESTE ES EL BOTÓN DE CADA SECCIÓN */}
+                {/* Botón de cada sección */}
                 <button 
                   className={`section-header ${activeSection === section.id ? 'active' : ''}`}
                   onClick={() => toggleSection(section.id)}
@@ -154,7 +162,7 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
                   )}
                 </button>
 
-                {/* ESTOS SON LOS ITEMS DE CADA SECCIÓN CUANDO ESTÁ ABIERTA */}
+                {/* Items de cada sección cuando está abierta */}
                 {isOpen && activeSection === section.id && (
                   <div className="section-items">
                     {section.items.map((item) => (
@@ -178,10 +186,17 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
         </div>
       </nav>
 
-      {/* ESTE ES EL FOOTER DEL SIDEBAR CON INFO DEL USUARIO */}
+      {/* Footer del sidebar con info del usuario */}
       <div className="sidebar-footer">
         <div className="user-info">
-          <span className="user-avatar"></span>
+          <div className="user-avatar">
+            <PersonOutlineOutlinedIcon 
+              sx={{ 
+                fontSize: 24,
+                color: 'white'
+              }} 
+            />
+          </div>
           {isOpen && (
             <div className="user-details">
               <span className="user-name">{user?.name || "Usuario"}</span>
@@ -193,11 +208,31 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
           )}
         </div>
         
-        {/* ESTE ES EL BOTÓN DE CERRAR SESIÓN */}
+        {/* Botón de cerrar sesión con Material-UI */}
         {isOpen && (
-          <button className="logout-button" onClick={onLogout}>
-            Cerrar Sesión
-          </button>
+          <Box sx={{ mt: 2, px: 2 }}>
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<LogoutIcon />}
+              onClick={onLogout}
+              sx={{
+                textTransform: 'none',
+                fontSize: '0.85rem',
+                fontWeight: '500',
+                borderRadius: 2,
+                py: 1,
+                borderColor: 'rgba(255, 255, 255, 0.3)',
+                color: 'white',
+                '&:hover': {
+                  borderColor: 'rgba(255, 255, 255, 0.5)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                }
+              }}
+            >
+              Cerrar Sesión
+            </Button>
+          </Box>
         )}
       </div>
     </aside>

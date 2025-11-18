@@ -3,7 +3,9 @@ import { useEffect } from "react";
 
 // ESTAS SON LAS PÁGINAS PRINCIPALES
 import Home from "../features/home/pages/Home";
-import Login from "../features/auth/pages/Login";
+import Login from "../features/auth/components/Login";
+import Register from "../features/auth/components/Register";
+import ForgotPassword from "../features/auth/components/ForgotPassword";
 import OpticaDashboardLayout from "../shared/components/layouts/OpticaDashboardLayout";
 import ProtectedRoute from "../shared/components/ProtectedRoute";
 
@@ -47,6 +49,29 @@ export default function AppRoutes({ user, setUser, onLogin, onLogout }) {
             <Navigate to="/admin/dashboard" replace />
           ) : (
             <Login setUser={onLogin} />
+          )
+        }
+      />
+      {/* ESTA ES LA RUTA DEL REGISTRO */}
+      <Route
+        path="/register"
+        element={
+          user ? (
+            <Navigate to="/admin/dashboard" replace />
+          ) : (
+            <Register />
+          )
+        }
+      />
+
+      {/* ESTA ES LA RUTA DE RECUPERACIÓN DE CONTRASEÑA */}
+      <Route
+        path="/forgot-password"
+        element={
+          user ? (
+            <Navigate to="/admin/dashboard" replace />
+          ) : (
+            <ForgotPassword />
           )
         }
       />
