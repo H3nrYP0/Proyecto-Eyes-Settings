@@ -32,7 +32,9 @@ import EditarPedido from "../../../features/ventas/components/pedidos/EditarPedi
 
 // ESTAS SON LAS FEATURES DE COMPRAS
 import Compras from "../../../features/compras/pages/Compras";
-import Categorias from "../../../features/compras/pages/Categorias";
+import Categorias from "../../../features/compras/pages/categoria/Categorias";
+import CrudCategorias from "../../../features/compras/pages/categoria/CrudCategorias";
+
 import Marcas from "../../../features/compras/pages/Marcas";
 import Products from "../../../features/compras/pages/Products";
 import Proveedores from "../../../features/compras/pages/Proveedores";
@@ -44,9 +46,15 @@ import DetalleCompra from "../../../features/compras/pages/DetalleCompra";
 
 // ESTAS SON LAS FEATURES DE SERVICIOS
 import Servicios from "../../../features/servicios/pages/Servicios";
-import Empleados from "../../../features/servicios/pages/Empleados";
-import Agenda from "../../../features/servicios/pages/Agenda";
-import Horarios from "../../../features/servicios/pages/Horarios";
+import Empleados from "../../../features/servicios/pages/empleado/Empleados";
+import CrudEmpleados from "../../../features/servicios/pages/empleado/CrudEmpleados";
+import Agenda from "../../../features/servicios/pages/agenda/Agenda";
+import CrudAgenda from "../../../features/servicios/pages/agenda/CrudAgenda";
+
+
+import Horarios from "../../../features/servicios/pages//horario/Horarios";
+import CrudHorarios from "../../../features/servicios/pages/horario/CrudHorarios";
+
 import CampanasSalud from "../../../features/servicios/pages/CampanasSalud";
 
 // ESTAS SON LAS FEATURES DE USUARIOS
@@ -149,6 +157,9 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               <Route path="editar/:id" element={<EditarCompra />} />
               <Route path="detalle/:id" element={<DetalleCompra />} />
               <Route path="categorias" element={<Categorias />} />
+              <Route path="categorias/crear" element={<CrudCategorias mode="crear" />} />
+              <Route path="categorias/editar/:id" element={<CrudCategorias mode="editar" />} />
+              <Route path="categorias/detalle/:id" element={<CrudCategorias mode="detalle" />} />
               <Route path="marcas" element={<Marcas />} />
               <Route path="productos" element={<Products />} />
               <Route path="proveedores">
@@ -162,8 +173,19 @@ export default function OpticaDashboardLayout({ user, setUser }) {
             <Route path="servicios">
               <Route index element={<Servicios />} />
               <Route path="empleados" element={<Empleados />} />
+              <Route path="empleados/crear" element={<CrudEmpleados mode="crear" />} />
+              <Route path="empleados/editar/:id" element={<CrudEmpleados mode="editar" />} />
+              <Route path="empleados/detalle/:id" element={<CrudEmpleados mode="detalle" />} />
+              
               <Route path="agenda" element={<Agenda />} />
+              <Route path="agenda/crear" element={<CrudAgenda mode="crear" />} />
+              <Route path="agenda/editar/:id" element={<CrudAgenda mode="editar" />} />
+              <Route path="agenda/detalle/:id" element={<CrudAgenda mode="detalle" />} />
+
               <Route path="horarios" element={<Horarios />} />
+              <Route path="horarios/crear" element={<CrudHorarios mode="crear" />} />
+              <Route path="horarios/editar/:id" element={<CrudHorarios mode="editar" />} />
+              <Route path="horarios/detalle/:id" element={<CrudHorarios mode="detalle" />} />
               <Route path="campanas-salud" element={<CampanasSalud />} />
             </Route>
 

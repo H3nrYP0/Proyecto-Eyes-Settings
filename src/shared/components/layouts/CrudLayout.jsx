@@ -15,6 +15,7 @@ export default function CrudLayout({
 }) {
   return (
     <div className="crud-layout">
+      {/* Header */}
       <div className="crud-header">
         <div className="crud-title">
           <h1>{title}</h1>

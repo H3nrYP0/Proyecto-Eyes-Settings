@@ -1,0 +1,321 @@
+/* Estilos generales para tablas CRUD */
+/* Inspirado en dashboard moderno sin alterar el estilo del proyecto */
+
+.crud-table-container {
+  width: 100%;
+  overflow-x: auto;
+  background: white;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  margin-top: var(--spacing-md);
+}
+
+.crud-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.crud-table thead {
+  background: var(--primary-color);
+  color: white;
+}
+
+.crud-table th {
+  padding: var(--spacing-md);
+  text-align: left;
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+}
+
+.crud-table td {
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.crud-table tbody tr:hover {
+  background-color: var(--gray-50);
+}
+
+/* Acciones */
+.crud-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.crud-action-btn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  transition: 0.2s ease;
+}
+
+/* Tipos de acciones */
+.crud-action-btn.view {
+  background: #e7f1ff;
+  color: #0064d2;
+}
+
+.crud-action-btn.edit {
+  background: #e9f7ef;
+  color: #0d8a43;
+}
+
+.crud-action-btn.delete {
+  background: #fdeaea;
+  color: #d0302f;
+}
+
+.crud-action-btn:hover {
+  opacity: 0.8;
+}
+
+/* Sin datos */
+.no-data {
+  padding: var(--spacing-lg);
+  text-align: center;
+  color: var(--gray-500);
+}
+
+
+/* Buscador */
+.search-bar-row {
+  width: 100%;
+  display: flex;
+  margin-bottom: var(--spacing-md);
+}
+
+.search-input {
+  width: 100%;
+  padding: var(--spacing-md);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  outline: none;
+}
+
+.search-input:focus {
+  border-color: var(--primary-color);
+}
+
+
+.categoria-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  max-width: 600px;
+  margin-top: var(--spacing-md);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.form-group label {
+  font-weight: 600;
+}
+
+.required {
+  color: red;
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  border: none;
+  font-weight: 600;
+}
+
+.btn-primary {
+  background: var(--primary-color);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+}
+
+.btn-secondary {
+  background: var(--gray-200);
+  color: var(--gray-700);
+}
+
+.btn-secondary:hover {
+  background: var(--gray-300);
+}
+
+
+.estado-btn {
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: 0.2s;
+}
+
+.estado-btn.activo {
+  background: #d4ffd8;
+  color: #15803d;
+}
+
+.estado-btn.inactivo {
+  background: #ffe1e1;
+  color: #b91c1c;
+}
+
+/* Botones de acción */
+.crud-action-btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border: none;
+  margin-right: 6px;
+  transition: 0.15s;
+}
+
+/* Ver */
+.crud-view {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+.crud-view:hover {
+  background: #bae6fd;
+}
+
+/* Editar */
+.crud-edit {
+  background: #fef3c7;
+  color: #b45309;
+}
+.crud-edit:hover {
+  background: #fde68a;
+}
+
+/* Eliminar */
+.crud-delete {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+.crud-delete:hover {
+  background: #fecaca;
+}
+
+
+.status-active { background: #2ecc71; }
+.status-inactive { background: #e74c3c; }
+.status-pending { background: #f1c40f; }
+
+
+.detalle-card {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.detalle-item {
+  margin-bottom: 12px;
+  font-size: 15px;
+}
+
+.estado-badge {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-weight: bold;
+  color: white;
+}
+
+.estado-badge.activo {
+  background: #0ba95b;
+}
+
+.estado-badge.inactivo {
+  background: #d32f2f;
+}
+
+.detalle-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+
+/* =============================
+   ESTADOS DE AGENDA
+   ============================= */
+
+.estado-btn.pendiente {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.estado-btn.confirmada {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.estado-btn.en-progreso {
+  background: #fed7aa;
+  color: #c2410c;
+}
+
+.estado-btn.completada {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.estado-btn.cancelada {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.estado-btn.no-asistio {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+/* Estados para badges (si los usas en detalles) */
+.estado-badge.pendiente {
+  background: #f59e0b;
+  color: white;
+}
+
+.estado-badge.confirmada {
+  background: #3b82f6;
+  color: white;
+}
+
+.estado-badge.en-progreso {
+  background: #f97316;
+  color: white;
+}
+
+.estado-badge.completada {
+  background: #10b981;
+  color: white;
+}
+
+.estado-badge.cancelada {
+  background: #ef4444;
+  color: white;
+}
+
+.estado-badge.no-asistio {
+  background: #6b7280;
+  color: white;
+}

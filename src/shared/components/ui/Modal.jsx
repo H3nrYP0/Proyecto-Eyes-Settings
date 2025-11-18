@@ -1,50 +1,41 @@
-import { useEffect } from "react";
+import "./../../../shared/styles/components/modal.css";
 
-// Styles
-import "/src/shared/styles/components/Modal.css";
-
-export default function Modal({ isOpen, onClose, title, children }) {
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
-
-  useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
+export default function Modal({
+  open,
+  type = "info",
+  title,
+  message,
+  onConfirm,
+  onCancel,
+  confirmText = "Aceptar",
+  cancelText = "Cancelar",
+  showCancel = false,
+}) {
+  if (!open) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3>{title}</h3>
-          <button className="modal-close" onClick={onClose}>×</button>
-        </div>
-        <div className="modal-body">
-          {children}
+    <div className="modal-light-overlay">
+      <div className="modal-light-box">
+
+        {/* Ícono según tipo */}
+        <div className={`modal-icon icon-${type}`}></div>
+
+        <h2 className="modal-title">{title}</h2>
+        <p className="modal-message">{message}</p>
+
+        <div className="modal-actions">
+          {showCancel && (
+            <button className="modal-btn-cancel" onClick={onCancel}>
+              {cancelText}
+            </button>
+          )}
+
+          <button className="modal-btn-confirm" onClick={onConfirm}>
+            {confirmText}
+          </button>
         </div>
       </div>
     </div>
   );
 }
+
