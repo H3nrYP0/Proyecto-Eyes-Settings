@@ -153,3 +153,35 @@
     border-radius: 0;
   }
 }
+
+
+/* estilos para marcas  */
+
+/* Agrega esto en tu CrudLayout.css */
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(-10px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+.alert-success {
+  animation: fadeIn 0.3s ease;
+}
+
+/* Estilos responsive adicionales */
+@media (max-width: 768px) {
+  .actions {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+  
+  .actions button {
+    width: 100%;
+    text-align: center;
+  }
+}
