@@ -253,3 +253,69 @@
   gap: 12px;
   margin-top: 20px;
 }
+
+
+/* =============================
+   ESTADOS DE AGENDA
+   ============================= */
+
+.estado-btn.pendiente {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.estado-btn.confirmada {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.estado-btn.en-progreso {
+  background: #fed7aa;
+  color: #c2410c;
+}
+
+.estado-btn.completada {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.estado-btn.cancelada {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.estado-btn.no-asistio {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+/* Estados para badges (si los usas en detalles) */
+.estado-badge.pendiente {
+  background: #f59e0b;
+  color: white;
+}
+
+.estado-badge.confirmada {
+  background: #3b82f6;
+  color: white;
+}
+
+.estado-badge.en-progreso {
+  background: #f97316;
+  color: white;
+}
+
+.estado-badge.completada {
+  background: #10b981;
+  color: white;
+}
+
+.estado-badge.cancelada {
+  background: #ef4444;
+  color: white;
+}
+
+.estado-badge.no-asistio {
+  background: #6b7280;
+  color: white;
+}

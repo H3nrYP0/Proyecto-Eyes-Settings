@@ -1,16 +1,24 @@
 import { useState, useEffect } from "react";
+import { 
+  clientesList, 
+  serviciosList, 
+  empleadosList, 
+  estadosCitaList,
+  metodosPagoList 
+} from "../../../../lib/data/agendaData";
 
 export default function AgendaForm({ mode, initialData, onSubmit, onCancel }) {
   
-  // Estado base del formulario
+  // Estado base del formulario con los nuevos campos
   const [form, setForm] = useState({
-    cliente: "",
-    servicio: "",
-    fecha: "",
+    clienteId: "",
+    servicioId: "",
+    empleadoId: "",
+    metodo_pago: "",
     hora: "",
     duracion: "",
-    metodoPago: "",
-    estado: "pendiente",
+    fecha: "",
+    estadoDeCitaId: "",
     notas: "",
   });
 
@@ -31,13 +39,14 @@ export default function AgendaForm({ mode, initialData, onSubmit, onCancel }) {
   useEffect(() => {
     if (initialData) {
       setForm({
-        cliente: initialData.cliente || "",
-        servicio: initialData.servicio || "",
-        fecha: initialData.fecha || "",
-        hora: convertirHora12a24(initialData.hora), // ⬅️ FIX DEL INPUT TIME
+        clienteId: initialData.clienteId || "",
+        servicioId: initialData.servicioId || "",
+        empleadoId: initialData.empleadoId || "",
+        metodo_pago: initialData.metodo_pago || "",
+        hora: convertirHora12a24(initialData.hora),
         duracion: initialData.duracion || "",
-        metodoPago: initialData.metodoPago || "",
-        estado: initialData.estado || "pendiente",
+        fecha: initialData.fecha || "",
+        estadoDeCitaId: initialData.estadoDeCitaId || "",
         notas: initialData.notas || "",
       });
     }
@@ -70,7 +79,7 @@ export default function AgendaForm({ mode, initialData, onSubmit, onCancel }) {
 
     const dataFinal = {
       ...form,
-      hora: convertirHora24a12(form.hora), // ⬅️ Guardamos en AM/PM como tu tabla
+      hora: convertirHora24a12(form.hora),
     };
 
     onSubmit(dataFinal);
@@ -82,30 +91,61 @@ export default function AgendaForm({ mode, initialData, onSubmit, onCancel }) {
   return (
     <form className="crud-form" onSubmit={handleSubmit}>
 
-      {/* CLIENTE */}
+      {/* CLIENTE ID */}
       <div className="form-group">
         <label>Cliente</label>
-        <input
-          type="text"
-          name="cliente"
-          value={form.cliente}
+        <select
+          name="clienteId"
+          value={form.clienteId}
           onChange={handleChange}
           disabled={readOnly}
           required
-        />
+        >
+          <option value="">Seleccione un cliente...</option>
+          {clientesList.map((cliente) => (
+            <option key={cliente.id} value={cliente.id}>
+              {cliente.nombre}
+            </option>
+          ))}
+        </select>
       </div>
 
-      {/* SERVICIO */}
+      {/* SERVICIO ID */}
       <div className="form-group">
         <label>Servicio</label>
-        <input
-          type="text"
-          name="servicio"
-          value={form.servicio}
+        <select
+          name="servicioId"
+          value={form.servicioId}
           onChange={handleChange}
           disabled={readOnly}
           required
-        />
+        >
+          <option value="">Seleccione un servicio...</option>
+          {serviciosList.map((servicio) => (
+            <option key={servicio.id} value={servicio.id}>
+              {servicio.nombre}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* EMPLEADO ID */}
+      <div className="form-group">
+        <label>Empleado</label>
+        <select
+          name="empleadoId"
+          value={form.empleadoId}
+          onChange={handleChange}
+          disabled={readOnly}
+          required
+        >
+          <option value="">Seleccione un empleado...</option>
+          {empleadosList.map((empleado) => (
+            <option key={empleado.id} value={empleado.id}>
+              {empleado.nombre}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* FECHA */}
@@ -137,46 +177,58 @@ export default function AgendaForm({ mode, initialData, onSubmit, onCancel }) {
       {/* DURACIÓN */}
       <div className="form-group">
         <label>Duración</label>
-        <input
-          type="text"
+        <select
           name="duracion"
           value={form.duracion}
           onChange={handleChange}
           disabled={readOnly}
           required
-        />
+        >
+          <option value="">Seleccione duración...</option>
+          <option value="15 min">15 minutos</option>
+          <option value="30 min">30 minutos</option>
+          <option value="45 min">45 minutos</option>
+          <option value="1 hora">1 hora</option>
+          <option value="1.5 horas">1.5 horas</option>
+          <option value="2 horas">2 horas</option>
+        </select>
       </div>
 
       {/* MÉTODO DE PAGO */}
       <div className="form-group">
         <label>Método de Pago</label>
         <select
-          name="metodoPago"
-          value={form.metodoPago}
+          name="metodo_pago"
+          value={form.metodo_pago}
           onChange={handleChange}
           disabled={readOnly}
           required
         >
-          <option value="">Seleccione...</option>
-          <option value="Efectivo">Efectivo</option>
-          <option value="Tarjeta Crédito">Tarjeta Crédito</option>
-          <option value="Tarjeta Débito">Tarjeta Débito</option>
-          <option value="Transferencia">Transferencia</option>
+          <option value="">Seleccione método...</option>
+          {metodosPagoList.map((metodo) => (
+            <option key={metodo} value={metodo}>
+              {metodo}
+            </option>
+          ))}
         </select>
       </div>
 
-      {/* ESTADO */}
+      {/* ESTADO DE CITA */}
       <div className="form-group">
-        <label>Estado</label>
+        <label>Estado de Cita</label>
         <select
-          name="estado"
-          value={form.estado}
+          name="estadoDeCitaId"
+          value={form.estadoDeCitaId}
           onChange={handleChange}
           disabled={readOnly}
+          required
         >
-          <option value="pendiente">Pendiente</option>
-          <option value="completada">Completada</option>
-          <option value="cancelada">Cancelada</option>
+          <option value="">Seleccione estado...</option>
+          {estadosCitaList.map((estado) => (
+            <option key={estado.id} value={estado.id}>
+              {estado.nombre}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -188,13 +240,16 @@ export default function AgendaForm({ mode, initialData, onSubmit, onCancel }) {
           value={form.notas}
           onChange={handleChange}
           disabled={readOnly}
+          rows="3"
         />
       </div>
 
       {/* BOTONES */}
       <div className="crud-form-actions">
         {!readOnly && (
-          <button type="submit" className="btn-primary">Guardar</button>
+          <button type="submit" className="btn-primary">
+            {mode === "crear" ? "Crear Cita" : "Guardar Cambios"}
+          </button>
         )}
 
         <button type="button" className="btn-secondary" onClick={onCancel}>
