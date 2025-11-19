@@ -32,7 +32,7 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
     if (pathname.includes('/ventas')) return 'ventas';
     if (pathname.includes('/servicios')) return 'servicios';
     if (pathname.includes('/usuarios')) return 'usuarios';
-    if (pathname.includes('/configuracion')) return 'configuracion';
+    if (pathname.includes('/seguridad')) return 'seguridad';
     if (pathname.includes('/dashboard')) return 'dashboard';
     return null;
   };
@@ -112,13 +112,12 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
       ]
     },
     {
-      id: "configuracion",
-      title: "Configuración",
-      icon: "configuracion-icon",
+      id: "seguridad",
+      title: "Seguridad",
+      icon: "seguridad-icon",
       // Items del módulo de configuración
       items: [
-        { name: "Roles", path: "/admin/configuracion/roles", icon: "roles-icon" },
-        { name: "Permisos", path: "/admin/configuracion/permisos", icon: "permissions-icon" }
+        { name: "Roles", path: "/admin/seguridad/roles", icon: "roles-icon" }
       ]
     }
   ];
