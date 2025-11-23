@@ -1,0 +1,337 @@
+/* =============================
+   ESTILOS SIMPLIFICADOS FORMULARIOS CRUD
+   ============================= */
+
+/* CONTENEDOR PRINCIPAL */
+.crud-form-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+/* HEADER */
+.crud-form-header {
+  background: var(--primary-color);
+  color: white;
+  padding: 24px 32px;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.crud-form-header h1 {
+  margin: 0 0 8px 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.crud-form-header p {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 0.9rem;
+}
+
+/* CONTENIDO */
+.crud-form-content {
+  padding: 32px;
+}
+
+/* SECCIONES - 2 COLUMNAS */
+.crud-form-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-bottom: 32px;
+  padding: 24px;
+  background: var(--gray-50);
+  border-radius: 8px;
+  border: 1px solid var(--gray-200);
+}
+
+.crud-form-section:last-child {
+  margin-bottom: 0;
+}
+
+.crud-form-section h3 {
+  grid-column: 1 / -1;
+  margin: 0 0 20px 0;
+  color: var(--gray-800);
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--primary-color);
+}
+
+/* GRUPOS DE FORMULARIO */
+.crud-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.crud-form-group label {
+  font-weight: 600;
+  color: var(--gray-700);
+  font-size: 0.9rem;
+}
+
+.crud-required {
+  color: #dc2626;
+}
+
+/* INPUTS */
+.crud-input {
+  padding: 12px;
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: white;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.crud-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.crud-textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+/* ITEMS DE DETALLE - 2 COLUMNAS */
+.crud-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.crud-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid var(--gray-200);
+}
+
+.crud-detail-item strong {
+  color: var(--gray-700);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.crud-detail-item ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.crud-detail-item li {
+  margin-bottom: 4px;
+  color: var(--gray-700);
+  font-size: 0.9rem;
+}
+
+/* ACCIONES */
+.crud-form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 24px;
+  margin-top: 24px;
+  border-top: 1px solid var(--gray-200);
+}
+
+/* BOTONES */
+.crud-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+  min-width: 120px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.crud-btn-primary {
+  background: var(--primary-color);
+  color: white;
+}
+
+.crud-btn-primary:hover:not(:disabled) {
+  background: var(--primary-dark);
+}
+
+.crud-btn-primary:disabled {
+  background: var(--gray-400);
+  cursor: not-allowed;
+}
+
+.crud-btn-secondary {
+  background: var(--gray-200);
+  color: var(--gray-700);
+  border: 1px solid var(--gray-300);
+}
+
+.crud-btn-secondary:hover {
+  background: var(--gray-300);
+}
+
+.crud-btn-delete {
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 8px 16px;
+  min-width: auto;
+  border: 1px solid #fecaca;
+}
+
+.crud-btn-delete:hover {
+  background: #fecaca;
+}
+
+/* BADGES */
+.crud-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.crud-badge-success {
+  background: #d4ffd8;
+  color: #15803d;
+  border: 1px solid #b8e6cb;
+}
+
+.crud-badge-error {
+  background: #ffe1e1;
+  color: #b91c1c;
+  border: 1px solid #f5c2c2;
+}
+
+/* COMPONENTES ESPECÍFICOS */
+.crud-products-section {
+  grid-column: 1 / -1;
+}
+
+.crud-products-table {
+  width: 100%;
+  background: white;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.crud-products-table th {
+  background: var(--gray-100);
+  font-weight: 600;
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.crud-products-table td {
+  padding: 8px;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.crud-inline-input {
+  padding: 8px;
+  border: 1px solid var(--gray-300);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  width: 100%;
+  background: white;
+}
+
+.crud-inline-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.crud-add-product {
+  grid-column: 1 / -1;
+  background: var(--gray-50);
+  padding: 20px;
+  border-radius: 6px;
+  border: 2px dashed var(--gray-300);
+  margin-bottom: 16px;
+}
+
+.crud-totals {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 8px;
+  max-width: 400px;
+  margin-left: auto;
+  background: white;
+  padding: 20px;
+  border-radius: 6px;
+  border: 1px solid var(--gray-200);
+}
+
+.crud-total-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--gray-200);
+  font-size: 0.9rem;
+}
+
+.crud-total-final {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--primary-color);
+  border-top: 2px solid var(--gray-300);
+  border-bottom: none;
+  padding-top: 12px;
+  margin-top: 8px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .crud-form-container {
+    max-width: 95%;
+    margin: 0 auto;
+  }
+  
+  .crud-form-content {
+    padding: 20px;
+  }
+  
+  .crud-form-section {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 20px;
+  }
+  
+  .crud-detail-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .crud-totals {
+    max-width: 100%;
+    margin-left: 0;
+  }
+  
+  .crud-form-actions {
+    flex-direction: column;
+  }
+  
+  .crud-btn {
+    min-width: 100%;
+  }
+  
+  .crud-products-section {
+    overflow-x: auto;
+  }
+}
