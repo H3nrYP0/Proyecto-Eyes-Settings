@@ -4,7 +4,7 @@ import { useState } from "react";
 
 // ESTOS SON LOS COMPONENTES DE LAYOUT
 import Sidebar from "./Sidebar";
-import Header from "./Header";
+
 
 // ESTAS SON LAS FEATURES DE VENTAS
 import Dashboard from "../../../features/ventas/pages/Dashboard";
@@ -106,12 +106,7 @@ export default function OpticaDashboardLayout({ user, setUser }) {
       <div className={`main-content ${sidebarOpen ? "sidebar-expanded" : "sidebar-collapsed"}`}>
         
         {/* ESTE ES EL HEADER SUPERIOR */}
-        <Header
-          user={user}
-          onLogout={handleLogout}
-          onToggleSidebar={handleToggleSidebar}
-          sidebarOpen={sidebarOpen}
-        />
+
 
         {/* ESTA ES EL ÁREA DONDE SE RENDERIZAN LAS PÁGINAS */}
         <main className="content-area">
