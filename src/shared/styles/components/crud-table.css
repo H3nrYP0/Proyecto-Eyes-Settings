@@ -302,3 +302,34 @@
   color: var(--success-color);
   font-family: 'Courier New', monospace;
 }
+
+/* Badges para tipos de proveedores */
+.badge-juridica {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid #bae6fd;
+}
+
+.badge-natural {
+  background: #f0fdf4;
+  color: #166534;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid #bbf7d0;
+}
+
+/* Enlaces de correo */
+.email-link {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.email-link:hover {
+  text-decoration: underline;
+}

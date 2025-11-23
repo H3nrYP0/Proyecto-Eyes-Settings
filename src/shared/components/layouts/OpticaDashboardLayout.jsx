@@ -51,6 +51,8 @@ import EditarProducto from "../../../features/compras/pages/producto/EditarProdu
 import Proveedores from "../../../features/compras/pages/Proveedores";
 import CrearProveedor from "../../../features/compras/pages/CrearProveedor";
 import EditarProveedor from "../../../features/compras/pages/EditarProveedor";
+import DetalleProveedor from "../../../features/compras/pages/DetalleProveedor";
+
 import CrearCompra from "../../../features/compras/pages/CrearCompra";
 import EditarCompra from "../../../features/compras/pages/EditarCompra";
 import DetalleCompra from "../../../features/compras/pages/DetalleCompra";
@@ -187,6 +189,8 @@ export default function OpticaDashboardLayout({ user, setUser }) {
                 <Route index element={<Proveedores />} />
                 <Route path="crear" element={<CrearProveedor />} />
                 <Route path="editar/:id" element={<EditarProveedor />} />
+                <Route path="detalle/:id" element={<DetalleProveedor />} />
+
               </Route>
             </Route>
 
