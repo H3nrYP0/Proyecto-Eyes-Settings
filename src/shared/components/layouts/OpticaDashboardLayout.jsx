@@ -32,8 +32,11 @@ import EditarPedido from "../../../features/ventas/components/pedidos/EditarPedi
 
 // ESTAS SON LAS FEATURES DE COMPRAS
 import Compras from "../../../features/compras/pages/Compras";
+
 import Categorias from "../../../features/compras/pages/categoria/Categorias";
-import CrudCategorias from "../../../features/compras/pages/categoria/CrudCategorias";
+import CrearCategoria from "../../../features/compras/pages/categoria/CrearCategoria";
+import EditarCategoria from "../../../features/compras/pages/categoria/EditarCategoria";
+import DetalleCategoria from "../../../features/compras/pages/categoria/DetalleCategoria";
 
 import Marcas from "../../../features/compras/pages/Marcas";
 
@@ -156,10 +159,14 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               <Route path="crear" element={<CrearCompra />} />
               <Route path="editar/:id" element={<EditarCompra />} />
               <Route path="detalle/:id" element={<DetalleCompra />} />
-              <Route path="categorias" element={<Categorias />} />
-              <Route path="categorias/crear" element={<CrudCategorias mode="crear" />} />
-              <Route path="categorias/editar/:id" element={<CrudCategorias mode="editar" />} />
-              <Route path="categorias/detalle/:id" element={<CrudCategorias mode="detalle" />} />
+
+              <Route path="categorias">
+                <Route index element={<Categorias />} />
+                <Route path="crear" element={<CrearCategoria />} />
+                <Route path="editar/:id" element={<EditarCategoria />} />
+                <Route path="detalle/:id" element={<DetalleCategoria />} />
+              </Route>
+
               <Route path="marcas" element={<Marcas />} />
               
               <Route path="productos" element={<Products />} />
