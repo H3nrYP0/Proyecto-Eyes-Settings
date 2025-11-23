@@ -1,60 +1,78 @@
-// src/shared/components/ui/CrudTable.jsx
-// Tabla genérica que soporta columnas simples y columnas con "render" (función).
 import React from "react";
-/* IMPORTA CSS desde tu carpeta de estilos compartida (ajusta la ruta si la tienes en otro sitio) */
-import "/src/shared/styles/components/crud-table.css";
+import "../../../shared/styles/components/crud-table.css";
 
-export default function CrudTable({ columns = [], data = [], actions = [] }) {
+export default function UnifiedCrudTable({ 
+  columns = [], 
+  data = [], 
+  actions = [],
+  emptyMessage = "No hay registros.",
+  loading = false 
+}) {
+  if (loading) {
+    return (
+      <div className="unified-crud-container">
+        <div className="unified-no-data">
+          Cargando...
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="table-responsive-container">
-      <table className="crud-table" aria-label="Tabla genérica">
+    <div className="unified-crud-container">
+      <table className="unified-table" aria-label="Tabla de datos">
         <thead>
           <tr>
             {columns.map(col => (
-              col.field === "id"
-                ? null
-                : <th key={col.field}>{col.header}</th>
+              col.field === "id" ? null : (
+                <th key={col.field}>{col.header}</th>
+              )
             ))}
-
             {actions && actions.length > 0 && <th>Acciones</th>}
           </tr>
         </thead>
-
         <tbody>
           {(!data || data.length === 0) ? (
             <tr>
-              <td colSpan={(columns.length) + (actions && actions.length > 0 ? 1 : 0)} style={{ textAlign: "center", padding: 24 }}>
-                No hay registros.
+              <td 
+                colSpan={
+                  columns.filter(col => col.field !== "id").length + 
+                  (actions && actions.length > 0 ? 1 : 0)
+                } 
+                style={{ textAlign: "center", padding: "40px" }}
+              >
+                {emptyMessage}
               </td>
             </tr>
           ) : (
             data.map((row) => (
-              <tr key={row.id ?? JSON.stringify(row)}>
-                  {columns.map((col) => (
-                    col.field === "id"
-                      ? null
-                      : (
-                          <td key={col.field || col.header}>
-                            {typeof col.render === "function" ? col.render(row) : row[col.field]}
-                          </td>
-                        )
-                  ))}
-
-
+              <tr key={row.id}>
+                {columns.map((col) => (
+                  col.field === "id" ? null : (
+                    <td key={col.field}>
+                      {typeof col.render === "function" 
+                        ? col.render(row) 
+                        : row[col.field]
+                      }
+                    </td>
+                  )
+                ))}
                 {actions && actions.length > 0 && (
-                  <td className="actions">
+                  <td className="unified-actions">
                     {actions.map((action, idx) => (
                       <button
                         key={idx}
-                        className={`crud-action-btn crud-${action.type}`}
+                        className={`unified-action-btn unified-btn-${action.type}`}
                         onClick={() => action.onClick?.(row)}
+                        disabled={action.disabled?.(row)}
+                        title={action.title}
                         type="button"
                       >
+                        {action.icon && <span>{action.icon}</span>}
                         {action.label}
                       </button>
                     ))}
                   </td>
-
                 )}
               </tr>
             ))

@@ -1,15 +1,11 @@
-// src/features/compras/pages/EditarCompra.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useCompras } from '../context/ComprasContext';
-import { useProveedores } from '../context/ProveedoresContext';
 import CrudLayout from "../../../shared/components/layouts/CrudLayout";
+import { getCompraById, updateCompra } from "../../../lib/data/comprasData";
 
 export default function EditarCompra() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { state: comprasState, actions: comprasActions } = useCompras();
-  const { state: proveedoresState } = useProveedores();
   
   const [formData, setFormData] = useState(null);
   const [productoActual, setProductoActual] = useState({
@@ -19,13 +15,13 @@ export default function EditarCompra() {
   });
 
   useEffect(() => {
-    const compra = comprasState.compras.find(c => c.id === parseInt(id));
+    const compra = getCompraById(Number(id));
     if (compra) {
       setFormData(compra);
     } else {
       navigate('/admin/compras');
     }
-  }, [id, comprasState.compras, navigate]);
+  }, [id, navigate]);
 
   const calcularTotales = (productos) => {
     const subtotal = productos.reduce((sum, prod) => sum + prod.total, 0);
@@ -99,7 +95,8 @@ export default function EditarCompra() {
       total
     };
 
-    comprasActions.updateCompra(compraActualizada);
+    // Actualizar en la base de datos
+    updateCompra(Number(id), compraActualizada);
     navigate('/admin/compras');
   };
 
@@ -108,6 +105,10 @@ export default function EditarCompra() {
   }
 
   const { subtotal, iva, total } = calcularTotales(formData.productos);
+
+  const formatCurrency = (amount) => {
+    return `$${amount.toLocaleString()}`;
+  };
 
   return (
     <CrudLayout
@@ -122,14 +123,13 @@ export default function EditarCompra() {
             <div className="form-row">
               <div className="form-group">
                 <label>Proveedor</label>
-                <select 
-                  value={formData.proveedorId} 
-                  onChange={(e) => setFormData({...formData, proveedorId: parseInt(e.target.value)})}
-                  disabled
-                >
-                  <option value={formData.proveedorId}>{formData.proveedorNombre}</option>
-                </select>
-                <small>El proveedor no se puede modificar</small>
+                <input
+                  type="text"
+                  value={formData.proveedorNombre}
+                  onChange={(e) => setFormData({...formData, proveedorNombre: e.target.value})}
+                  className="form-input"
+                  required
+                />
               </div>
               
               <div className="form-group">
@@ -138,6 +138,7 @@ export default function EditarCompra() {
                   type="date" 
                   value={formData.fecha}
                   onChange={(e) => setFormData({...formData, fecha: e.target.value})}
+                  className="form-input"
                   required 
                 />
               </div>
@@ -146,10 +147,11 @@ export default function EditarCompra() {
             <div className="form-group">
               <label>Observaciones</label>
               <textarea 
-                value={formData.observaciones}
+                value={formData.observaciones || ''}
                 onChange={(e) => setFormData({...formData, observaciones: e.target.value})}
                 rows="3"
                 placeholder="Observaciones adicionales..."
+                className="form-input"
               />
             </div>
           </div>
@@ -165,6 +167,7 @@ export default function EditarCompra() {
                   value={productoActual.nombre}
                   onChange={(e) => setProductoActual({...productoActual, nombre: e.target.value})}
                   placeholder="Nombre del producto"
+                  className="form-input"
                 />
               </div>
               
@@ -175,6 +178,7 @@ export default function EditarCompra() {
                   value={productoActual.cantidad}
                   onChange={(e) => setProductoActual({...productoActual, cantidad: e.target.value})}
                   min="1"
+                  className="form-input"
                 />
               </div>
               
@@ -185,6 +189,7 @@ export default function EditarCompra() {
                   value={productoActual.precioUnitario}
                   onChange={(e) => setProductoActual({...productoActual, precioUnitario: e.target.value})}
                   min="0"
+                  className="form-input"
                 />
               </div>
               
@@ -239,12 +244,12 @@ export default function EditarCompra() {
                             className="inline-input"
                           />
                         </td>
-                        <td>${producto.total.toLocaleString()}</td>
+                        <td>{formatCurrency(producto.total)}</td>
                         <td>
                           <button 
                             type="button"
                             onClick={() => eliminarProducto(producto.id)}
-                            className="btn-danger"
+                            className="btn-delete"
                           >
                             🗑️
                           </button>
@@ -263,24 +268,32 @@ export default function EditarCompra() {
             <div className="totales-grid">
               <div className="total-item">
                 <span>Subtotal:</span>
-                <span>${subtotal.toLocaleString()}</span>
+                <span>{formatCurrency(subtotal)}</span>
               </div>
               <div className="total-item">
                 <span>IVA (19%):</span>
-                <span>${iva.toLocaleString()}</span>
+                <span>{formatCurrency(iva)}</span>
               </div>
               <div className="total-item total-final">
                 <span>Total:</span>
-                <span>${total.toLocaleString()}</span>
+                <span>{formatCurrency(total)}</span>
               </div>
             </div>
           </div>
 
           <div className="form-actions">
-            <button type="button" onClick={() => navigate('/admin/compras')}>
+            <button 
+              type="button" 
+              onClick={() => navigate('/admin/compras')}
+              className="btn-secondary"
+            >
               Cancelar
             </button>
-            <button type="submit" className="btn-primary">
+            <button 
+              type="submit" 
+              className="btn-primary"
+              disabled={formData.estado === "Anulada"}
+            >
               Actualizar Compra
             </button>
           </div>
