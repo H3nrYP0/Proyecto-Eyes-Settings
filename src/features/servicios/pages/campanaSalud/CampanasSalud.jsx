@@ -8,91 +8,113 @@ import "../../../../shared/styles/components/modal.css";
 
 // Importamos las funciones del backend
 import {
-  getAllHorarios,
-  deleteHorario,
-  updateEstadoHorario,
-} from "../../../../lib/data/horariosData";
+  getAllCampanasSalud,
+  deleteCampanaSalud,
+  updateEstadoCampanaSalud,
+} from "../../../../lib/data/campanasSaludData";
 
-export default function Horarios() {
+export default function CampanasSalud() {
   const navigate = useNavigate();
 
-  const [horarios, setHorarios] = useState([]);
+  const [campanas, setCampanas] = useState([]);
   const [search, setSearch] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
 
   const [modalDelete, setModalDelete] = useState({
     open: false,
     id: null,
-    empleado: "",
+    nombre: "",
   });
 
   // Cargar datos
   useEffect(() => {
-    const horariosData = getAllHorarios();
-    setHorarios(horariosData);
+    const campanasData = getAllCampanasSalud();
+    setCampanas(campanasData);
   }, []);
 
   // =============================
   //    MODAL DE ELIMINACIÓN
   // =============================
-  const handleDelete = (id, empleado) => {
+  const handleDelete = (id, nombre) => {
     setModalDelete({
       open: true,
       id,
-      empleado,
+      nombre,
     });
   };
 
   const confirmDelete = () => {
-    const updated = deleteHorario(modalDelete.id);
-    setHorarios([...updated]);
-    setModalDelete({ open: false, id: null, empleado: "" });
+    const updated = deleteCampanaSalud(modalDelete.id);
+    setCampanas([...updated]);
+    setModalDelete({ open: false, id: null, nombre: "" });
   };
 
   // =============================
   //    CAMBIAR ESTADO
   // =============================
   const toggleEstado = (id) => {
-    const updated = updateEstadoHorario(id);
-    setHorarios([...updated]);
+    const updated = updateEstadoCampanaSalud(id);
+    setCampanas([...updated]);
   };
 
   // =============================
   //          BUSCADOR Y FILTRO
   // =============================
-  const filteredHorarios = horarios.filter((horario) => {
+  const filteredCampanas = campanas.filter((campana) => {
     const matchesSearch = 
-      horario.empleado.toLowerCase().includes(search.toLowerCase()) ||
-      horario.dia.toLowerCase().includes(search.toLowerCase());
+      campana.nombre.toLowerCase().includes(search.toLowerCase()) ||
+      campana.descripcion.toLowerCase().includes(search.toLowerCase());
     
-    const matchesFilter = !filterEstado || horario.estado === filterEstado;
+    const matchesFilter = !filterEstado || campana.estado === filterEstado;
     
     return matchesSearch && matchesFilter;
   });
 
-  // FILTROS PARA HORARIOS
+  // FILTROS PARA CAMPAÑAS
   const searchFilters = [
-    { value: 'activo', label: 'Activos' },
-    { value: 'inactivo', label: 'Inactivos' }
+    { value: 'activa', label: 'Activas' },
+    { value: 'proxima', label: 'Próximas' },
+    { value: 'finalizada', label: 'Finalizadas' },
+    { value: 'inactiva', label: 'Inactivas' }
   ];
 
   // =============================
   //          COLUMNAS
   // =============================
   const columns = [
-    { field: "empleado", header: "Empleado" },
-    { field: "dia", header: "Día" },
-    { field: "horaInicio", header: "Hora Inicio" },
-    { field: "horaFinal", header: "Hora Final" },
+    { field: "nombre", header: "Nombre" },
+    { 
+      field: "descripcion", 
+      header: "Descripción",
+      render: (item) => (
+        item.descripcion ? (
+          <span title={item.descripcion}>
+            {item.descripcion.length > 50 
+              ? item.descripcion.substring(0, 50) + '...' 
+              : item.descripcion
+            }
+          </span>
+        ) : '-'
+      )
+    },
+    { field: "fechaInicio", header: "Fecha Inicio" },
+    { field: "fechaFin", header: "Fecha Fin" },
+    { 
+      field: "descuento", 
+      header: "Descuento",
+      render: (item) => `${item.descuento}%`
+    },
     {
       field: "estado",
       header: "Estado",
       render: (item) => (
         <button
-          className={`estado-btn ${item.estado === "activo" ? "activo" : "inactivo"}`}
+          className={`estado-btn ${item.estado === "activa" ? "activa" : item.estado === "proxima" ? "proxima" : item.estado === "finalizada" ? "finalizada" : "inactiva"}`}
           onClick={() => toggleEstado(item.id)}
         >
-          {item.estado === "activo" ? "✅ Activo" : "⛔ Inactivo"}
+          {item.estado === "activa" ? "🟢 Activa" : 
+           item.estado === "proxima" ? "🟡 Próxima" : 
+           item.estado === "finalizada" ? "🔵 Finalizada" : "⚫ Inactiva"}
         </button>
       ),
     },
@@ -115,7 +137,7 @@ export default function Horarios() {
     {
       label: "Eliminar",
       type: "delete",
-      onClick: (item) => handleDelete(item.id, item.empleado),
+      onClick: (item) => handleDelete(item.id, item.nombre),
     },
   ];
 
@@ -126,11 +148,11 @@ export default function Horarios() {
 
   return (
     <CrudLayout
-      title="⏰ Horarios"
-      description="Gestiona los horarios de trabajo del personal de la óptica."
+      title="🏥 Campañas de Salud"
+      description="Gestiona las campañas de salud visual y promociones especiales."
       onAddClick={() => navigate("crear")}
       showSearch={true}
-      searchPlaceholder="Buscar por empleado, día..."
+      searchPlaceholder="Buscar por nombre, descripción..."
       searchValue={search}
       onSearchChange={setSearch}
       searchFilters={searchFilters}
@@ -141,24 +163,24 @@ export default function Horarios() {
       {/* Tabla */}
       <CrudTable 
         columns={columns} 
-        data={filteredHorarios} 
+        data={filteredCampanas} 
         actions={tableActions}
         emptyMessage={
           search || filterEstado ? 
-            'No se encontraron horarios para los filtros aplicados' : 
-            'No hay horarios registrados'
+            'No se encontraron campañas para los filtros aplicados' : 
+            'No hay campañas registradas'
         }
       />
 
-      {/* Botón para primer horario */}
-      {filteredHorarios.length === 0 && !search && !filterEstado && (
+      {/* Botón para primera campaña */}
+      {filteredCampanas.length === 0 && !search && !filterEstado && (
         <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
           <button 
             onClick={() => navigate("crear")}
             className="btn-primary"
             style={{padding: 'var(--spacing-md) var(--spacing-lg)'}}
           >
-            Crear Primer Horario
+            Crear Primera Campaña
           </button>
         </div>
       )}
@@ -167,13 +189,13 @@ export default function Horarios() {
       <Modal
         open={modalDelete.open}
         type="warning"
-        title="¿Eliminar Horario?"
-        message={`Esta acción eliminará el horario de "${modalDelete.empleado}" y no se puede deshacer.`}
+        title="¿Eliminar Campaña?"
+        message={`Esta acción eliminará la campaña "${modalDelete.nombre}" y no se puede deshacer.`}
         confirmText="Eliminar"
         cancelText="Cancelar"
         showCancel={true}
         onConfirm={confirmDelete}
-        onCancel={() => setModalDelete({ open: false, id: null, empleado: "" })}
+        onCancel={() => setModalDelete({ open: false, id: null, nombre: "" })}
       />
     </CrudLayout>
   );
