@@ -1,7 +1,9 @@
-/* Estilos generales para tablas CRUD */
-/* Inspirado en dashboard moderno sin alterar el estilo del proyecto */
+/* =============================
+   SISTEMA UNIFICADO CRUD
+   ============================= */
 
-.crud-table-container {
+/* Contenedor principal */
+.unified-crud-container {
   width: 100%;
   overflow-x: auto;
   background: white;
@@ -10,152 +12,274 @@
   margin-top: var(--spacing-md);
 }
 
-.crud-table {
+/* Tabla unificada */
+.unified-table {
   width: 100%;
   border-collapse: collapse;
+  font-size: var(--font-size-sm);
 }
 
-.crud-table thead {
+.unified-table thead {
   background: var(--primary-color);
   color: white;
 }
 
-.crud-table th {
+.unified-table th {
   padding: var(--spacing-md);
   text-align: left;
   font-weight: 600;
-  font-size: var(--font-size-sm);
+  border-bottom: 2px solid var(--primary-dark);
 }
 
-.crud-table td {
+.unified-table td {
   padding: var(--spacing-md);
   border-bottom: 1px solid var(--gray-200);
+  vertical-align: middle;
 }
 
-.crud-table tbody tr:hover {
+.unified-table tbody tr:hover {
   background-color: var(--gray-50);
+  transition: background-color 0.2s ease;
 }
 
-/* Acciones */
-.crud-actions {
+/* Sistema de búsqueda unificado */
+.unified-search-container {
   display: flex;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
 }
 
-.crud-action-btn {
-  padding: 4px 10px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  font-size: var(--font-size-sm);
-  transition: 0.2s ease;
-}
-
-/* Tipos de acciones */
-.crud-action-btn.view {
-  background: #e7f1ff;
-  color: #0064d2;
-}
-
-.crud-action-btn.edit {
-  background: #e9f7ef;
-  color: #0d8a43;
-}
-
-.crud-action-btn.delete {
-  background: #fdeaea;
-  color: #d0302f;
-}
-
-.crud-action-btn:hover {
-  opacity: 0.8;
-}
-
-/* Sin datos */
-.no-data {
-  padding: var(--spacing-lg);
-  text-align: center;
-  color: var(--gray-500);
-}
-
-
-/* Buscador */
-.search-bar-row {
-  width: 100%;
+.unified-search-box {
+  flex: 1;
+  min-width: 300px;
+  position: relative;
   display: flex;
-  margin-bottom: var(--spacing-md);
+  align-items: center;
 }
 
-.search-input {
+.unified-search-input {
   width: 100%;
-  padding: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-md) var(--spacing-md) 40px;
   border: 1px solid var(--gray-300);
   border-radius: var(--border-radius-md);
   font-size: var(--font-size-sm);
   outline: none;
+  transition: border-color 0.2s ease;
 }
 
-.search-input:focus {
+.unified-search-input:focus {
   border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
-
-.categoria-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-  max-width: 600px;
-  margin-top: var(--spacing-md);
+.unified-search-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--gray-500);
+  pointer-events: none;
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.form-group label {
-  font-weight: 600;
-}
-
-.required {
-  color: red;
-}
-
-.form-actions {
-  display: flex;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-lg);
-}
-
-.btn-primary,
-.btn-secondary {
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-radius: var(--border-radius-md);
-  cursor: pointer;
+.unified-clear-search {
+  position: absolute;
+  right: 12px;
+  background: none;
   border: none;
-  font-weight: 600;
+  color: var(--gray-500);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
 }
 
-.btn-primary {
-  background: var(--primary-color);
-  color: white;
-}
-
-.btn-primary:hover {
-  background: var(--primary-dark);
-}
-
-.btn-secondary {
+.unified-clear-search:hover {
   background: var(--gray-200);
   color: var(--gray-700);
 }
 
-.btn-secondary:hover {
-  background: var(--gray-300);
+.unified-filter-select {
+  padding: var(--spacing-md);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius-md);
+  background: white;
+  font-size: var(--font-size-sm);
+  min-width: 150px;
+  outline: none;
+}
+
+.unified-filter-select:focus {
+  border-color: var(--primary-color);
+}
+
+/* Sistema de botones de acción unificados */
+/* Sistema de botones de acción unificados - SOLO TEXTO */
+.unified-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.unified-action-btn {
+  padding: 6px 12px;
+  border-radius: var(--border-radius-md);
+  border: none;
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: auto;
+  text-decoration: none;
+}
+
+.unified-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.unified-action-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Tipos de botones de acción - SOLO TEXTO */
+.unified-btn-view {
+  background: #e7f1ff;
+  color: #0064d2;
+  border: 1px solid #b3d4ff;
+}
+
+.unified-btn-edit {
+  background: #e9f7ef;
+  color: #0d8a43;
+  border: 1px solid #b8e6cb;
+}
+
+.unified-btn-delete {
+  background: #fdeaea;
+  color: #d0302f;
+  border: 1px solid #f5c2c2;
+}
+
+.unified-btn-warning {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.unified-btn-primary {
+  background: var(--primary-color);
+  color: white;
+  border: 1px solid var(--primary-dark);
+}
+
+.unified-btn-primary:hover:not(:disabled) {
+  background: var(--primary-dark);
+}
+
+/* Estados unificados */
+.unified-status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-activa,
+.status-completada,
+.status-active {
+  background: #d4ffd8;
+  color: #15803d;
+}
+
+.status-inactiva,
+.status-anulada,
+.status-inactive,
+.status-cancelada {
+  background: #ffe1e1;
+  color: #b91c1c;
+}
+
+.status-pendiente {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.status-completada {
+  background: #d4ffd8;
+  color: #15803d;
+}
+
+.status-cancelada {
+  background: #ffe1e1;
+  color: #b91c1c;
+}
+
+/* Estadísticas de búsqueda */
+.unified-search-stats {
+  background: var(--gray-50);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-md);
+  border-left: 4px solid var(--primary-color);
+}
+
+.unified-search-stats p {
+  margin: 0;
+  color: var(--gray-700);
+  font-size: var(--font-size-sm);
+}
+
+/* Sin datos */
+.unified-no-data {
+  padding: var(--spacing-xl);
+  text-align: center;
+  color: var(--gray-500);
+  background: var(--gray-50);
+  border-radius: var(--border-radius-md);
+  margin: var(--spacing-md) 0;
+}
+
+/* Montos y números */
+.unified-amount {
+  font-weight: 600;
+  color: var(--success-color);
+  font-family: 'Courier New', monospace;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .unified-search-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .unified-search-box {
+    min-width: auto;
+  }
+  
+  .unified-actions {
+    justify-content: center;
+  }
+  
+  .unified-table {
+    font-size: var(--font-size-xs);
+  }
+  
+  .unified-table th,
+  .unified-table td {
+    padding: var(--spacing-sm);
+  }
 }
 
 
+/* Botones de estado como en categorías */
 .estado-btn {
   border: none;
   padding: 6px 12px;
@@ -163,159 +287,173 @@
   cursor: pointer;
   font-size: 0.9rem;
   transition: 0.2s;
+  min-width: 120px;
 }
 
 .estado-btn.activo {
   background: #d4ffd8;
   color: #15803d;
+  border: 1px solid #b8e6cb;
 }
 
 .estado-btn.inactivo {
   background: #ffe1e1;
   color: #b91c1c;
+  border: 1px solid #f5c2c2;
 }
-
-/* Botones de acción */
-.crud-action-btn {
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  cursor: pointer;
-  border: none;
-  margin-right: 6px;
-  transition: 0.15s;
-}
-
-/* Ver */
-.crud-view {
-  background: #e0f2fe;
-  color: #0369a1;
-}
-.crud-view:hover {
-  background: #bae6fd;
-}
-
-/* Editar */
-.crud-edit {
-  background: #fef3c7;
-  color: #b45309;
-}
-.crud-edit:hover {
-  background: #fde68a;
-}
-
-/* Eliminar */
-.crud-delete {
-  background: #fee2e2;
-  color: #b91c1c;
-}
-.crud-delete:hover {
-  background: #fecaca;
-}
-
-
-.status-active { background: #2ecc71; }
-.status-inactive { background: #e74c3c; }
-.status-pending { background: #f1c40f; }
-
-
-.detalle-card {
-  background: white;
-  padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.detalle-item {
-  margin-bottom: 12px;
-  font-size: 15px;
-}
-
-.estado-badge {
-  padding: 4px 10px;
-  border-radius: 8px;
-  font-weight: bold;
-  color: white;
-}
-
-.estado-badge.activo {
-  background: #0ba95b;
-}
-
-.estado-badge.inactivo {
-  background: #d32f2f;
-}
-
-.detalle-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-
-/* =============================
-   ESTADOS DE AGENDA
-   ============================= */
 
 .estado-btn.pendiente {
   background: #fef3c7;
   color: #b45309;
-}
-
-.estado-btn.confirmada {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.estado-btn.en-progreso {
-  background: #fed7aa;
-  color: #c2410c;
+  border: 1px solid #fde68a;
 }
 
 .estado-btn.completada {
-  background: #dcfce7;
-  color: #166534;
+  background: #d4ffd8;
+  color: #15803d;
+  border: 1px solid #b8e6cb;
 }
 
 .estado-btn.cancelada {
+  background: #ffe1e1;
+  color: #b91c1c;
+  border: 1px solid #f5c2c2;
+}
+
+.estado-btn.proxima {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.estado-btn.finalizada {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.estado-btn.activa {
+  background: #d4ffd8;
+  color: #15803d;
+  border: 1px solid #b8e6cb;
+}
+
+.estado-btn.inactiva {
+  background: #ffe1e1;
+  color: #b91c1c;
+  border: 1px solid #f5c2c2;
+}
+
+.estado-btn:hover {
+  opacity: 0.8;
+  transform: translateY(-1px);
+}
+
+.estado-btn:hover {
+  opacity: 0.8;
+  transform: translateY(-1px);
+}
+
+/* Montos */
+.amount {
+  font-weight: 600;
+  color: var(--success-color);
+  font-family: 'Courier New', monospace;
+}
+
+/* Badges para tipos de proveedores */
+.badge-juridica {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid #bae6fd;
+}
+
+.badge-natural {
+  background: #f0fdf4;
+  color: #166534;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid #bbf7d0;
+}
+
+/* Enlaces de correo */
+.email-link {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.email-link:hover {
+  text-decoration: underline;
+}
+
+
+/* Estados de pedidos */
+.estado-pedido {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.estado-en-proceso {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.estado-pendiente-pago {
   background: #fee2e2;
   color: #b91c1c;
+  border: 1px solid #fecaca;
 }
 
-.estado-btn.no-asistio {
-  background: #f3f4f6;
-  color: #6b7280;
+.estado-pagado {
+  background: #d4ffd8;
+  color: #15803d;
+  border: 1px solid #b8e6cb;
 }
 
-/* Estados para badges (si los usas en detalles) */
-.estado-badge.pendiente {
-  background: #f59e0b;
-  color: white;
+.estado-entregado {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
 }
 
-.estado-badge.confirmada {
-  background: #3b82f6;
-  color: white;
+/* Saldos */
+.saldo-pendiente {
+  color: #dc2626;
+  font-weight: 600;
 }
 
-.estado-badge.en-progreso {
-  background: #f97316;
-  color: white;
+.saldo-pagado {
+  color: #15803d;
+  font-weight: 600;
 }
 
-.estado-badge.completada {
-  background: #10b981;
-  color: white;
+/* Badges para tipos */
+.badge-venta {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid #bae6fd;
 }
 
-.estado-badge.cancelada {
-  background: #ef4444;
-  color: white;
-}
-
-.estado-badge.no-asistio {
-  background: #6b7280;
-  color: white;
+.badge-servicio {
+  background: #f0fdf4;
+  color: #166534;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid #bbf7d0;
 }

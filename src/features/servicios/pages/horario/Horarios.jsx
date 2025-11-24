@@ -1,12 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
 import CrudLayout from "../../../../shared/components/layouts/CrudLayout";
 import CrudTable from "../../../../shared/components/ui/CrudTable";
-import "../../../../shared/styles/components/crud-table.css";
-
-// Modal reutilizable
 import Modal from "../../../../shared/components/ui/Modal";
+import "../../../../shared/styles/components/crud-table.css";
 import "../../../../shared/styles/components/modal.css";
 
 // Importamos las funciones del backend
@@ -21,6 +18,7 @@ export default function Horarios() {
 
   const [horarios, setHorarios] = useState([]);
   const [search, setSearch] = useState("");
+  const [filterEstado, setFilterEstado] = useState("");
 
   const [modalDelete, setModalDelete] = useState({
     open: false,
@@ -60,30 +58,38 @@ export default function Horarios() {
   };
 
   // =============================
-  //          BUSCADOR
+  //          BUSCADOR Y FILTRO
   // =============================
-  const filteredHorarios = horarios.filter((horario) =>
-    horario.empleado.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredHorarios = horarios.filter((horario) => {
+    const matchesSearch = 
+      horario.empleado.toLowerCase().includes(search.toLowerCase()) ||
+      horario.dia.toLowerCase().includes(search.toLowerCase());
+    
+    const matchesFilter = !filterEstado || horario.estado === filterEstado;
+    
+    return matchesSearch && matchesFilter;
+  });
+
+  // FILTROS PARA HORARIOS
+  const searchFilters = [
+    { value: 'activo', label: 'Activos' },
+    { value: 'inactivo', label: 'Inactivos' }
+  ];
 
   // =============================
   //          COLUMNAS
   // =============================
   const columns = [
-    { field: "id", header: "ID" },
     { field: "empleado", header: "Empleado" },
     { field: "dia", header: "Día" },
     { field: "horaInicio", header: "Hora Inicio" },
     { field: "horaFinal", header: "Hora Final" },
-
     {
       field: "estado",
       header: "Estado",
       render: (item) => (
         <button
-          className={`estado-btn ${
-            item.estado === "activo" ? "activo" : "inactivo"
-          }`}
+          className={`estado-btn ${item.estado === "activo" ? "activo" : "inactivo"}`}
           onClick={() => toggleEstado(item.id)}
         >
           {item.estado === "activo" ? "✅ Activo" : "⛔ Inactivo"}
@@ -95,16 +101,16 @@ export default function Horarios() {
   // =============================
   //          ACCIONES
   // =============================
-  const actions = [
+  const tableActions = [
     {
-      label: "Ver Detalle",
+      label: "Ver Detalles",
       type: "view",
-      onClick: (item) => navigate(`/admin/servicios/horarios/detalle/${item.id}`),
+      onClick: (item) => navigate(`detalle/${item.id}`),
     },
     {
       label: "Editar",
       type: "edit",
-      onClick: (item) => navigate(`/admin/servicios/horarios/editar/${item.id}`),
+      onClick: (item) => navigate(`editar/${item.id}`),
     },
     {
       label: "Eliminar",
@@ -113,31 +119,51 @@ export default function Horarios() {
     },
   ];
 
+  // Función para manejar cambio de filtro
+  const handleFilterChange = (value) => {
+    setFilterEstado(value);
+  };
+
   return (
     <CrudLayout
       title="⏰ Horarios"
       description="Gestiona los horarios de trabajo del personal de la óptica."
-      onAddClick={() => navigate("/admin/servicios/horarios/crear")}
+      onAddClick={() => navigate("crear")}
+      showSearch={true}
+      searchPlaceholder="Buscar por empleado, día..."
+      searchValue={search}
+      onSearchChange={setSearch}
+      searchFilters={searchFilters}
+      filterEstado={filterEstado}
+      onFilterChange={handleFilterChange}
+      searchPosition="left"
     >
-      {/* BUSCADOR */}
-      <div className="search-bar-row">
-        <input
-          className="search-input"
-          type="text"
-          placeholder="Buscar por empleado..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
-      {/* TABLA */}
+      {/* Tabla */}
       <CrudTable 
         columns={columns} 
         data={filteredHorarios} 
-        actions={actions} 
+        actions={tableActions}
+        emptyMessage={
+          search || filterEstado ? 
+            'No se encontraron horarios para los filtros aplicados' : 
+            'No hay horarios registrados'
+        }
       />
 
-      {/* MODAL DE CONFIRMACIÓN */}
+      {/* Botón para primer horario */}
+      {filteredHorarios.length === 0 && !search && !filterEstado && (
+        <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
+          <button 
+            onClick={() => navigate("crear")}
+            className="btn-primary"
+            style={{padding: 'var(--spacing-md) var(--spacing-lg)'}}
+          >
+            Crear Primer Horario
+          </button>
+        </div>
+      )}
+
+      {/* Modal de Confirmación */}
       <Modal
         open={modalDelete.open}
         type="warning"

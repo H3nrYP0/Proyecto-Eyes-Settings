@@ -1,176 +1,214 @@
-import { useNavigate, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { getClienteById, updateCliente } from '../../../../lib/data/clientesData';
+import "../../../../shared/styles/components/crud-forms.css";
 
 export default function EditarCliente() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { cliente } = location.state || {};
+  const { id } = useParams();
   
-  const [formData, setFormData] = useState({
-    nombre: cliente?.nombre || '',
-    apellido: cliente?.apellido || '',
-    documento: cliente?.documento || '',
-    telefono: cliente?.telefono || '',
-    correo: cliente?.correo || '',
-    ciudad: cliente?.ciudad || '',
-    fechaNacimiento: cliente?.fechaNacimiento || '',
-    genero: cliente?.genero || ''
-  });
+  const [formData, setFormData] = useState(null);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+  useEffect(() => {
+    const cliente = getClienteById(Number(id));
+    if (cliente) {
+      setFormData(cliente);
+    } else {
+      navigate('/admin/clientes');
+    }
+  }, [id, navigate]);
 
-  const handleSave = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     
-    const clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
-    
-    const clientesActualizados = clientes.map(c => 
-      c.documento === cliente.documento && 
-      c.nombre === cliente.nombre && 
-      c.apellido === cliente.apellido
-        ? {
-            nombre: formData.nombre,
-            apellido: formData.apellido,
-            documento: formData.documento,
-            telefono: formData.telefono,
-            correo: formData.correo,
-            ciudad: formData.ciudad,
-            fechaNacimiento: formData.fechaNacimiento,
-            genero: formData.genero
-          }
-        : c
-    );
-
-    localStorage.setItem('clientes', JSON.stringify(clientesActualizados));
-    navigate(-1);
+    // Actualizar en la base de datos
+    updateCliente(Number(id), formData);
+    navigate('/admin/clientes');
   };
 
-  const handleCancel = () => {
-    navigate(-1);
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   };
 
-  if (!cliente) {
-    return (
-      <div className="page-container">
-        <div className="page-header">
-          <h1>Cliente no encontrado</h1>
-        </div>
-      </div>
-    );
+  if (!formData) {
+    return <div>Cargando...</div>;
   }
 
   return (
-    <div className="page-container">
-      <div className="page-header">
-        <h1>Editar Cliente</h1>
-        <p>Modificar información del cliente</p>
+    <div className="crud-form-container">
+      <div className="crud-form-header">
+        <h1>Editando: {formData.nombre} {formData.apellido}</h1>
+        <p>Modifica la información del cliente</p>
       </div>
       
-      <div className="form-container">
-        <form onSubmit={handleSave}>
-          <div className="form-group">
-            <label>Nombre</label>
-            <input 
-              type="text" 
-              name="nombre"
-              value={formData.nombre}
-              onChange={handleChange}
-              required 
-            />
-          </div>
-          
-          <div className="form-group">
-            <label>Apellido</label>
-            <input 
-              type="text" 
-              name="apellido"
-              value={formData.apellido}
-              onChange={handleChange}
-              required 
-            />
-          </div>
-          
-          <div className="form-group">
-            <label>Documento</label>
-            <input 
-              type="text" 
-              name="documento"
-              value={formData.documento}
-              onChange={handleChange}
-              required 
-            />
-          </div>
-          
-          <div className="form-group">
-            <label>Teléfono</label>
-            <input 
-              type="tel" 
-              name="telefono"
-              value={formData.telefono}
-              onChange={handleChange}
-              required 
-            />
+      <div className="crud-form-content">
+        <form onSubmit={handleSubmit}>
+          <div className="crud-form-section">
+            <h3>Información Personal</h3>
+            
+            <div className="crud-form-row">
+              <div className="crud-form-group">
+                <label htmlFor="nombre">Nombre <span className="crud-required">*</span></label>
+                <input
+                  type="text"
+                  id="nombre"
+                  name="nombre"
+                  value={formData.nombre}
+                  onChange={handleChange}
+                  className="crud-input"
+                  required
+                />
+              </div>
+
+              <div className="crud-form-group">
+                <label htmlFor="apellido">Apellido <span className="crud-required">*</span></label>
+                <input
+                  type="text"
+                  id="apellido"
+                  name="apellido"
+                  value={formData.apellido}
+                  onChange={handleChange}
+                  className="crud-input"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="crud-form-row">
+              <div className="crud-form-group">
+                <label htmlFor="tipoDocumento">Tipo Documento <span className="crud-required">*</span></label>
+                <select
+                  id="tipoDocumento"
+                  name="tipoDocumento"
+                  value={formData.tipoDocumento}
+                  onChange={handleChange}
+                  className="crud-input"
+                  required
+                >
+                  <option value="cedula">Cédula</option>
+                  <option value="pasaporte">Pasaporte</option>
+                  <option value="cedula_extranjeria">Cédula Extranjería</option>
+                </select>
+              </div>
+
+              <div className="crud-form-group">
+                <label htmlFor="documento">Número Documento <span className="crud-required">*</span></label>
+                <input
+                  type="text"
+                  id="documento"
+                  name="documento"
+                  value={formData.documento}
+                  onChange={handleChange}
+                  className="crud-input"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="crud-form-row">
+              <div className="crud-form-group">
+                <label htmlFor="telefono">Teléfono <span className="crud-required">*</span></label>
+                <input
+                  type="tel"
+                  id="telefono"
+                  name="telefono"
+                  value={formData.telefono}
+                  onChange={handleChange}
+                  className="crud-input"
+                  required
+                />
+              </div>
+
+              <div className="crud-form-group">
+                <label htmlFor="correo">Correo Electrónico</label>
+                <input
+                  type="email"
+                  id="correo"
+                  name="correo"
+                  value={formData.correo || ''}
+                  onChange={handleChange}
+                  className="crud-input"
+                  placeholder="cliente@ejemplo.com"
+                />
+              </div>
+            </div>
+
+            <div className="crud-form-row">
+              <div className="crud-form-group">
+                <label htmlFor="fechaNacimiento">Fecha de Nacimiento <span className="crud-required">*</span></label>
+                <input
+                  type="date"
+                  id="fechaNacimiento"
+                  name="fechaNacimiento"
+                  value={formData.fechaNacimiento}
+                  onChange={handleChange}
+                  className="crud-input"
+                  required
+                />
+              </div>
+
+              <div className="crud-form-group">
+                <label htmlFor="genero">Género <span className="crud-required">*</span></label>
+                <select
+                  id="genero"
+                  name="genero"
+                  value={formData.genero}
+                  onChange={handleChange}
+                  className="crud-input"
+                  required
+                >
+                  <option value="masculino">Masculino</option>
+                  <option value="femenino">Femenino</option>
+                  <option value="otro">Otro</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="crud-form-row">
+              <div className="crud-form-group">
+                <label htmlFor="ciudad">Ciudad <span className="crud-required">*</span></label>
+                <input
+                  type="text"
+                  id="ciudad"
+                  name="ciudad"
+                  value={formData.ciudad}
+                  onChange={handleChange}
+                  className="crud-input"
+                  required
+                />
+              </div>
+
+              <div className="crud-form-group">
+                <label htmlFor="direccion">Dirección</label>
+                <input
+                  type="text"
+                  id="direccion"
+                  name="direccion"
+                  value={formData.direccion || ''}
+                  onChange={handleChange}
+                  className="crud-input"
+                  placeholder="Dirección completa"
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="form-group">
-            <label>Correo</label>
-            <input 
-              type="email" 
-              name="correo"
-              value={formData.correo}
-              onChange={handleChange}
-              required 
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Ciudad</label>
-            <input 
-              type="text" 
-              name="ciudad"
-              value={formData.ciudad}
-              onChange={handleChange}
-              required 
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Fecha de Nacimiento</label>
-            <input 
-              type="date" 
-              name="fechaNacimiento"
-              value={formData.fechaNacimiento}
-              onChange={handleChange}
-              required 
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Género</label>
-            <select 
-              name="genero"
-              value={formData.genero}
-              onChange={handleChange}
-              required
+          <div className="crud-form-actions">
+            <button 
+              type="button" 
+              onClick={() => navigate('/admin/ventas/clientes')}
+              className="crud-btn crud-btn-secondary"
             >
-              <option value="Masculino">Masculino</option>
-              <option value="Femenino">Femenino</option>
-              <option value="Otro">Otro</option>
-            </select>
-          </div>
-          
-          <div className="form-actions">
-            <button type="button" onClick={handleCancel} className="btn-secondary">
               Cancelar
             </button>
-            <button type="submit" className="btn-primary">
-              Guardar Cambios
+            <button 
+              type="submit" 
+              className="crud-btn crud-btn-primary"
+            >
+              Actualizar Cliente
             </button>
           </div>
         </form>

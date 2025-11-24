@@ -1,12 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
 import CrudLayout from "../../../../shared/components/layouts/CrudLayout";
 import CrudTable from "../../../../shared/components/ui/CrudTable";
-import "../../../../shared/styles/components/crud-table.css";
-
-// Modal reutilizable
 import Modal from "../../../../shared/components/ui/Modal";
+import "../../../../shared/styles/components/crud-table.css";
 import "../../../../shared/styles/components/modal.css";
 
 // Importamos las funciones del backend
@@ -21,6 +18,7 @@ export default function Categorias() {
 
   const [categorias, setCategorias] = useState([]);
   const [search, setSearch] = useState("");
+  const [filterEstado, setFilterEstado] = useState("");
 
   const [modalDelete, setModalDelete] = useState({
     open: false,
@@ -60,19 +58,43 @@ export default function Categorias() {
   };
 
   // =============================
-  //          BUSCADOR
+  //          BUSCADOR Y FILTRO - CORREGIDO
   // =============================
-  const filteredCategorias = categorias.filter((categoria) =>
-    categoria.nombre.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredCategorias = categorias.filter((categoria) => {
+    const matchesSearch = 
+      categoria.nombre.toLowerCase().includes(search.toLowerCase()) ||
+      categoria.descripcion.toLowerCase().includes(search.toLowerCase());
+    
+    const matchesFilter = !filterEstado || categoria.estado === filterEstado;
+    
+    return matchesSearch && matchesFilter;
+  });
+
+  // FILTROS PARA CATEGORÍAS
+  const searchFilters = [
+    { value: 'activa', label: 'Activas' },
+    { value: 'inactiva', label: 'Inactivas' }
+  ];
 
   // =============================
   //          COLUMNAS
   // =============================
   const columns = [
-    { field: "id", header: "ID" },
     { field: "nombre", header: "Nombre" },
-    { field: "descripcion", header: "Descripción" },
+    { 
+      field: "descripcion", 
+      header: "Descripción",
+      render: (item) => (
+        item.descripcion ? (
+          <span title={item.descripcion}>
+            {item.descripcion.length > 50 
+              ? item.descripcion.substring(0, 50) + '...' 
+              : item.descripcion
+            }
+          </span>
+        ) : '-'
+      )
+    },
     {
       field: "estado",
       header: "Estado",
@@ -90,16 +112,16 @@ export default function Categorias() {
   // =============================
   //          ACCIONES
   // =============================
-  const actions = [
+  const tableActions = [
     {
       label: "Ver Detalles",
       type: "view",
-      onClick: (item) => navigate(`/admin/compras/categorias/detalle/${item.id}`),
+      onClick: (item) => navigate(`detalle/${item.id}`),
     },
     {
       label: "Editar",
       type: "edit",
-      onClick: (item) => navigate(`/admin/compras/categorias/editar/${item.id}`),
+      onClick: (item) => navigate(`editar/${item.id}`),
     },
     {
       label: "Eliminar",
@@ -108,25 +130,50 @@ export default function Categorias() {
     },
   ];
 
+  // Función para manejar cambio de filtro
+  const handleFilterChange = (value) => {
+    setFilterEstado(value);
+  };
+
   return (
     <CrudLayout
       title="📁 Categorías de Productos"
       description="Administra las categorías de productos para organizar tu inventario."
-      onAddClick={() => navigate("/admin/compras/categorias/crear")}
+      onAddClick={() => navigate("crear")}
+      showSearch={true}
+      searchPlaceholder="Buscar por nombre, descripción..."
+      searchValue={search}
+      onSearchChange={setSearch}
+      searchFilters={searchFilters}
+      filterEstado={filterEstado}
+      onFilterChange={handleFilterChange} // ✅ Usar función manejadora
+      searchPosition="left"
     >
-      {/* Buscador */}
-      <div className="search-bar-row">
-        <input
-          className="search-input"
-          type="text"
-          placeholder="Buscar categorías..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
       {/* Tabla */}
-      <CrudTable columns={columns} data={filteredCategorias} actions={actions} />
+      <CrudTable 
+        columns={columns} 
+        data={filteredCategorias} 
+        actions={tableActions}
+        emptyMessage={
+          search || filterEstado ? 
+            'No se encontraron categorías para los filtros aplicados' : 
+            'No hay categorías registradas'
+        }
+      />
+
+      {/* Botón para primera categoría */}
+      {filteredCategorias.length === 0 && !search && !filterEstado && (
+        <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
+          <button 
+            onClick={() => navigate("crear")}
+            className="btn-primary"
+            style={{padding: 'var(--spacing-md) var(--spacing-lg)'}}
+          >
+            Crear Primera Categoría
+          </button>
+        </div>
+      )}
+      
 
       {/* Modal de Confirmación */}
       <Modal

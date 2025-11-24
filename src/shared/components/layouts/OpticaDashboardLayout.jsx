@@ -4,7 +4,7 @@ import { useState } from "react";
 
 // ESTOS SON LOS COMPONENTES DE LAYOUT
 import Sidebar from "./Sidebar";
-import Header from "./Header";
+
 
 // ESTAS SON LAS FEATURES DE VENTAS
 import Dashboard from "../../../features/ventas/pages/Dashboard";
@@ -17,9 +17,9 @@ import NuevaVenta from "../../../features/ventas/components/ventas/NuevaVenta";
 import EditarVenta from "../../../features/ventas/components/ventas/EditarVenta";
 import DetalleVenta from "../../../features/ventas/components/ventas/DetalleVenta";
 //COMPONENTS CLIENTES
-import NuevoCliente from "../../../features/ventas/components/clientes/NuevoCliente";
-import DetalleCliente from "../../../features/ventas/components/clientes/DetalleCliente";
+import CrearCliente from "../../../features/ventas/components/clientes/CrearCliente";
 import EditarCliente from "../../../features/ventas/components/clientes/EditarCliente";
+import DetalleCliente from "../../../features/ventas/components/clientes/DetalleCliente";
 import HistorialFormula from "../../../features/ventas/components/clientes/HistorialFormula";
 //COMPONENTS ABONOS
 import NuevoAbono from "../../../features/ventas/components/abonos/NuevoAbono"; 
@@ -32,46 +32,59 @@ import EditarPedido from "../../../features/ventas/components/pedidos/EditarPedi
 
 // ESTAS SON LAS FEATURES DE COMPRAS
 import Compras from "../../../features/compras/pages/Compras";
-import Categorias from "../../../features/compras/pages/categoria/Categorias";
-import CrudCategorias from "../../../features/compras/pages/categoria/CrudCategorias";
-
-import Marcas from "../../../features/compras/pages/Marcas/Marcas"
-import EditarMarca from "../../../features/compras/pages/Marcas/EditarMarca"
-import DEtalleMarca from "../../../features/compras/pages/Marcas/DEtalleMarca"
-import NuevaMarca from "../../../features/compras/pages/Marcas/NuevaMarca"
-
-import Products from "../../../features/compras/pages/productos/Products";
-import AgregarProducto from "../../../features/compras/pages/productos/AgregarProducto";
-import DetalleProducto from "../../../features/compras/pages/productos/DetalleProducto";
-import EditarProducto from "../../../features/compras/pages/productos/EditarProducto";
-
-import Proveedores from "../../../features/compras/pages/Proveedores";
-import CrearProveedor from "../../../features/compras/pages/CrearProveedor";
-import EditarProveedor from "../../../features/compras/pages/EditarProveedor";
 import CrearCompra from "../../../features/compras/pages/CrearCompra";
 import EditarCompra from "../../../features/compras/pages/EditarCompra";
 import DetalleCompra from "../../../features/compras/pages/DetalleCompra";
 
+import Categorias from "../../../features/compras/pages/categoria/Categorias";
+import CrearCategoria from "../../../features/compras/pages/categoria/CrearCategoria";
+import EditarCategoria from "../../../features/compras/pages/categoria/EditarCategoria";
+import DetalleCategoria from "../../../features/compras/pages/categoria/DetalleCategoria";
+
+import Marcas from "../../../features/compras/pages/marca/Marcas";
+import CrearMarca from "../../../features/compras/pages/marca/CrearMarca";
+import EditarMarca from "../../../features/compras/pages/marca/EditarMarca";
+import DetalleMarca from "../../../features/compras/pages/marca/DetalleMarca";
+
+import Products from "../../../features/compras/pages/producto/Products";
+import CrearProducto from "../../../features/compras/pages/producto/CrearProducto";
+import DetalleProducto from "../../../features/compras/pages/producto/DetalleProducto";
+import EditarProducto from "../../../features/compras/pages/producto/EditarProducto";
+
+import Proveedores from "../../../features/compras/pages/Proveedores";
+import CrearProveedor from "../../../features/compras/pages/CrearProveedor";
+import EditarProveedor from "../../../features/compras/pages/EditarProveedor";
+import DetalleProveedor from "../../../features/compras/pages/DetalleProveedor";
+
 // ESTAS SON LAS FEATURES DE SERVICIOS
-import Servicios from "../../../features/servicios/pages/servicios/Servicios";
-import AgregarServicio from "../../../features/servicios/pages/servicios/AgregarServicio";
-import DetalleServicio from "../../../features/servicios/pages/servicios/DetalleServicio";
-import EditarServicio from "../../../features/servicios/pages/servicios/EditarServicio";
+import Servicios from "../../../features/servicios/pages/servicio/Servicios";
+import CrearServicio from "../../../features/servicios/pages/servicio/CrearServicio";
+import EditarServicio from "../../../features/servicios/pages/servicio/EditarServicio";
+import DetalleServicio from "../../../features/servicios/pages/servicio/DetalleServicio";
 
 import Empleados from "../../../features/servicios/pages/empleado/Empleados";
-import CrudEmpleados from "../../../features/servicios/pages/empleado/CrudEmpleados";
+import CrearEmpleado from "../../../features/servicios/pages/empleado/CrearEmpleado";
+import EditarEmpleado from "../../../features/servicios/pages/empleado/EditarEmpleado";
+import DetalleEmpleado from "../../../features/servicios/pages/empleado/DetalleEmpleado";
+
 import Agenda from "../../../features/servicios/pages/agenda/Agenda";
-import CrudAgenda from "../../../features/servicios/pages/agenda/CrudAgenda";
+import CrearAgenda from "../../../features/servicios/pages/agenda/CrearAgenda";
+import EditarAgenda from "../../../features/servicios/pages/agenda/EditarAgenda";
+import DetalleAgenda from "../../../features/servicios/pages/agenda/DetalleAgenda";
+
 import Horarios from "../../../features/servicios/pages//horario/Horarios";
 import CrudHorarios from "../../../features/servicios/pages/horario/CrudHorarios";
 
-import CampanasSalud from "../../../features/servicios/pages/campanasSalud/CampanasSalud";
-import AgregarCampana from "../../../features/servicios/pages/campanasSalud/AgregarCampana";
-import DetalleCampana from "../../../features/servicios/pages/campanasSalud/DetalleCampana";
-import EditarCampana from "../../../features/servicios/pages/campanasSalud/EditarCampana";
+import CampanasSalud from "../../../features/servicios/pages/campanaSalud/CampanasSalud";
+import CrearCampanaSalud from "../../../features/servicios/pages/campanaSalud/CrearCampanaSalud";
+import EditarCampanaSalud from "../../../features/servicios/pages/campanaSalud/EditarCampanaSalud";
+import DetalleCampanaSalud from "../../../features/servicios/pages/campanaSalud/DetalleCampanaSalud";
 
 // ESTAS SON LAS FEATURES DE USUARIOS
-import GestionUsuarios from "../../../features/usuarios/pages/GestionUsuarios";
+import GestionUsuarios from "../../../features/usuarios/pages/usuario/GestionUsuarios";
+import CrearUsuario from "../../../features/usuarios/pages/usuario/CrearUsuario";
+import EditarUsuario from "../../../features/usuarios/pages/usuario/EditarUsuario";
+import DetalleUsuario from "../../../features/usuarios/pages/usuario/DetalleUsuario";
 import GestionAcceso from "../../../features/usuarios/pages/GestionAcceso";
 
 // ESTAS SON LAS FEATURES DE CONFIGURACIÓN
@@ -119,12 +132,7 @@ export default function OpticaDashboardLayout({ user, setUser }) {
       <div className={`main-content ${sidebarOpen ? "sidebar-expanded" : "sidebar-collapsed"}`}>
         
         {/* ESTE ES EL HEADER SUPERIOR */}
-        <Header
-          user={user}
-          onLogout={handleLogout}
-          onToggleSidebar={handleToggleSidebar}
-          sidebarOpen={sidebarOpen}
-        />
+
 
         {/* ESTA ES EL ÁREA DONDE SE RENDERIZAN LAS PÁGINAS */}
         <main className="content-area">
@@ -141,10 +149,10 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               <Route index element={<Ventas />} />
               <Route path="clientes">
                 <Route index element={<Clientes />} />
-                <Route path="nuevo" element={<NuevoCliente />} />
-                <Route path="editar" element={<EditarCliente />} />
-                <Route path="detalle" element={<DetalleCliente />} />
-                <Route path="historial-formula" element={<HistorialFormula />} />
+                <Route path="crear" element={<CrearCliente />} />
+                <Route path="editar/:id" element={<EditarCliente />} />
+                <Route path="detalle/:id" element={<DetalleCliente />} />
+                <Route path="historial-formula/:id" element={<HistorialFormula />} />
               </Route>
               <Route path="abonos">
                 <Route index element={<Abonos />} />
@@ -169,54 +177,69 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               <Route path="crear" element={<CrearCompra />} />
               <Route path="editar/:id" element={<EditarCompra />} />
               <Route path="detalle/:id" element={<DetalleCompra />} />
-              <Route path="categorias" element={<Categorias />} />
-              <Route path="categorias/crear" element={<CrudCategorias mode="crear" />} />
-              <Route path="categorias/editar/:id" element={<CrudCategorias mode="editar" />} />
-              <Route path="categorias/detalle/:id" element={<CrudCategorias mode="detalle" />} />
-              <Route path="marcas" element={<Marcas />} />
-              <Route path="marcas/nueva" element={<NuevaMarca />} />
-              <Route path="marcas/editar" element={<EditarMarca />} />
-              <Route path="marcas/detalle" element={<DEtalleMarca />} />
+
+              <Route path="categorias">
+                <Route index element={<Categorias />} />
+                <Route path="crear" element={<CrearCategoria />} />
+                <Route path="editar/:id" element={<EditarCategoria />} />
+                <Route path="detalle/:id" element={<DetalleCategoria />} />
+              </Route>
+
+              <Route path="marcas">
+                <Route index element={<Marcas />} />
+                <Route path="crear" element={<CrearMarca />} />
+                <Route path="editar/:id" element={<EditarMarca />} />
+                <Route path="detalle/:id" element={<DetalleMarca />} />
+              </Route>
+ 
               <Route path="productos" element={<Products />} />
-              <Route path="productos/agregar" element={<AgregarProducto />} />
-              <Route path="productos/detalle" element={<DetalleProducto />} />
-              <Route path="productos/editar" element={<EditarProducto />} />
+              <Route path="productos/crear" element={<CrearProducto />} />
+              <Route path="productos/editar/:id" element={<EditarProducto />} />
+              <Route path="productos/detalle/:id" element={<DetalleProducto />} />
+
+
               <Route path="proveedores">
                 <Route index element={<Proveedores />} />
                 <Route path="crear" element={<CrearProveedor />} />
                 <Route path="editar/:id" element={<EditarProveedor />} />
+                <Route path="detalle/:id" element={<DetalleProveedor />} />
+
               </Route>
             </Route>
 
             {/* ESTAS SON LAS RUTAS DEL MÓDULO DE SERVICIOS */}
             <Route path="servicios">
               <Route index element={<Servicios />} />
-              <Route path="agregar" element={<AgregarServicio/>}/>
-              <Route path="detalle" element={<DetalleServicio/>}/>
-              <Route path="editar" element={<EditarServicio/>}/>
+              <Route path="crear" element={<CrearServicio />} />
+              <Route path="editar/:id" element={<EditarServicio />} />
+              <Route path="detalle/:id" element={<DetalleServicio />} />
+              
               <Route path="empleados" element={<Empleados />} />
-              <Route path="empleados/crear" element={<CrudEmpleados mode="crear" />} />
-              <Route path="empleados/editar/:id" element={<CrudEmpleados mode="editar" />} />
-              <Route path="empleados/detalle/:id" element={<CrudEmpleados mode="detalle" />} />
+              <Route path="empleados/crear" element={<CrearEmpleado />} />
+              <Route path="empleados/editar/:id" element={<EditarEmpleado />} />
+              <Route path="empleados/detalle/:id" element={<DetalleEmpleado />} />
               
               <Route path="agenda" element={<Agenda />} />
-              <Route path="agenda/crear" element={<CrudAgenda mode="crear" />} />
-              <Route path="agenda/editar/:id" element={<CrudAgenda mode="editar" />} />
-              <Route path="agenda/detalle/:id" element={<CrudAgenda mode="detalle" />} />
+              <Route path="agenda/crear" element={<CrearAgenda />} />
+              <Route path="agenda/editar/:id" element={<EditarAgenda />} />
+              <Route path="agenda/detalle/:id" element={<DetalleAgenda />} />
 
               <Route path="horarios" element={<Horarios />} />
               <Route path="horarios/crear" element={<CrudHorarios mode="crear" />} />
               <Route path="horarios/editar/:id" element={<CrudHorarios mode="editar" />} />
               <Route path="horarios/detalle/:id" element={<CrudHorarios mode="detalle" />} />
               <Route path="campanas-salud" element={<CampanasSalud />} />
-              <Route path="campanas-salud/nuevo" element={<AgregarCampana />} />
-              <Route path="campanas-salud/editar" element={<EditarCampana />} />
-              <Route path="campanas-salud/detalle" element={<DetalleCampana />} />
+              <Route path="campanas-salud/crear" element={<CrearCampanaSalud />} />
+              <Route path="campanas-salud/editar/:id" element={<EditarCampanaSalud />} />
+              <Route path="campanas-salud/detalle/:id" element={<DetalleCampanaSalud />} />
             </Route>
 
             {/* ESTAS SON LAS RUTAS DEL MÓDULO DE USUARIOS */}
             <Route path="usuarios">
-              <Route index element={<GestionUsuarios />} />
+                <Route index element={<GestionUsuarios />} />
+                <Route path="crear" element={<CrearUsuario />} />
+                <Route path="editar/:id" element={<EditarUsuario />} />
+                <Route path="detalle/:id" element={<DetalleUsuario />} />
               <Route path="gestion-acceso" element={<GestionAcceso />} />
             </Route>
 

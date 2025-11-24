@@ -2,43 +2,41 @@
 let empleadosDB = [
   {
     id: 1,
-    tipoDocumento: "Cédula",
+    nombre: "Dr. Carlos Méndez",
+    tipo_documento: "cedula",
     numero_documento: "123456789",
-    nombre: "Carlos Méndez",
-    telefono: "3001112233",
-    direccion: "Calle 123 #45-67",
+    telefono: "3001234567",
+    email: "carlos.mendez@optica.com",
+    cargo: "Optómetra",
     fecha_ingreso: "2023-01-15",
-    cargo: "Optometrista",
+    direccion: "Calle 123 #45-67, Bogotá",
     estado: "activo",
   },
   {
     id: 2,
-    tipoDocumento: "Cédula",
+    nombre: "Dra. Ana Rodríguez",
+    tipo_documento: "cedula",
     numero_documento: "987654321",
-    nombre: "Ana Rodríguez",
-    telefono: "3104445566",
-    direccion: "Avenida 456 #78-90",
+    telefono: "3109876543",
+    email: "ana.rodriguez@optica.com",
+    cargo: "Optómetra",
     fecha_ingreso: "2023-03-20",
-    cargo: "Optometrista",
+    direccion: "Av. Principal #89-10, Bogotá",
     estado: "activo",
   },
   {
     id: 3,
-    tipoDocumento: "Cédula",
+    nombre: "Técnico Javier López",
+    tipo_documento: "cedula",
     numero_documento: "456789123",
-    nombre: "Javier López",
-    telefono: "3207778899",
-    direccion: "Carrera 789 #12-34",
-    fecha_ingreso: "2023-02-10",
+    telefono: "3204567891",
+    email: "javier.lopez@optica.com",
     cargo: "Técnico",
+    fecha_ingreso: "2023-02-10",
+    direccion: "Carrera 56 #78-90, Bogotá",
     estado: "activo",
   },
 ];
-
-// Listas para selects
-export const tiposDocumento = ["Cédula", "Pasaporte", "Cédula Extranjería"];
-export const cargosList = ["Optometrista", "Técnico", "Administrativo", "Vendedor", "Gerente"];
-export const generosList = ["Masculino", "Femenino", "Otro"];
 
 // Obtener todos los empleados
 export function getAllEmpleados() {

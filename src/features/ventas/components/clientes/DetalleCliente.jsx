@@ -1,74 +1,97 @@
-import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { getClienteById } from '../../../../lib/data/clientesData';
+import "../../../../shared/styles/components/crud-forms.css";
 
 export default function DetalleCliente() {
+  const { id } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
-  const { cliente } = location.state || {};
+  const [cliente, setCliente] = useState(null);
 
-  const handleBack = () => {
-    navigate(-1);
-  };
+  useEffect(() => {
+    const clienteData = getClienteById(Number(id));
+    setCliente(clienteData);
+  }, [id]);
 
   if (!cliente) {
-    return (
-      <div className="page-container">
-        <div className="page-header">
-          <h1>Cliente no encontrado</h1>
-        </div>
-      </div>
-    );
+    return <div>Cargando...</div>;
   }
 
   return (
-    <div className="page-container">
-      <div className="page-header">
-        <h1>Detalle del Cliente</h1>
-        <p>Información detallada del cliente</p>
+    <div className="crud-form-container">
+      <div className="crud-form-header">
+        <h1>Detalle de Cliente: {cliente.nombre} {cliente.apellido}</h1>
+        <p>Información completa del cliente</p>
       </div>
       
-      <div className="form-container">
-        <div className="form-group">
-          <label>Nombre</label>
-          <p>{cliente.nombre}</p>
-        </div>
-        
-        <div className="form-group">
-          <label>Apellido</label>
-          <p>{cliente.apellido}</p>
-        </div>
-        
-        <div className="form-group">
-          <label>Documento</label>
-          <p>{cliente.documento}</p>
-        </div>
-        
-        <div className="form-group">
-          <label>Teléfono</label>
-          <p>{cliente.telefono}</p>
-        </div>
-        
-        <div className="form-group">
-          <label>Correo</label>
-          <p>{cliente.correo}</p>
+      <div className="crud-form-content">
+        <div className="crud-form-section">
+          <h3>Información Personal</h3>
+          
+          <div className="crud-detail-grid">
+            <div className="crud-detail-item">
+              <strong>Nombre:</strong> 
+              <span>{cliente.nombre}</span>
+            </div>
+            
+            <div className="crud-detail-item">
+              <strong>Apellido:</strong> 
+              <span>{cliente.apellido}</span>
+            </div>
+
+            <div className="crud-detail-item">
+              <strong>Tipo Documento:</strong> 
+              <span>{cliente.tipoDocumento}</span>
+            </div>
+
+            <div className="crud-detail-item">
+              <strong>Número Documento:</strong> 
+              <span>{cliente.documento}</span>
+            </div>
+
+            <div className="crud-detail-item">
+              <strong>Teléfono:</strong> 
+              <span>{cliente.telefono}</span>
+            </div>
+
+            {cliente.correo && (
+              <div className="crud-detail-item">
+                <strong>Correo Electrónico:</strong> 
+                <span>{cliente.correo}</span>
+              </div>
+            )}
+
+            <div className="crud-detail-item">
+              <strong>Fecha de Nacimiento:</strong> 
+              <span>{new Date(cliente.fechaNacimiento).toLocaleDateString('es-ES')}</span>
+            </div>
+
+            <div className="crud-detail-item">
+              <strong>Género:</strong> 
+              <span className={`genero-badge ${cliente.genero.toLowerCase()}`}>
+                {cliente.genero}
+              </span>
+            </div>
+
+            <div className="crud-detail-item">
+              <strong>Ciudad:</strong> 
+              <span>{cliente.ciudad}</span>
+            </div>
+
+            {cliente.direccion && (
+              <div className="crud-detail-item" style={{gridColumn: '1 / -1'}}>
+                <strong>Dirección:</strong> 
+                <span>{cliente.direccion}</span>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="form-group">
-          <label>Ciudad</label>
-          <p>{cliente.ciudad}</p>
-        </div>
-
-        <div className="form-group">
-          <label>Fecha de Nacimiento</label>
-          <p>{cliente.fechaNacimiento}</p>
-        </div>
-
-        <div className="form-group">
-          <label>Género</label>
-          <p>{cliente.genero}</p>
-        </div>
-        
-        <div className="form-actions">
-          <button type="button" onClick={handleBack} className="btn-secondary">
+        <div className="crud-form-actions">
+          <button 
+            onClick={() => navigate('/admin/ventas/clientes')}
+            className="crud-btn crud-btn-secondary"
+          >
             Volver
           </button>
         </div>
