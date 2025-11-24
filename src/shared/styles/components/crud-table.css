@@ -200,7 +200,8 @@
 
 .status-inactiva,
 .status-anulada,
-.status-inactive {
+.status-inactive,
+.status-cancelada {
   background: #ffe1e1;
   color: #b91c1c;
 }
@@ -208,6 +209,16 @@
 .status-pendiente {
   background: #fef3c7;
   color: #b45309;
+}
+
+.status-completada {
+  background: #d4ffd8;
+  color: #15803d;
+}
+
+.status-cancelada {
+  background: #ffe1e1;
+  color: #b91c1c;
 }
 
 /* Estadísticas de búsqueda */
@@ -289,6 +300,29 @@
   background: #ffe1e1;
   color: #b91c1c;
   border: 1px solid #f5c2c2;
+}
+
+.estado-btn.pendiente {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.estado-btn.completada {
+  background: #d4ffd8;
+  color: #15803d;
+  border: 1px solid #b8e6cb;
+}
+
+.estado-btn.cancelada {
+  background: #ffe1e1;
+  color: #b91c1c;
+  border: 1px solid #f5c2c2;
+}
+
+.estado-btn:hover {
+  opacity: 0.8;
+  transform: translateY(-1px);
 }
 
 .estado-btn:hover {
