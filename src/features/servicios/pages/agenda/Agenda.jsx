@@ -1,12 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
 import CrudLayout from "../../../../shared/components/layouts/CrudLayout";
 import CrudTable from "../../../../shared/components/ui/CrudTable";
-import "../../../../shared/styles/components/crud-table.css";
-
-// Modal reutilizable
 import Modal from "../../../../shared/components/ui/Modal";
+import "../../../../shared/styles/components/crud-table.css";
 import "../../../../shared/styles/components/modal.css";
 
 // Importamos las funciones del backend
@@ -21,6 +18,7 @@ export default function Agenda() {
 
   const [citas, setCitas] = useState([]);
   const [search, setSearch] = useState("");
+  const [filterEstado, setFilterEstado] = useState("");
 
   const [modalDelete, setModalDelete] = useState({
     open: false,
@@ -60,51 +58,64 @@ export default function Agenda() {
   };
 
   // =============================
-  //          BUSCADOR
+  //          BUSCADOR Y FILTRO
   // =============================
-  const filteredCitas = citas.filter((cita) =>
-    cita.cliente.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredCitas = citas.filter((cita) => {
+    const matchesSearch = 
+      cita.cliente.toLowerCase().includes(search.toLowerCase()) ||
+      cita.servicio.toLowerCase().includes(search.toLowerCase()) ||
+      cita.empleado.toLowerCase().includes(search.toLowerCase());
+    
+    const matchesFilter = !filterEstado || cita.estado === filterEstado;
+    
+    return matchesSearch && matchesFilter;
+  });
 
-// =============================
-//          COLUMNAS
-// =============================
-const columns = [
-  { field: "id", header: "ID" },
-  { field: "cliente", header: "Cliente" },
-  { field: "servicio", header: "Servicio" },
-  { field: "empleado", header: "Empleado" },
-  { field: "fecha", header: "Fecha" },
-  { field: "hora", header: "Hora" },
-  { field: "duracion", header: "Duración" },
-  { field: "metodo_pago", header: "Pago" },
-  {
-    field: "estado",
-    header: "Estado",
-    render: (item) => (
-      <button
-        className={`estado-btn ${item.estado === "pendiente" ? "pendiente" : item.estado === "completada" ? "completada" : "cancelada"}`}
-        onClick={() => toggleEstado(item.id)}
-      >
-        {item.estado === "pendiente" ? "🟡 Pendiente" : item.estado === "completada" ? "✅ Completada" : "❌ Cancelada"}
-      </button>
-    ),
-  },
-];
+  // FILTROS PARA AGENDA
+  const searchFilters = [
+    { value: 'pendiente', label: 'Pendientes' },
+    { value: 'completada', label: 'Completadas' },
+    { value: 'cancelada', label: 'Canceladas' }
+  ];
+
+  // =============================
+  //          COLUMNAS
+  // =============================
+  const columns = [
+    { field: "cliente", header: "Cliente" },
+    { field: "servicio", header: "Servicio" },
+    { field: "empleado", header: "Empleado" },
+    { field: "fecha", header: "Fecha" },
+    { field: "hora", header: "Hora" },
+    { field: "duracion", header: "Duración (min)" },
+    { field: "metodo_pago", header: "Método Pago" },
+    {
+      field: "estado",
+      header: "Estado",
+      render: (item) => (
+        <button
+          className={`estado-btn ${item.estado === "pendiente" ? "pendiente" : item.estado === "completada" ? "completada" : "cancelada"}`}
+          onClick={() => toggleEstado(item.id)}
+        >
+          {item.estado === "pendiente" ? "🟡 Pendiente" : item.estado === "completada" ? "✅ Completada" : "❌ Cancelada"}
+        </button>
+      ),
+    },
+  ];
 
   // =============================
   //          ACCIONES
   // =============================
-  const actions = [
+  const tableActions = [
     {
-      label: "Ver Detalle",
+      label: "Ver Detalles",
       type: "view",
-      onClick: (item) => navigate(`/admin/servicios/agenda/detalle/${item.id}`),
+      onClick: (item) => navigate(`detalle/${item.id}`),
     },
     {
       label: "Editar",
       type: "edit",
-      onClick: (item) => navigate(`/admin/servicios/agenda/editar/${item.id}`),
+      onClick: (item) => navigate(`editar/${item.id}`),
     },
     {
       label: "Eliminar",
@@ -113,31 +124,51 @@ const columns = [
     },
   ];
 
+  // Función para manejar cambio de filtro
+  const handleFilterChange = (value) => {
+    setFilterEstado(value);
+  };
+
   return (
     <CrudLayout
       title="📅 Agenda"
       description="Gestiona las citas de tus clientes."
-      onAddClick={() => navigate("/admin/servicios/agenda/crear")}
+      onAddClick={() => navigate("crear")}
+      showSearch={true}
+      searchPlaceholder="Buscar por cliente, servicio, empleado..."
+      searchValue={search}
+      onSearchChange={setSearch}
+      searchFilters={searchFilters}
+      filterEstado={filterEstado}
+      onFilterChange={handleFilterChange}
+      searchPosition="left"
     >
-      {/* BUSCADOR */}
-      <div className="search-bar-row">
-        <input
-          className="search-input"
-          type="text"
-          placeholder="Buscar por cliente..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
-      {/* TABLA */}
+      {/* Tabla */}
       <CrudTable 
         columns={columns} 
         data={filteredCitas} 
-        actions={actions} 
+        actions={tableActions}
+        emptyMessage={
+          search || filterEstado ? 
+            'No se encontraron citas para los filtros aplicados' : 
+            'No hay citas registradas'
+        }
       />
 
-      {/* MODAL DE CONFIRMACIÓN */}
+      {/* Botón para primera cita */}
+      {filteredCitas.length === 0 && !search && !filterEstado && (
+        <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
+          <button 
+            onClick={() => navigate("crear")}
+            className="btn-primary"
+            style={{padding: 'var(--spacing-md) var(--spacing-lg)'}}
+          >
+            Crear Primera Cita
+          </button>
+        </div>
+      )}
+
+      {/* Modal de Confirmación */}
       <Modal
         open={modalDelete.open}
         type="warning"

@@ -65,9 +65,11 @@ import DetalleServicio from "../../../features/servicios/pages/servicio/DetalleS
 
 import Empleados from "../../../features/servicios/pages/empleado/Empleados";
 import CrudEmpleados from "../../../features/servicios/pages/empleado/CrudEmpleados";
-import Agenda from "../../../features/servicios/pages/agenda/Agenda";
-import CrudAgenda from "../../../features/servicios/pages/agenda/CrudAgenda";
 
+import Agenda from "../../../features/servicios/pages/agenda/Agenda";
+import CrearAgenda from "../../../features/servicios/pages/agenda/CrearAgenda";
+import EditarAgenda from "../../../features/servicios/pages/agenda/EditarAgenda";
+import DetalleAgenda from "../../../features/servicios/pages/agenda/DetalleAgenda";
 
 import Horarios from "../../../features/servicios/pages//horario/Horarios";
 import CrudHorarios from "../../../features/servicios/pages/horario/CrudHorarios";
@@ -211,9 +213,9 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               <Route path="empleados/detalle/:id" element={<CrudEmpleados mode="detalle" />} />
               
               <Route path="agenda" element={<Agenda />} />
-              <Route path="agenda/crear" element={<CrudAgenda mode="crear" />} />
-              <Route path="agenda/editar/:id" element={<CrudAgenda mode="editar" />} />
-              <Route path="agenda/detalle/:id" element={<CrudAgenda mode="detalle" />} />
+              <Route path="agenda/crear" element={<CrearAgenda />} />
+              <Route path="agenda/editar/:id" element={<EditarAgenda />} />
+              <Route path="agenda/detalle/:id" element={<DetalleAgenda />} />
 
               <Route path="horarios" element={<Horarios />} />
               <Route path="horarios/crear" element={<CrudHorarios mode="crear" />} />
