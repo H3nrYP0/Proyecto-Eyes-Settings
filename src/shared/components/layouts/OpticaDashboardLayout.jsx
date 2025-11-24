@@ -82,7 +82,10 @@ import EditarCampanaSalud from "../../../features/servicios/pages/campanaSalud/E
 import DetalleCampanaSalud from "../../../features/servicios/pages/campanaSalud/DetalleCampanaSalud";
 
 // ESTAS SON LAS FEATURES DE USUARIOS
-import GestionUsuarios from "../../../features/usuarios/pages/GestionUsuarios";
+import GestionUsuarios from "../../../features/usuarios/pages/usuario/GestionUsuarios";
+import CrearUsuario from "../../../features/usuarios/pages/usuario/CrearUsuario";
+import EditarUsuario from "../../../features/usuarios/pages/usuario/EditarUsuario";
+import DetalleUsuario from "../../../features/usuarios/pages/usuario/DetalleUsuario";
 import GestionAcceso from "../../../features/usuarios/pages/GestionAcceso";
 
 // ESTAS SON LAS FEATURES DE CONFIGURACIÓN
@@ -234,7 +237,10 @@ export default function OpticaDashboardLayout({ user, setUser }) {
 
             {/* ESTAS SON LAS RUTAS DEL MÓDULO DE USUARIOS */}
             <Route path="usuarios">
-              <Route index element={<GestionUsuarios />} />
+                <Route index element={<GestionUsuarios />} />
+                <Route path="crear" element={<CrearUsuario />} />
+                <Route path="editar/:id" element={<EditarUsuario />} />
+                <Route path="detalle/:id" element={<DetalleUsuario />} />
               <Route path="gestion-acceso" element={<GestionAcceso />} />
             </Route>
 
