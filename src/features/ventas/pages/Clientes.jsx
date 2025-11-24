@@ -1,138 +1,194 @@
-import CrudLayout from "../../../shared/components/layouts/CrudLayout";
-import "../../../shared/styles/components/CrudLayout.css";
-import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import CrudLayout from "../../../shared/components/layouts/CrudLayout";
+import CrudTable from "../../../shared/components/ui/CrudTable";
+import Modal from "../../../shared/components/ui/Modal";
+import "../../../shared/styles/components/crud-table.css";
+import "../../../shared/styles/components/modal.css";
+import "../../../shared/styles/components/formulasCliente.css";
+
+// Importamos las funciones del backend
+import {
+  getAllClientes,
+  deleteCliente,
+} from "../../../lib/data/clientesData";
 
 export default function Clientes() {
   const navigate = useNavigate();
-  const [clientes, setClientes] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
 
+  const [clientes, setClientes] = useState([]);
+  const [search, setSearch] = useState("");
+  const [filterGenero, setFilterGenero] = useState("");
+
+  const [modalDelete, setModalDelete] = useState({
+    open: false,
+    id: null,
+    nombre: "",
+  });
+
+  // Cargar datos
   useEffect(() => {
-    const clientesGuardados = localStorage.getItem('clientes');
-    if (clientesGuardados) {
-      setClientes(JSON.parse(clientesGuardados));
-    }
+    const clientesData = getAllClientes();
+    setClientes(clientesData);
   }, []);
 
-  const handleAddCliente = () => {
-    navigate("nuevo");
+  // =============================
+  //    MODAL DE ELIMINACIÓN
+  // =============================
+  const handleDelete = (id, nombre) => {
+    setModalDelete({
+      open: true,
+      id,
+      nombre,
+    });
   };
 
-  const handleViewDetail = (cliente) => {
-    navigate("detalle", { state: { cliente } });
+  const confirmDelete = () => {
+    const updated = deleteCliente(modalDelete.id);
+    setClientes([...updated]);
+    setModalDelete({ open: false, id: null, nombre: "" });
   };
 
-  const handleEdit = (cliente) => {
-    navigate("editar", { state: { cliente } });
-  };
+  // =============================
+  //          BUSCADOR Y FILTRO
+  // =============================
+  const filteredClientes = clientes.filter((cliente) => {
+    const matchesSearch = 
+      cliente.nombre.toLowerCase().includes(search.toLowerCase()) ||
+      cliente.apellido.toLowerCase().includes(search.toLowerCase()) ||
+      cliente.documento.toLowerCase().includes(search.toLowerCase()) ||
+      cliente.ciudad.toLowerCase().includes(search.toLowerCase()) ||
+      cliente.correo.toLowerCase().includes(search.toLowerCase());
+    
+    const matchesFilter = !filterGenero || cliente.genero === filterGenero;
+    
+    return matchesSearch && matchesFilter;
+  });
 
-  const handleHistorialFormula = (cliente) => {
-    navigate("historial-formula", { state: { cliente } });
-  };
+  // FILTROS PARA CLIENTES
+  const searchFilters = [
+    { value: '', label: 'Todos los géneros' },
+    { value: 'masculino', label: 'Masculino' },
+    { value: 'femenino', label: 'Femenino' },
+    { value: 'otro', label: 'Otro' }
+  ];
 
-  const handleDelete = (cliente) => {
-    if (window.confirm(`¿Estás seguro de eliminar al cliente ${cliente.nombre} ${cliente.apellido}?`)) {
-      const nuevosClientes = clientes.filter(c => 
-        c.documento !== cliente.documento || 
-        c.nombre !== cliente.nombre || 
-        c.apellido !== cliente.apellido
-      );
-      setClientes(nuevosClientes);
-      localStorage.setItem('clientes', JSON.stringify(nuevosClientes));
-    }
-  };
+  // =============================
+  //          COLUMNAS
+  // =============================
+  const columns = [
+    { field: "nombre", header: "Nombre" },
+    { field: "apellido", header: "Apellido" },
+    { field: "documento", header: "Documento" },
+    { field: "telefono", header: "Teléfono" },
+    { 
+      field: "correo", 
+      header: "Correo",
+      render: (item) => (
+        <a href={`mailto:${item.correo}`} className="email-link">
+          {item.correo}
+        </a>
+      )
+    },
+    { field: "ciudad", header: "Ciudad" },
+    { 
+      field: "fechaNacimiento", 
+      header: "Fecha Nacimiento",
+      render: (item) => new Date(item.fechaNacimiento).toLocaleDateString('es-ES')
+    },
+    { 
+      field: "genero", 
+      header: "Género",
+      render: (item) => (
+        <span className={`genero-badge ${item.genero.toLowerCase()}`}>
+          {item.genero}
+        </span>
+      )
+    },
+  ];
 
-  const filteredClientes = clientes.filter(cliente =>
-    cliente.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    cliente.apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    cliente.documento.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    cliente.ciudad.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // =============================
+  //          ACCIONES
+  // =============================
+  const tableActions = [
+    {
+      label: "Ver Detalles",
+      type: "view",
+      onClick: (item) => navigate(`detalle/${item.id}`),
+    },
+    {
+      label: "Editar",
+      type: "edit",
+      onClick: (item) => navigate(`editar/${item.id}`),
+    },
+    {
+      label: "Historial Fórmula",
+      type: "info",
+      onClick: (item) => navigate(`historial-formula/${item.id}`),
+    },
+    {
+      label: "Eliminar",
+      type: "delete",
+      onClick: (item) => handleDelete(item.id, `${item.nombre} ${item.apellido}`),
+    },
+  ];
+
+  // Función para manejar cambio de filtro
+  const handleFilterChange = (value) => {
+    setFilterGenero(value);
+  };
 
   return (
     <CrudLayout
-      title="Clientes"
+      title="👥 Clientes"
       description="Administra la información de los clientes de la óptica."
-      onAddClick={handleAddCliente}
+      onAddClick={() => navigate("crear")}
+      showSearch={true}
+      searchPlaceholder="Buscar por nombre, apellido, documento, ciudad..."
+      searchValue={search}
+      onSearchChange={setSearch}
+      searchFilters={searchFilters}
+      filterEstado={filterGenero}
+      onFilterChange={handleFilterChange}
+      searchPosition="left"
     >
-      <div className="crud-controls">
-        <div className="search-container">
-          <span className="search-icon">🔍</span>
-          <input
-            type="text"
-            placeholder="Buscar clientes..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-        </div>
-      </div>
+      {/* Tabla */}
+      <CrudTable 
+        columns={columns} 
+        data={filteredClientes} 
+        actions={tableActions}
+        emptyMessage={
+          search || filterGenero ? 
+            'No se encontraron clientes para los filtros aplicados' : 
+            'No hay clientes registrados'
+        }
+      />
 
-      <div className="crud-center">
-        <table className="crud-table">
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Apellido</th>
-              <th>Documento</th>
-              <th>Teléfono</th>
-              <th>Correo</th>
-              <th>Ciudad</th>
-              <th>Fecha Nacimiento</th>
-              <th>Género</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredClientes.map((cliente, index) => (
-              <tr key={index}>
-                <td>{cliente.nombre}</td>
-                <td>{cliente.apellido}</td>
-                <td>{cliente.documento}</td>
-                <td>{cliente.telefono}</td>
-                <td>{cliente.correo}</td>
-                <td>{cliente.ciudad}</td>
-                <td>{cliente.fechaNacimiento}</td>
-                <td>{cliente.genero}</td>
-                <td className="actions">
-                  <button 
-                    className="action-btn view-btn"
-                    onClick={() => handleViewDetail(cliente)}
-                  >
-                    Ver Detalles
-                  </button>
-                  <button 
-                    className="action-btn edit-btn"
-                    onClick={() => handleEdit(cliente)}
-                  >
-                    Editar
-                  </button>
-                  <button 
-                    className="action-btn formula-btn"
-                    onClick={() => handleHistorialFormula(cliente)}
-                  >
-                    Historial Fórmula
-                  </button>
-                  <button 
-                    className="action-btn delete-btn"
-                    onClick={() => handleDelete(cliente)}
-                  >
-                    Eliminar
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {filteredClientes.length === 0 && (
-              <tr>
-                <td colSpan="9" className="no-data">
-                  {clientes.length === 0 ? 'No hay clientes registrados' : 'No se encontraron clientes'}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      {/* Botón para primer cliente */}
+      {filteredClientes.length === 0 && !search && !filterGenero && (
+        <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
+          <button 
+            onClick={() => navigate("crear")}
+            className="btn-primary"
+            style={{padding: 'var(--spacing-md) var(--spacing-lg)'}}
+          >
+            Registrar Primer Cliente
+          </button>
+        </div>
+      )}
+
+      {/* Modal de Confirmación */}
+      <Modal
+        open={modalDelete.open}
+        type="warning"
+        title="¿Eliminar Cliente?"
+        message={`Esta acción eliminará al cliente "${modalDelete.nombre}" y no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        showCancel={true}
+        onConfirm={confirmDelete}
+        onCancel={() => setModalDelete({ open: false, id: null, nombre: "" })}
+      />
     </CrudLayout>
   );
 }

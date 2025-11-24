@@ -17,9 +17,9 @@ import NuevaVenta from "../../../features/ventas/components/ventas/NuevaVenta";
 import EditarVenta from "../../../features/ventas/components/ventas/EditarVenta";
 import DetalleVenta from "../../../features/ventas/components/ventas/DetalleVenta";
 //COMPONENTS CLIENTES
-import NuevoCliente from "../../../features/ventas/components/clientes/NuevoCliente";
-import DetalleCliente from "../../../features/ventas/components/clientes/DetalleCliente";
+import CrearCliente from "../../../features/ventas/components/clientes/CrearCliente";
 import EditarCliente from "../../../features/ventas/components/clientes/EditarCliente";
+import DetalleCliente from "../../../features/ventas/components/clientes/DetalleCliente";
 import HistorialFormula from "../../../features/ventas/components/clientes/HistorialFormula";
 //COMPONENTS ABONOS
 import NuevoAbono from "../../../features/ventas/components/abonos/NuevoAbono"; 
@@ -32,6 +32,9 @@ import EditarPedido from "../../../features/ventas/components/pedidos/EditarPedi
 
 // ESTAS SON LAS FEATURES DE COMPRAS
 import Compras from "../../../features/compras/pages/Compras";
+import CrearCompra from "../../../features/compras/pages/CrearCompra";
+import EditarCompra from "../../../features/compras/pages/EditarCompra";
+import DetalleCompra from "../../../features/compras/pages/DetalleCompra";
 
 import Categorias from "../../../features/compras/pages/categoria/Categorias";
 import CrearCategoria from "../../../features/compras/pages/categoria/CrearCategoria";
@@ -52,10 +55,6 @@ import Proveedores from "../../../features/compras/pages/Proveedores";
 import CrearProveedor from "../../../features/compras/pages/CrearProveedor";
 import EditarProveedor from "../../../features/compras/pages/EditarProveedor";
 import DetalleProveedor from "../../../features/compras/pages/DetalleProveedor";
-
-import CrearCompra from "../../../features/compras/pages/CrearCompra";
-import EditarCompra from "../../../features/compras/pages/EditarCompra";
-import DetalleCompra from "../../../features/compras/pages/DetalleCompra";
 
 // ESTAS SON LAS FEATURES DE SERVICIOS
 import Servicios from "../../../features/servicios/pages/servicio/Servicios";
@@ -150,10 +149,10 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               <Route index element={<Ventas />} />
               <Route path="clientes">
                 <Route index element={<Clientes />} />
-                <Route path="nuevo" element={<NuevoCliente />} />
-                <Route path="editar" element={<EditarCliente />} />
-                <Route path="detalle" element={<DetalleCliente />} />
-                <Route path="historial-formula" element={<HistorialFormula />} />
+                <Route path="crear" element={<CrearCliente />} />
+                <Route path="editar/:id" element={<EditarCliente />} />
+                <Route path="detalle/:id" element={<DetalleCliente />} />
+                <Route path="historial-formula/:id" element={<HistorialFormula />} />
               </Route>
               <Route path="abonos">
                 <Route index element={<Abonos />} />

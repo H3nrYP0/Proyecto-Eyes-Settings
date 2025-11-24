@@ -1,0 +1,158 @@
+/* Estilos para Historial de Fórmulas */
+.section-header {
+  display: flex;
+  justify-content: between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.section-header h3 {
+  margin: 0;
+  flex: 1;
+}
+
+.formulas-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.formula-card {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+  transition: all 0.2s ease;
+}
+
+.formula-card:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-color: var(--primary-color);
+}
+
+.formula-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.formula-fecha {
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+.formula-status {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.formula-status.actual {
+  background: #d4ffd8;
+  color: #15803d;
+}
+
+.formula-status.historico {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.formula-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.formula-ojos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg);
+}
+
+.ojo-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.ojo-info label {
+  font-weight: 600;
+  color: var(--gray-600);
+  font-size: 0.9rem;
+}
+
+.formula-valor {
+  font-family: 'Courier New', monospace;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  background: white;
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--gray-300);
+}
+
+.formula-meta {
+  display: flex;
+  gap: var(--spacing-lg);
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.meta-item label {
+  font-weight: 600;
+  color: var(--gray-600);
+  font-size: 0.9rem;
+}
+
+.lente-tipo {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.formula-observaciones {
+  margin-top: var(--spacing-sm);
+}
+
+.formula-observaciones label {
+  font-weight: 600;
+  color: var(--gray-600);
+  font-size: 0.9rem;
+  display: block;
+  margin-bottom: var(--spacing-xs);
+}
+
+.formula-observaciones p {
+  margin: 0;
+  color: var(--gray-700);
+  line-height: 1.5;
+}
+
+.no-data-message {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--gray-500);
+  background: var(--gray-50);
+  border-radius: var(--border-radius-md);
+}
+
+/* Formulario de fórmula en modal */
+.formula-form {
+  padding: var(--spacing-md) 0;
+}
+
+.formula-form .crud-form-row {
+  margin-bottom: var(--spacing-md);
+}

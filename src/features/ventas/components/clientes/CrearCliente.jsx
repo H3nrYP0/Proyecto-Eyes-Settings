@@ -1,28 +1,29 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { getClienteById, updateCliente } from '../../../../lib/data/clientesData';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { createCliente } from '../../../../lib/data/clientesData';
 import "../../../../shared/styles/components/crud-forms.css";
 
-export default function EditarCliente() {
+export default function CrearCliente() {
   const navigate = useNavigate();
-  const { id } = useParams();
-  
-  const [formData, setFormData] = useState(null);
-
-  useEffect(() => {
-    const cliente = getClienteById(Number(id));
-    if (cliente) {
-      setFormData(cliente);
-    } else {
-      navigate('/admin/clientes');
-    }
-  }, [id, navigate]);
+  const [formData, setFormData] = useState({
+    nombre: '',
+    apellido: '',
+    tipoDocumento: 'cedula',
+    documento: '',
+    telefono: '',
+    correo: '',
+    ciudad: '',
+    direccion: '',
+    fechaNacimiento: '',
+    genero: 'masculino'
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Actualizar en la base de datos
-    updateCliente(Number(id), formData);
+    // Crear el cliente
+    const crearCliente = createCliente(formData);
+    console.log('Cliente creado:', crearCliente);
     navigate('/admin/clientes');
   };
 
@@ -33,15 +34,11 @@ export default function EditarCliente() {
     });
   };
 
-  if (!formData) {
-    return <div>Cargando...</div>;
-  }
-
   return (
     <div className="crud-form-container">
       <div className="crud-form-header">
-        <h1>Editando: {formData.nombre} {formData.apellido}</h1>
-        <p>Modifica la información del cliente</p>
+        <h1>Registrar Nuevo Cliente</h1>
+        <p>Agrega un nuevo cliente a la base de datos de la óptica</p>
       </div>
       
       <div className="crud-form-content">
@@ -59,6 +56,7 @@ export default function EditarCliente() {
                   value={formData.nombre}
                   onChange={handleChange}
                   className="crud-input"
+                  placeholder="Ej: Juan"
                   required
                 />
               </div>
@@ -72,6 +70,7 @@ export default function EditarCliente() {
                   value={formData.apellido}
                   onChange={handleChange}
                   className="crud-input"
+                  placeholder="Ej: Pérez"
                   required
                 />
               </div>
@@ -103,6 +102,7 @@ export default function EditarCliente() {
                   value={formData.documento}
                   onChange={handleChange}
                   className="crud-input"
+                  placeholder="123456789"
                   required
                 />
               </div>
@@ -118,6 +118,7 @@ export default function EditarCliente() {
                   value={formData.telefono}
                   onChange={handleChange}
                   className="crud-input"
+                  placeholder="3001234567"
                   required
                 />
               </div>
@@ -128,7 +129,7 @@ export default function EditarCliente() {
                   type="email"
                   id="correo"
                   name="correo"
-                  value={formData.correo || ''}
+                  value={formData.correo}
                   onChange={handleChange}
                   className="crud-input"
                   placeholder="cliente@ejemplo.com"
@@ -177,6 +178,7 @@ export default function EditarCliente() {
                   value={formData.ciudad}
                   onChange={handleChange}
                   className="crud-input"
+                  placeholder="Ej: Bogotá"
                   required
                 />
               </div>
@@ -187,7 +189,7 @@ export default function EditarCliente() {
                   type="text"
                   id="direccion"
                   name="direccion"
-                  value={formData.direccion || ''}
+                  value={formData.direccion}
                   onChange={handleChange}
                   className="crud-input"
                   placeholder="Dirección completa"
@@ -199,16 +201,13 @@ export default function EditarCliente() {
           <div className="crud-form-actions">
             <button 
               type="button" 
-              onClick={() => navigate('/admin/ventas/clientes')}
               className="crud-btn crud-btn-secondary"
+              onClick={() => navigate('/admin/ventas/clientes')}
             >
               Cancelar
             </button>
-            <button 
-              type="submit" 
-              className="crud-btn crud-btn-primary"
-            >
-              Actualizar Cliente
+            <button type="submit" className="crud-btn crud-btn-primary">
+              Registrar Cliente
             </button>
           </div>
         </form>
