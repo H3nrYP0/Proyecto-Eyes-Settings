@@ -1,46 +1,55 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { getPedidoById, updatePedido } from '../../../../lib/data/pedidosData';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { createPedido } from '../../../../lib/data/pedidosData';
 import "../../../../shared/styles/components/crud-forms.css";
 
-export default function EditarPedido() {
+export default function CrearPedido() {
   const navigate = useNavigate();
-  const { id } = useParams();
-  
-  const [formData, setFormData] = useState(null);
-
-  useEffect(() => {
-    const pedido = getPedidoById(Number(id));
-    if (pedido) {
-      setFormData(pedido);
-    } else {
-      navigate('/admin/ventas/pedidos');
-    }
-  }, [id, navigate]);
+  const [formData, setFormData] = useState({
+    cliente: '',
+    productoServicio: '',
+    tipo: 'Venta',
+    fechaPedido: '',
+    fechaEntrega: '',
+    total: '',
+    abono: '',
+    estado: 'En proceso',
+    observaciones: ''
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    updatePedido(Number(id), formData);
+    const nuevoPedido = createPedido({
+      ...formData,
+      total: Number(formData.total),
+      abono: Number(formData.abono) || 0,
+      saldoPendiente: Number(formData.total) - (Number(formData.abono) || 0)
+    });
+    
+    console.log('Pedido creado:', nuevoPedido);
     navigate('/admin/ventas/pedidos');
   };
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
   };
 
-  if (!formData) {
-    return <div>Cargando...</div>;
-  }
+  const calcularSaldoPendiente = () => {
+    const total = Number(formData.total) || 0;
+    const abono = Number(formData.abono) || 0;
+    return total - abono;
+  };
 
   return (
     <div className="crud-form-container">
       <div className="crud-form-header">
-        <h1>Editando Pedido: {formData.cliente}</h1>
-        <p>Modifica la información del pedido</p>
+        <h1>Crear Nuevo Pedido</h1>
+        <p>Registra un nuevo pedido u orden de trabajo</p>
       </div>
       
       <div className="crud-form-content">
@@ -57,6 +66,7 @@ export default function EditarPedido() {
                 value={formData.cliente}
                 onChange={handleChange}
                 className="crud-input"
+                placeholder="Nombre del cliente"
                 required
               />
             </div>
@@ -71,6 +81,7 @@ export default function EditarPedido() {
                   value={formData.productoServicio}
                   onChange={handleChange}
                   className="crud-input"
+                  placeholder="Descripción del producto o servicio"
                   required
                 />
               </div>
@@ -129,11 +140,40 @@ export default function EditarPedido() {
                   value={formData.total}
                   onChange={handleChange}
                   className="crud-input"
+                  placeholder="0"
                   min="0"
                   required
                 />
               </div>
 
+              <div className="crud-form-group">
+                <label htmlFor="abono">Abono Inicial</label>
+                <input
+                  type="number"
+                  id="abono"
+                  name="abono"
+                  value={formData.abono}
+                  onChange={handleChange}
+                  className="crud-input"
+                  placeholder="0"
+                  min="0"
+                  max={formData.total}
+                />
+              </div>
+
+              <div className="crud-form-group">
+                <label>Saldo Pendiente</label>
+                <input
+                  type="text"
+                  value={`$${calcularSaldoPendiente().toLocaleString()}`}
+                  className="crud-input"
+                  disabled
+                  style={{background: '#f5f5f5'}}
+                />
+              </div>
+            </div>
+
+            <div className="crud-form-row">
               <div className="crud-form-group">
                 <label htmlFor="estado">Estado <span className="crud-required">*</span></label>
                 <select
@@ -157,7 +197,7 @@ export default function EditarPedido() {
               <textarea
                 id="observaciones"
                 name="observaciones"
-                value={formData.observaciones || ''}
+                value={formData.observaciones}
                 onChange={handleChange}
                 rows="3"
                 className="crud-input crud-textarea"
@@ -169,16 +209,13 @@ export default function EditarPedido() {
           <div className="crud-form-actions">
             <button 
               type="button" 
-              onClick={() => navigate('/admin/ventas/pedidos')}
               className="crud-btn crud-btn-secondary"
+              onClick={() => navigate('/admin/ventas/pedidos')}
             >
               Cancelar
             </button>
-            <button 
-              type="submit" 
-              className="crud-btn crud-btn-primary"
-            >
-              Actualizar Pedido
+            <button type="submit" className="crud-btn crud-btn-primary">
+              Crear Pedido
             </button>
           </div>
         </form>

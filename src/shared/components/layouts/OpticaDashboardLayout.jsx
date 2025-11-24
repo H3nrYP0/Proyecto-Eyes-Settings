@@ -26,7 +26,7 @@ import NuevoAbono from "../../../features/ventas/components/abonos/NuevoAbono";
 import DetalleAbono from "../../../features/ventas/components/abonos/DetalleAbono";
 import EditarAbono from "../../../features/ventas/components/abonos/EditarAbono";
 //COMPONENTS PEDIDOS
-import NuevoPedido from "../../../features/ventas/components/pedidos/NuevoPedido";
+import CrearPedido from "../../../features/ventas/components/pedidos/CrearPedido";
 import DetallePedido from "../../../features/ventas/components/pedidos/DetallePedido";
 import EditarPedido from "../../../features/ventas/components/pedidos/EditarPedido";
 
@@ -161,11 +161,11 @@ export default function OpticaDashboardLayout({ user, setUser }) {
                 <Route path="detalle" element={<DetalleAbono />} />
               </Route>
               <Route path="pedidos">
-                <Route index element={<Pedidos />} />
-                <Route path="nuevo" element={<NuevoPedido />} />
-                <Route path="editar" element={<EditarPedido />} />
-                <Route path="detalle" element={<DetallePedido />} />
-              </Route>
+              <Route index element={<Pedidos />} />
+              <Route path="crear" element={<CrearPedido />} />
+              <Route path="editar/:id" element={<EditarPedido />} />
+              <Route path="detalle/:id" element={<DetallePedido />} />
+            </Route>
               <Route path="nueva" element={<NuevaVenta />} />
               <Route path="detalle/:id" element={<DetalleVenta />} />
               <Route path="editar/:id" element={<EditarVenta />} />

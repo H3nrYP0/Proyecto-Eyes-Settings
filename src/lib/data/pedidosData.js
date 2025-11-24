@@ -2,59 +2,42 @@
 let pedidosDB = [
   {
     id: 1,
-    cliente: "María González",
-    clienteId: 1,
-    productoServicio: "Lentes progresivos con antirreflejo",
+    cliente: "Juan Pérez",
+    productoServicio: "Lentes Progresivos Transitions",
+    tipo: "Venta",
     fechaPedido: "2024-01-15",
     fechaEntrega: "2024-01-25",
     total: 450000,
-    anticipo: 150000,
+    abono: 150000,
     saldoPendiente: 300000,
     estado: "En proceso",
-    tipo: "Venta",
-    observaciones: "Cliente prefiere montura de acetato"
+    observaciones: "Cliente prefiere montura negra"
   },
   {
     id: 2,
-    cliente: "Carlos Rodríguez",
-    clienteId: 2,
-    productoServicio: "Lentes de contacto mensuales",
-    fechaPedido: "2024-01-10",
-    fechaEntrega: "2024-01-12",
-    total: 120000,
-    anticipo: 120000,
+    cliente: "María González",
+    productoServicio: "Examen de la Vista Completo",
+    tipo: "Servicio",
+    fechaPedido: "2024-01-16",
+    fechaEntrega: "2024-01-16",
+    total: 50000,
+    abono: 50000,
     saldoPendiente: 0,
     estado: "Entregado",
-    tipo: "Venta",
     observaciones: "Sin observaciones"
   },
   {
     id: 3,
-    cliente: "Ana Martínez",
-    clienteId: 3,
-    productoServicio: "Montura + Lentes oftálmicos",
-    fechaPedido: "2024-01-08",
-    fechaEntrega: "2024-01-18",
-    total: 280000,
-    anticipo: 100000,
-    saldoPendiente: 180000,
-    estado: "Pendiente pago",
+    cliente: "Carlos Rodríguez",
+    productoServicio: "Lentes de Sol Ray-Ban",
     tipo: "Venta",
-    observaciones: "Urgente - cliente necesita para viaje"
-  },
-  {
-    id: 4,
-    cliente: "Pedro López",
-    clienteId: 4,
-    productoServicio: "Reparación de montura",
-    fechaPedido: "2024-01-05",
-    fechaEntrega: "2024-01-07",
-    total: 35000,
-    anticipo: 0,
-    saldoPendiente: 35000,
-    estado: "Entregado",
-    tipo: "Servicio",
-    observaciones: "Cambio de plaquetas"
+    fechaPedido: "2024-01-14",
+    fechaEntrega: "2024-01-20",
+    total: 280000,
+    abono: 0,
+    saldoPendiente: 280000,
+    estado: "Pendiente pago",
+    observaciones: "Urgente - viaja el 21"
   }
 ];
 
@@ -72,7 +55,8 @@ export function getPedidoById(id) {
 export function createPedido(data) {
   const newId = pedidosDB.length ? pedidosDB.at(-1).id + 1 : 1;
   const nuevoPedido = { 
-    id: newId,
+    id: newId, 
+    saldoPendiente: data.total - (data.abono || 0),
     ...data 
   };
   
@@ -95,26 +79,14 @@ export function deletePedido(id) {
   return pedidosDB;
 }
 
-// Registrar abono
-export function registrarAbono(id, montoAbono) {
-  const pedido = pedidosDB.find((p) => p.id === id);
-  if (pedido) {
-    pedido.saldoPendiente -= montoAbono;
-    pedido.anticipo += montoAbono;
-    
-    // Si el saldo llega a cero, cambiar estado
-    if (pedido.saldoPendiente <= 0) {
-      pedido.estado = "Pagado";
-    }
-  }
-  return pedidosDB;
-}
-
-// Cambiar estado a entregado
+// Marcar como entregado
 export function marcarComoEntregado(id) {
-  const pedido = pedidosDB.find((p) => p.id === id);
-  if (pedido) {
-    pedido.estado = "Entregado";
+  const index = pedidosDB.findIndex((p) => p.id === id);
+  if (index !== -1) {
+    pedidosDB[index] = { 
+      ...pedidosDB[index], 
+      estado: "Entregado" 
+    };
   }
   return pedidosDB;
 }
