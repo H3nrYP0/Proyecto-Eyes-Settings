@@ -1,12 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
 import CrudLayout from "../../../../shared/components/layouts/CrudLayout";
 import CrudTable from "../../../../shared/components/ui/CrudTable";
-import "../../../../shared/styles/components/crud-table.css";
-
-// Modal reutilizable
 import Modal from "../../../../shared/components/ui/Modal";
+import "../../../../shared/styles/components/crud-table.css";
 import "../../../../shared/styles/components/modal.css";
 
 // Importamos las funciones del backend
@@ -21,6 +18,7 @@ export default function Empleados() {
 
   const [empleados, setEmpleados] = useState([]);
   const [search, setSearch] = useState("");
+  const [filterEstado, setFilterEstado] = useState("");
 
   const [modalDelete, setModalDelete] = useState({
     open: false,
@@ -60,17 +58,29 @@ export default function Empleados() {
   };
 
   // =============================
-  //          BUSCADOR
+  //          BUSCADOR Y FILTRO
   // =============================
-  const filteredEmpleados = empleados.filter((empleado) =>
-    empleado.nombre.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredEmpleados = empleados.filter((empleado) => {
+    const matchesSearch = 
+      empleado.nombre.toLowerCase().includes(search.toLowerCase()) ||
+      empleado.numero_documento.toLowerCase().includes(search.toLowerCase()) ||
+      empleado.cargo.toLowerCase().includes(search.toLowerCase());
+    
+    const matchesFilter = !filterEstado || empleado.estado === filterEstado;
+    
+    return matchesSearch && matchesFilter;
+  });
+
+  // FILTROS PARA EMPLEADOS
+  const searchFilters = [
+    { value: 'activo', label: 'Activos' },
+    { value: 'inactivo', label: 'Inactivos' }
+  ];
 
   // =============================
-  //          COLUMNAS (solo las relevantes)
+  //          COLUMNAS
   // =============================
   const columns = [
-    { field: "id", header: "ID" },
     { field: "nombre", header: "Nombre" },
     { field: "numero_documento", header: "Documento" },
     { field: "telefono", header: "Teléfono" },
@@ -81,9 +91,7 @@ export default function Empleados() {
       header: "Estado",
       render: (item) => (
         <button
-          className={`estado-btn ${
-            item.estado === "activo" ? "activo" : "inactivo"
-          }`}
+          className={`estado-btn ${item.estado === "activo" ? "activo" : "inactivo"}`}
           onClick={() => toggleEstado(item.id)}
         >
           {item.estado === "activo" ? "✅ Activo" : "⛔ Inactivo"}
@@ -95,16 +103,16 @@ export default function Empleados() {
   // =============================
   //          ACCIONES
   // =============================
-  const actions = [
+  const tableActions = [
     {
-      label: "Ver Detalle",
+      label: "Ver Detalles",
       type: "view",
-      onClick: (item) => navigate(`/admin/servicios/empleados/detalle/${item.id}`),
+      onClick: (item) => navigate(`detalle/${item.id}`),
     },
     {
       label: "Editar",
       type: "edit",
-      onClick: (item) => navigate(`/admin/servicios/empleados/editar/${item.id}`),
+      onClick: (item) => navigate(`editar/${item.id}`),
     },
     {
       label: "Eliminar",
@@ -113,31 +121,51 @@ export default function Empleados() {
     },
   ];
 
+  // Función para manejar cambio de filtro
+  const handleFilterChange = (value) => {
+    setFilterEstado(value);
+  };
+
   return (
     <CrudLayout
       title="💼 Empleados"
       description="Administra la información del personal de la óptica."
-      onAddClick={() => navigate("/admin/servicios/empleados/crear")}
+      onAddClick={() => navigate("crear")}
+      showSearch={true}
+      searchPlaceholder="Buscar por nombre, documento, cargo..."
+      searchValue={search}
+      onSearchChange={setSearch}
+      searchFilters={searchFilters}
+      filterEstado={filterEstado}
+      onFilterChange={handleFilterChange}
+      searchPosition="left"
     >
-      {/* BUSCADOR */}
-      <div className="search-bar-row">
-        <input
-          className="search-input"
-          type="text"
-          placeholder="Buscar por nombre..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
-      {/* TABLA */}
+      {/* Tabla */}
       <CrudTable 
         columns={columns} 
         data={filteredEmpleados} 
-        actions={actions} 
+        actions={tableActions}
+        emptyMessage={
+          search || filterEstado ? 
+            'No se encontraron empleados para los filtros aplicados' : 
+            'No hay empleados registrados'
+        }
       />
 
-      {/* MODAL DE CONFIRMACIÓN */}
+      {/* Botón para primer empleado */}
+      {filteredEmpleados.length === 0 && !search && !filterEstado && (
+        <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
+          <button 
+            onClick={() => navigate("crear")}
+            className="btn-primary"
+            style={{padding: 'var(--spacing-md) var(--spacing-lg)'}}
+          >
+            Registrar Primer Empleado
+          </button>
+        </div>
+      )}
+
+      {/* Modal de Confirmación */}
       <Modal
         open={modalDelete.open}
         type="warning"
