@@ -1,6 +1,6 @@
 /* === ESTILOS GLOBALES === */
-@import './reset.css';
-@import './variables.css';
+@import '../shared/styles/globals/reset.css';
+@import '../shared/styles/globals/variables.css';
 
 body {
   background-color: var(--gray-100);
