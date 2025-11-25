@@ -1,0 +1,45 @@
+/* === VARIABLES ESPECÍFICAS PARA LANDING PAGE === */
+.landing-page {
+  /* Paleta de colores principal corregida */
+  --deep-teal: #003333;
+  --emerald: #027c68;
+  --mint: #b0e892;
+  --vibrant-green: #009933;
+  
+  /* Nueva paleta complementaria */
+  --ocean-teal: #339999;
+  --sky-teal: #66cccc;
+  --warm-beige: #ebbda5;
+  
+  /* Sistema de colores neutros profesionales */
+  --pure-white: #ffffff;
+  --soft-gray: #f8fafc;
+  --medium-gray: #e2e8f0;
+  --text-dark: #1e293b;
+  --text-light: #64748b;
+  
+  /* Escala de espaciado consistente */
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2rem;
+  --space-xl: 3rem;
+  --space-2xl: 4rem;
+  
+  /* Sistema de sombras profesionales */
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  /* Border radius consistente */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  
+  /* Transiciones suaves */
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}

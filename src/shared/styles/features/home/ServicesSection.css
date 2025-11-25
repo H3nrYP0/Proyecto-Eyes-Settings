@@ -1,0 +1,124 @@
+/* === SERVICES SECTION STYLES === */
+@import './landing-variables.css';
+.services-section {
+  padding: var(--space-2xl) 0;
+  background: var(--soft-gray);
+}
+
+.services-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-lg);
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-lg);
+  margin-bottom: var(--space-2xl);
+}
+
+.service-category {
+  background: var(--pure-white);
+  padding: var(--space-lg);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--medium-gray);
+  transition: all var(--transition-normal);
+}
+
+.service-category:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--ocean-teal);
+}
+
+.category-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--deep-teal);
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-sm);
+  border-bottom: 2px solid var(--emerald);
+}
+
+.service-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.service-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) 0;
+  color: var(--text-dark);
+  font-weight: 500;
+  border-bottom: 1px solid var(--medium-gray);
+}
+
+.service-item:last-child {
+  border-bottom: none;
+}
+
+.check-icon {
+  color: var(--vibrant-green);
+  font-weight: bold;
+  font-size: 1.125rem;
+}
+
+.services-demo {
+  background: var(--pure-white);
+  border-radius: var(--radius-xl);
+  padding: var(--space-2xl);
+  text-align: center;
+  border: 1px solid var(--medium-gray);
+}
+
+.demo-content h3 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: var(--space-sm);
+}
+
+.demo-content p {
+  font-size: 1.125rem;
+  color: var(--text-light);
+  margin-bottom: var(--space-lg);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.demo-actions {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: center;
+  align-items: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .services-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+  
+  .service-category {
+    padding: var(--space-md);
+  }
+  
+  .services-demo {
+    padding: var(--space-xl) var(--space-md);
+  }
+  
+  .demo-actions {
+    flex-direction: column;
+  }
+  
+  .demo-actions .btn {
+    width: 100%;
+    max-width: 250px;
+  }
+}
