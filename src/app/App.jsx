@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
+
 // Estilos globales
 import "/src/shared/styles/globals/app.css";
 import "/src/shared/styles/globals/reset.css";
@@ -80,5 +81,6 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
+
   );
 }

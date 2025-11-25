@@ -1,0 +1,264 @@
+/* campanasSalud.css - Estilos para el módulo de campañas de salud */
+
+/* Contenedor de tabla */
+.table-container {
+  overflow-x: auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+}
+
+/* Tabla */
+.crud-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.crud-table th {
+  background: #f8f9fa;
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 2px solid #e9ecef;
+  font-size: 0.9rem;
+}
+
+.crud-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e9ecef;
+  vertical-align: middle;
+}
+
+.crud-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Estados */
+.status-active {
+  background: #d4edda;
+  color: #155724;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.status-inactive {
+  background: #f8f9fa;
+  color: #6c757d;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid #dee2e6;
+}
+
+.status-completed {
+  background: #d1ecf1;
+  color: #0c5460;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.clickable:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Botones de acción */
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.actions button {
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-view {
+  background: #e6f7ff;
+  color: #17a2b8;
+  border: 1px solid #17a2b8;
+}
+
+.btn-view:hover {
+  background: #17a2b8;
+  color: white;
+}
+
+.btn-edit {
+  background: #e7f3ff;
+  color: #007bff;
+  border: 1px solid #007bff;
+}
+
+.btn-edit:hover {
+  background: #007bff;
+  color: white;
+}
+
+.btn-delete {
+  background: #f8d7da;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+}
+
+.btn-delete:hover {
+  background: #dc3545;
+  color: white;
+}
+
+/* Barra de búsqueda */
+.search-container {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+}
+
+.search-results {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.results-count {
+  color: #6c757d;
+  font-size: 0.9rem;
+  font-weight: 500;
+  background: #f8f9fa;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+/* Sin resultados */
+.no-results {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.no-results-content {
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.no-results-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.no-results h3 {
+  color: #6c757d;
+  margin-bottom: 0.5rem;
+}
+
+.no-results p {
+  color: #6c757d;
+  margin-bottom: 1.5rem;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background: #007bff;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #0056b3;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .actions {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .actions button {
+    width: 100%;
+  }
+}
+
+/* === ESTILOS PARA FORMULARIOS DE CAMPAÑAS === */
+
+/* Contador de caracteres */
+.char-counter {
+  font-size: 0.8rem;
+  color: #6c757d;
+  text-align: right;
+  margin-top: 0.25rem;
+}
+
+.char-counter.warning {
+  color: #dc3545;
+}
+
+/* Estados en modo detalle */
+.detail-value.status-active {
+  background: #d4edda;
+  color: #155724;
+  border-color: #c3e6cb;
+}
+
+.detail-value.status-inactive {
+  background: #f8f9fa;
+  color: #6c757d;
+  border-color: #dee2e6;
+}
+
+.detail-value.status-completed {
+  background: #d1ecf1;
+  color: #0c5460;
+  border-color: #b8e6f2;
+}
+
+/* Mejoras para formularios */
+.formulario-section {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #e9ecef;
+}
+
+.formulario-section h2 {
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Modal de éxito personalizado */
+.success-modal .MuiDialog-paper {
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.success-icon {
+  color: #22c55e;
+  font-size: 4rem !important;
+}

@@ -1,156 +1,118 @@
-// src/features/compras/pages/DetalleCompra.jsx
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useCompras } from '../context/ComprasContext';
-import CrudLayout from "../../../shared/components/layouts/CrudLayout";
+import { useParams, useNavigate } from 'react-router-dom';
+import { getCompraById } from '../../../lib/data/comprasData';
+import "../../../shared/styles/components/crud-forms.css";
 
 export default function DetalleCompra() {
-  const navigate = useNavigate();
   const { id } = useParams();
-  const { state } = useCompras();
+  const navigate = useNavigate();
   const [compra, setCompra] = useState(null);
 
   useEffect(() => {
-    const compraEncontrada = state.compras.find(c => c.id === parseInt(id));
-    if (compraEncontrada) {
-      setCompra(compraEncontrada);
-    } else {
-      navigate('/admin/compras');
-    }
-  }, [id, state.compras, navigate]);
-
-  const generarPDF = () => {
-    // Simulación de generación de PDF
-    const contenidoPDF = `
-      COMPROBANTE DE COMPRA
-      =====================
-      Número: ${compra.numeroCompra}
-      Fecha: ${compra.fecha}
-      Proveedor: ${compra.proveedorNombre}
-      
-      PRODUCTOS:
-      ${compra.productos.map(p => 
-        `${p.nombre} - ${p.cantidad} x $${p.precioUnitario} = $${p.total}`
-      ).join('\n')}
-      
-      SUBTOTAL: $${compra.subtotal}
-      IVA (19%): $${compra.iva}
-      TOTAL: $${compra.total}
-      
-      Observaciones: ${compra.observaciones}
-      Estado: ${compra.estado}
-    `;
-    
-    alert("PDF generado:\n" + contenidoPDF);
-    console.log("PDF:", contenidoPDF);
-  };
+    const compraData = getCompraById(Number(id));
+    setCompra(compraData);
+  }, [id]);
 
   if (!compra) {
     return <div>Cargando...</div>;
   }
 
+  const formatCurrency = (amount) => {
+    return `$${amount.toLocaleString()}`;
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('es-ES');
+  };
+
   return (
-    <CrudLayout
-      title="👁️ Detalle de Compra"
-      description={`Información completa de la compra ${compra.numeroCompra}`}
-    >
-      <div className="crud-center">
-        <div className="detalle-compra">
-          {/* Información General */}
-          <div className="info-section">
-            <h3>Información General</h3>
-            <div className="info-grid">
-              <div className="info-item">
-                <strong>Número de Compra:</strong>
-                <span>{compra.numeroCompra}</span>
-              </div>
-              <div className="info-item">
-                <strong>Proveedor:</strong>
-                <span>{compra.proveedorNombre}</span>
-              </div>
-              <div className="info-item">
-                <strong>Fecha:</strong>
-                <span>{compra.fecha}</span>
-              </div>
-              <div className="info-item">
-                <strong>Estado:</strong>
-                <span className={`status-${compra.estado.toLowerCase()}`}>
-                  {compra.estado === "Completada" ? "✅ Completada" : "❌ Anulada"}
-                </span>
-              </div>
+    <div className="crud-form-container">
+      <div className="crud-form-header">
+        <h1>Detalle de Compra: {compra.numeroCompra}</h1>
+        <p>Información completa de la compra</p>
+      </div>
+      
+      <div className="crud-form-content">
+        <div className="crud-form-section">
+          <h3>Información General</h3>
+          
+          <div className="crud-detail-grid">
+            <div className="crud-detail-item">
+              <strong>Proveedor:</strong> 
+              <span>{compra.proveedorNombre}</span>
             </div>
-          </div>
-
-          {/* Productos */}
-          <div className="info-section">
-            <h3>Productos Comprados</h3>
-            <table className="crud-table">
-              <thead>
-                <tr>
-                  <th>Producto</th>
-                  <th>Cantidad</th>
-                  <th>Precio Unitario</th>
-                  <th>Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {compra.productos.map(producto => (
-                  <tr key={producto.id}>
-                    <td>{producto.nombre}</td>
-                    <td>{producto.cantidad}</td>
-                    <td>${producto.precioUnitario.toLocaleString()}</td>
-                    <td>${producto.total.toLocaleString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Totales */}
-          <div className="info-section">
-            <h3>Resumen de Valores</h3>
-            <div className="totales-grid">
-              <div className="total-item">
-                <strong>Subtotal:</strong>
-                <span>${compra.subtotal.toLocaleString()}</span>
-              </div>
-              <div className="total-item">
-                <strong>IVA (19%):</strong>
-                <span>${compra.iva.toLocaleString()}</span>
-              </div>
-              <div className="total-item total-final">
-                <strong>Total:</strong>
-                <span>${compra.total.toLocaleString()}</span>
-              </div>
+            
+            <div className="crud-detail-item">
+              <strong>Fecha:</strong> 
+              <span>{formatDate(compra.fecha)}</span>
             </div>
-          </div>
-
-          {/* Observaciones */}
-          {compra.observaciones && (
-            <div className="info-section">
-              <h3>Observaciones</h3>
-              <p>{compra.observaciones}</p>
+            
+            <div className="crud-detail-item">
+              <strong>Estado:</strong> 
+              <span className={`crud-badge ${compra.estado === "Completada" ? "crud-badge-success" : "crud-badge-error"}`}>
+                {compra.estado}
+              </span>
             </div>
-          )}
 
-          {/* Acciones */}
-          <div className="form-actions">
-            <button onClick={() => navigate('/admin/compras')}>
-              Volver a Compras
-            </button>
-            <button onClick={generarPDF} className="btn-secondary">
-              📄 Generar PDF
-            </button>
-            <button 
-              onClick={() => navigate(`/admin/compras/editar/${compra.id}`)}
-              className="btn-primary"
-              disabled={compra.estado === "Anulada"}
-            >
-              ✏️ Editar Compra
-            </button>
+            <div className="crud-detail-item">
+              <strong>Número:</strong> 
+              <span>{compra.numeroCompra}</span>
+            </div>
+
+            <div className="crud-detail-item">
+              <strong>Subtotal:</strong> 
+              <span>{formatCurrency(compra.subtotal)}</span>
+            </div>
+            
+            <div className="crud-detail-item">
+              <strong>IVA (19%):</strong> 
+              <span>{formatCurrency(compra.iva)}</span>
+            </div>
+            
+            <div className="crud-detail-item">
+              <strong>Total:</strong> 
+              <span>{formatCurrency(compra.total)}</span>
+            </div>
+
+            {compra.observaciones && (
+              <div className="crud-detail-item" style={{gridColumn: '1 / -1'}}>
+                <strong>Observaciones:</strong> 
+                <span>{compra.observaciones}</span>
+              </div>
+            )}
           </div>
         </div>
+
+        {compra.productos.length > 0 && (
+          <div className="crud-form-section">
+            <h3>Productos</h3>
+            <div className="crud-detail-grid">
+              {compra.productos.map(producto => (
+                <div key={producto.id} className="crud-detail-item">
+                  <strong>{producto.nombre}</strong>
+                  <span>{producto.cantidad} x {formatCurrency(producto.precioUnitario)} = {formatCurrency(producto.total)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="crud-form-actions">
+          <button 
+            onClick={() => navigate('/admin/compras')}
+            className="crud-btn crud-btn-secondary"
+          >
+            Volver
+          </button>
+          <button 
+            onClick={() => navigate(`/admin/compras/editar/${compra.id}`)}
+            className="crud-btn crud-btn-primary"
+            disabled={compra.estado === "Anulada"}
+          >
+            Editar
+          </button>
+        </div>
       </div>
-    </CrudLayout>
+    </div>
   );
 }

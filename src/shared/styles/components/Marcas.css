@@ -1,0 +1,135 @@
+/* src/features/compras/pages/Marcas/Marcas.css */
+
+/* 
+ * ESTILOS ESPECÍFICOS PARA EL COMPONENTE MARCAS
+ * Colores exactos según la especificación de la imagen
+ */
+
+/* Contenedor principal del componente Marcas */
+.marcas-container {
+  padding: 20px;
+}
+
+/* Contenedor de la barra de búsqueda */
+.search-container {
+  margin-bottom: 24px;
+}
+
+/* Input de búsqueda con ancho responsive */
+.search-input {
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Contenedor flexible para los botones de acciones */
+.actions-container {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ========== ESTILOS DE BOTONES DE ACCIÓN ========== */
+
+/* Botón Ver Detalles - Azul pastel exacto */
+.btn-detalles {
+  background-color: #BFDBFE; /* Azul claro de fondo */
+  color: #1E3A8A; /* Azul oscuro para texto */
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-detalles:hover {
+  background-color: #93C5FD; /* Azul un poco más intenso al hover */
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Botón Editar - Amarillo pastel exacto */
+.btn-editar {
+  background-color: #FDE68A; /* Amarillo suave de fondo */
+  color: #92400E; /* Marrón oscuro para texto */
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-editar:hover {
+  background-color: #FCD34D; /* Amarillo un poco más intenso al hover */
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Botón Eliminar - Rojo pastel exacto */
+.btn-eliminar {
+  background-color: #FCA5A5; /* Rojo pálido de fondo */
+  color: #7F1D1D; /* Rojo oscuro para texto */
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-eliminar:hover {
+  background-color: #F87171; /* Rojo un poco más intenso al hover */
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* ========== ESTILO PARA EL CHIP DE ESTADO ========== */
+
+/* Chip de estado Activa/Inactiva - Verde pastel exacto */
+.estado-activa {
+  background-color: #A7F3D0 !important; /* Verde claro de fondo */
+  color: #065F46 !important; /* Verde oscuro para texto */
+}
+
+.estado-inactiva {
+  background-color: #F3F4F6 !important; /* Gris para estado inactivo */
+  color: #6B7280 !important; /* Gris oscuro para texto */
+}
+
+/* ========== ANIMACIONES ========== */
+
+/* Animación de entrada suave para elementos */
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(-10px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+/* ========== ESTILOS RESPONSIVE ========== */
+
+/* Adaptación para dispositivos móviles */
+@media (max-width: 768px) {
+  .actions-container {
+    flex-direction: column;
+  }
+  
+  .actions-container button {
+    width: 100%;
+  }
+  
+  .marcas-container {
+    padding: 16px;
+  }
+}

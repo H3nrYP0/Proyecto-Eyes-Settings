@@ -1,15 +1,12 @@
-// src/features/compras/pages/EditarCompra.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useCompras } from '../context/ComprasContext';
-import { useProveedores } from '../context/ProveedoresContext';
 import CrudLayout from "../../../shared/components/layouts/CrudLayout";
+import { getCompraById, updateCompra } from "../../../lib/data/comprasData";
+import "../../../shared/styles/components/crud-forms.css";
 
 export default function EditarCompra() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { state: comprasState, actions: comprasActions } = useCompras();
-  const { state: proveedoresState } = useProveedores();
   
   const [formData, setFormData] = useState(null);
   const [productoActual, setProductoActual] = useState({
@@ -19,13 +16,13 @@ export default function EditarCompra() {
   });
 
   useEffect(() => {
-    const compra = comprasState.compras.find(c => c.id === parseInt(id));
+    const compra = getCompraById(Number(id));
     if (compra) {
       setFormData(compra);
     } else {
       navigate('/admin/compras');
     }
-  }, [id, comprasState.compras, navigate]);
+  }, [id, navigate]);
 
   const calcularTotales = (productos) => {
     const subtotal = productos.reduce((sum, prod) => sum + prod.total, 0);
@@ -99,7 +96,8 @@ export default function EditarCompra() {
       total
     };
 
-    comprasActions.updateCompra(compraActualizada);
+    // Actualizar en la base de datos
+    updateCompra(Number(id), compraActualizada);
     navigate('/admin/compras');
   };
 
@@ -109,182 +107,208 @@ export default function EditarCompra() {
 
   const { subtotal, iva, total } = calcularTotales(formData.productos);
 
+  const formatCurrency = (amount) => {
+    return `$${amount.toLocaleString()}`;
+  };
+
   return (
     <CrudLayout
       title="✏️ Editar Compra"
       description={`Modifica la compra ${formData.numeroCompra}`}
     >
-      <div className="crud-center">
-        <form onSubmit={handleSubmit} className="crud-form">
-          {/* Información básica */}
-          <div className="form-section">
-            <h3>Información de la Compra</h3>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Proveedor</label>
-                <select 
-                  value={formData.proveedorId} 
-                  onChange={(e) => setFormData({...formData, proveedorId: parseInt(e.target.value)})}
-                  disabled
-                >
-                  <option value={formData.proveedorId}>{formData.proveedorNombre}</option>
-                </select>
-                <small>El proveedor no se puede modificar</small>
-              </div>
-              
-              <div className="form-group">
-                <label>Fecha *</label>
-                <input 
-                  type="date" 
-                  value={formData.fecha}
-                  onChange={(e) => setFormData({...formData, fecha: e.target.value})}
-                  required 
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label>Observaciones</label>
-              <textarea 
-                value={formData.observaciones}
-                onChange={(e) => setFormData({...formData, observaciones: e.target.value})}
-                rows="3"
-                placeholder="Observaciones adicionales..."
-              />
-            </div>
-          </div>
-
-          {/* Agregar productos */}
-          <div className="form-section">
-            <h3>Productos de la Compra</h3>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Nombre del Producto</label>
-                <input 
-                  type="text" 
-                  value={productoActual.nombre}
-                  onChange={(e) => setProductoActual({...productoActual, nombre: e.target.value})}
-                  placeholder="Nombre del producto"
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>Cantidad</label>
-                <input 
-                  type="number" 
-                  value={productoActual.cantidad}
-                  onChange={(e) => setProductoActual({...productoActual, cantidad: e.target.value})}
-                  min="1"
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>Precio Unitario</label>
-                <input 
-                  type="number" 
-                  value={productoActual.precioUnitario}
-                  onChange={(e) => setProductoActual({...productoActual, precioUnitario: e.target.value})}
-                  min="0"
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>Acción</label>
-                <button type="button" onClick={agregarProducto} className="btn-secondary">
-                  ➕ Agregar
-                </button>
+      <div className="crud-form-container">
+        <div className="crud-form-header">
+          <h1>Editando: {formData.numeroCompra}</h1>
+          <p>Modifica la información de la compra</p>
+        </div>
+        
+        <div className="crud-form-content">
+          <form onSubmit={handleSubmit}>
+            {/* Información básica */}
+            <div className="crud-form-section">
+              <h3>Información de la Compra</h3>
+              <div className="crud-form-grid">
+                <div className="crud-form-group">
+                  <label>Proveedor <span className="crud-required">*</span></label>
+                  <input
+                    type="text"
+                    value={formData.proveedorNombre}
+                    onChange={(e) => setFormData({...formData, proveedorNombre: e.target.value})}
+                    className="crud-input"
+                    required
+                  />
+                </div>
+                
+                <div className="crud-form-group">
+                  <label>Fecha <span className="crud-required">*</span></label>
+                  <input 
+                    type="date" 
+                    value={formData.fecha}
+                    onChange={(e) => setFormData({...formData, fecha: e.target.value})}
+                    className="crud-input"
+                    required 
+                  />
+                </div>
+                
+                <div className="crud-form-group crud-form-full-width">
+                  <label>Observaciones</label>
+                  <textarea 
+                    value={formData.observaciones || ''}
+                    onChange={(e) => setFormData({...formData, observaciones: e.target.value})}
+                    rows="3"
+                    placeholder="Observaciones adicionales..."
+                    className="crud-input crud-textarea"
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Lista de productos existentes */}
-            {formData.productos.length > 0 && (
-              <div className="productos-lista">
-                <h4>Productos en la Compra</h4>
-                <table className="crud-table">
-                  <thead>
-                    <tr>
-                      <th>Producto</th>
-                      <th>Cantidad</th>
-                      <th>Precio Unitario</th>
-                      <th>Total</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {formData.productos.map(producto => (
-                      <tr key={producto.id}>
-                        <td>
-                          <input
-                            type="text"
-                            value={producto.nombre}
-                            onChange={(e) => actualizarProducto(producto.id, 'nombre', e.target.value)}
-                            className="inline-input"
-                          />
-                        </td>
-                        <td>
-                          <input
-                            type="number"
-                            value={producto.cantidad}
-                            onChange={(e) => actualizarProducto(producto.id, 'cantidad', parseInt(e.target.value))}
-                            min="1"
-                            className="inline-input"
-                          />
-                        </td>
-                        <td>
-                          <input
-                            type="number"
-                            value={producto.precioUnitario}
-                            onChange={(e) => actualizarProducto(producto.id, 'precioUnitario', parseInt(e.target.value))}
-                            min="0"
-                            className="inline-input"
-                          />
-                        </td>
-                        <td>${producto.total.toLocaleString()}</td>
-                        <td>
-                          <button 
-                            type="button"
-                            onClick={() => eliminarProducto(producto.id)}
-                            className="btn-danger"
-                          >
-                            🗑️
-                          </button>
-                        </td>
+            {/* Agregar productos */}
+            <div className="crud-form-section">
+              <h3>Productos de la Compra</h3>
+              
+              <div className="crud-add-product">
+                <div className="crud-form-grid crud-form-grid-3">
+                  <div className="crud-form-group">
+                    <label>Nombre del Producto</label>
+                    <input 
+                      type="text" 
+                      value={productoActual.nombre}
+                      onChange={(e) => setProductoActual({...productoActual, nombre: e.target.value})}
+                      placeholder="Nombre del producto"
+                      className="crud-input"
+                    />
+                  </div>
+                  
+                  <div className="crud-form-group">
+                    <label>Cantidad</label>
+                    <input 
+                      type="number" 
+                      value={productoActual.cantidad}
+                      onChange={(e) => setProductoActual({...productoActual, cantidad: e.target.value})}
+                      min="1"
+                      className="crud-input"
+                    />
+                  </div>
+                  
+                  <div className="crud-form-group">
+                    <label>Precio Unitario</label>
+                    <input 
+                      type="number" 
+                      value={productoActual.precioUnitario}
+                      onChange={(e) => setProductoActual({...productoActual, precioUnitario: e.target.value})}
+                      min="0"
+                      className="crud-input"
+                    />
+                  </div>
+                  
+                  <div className="crud-form-group">
+                    <label>Acción</label>
+                    <button type="button" onClick={agregarProducto} className="crud-btn crud-btn-secondary">
+                      ➕ Agregar Producto
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Lista de productos existentes */}
+              {formData.productos.length > 0 && (
+                <div className="crud-products-section">
+                  <h4>Productos en la Compra</h4>
+                  <table className="crud-products-table">
+                    <thead>
+                      <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Total</th>
+                        <th>Acciones</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+                    </thead>
+                    <tbody>
+                      {formData.productos.map(producto => (
+                        <tr key={producto.id}>
+                          <td>
+                            <input
+                              type="text"
+                              value={producto.nombre}
+                              onChange={(e) => actualizarProducto(producto.id, 'nombre', e.target.value)}
+                              className="crud-inline-input"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="number"
+                              value={producto.cantidad}
+                              onChange={(e) => actualizarProducto(producto.id, 'cantidad', parseInt(e.target.value))}
+                              min="1"
+                              className="crud-inline-input"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="number"
+                              value={producto.precioUnitario}
+                              onChange={(e) => actualizarProducto(producto.id, 'precioUnitario', parseInt(e.target.value))}
+                              min="0"
+                              className="crud-inline-input"
+                            />
+                          </td>
+                          <td>{formatCurrency(producto.total)}</td>
+                          <td>
+                            <button 
+                              type="button"
+                              onClick={() => eliminarProducto(producto.id)}
+                              className="crud-btn crud-btn-delete"
+                            >
+                              🗑️
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
 
-          {/* Totales */}
-          <div className="form-section totales">
-            <h3>Totales</h3>
-            <div className="totales-grid">
-              <div className="total-item">
-                <span>Subtotal:</span>
-                <span>${subtotal.toLocaleString()}</span>
-              </div>
-              <div className="total-item">
-                <span>IVA (19%):</span>
-                <span>${iva.toLocaleString()}</span>
-              </div>
-              <div className="total-item total-final">
-                <span>Total:</span>
-                <span>${total.toLocaleString()}</span>
+            {/* Totales */}
+            <div className="crud-form-section">
+              <h3>Totales</h3>
+              <div className="crud-totals">
+                <div className="crud-total-item">
+                  <span>Subtotal:</span>
+                  <span>{formatCurrency(subtotal)}</span>
+                </div>
+                <div className="crud-total-item">
+                  <span>IVA (19%):</span>
+                  <span>{formatCurrency(iva)}</span>
+                </div>
+                <div className="crud-total-item crud-total-final">
+                  <span>Total:</span>
+                  <span>{formatCurrency(total)}</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="form-actions">
-            <button type="button" onClick={() => navigate('/admin/compras')}>
-              Cancelar
-            </button>
-            <button type="submit" className="btn-primary">
-              Actualizar Compra
-            </button>
-          </div>
-        </form>
+            <div className="crud-form-actions">
+              <button 
+                type="button" 
+                onClick={() => navigate('/admin/compras')}
+                className="crud-btn crud-btn-secondary"
+              >
+                Cancelar
+              </button>
+              <button 
+                type="submit" 
+                className="crud-btn crud-btn-primary"
+                disabled={formData.estado === "Anulada"}
+              >
+                Actualizar Compra
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </CrudLayout>
   );
