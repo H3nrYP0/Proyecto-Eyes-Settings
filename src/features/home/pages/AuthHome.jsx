@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import "/src/shared/styles/features/Home.css";
+import "/src/shared/styles/features/home/Home.css";
 
-const Home = ({ user, setUser }) => {
+const AuthHome = ({ user, setUser }) => {
   const navigate = useNavigate();
 
   const handleLoginClick = () => {
@@ -58,4 +58,4 @@ const Home = ({ user, setUser }) => {
   );
 };
 
-export default Home;
+export default AuthHome;

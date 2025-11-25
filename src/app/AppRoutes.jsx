@@ -1,23 +1,31 @@
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 
-// ESTAS SON LAS PÁGINAS PRINCIPALES
-import Home from "../features/home/pages/Home";
+// PÁGINAS PÚBLICAS
+import LandingPage from "../features/home/pages/LandingPage";
 import Login from "../features/auth/components/Login";
 import Register from "../features/auth/components/Register";
 import ForgotPassword from "../features/auth/components/ForgotPassword";
-import OpticaDashboardLayout from "../shared/components/layouts/OpticaDashboardLayout";
-import ProtectedRoute from "../shared/components/ProtectedRoute";
 
-// ESTAS SON LAS CONSTANTES DE ROLES
-import { ROLES } from "../shared/constants/roles";
+// LAYOUT DEL DASHBOARD
+import OpticaDashboardLayout from "../shared/components/layouts/OpticaDashboardLayout";
+
+// CONSTANTES TEMPORALES (si no existe el archivo roles)
+const ROLES = {
+  ADMIN: 'admin',
+  DEMO: 'demo', 
+  VENDEDOR: 'vendedor',
+  OPTICO: 'optico'
+};
+
+// COMPONENTE PROTECTED ROUTE SIMPLIFICADO
+function ProtectedRoute({ user, children }) {
+  return user ? children : <Navigate to="/login" replace />;
+}
 
 // ESTE ES EL COMPONENTE PRINCIPAL DE RUTAS
 export default function AppRoutes({ user, setUser, onLogin, onLogout }) {
   const navigate = useNavigate();
-
-  // ESTA FUNCIÓN REDIRIGE AL LOGIN SIN RECARGAR
-  const goToLogin = () => navigate("/login");
 
   // ESTE EFFECT REDIRIGE AL DASHBOARD SI EL USUARIO YA ESTÁ LOGUEADO
   useEffect(() => {
@@ -29,19 +37,18 @@ export default function AppRoutes({ user, setUser, onLogin, onLogout }) {
   return (
     <Routes>
       
-      {/* ESTA ES LA RUTA DE LA PÁGINA PRINCIPAL */}
+      {/* ✅ RUTA PRINCIPAL - NUEVA LANDING PAGE */}
       <Route
         path="/"
         element={
-          <Home
+          <LandingPage
             user={user}
             setUser={setUser}
-            onLoginClick={goToLogin}
           />
         }
       />
 
-      {/* ESTA ES LA RUTA DEL LOGIN */}
+      {/* ✅ RUTA DEL LOGIN */}
       <Route
         path="/login"
         element={
@@ -52,7 +59,8 @@ export default function AppRoutes({ user, setUser, onLogin, onLogout }) {
           )
         }
       />
-      {/* ESTA ES LA RUTA DEL REGISTRO */}
+
+      {/* ✅ RUTA DEL REGISTRO */}
       <Route
         path="/register"
         element={
@@ -64,7 +72,7 @@ export default function AppRoutes({ user, setUser, onLogin, onLogout }) {
         }
       />
 
-      {/* ESTA ES LA RUTA DE RECUPERACIÓN DE CONTRASEÑA */}
+      {/* ✅ RUTA DE RECUPERACIÓN DE CONTRASEÑA */}
       <Route
         path="/forgot-password"
         element={
@@ -76,25 +84,67 @@ export default function AppRoutes({ user, setUser, onLogin, onLogout }) {
         }
       />
 
-      {/* ESTAS SON LAS RUTAS PROTEGIDAS DEL ADMIN */}
+      {/* ✅ RUTAS PROTEGIDAS DEL ADMIN */}
       <Route
         path="/admin/*"
         element={
-          <ProtectedRoute 
-            user={user} 
-            allowedRoles={[ROLES.ADMIN, ROLES.DEMO, ROLES.VENDEDOR, ROLES.OPTICO]}
-          >
+          <ProtectedRoute user={user}>
             <OpticaDashboardLayout
               user={user}
               setUser={setUser}
-              onLogout={onLogout}
             />
           </ProtectedRoute>
         }
       />
 
-      {/* ESTA ES LA RUTA POR DEFECTO (404) */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      {/* ✅ RUTA PARA MANTENER COMPATIBILIDAD CON HOME ANTIGUO */}
+      <Route 
+        path="/home" 
+        element={
+          user ? (
+            <Navigate to="/admin/dashboard" replace />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        } 
+      />
+
+      {/* ✅ RUTA 404 MEJORADA */}
+      <Route 
+        path="*" 
+        element={
+          <div style={{ 
+            padding: '2rem', 
+            textAlign: 'center',
+            minHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            background: 'linear-gradient(135deg, #f1f5f9 0%, #ffffff 100%)'
+          }}>
+            <h1 style={{ fontSize: '4rem', marginBottom: '1rem', color: '#1e293b' }}>404</h1>
+            <h2 style={{ marginBottom: '1rem', color: '#334155' }}>Página no encontrada</h2>
+            <p style={{ marginBottom: '2rem', color: '#64748b' }}>
+              La página que buscas no existe en el sistema.
+            </p>
+            <button 
+              onClick={() => window.history.back()}
+              style={{
+                padding: '0.75rem 1.5rem',
+                background: '#3b82f6',
+                color: 'white',
+                border: 'none',
+                borderRadius: '0.5rem',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+            >
+              Volver atrás
+            </button>
+          </div>
+        } 
+      />
     </Routes>
   );
 }
