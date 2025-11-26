@@ -6,7 +6,8 @@ import {
 } from "@mui/material";
 import { 
   Logout as LogoutIcon,
-  PersonOutlineOutlined as PersonOutlineOutlinedIcon
+  PersonOutlineOutlined as PersonOutlineOutlinedIcon,
+  Settings as SettingsIcon
 } from "@mui/icons-material";
 import { ROLES } from "../../constants/roles";
 import "/src/shared/styles/components/Sidebar.css";
@@ -20,10 +21,29 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
 
   // Función que verifica si el usuario tiene permiso para una sección
   const hasPermission = (section) => {
-    // Si es admin, tiene acceso total
-    if (user?.role === ROLES.ADMIN) return true;
-    if (!user?.permissions) return false;
-    return user.permissions.includes('*') || user.permissions.includes(section);
+    if (!user?.role) return false;
+    
+    // Si es admin o super admin, tiene acceso total
+    if (user.role === ROLES.ADMIN || user.role === ROLES.SUPER_ADMIN) {
+      return true;
+    }
+    
+    // Para otros roles, verificar permisos específicos
+    const userPermissions = PERMISSIONS[user.role] || [];
+    
+    return userPermissions.includes('*') || userPermissions.includes(section);
+  };
+
+  // Función específica para configuración
+  const canViewConfig = () => {
+    if (!user?.role) return false;
+    const userPermissions = PERMISSIONS[user.role] || [];
+    return userPermissions.includes('*') || userPermissions.includes('config:view');
+  };
+
+  const canEditConfig = () => {
+    // Solo admin y super admin pueden editar
+    return user?.role === ROLES.ADMIN || user?.role === ROLES.SUPER_ADMIN;
   };
 
   // Función que determina la sección activa basada en la URL
@@ -33,6 +53,7 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
     if (pathname.includes('/servicios')) return 'servicios';
     if (pathname.includes('/usuarios')) return 'usuarios';
     if (pathname.includes('/seguridad')) return 'seguridad';
+    if (pathname.includes('/configuracion')) return 'configuracion';
     if (pathname.includes('/dashboard')) return 'dashboard';
     return null;
   };
@@ -56,9 +77,8 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
   const menuSections = [
     {
       id: "dashboard",
-      title: "Dashboard ",
+      title: "Dashboard",
       icon: "dashboard-icon",
-      // Items del dashboard
       items: [
         { name: "Resumen General", path: "/admin/dashboard", icon: "home-icon" }
       ]
@@ -67,7 +87,6 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
       id: "ventas",
       title: "Ventas",
       icon: "ventas-icon",
-      // Items del módulo de ventas
       items: [
         { name: "Ventas", path: "/admin/ventas", icon: "sales-icon" },
         { name: "Clientes", path: "/admin/ventas/clientes", icon: "users-icon" },
@@ -79,7 +98,6 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
       id: "compras",
       title: "Compras", 
       icon: "compras-icon",
-      // Items del módulo de compras
       items: [
         { name: "Compras", path: "/admin/compras", icon: "purchase-icon" },
         { name: "Productos", path: "/admin/compras/productos", icon: "products-icon" },
@@ -92,7 +110,6 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
       id: "servicios",
       title: "Servicios",
       icon: "servicios-icon",
-      // Items del módulo de servicios
       items: [
         { name: "Servicios", path: "/admin/servicios", icon: "services-icon" },
         { name: "Agenda", path: "/admin/servicios/agenda", icon: "calendar-icon" },
@@ -105,7 +122,6 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
       id: "usuarios", 
       title: "Usuarios",
       icon: "usuarios-icon",
-      // Items del módulo de usuarios
       items: [
         { name: "Usuarios", path: "/admin/usuarios", icon: "users-icon" },
         { name: "Gestión de Acceso", path: "/admin/usuarios/gestion-acceso", icon: "security-icon" }
@@ -115,12 +131,24 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
       id: "seguridad",
       title: "Seguridad",
       icon: "seguridad-icon",
-      // Items del módulo de configuración
       items: [
         { name: "Roles", path: "/admin/seguridad/roles", icon: "roles-icon" }
       ]
+    },
+    // NUEVA SECCIÓN DE CONFIGURACIÓN
+    {
+      id: "configuracion",
+      title: "Configuración",
+      icon: "configuracion-icon",
+      items: [
+        { 
+          name: "Panel de Configuración", 
+          path: "/admin/configuracion", 
+          icon: "settings-icon" 
+        }
+      ]
     }
-  ];
+  ].filter(section => hasPermission(section.id));
 
   // Render principal del sidebar
   return (
@@ -185,8 +213,9 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
         </div>
       </nav>
 
-      {/* Footer del sidebar con info del usuario */}
+      {/* Footer del sidebar con info del usuario, configuración y cerrar sesión */}
       <div className="sidebar-footer">
+        {/* Información del usuario */}
         <div className="user-info">
           <div className="user-avatar">
             <PersonOutlineOutlinedIcon 
@@ -201,15 +230,45 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
               <span className="user-name">{user?.name || "Usuario"}</span>
               <span className="user-role">
                 {user?.role === ROLES.ADMIN ? 'Administrador' : 
-                 user?.role === ROLES.DEMO ? 'Usuario Demo' : user?.role}
+                 user?.role === ROLES.SUPER_ADMIN ? 'Super Admin' :
+                 user?.role === ROLES.VENDEDOR ? 'Vendedor' :
+                 user?.role === ROLES.OPTICO ? 'Óptico' : user?.role}
               </span>
             </div>
           )}
         </div>
+
+        {/* Botón de Configuración */}
+        {isOpen && canViewConfig() && (
+          <Box sx={{ mt: 1, px: 2 }}>
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<SettingsIcon />}
+              onClick={() => navigate('/admin/configuracion')}
+              sx={{
+                textTransform: 'none',
+                fontSize: '0.85rem',
+                fontWeight: '500',
+                borderRadius: 2,
+                py: 1,
+                borderColor: 'rgba(255, 255, 255, 0.3)',
+                color: 'white',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                '&:hover': {
+                  borderColor: 'rgba(255, 255, 255, 0.5)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                }
+              }}
+            >
+              Configuración
+            </Button>
+          </Box>
+        )}
         
-        {/* Botón de cerrar sesión con Material-UI */}
+        {/* Botón de cerrar sesión */}
         {isOpen && (
-          <Box sx={{ mt: 2, px: 2 }}>
+          <Box sx={{ mt: 1, px: 2 }}>
             <Button
               fullWidth
               variant="outlined"
