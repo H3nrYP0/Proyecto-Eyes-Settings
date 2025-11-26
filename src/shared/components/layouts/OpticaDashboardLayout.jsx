@@ -74,14 +74,6 @@ export default function OpticaDashboardLayout({ user, setUser }) {
 
       {/* ESTE ES EL CONTENIDO PRINCIPAL */}
       <div className={`main-content ${sidebarOpen ? "sidebar-expanded" : "sidebar-collapsed"}`}>
-        
-        {/* ESTE ES EL HEADER SUPERIOR */}
-        <Header
-          user={user}
-          onLogout={handleLogout}
-          onToggleSidebar={handleToggleSidebar}
-          sidebarOpen={sidebarOpen}
-        />
 
         {/* ESTA ES EL ÁREA DONDE SE RENDERIZAN LAS PÁGINAS */}
         <main className="content-area">
