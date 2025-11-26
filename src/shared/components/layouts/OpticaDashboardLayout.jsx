@@ -3,7 +3,6 @@ import { useState } from "react";
 
 // ESTOS SON LOS COMPONENTES DE LAYOUT
 import Sidebar from "./Sidebar";
-import Header from "./Header";
 
 // ESTAS SON LAS FEATURES DE VENTAS
 import Dashboard from "../../../features/ventas/pages/Dashboard";
