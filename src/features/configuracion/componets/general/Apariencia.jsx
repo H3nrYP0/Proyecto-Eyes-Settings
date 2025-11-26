@@ -1,6 +1,24 @@
 import { useState } from "react";
+import {
+  Box,
+  Typography,
+  FormControl,
+  FormLabel,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  Select,
+  MenuItem,
+  TextField,
+  Button,
+  Alert,
+  Grid,
+  Paper,
+  Chip
+} from "@mui/material";
+import { Palette, Brightness4, Brightness7 } from "@mui/icons-material";
 
-const Apariencia = ({ canEdit = false }) => {
+const Apariencia = ({ canEdit = false, isGlobal = false, userRole = "" }) => {
   const [apariencia, setApariencia] = useState({
     tema: "claro",
     densidad: "comoda",
@@ -41,141 +59,166 @@ const Apariencia = ({ canEdit = false }) => {
   };
 
   return (
-    <div className="configuracion-section">
-      <h2>Apariencia y Tema</h2>
+    <Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+        <Palette color="primary" />
+        <Typography variant="h6" component="h2">
+          Apariencia y Tema
+        </Typography>
+        <Chip 
+          label={isGlobal ? "Configuración Global" : "Configuración Personal"} 
+          color={isGlobal ? "primary" : "default"}
+          size="small"
+          variant="outlined"
+        />
+      </Box>
       
       {!canEdit && (
-        <div className="read-only-notice">
-          <p>ⓘ Estás en modo de solo lectura. Solo los administradores pueden modificar la apariencia.</p>
-        </div>
+        <Alert severity="info" sx={{ mb: 3 }}>
+          Estás en modo de solo lectura. Solo los administradores pueden modificar la apariencia.
+        </Alert>
       )}
 
-      <div className="config-form">
+      {isGlobal && canEdit && (
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          Los cambios en esta sección afectarán a todos los usuarios del sistema.
+        </Alert>
+      )}
+
+      <Paper elevation={1} sx={{ p: 3 }}>
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Tema de la Aplicación</label>
-            <div className="theme-options">
-              <label className="theme-option">
-                <input
-                  type="radio"
+          <Grid container spacing={4}>
+            {/* Tema de la Aplicación */}
+            <Grid item xs={12}>
+              <FormControl component="fieldset">
+                <FormLabel component="legend">Tema de la Aplicación</FormLabel>
+                <RadioGroup
+                  row
                   name="tema"
-                  value="claro"
-                  checked={apariencia.tema === "claro"}
+                  value={apariencia.tema}
+                  onChange={handleChange}
+                  sx={{ mt: 1 }}
+                >
+                  <FormControlLabel 
+                    value="claro" 
+                    control={<Radio disabled={!canEdit} />} 
+                    label={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Brightness7 />
+                        Tema Claro
+                      </Box>
+                    } 
+                  />
+                  <FormControlLabel 
+                    value="oscuro" 
+                    control={<Radio disabled={!canEdit} />} 
+                    label={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Brightness4 />
+                        Tema Oscuro
+                      </Box>
+                    } 
+                  />
+                  <FormControlLabel 
+                    value="auto" 
+                    control={<Radio disabled={!canEdit} />} 
+                    label="Automático (según sistema)" 
+                  />
+                </RadioGroup>
+              </FormControl>
+            </Grid>
+
+            {/* Densidad y Tamaño de Fuente */}
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <FormLabel>Densidad de la Interfaz</FormLabel>
+                <Select
+                  name="densidad"
+                  value={apariencia.densidad}
                   onChange={handleChange}
                   disabled={!canEdit}
-                />
-                <div className="theme-preview claro">
-                  <div className="theme-demo"></div>
-                </div>
-                <span>Tema Claro</span>
-              </label>
+                  sx={{ mt: 1 }}
+                >
+                  <MenuItem value="compacta">Compacta</MenuItem>
+                  <MenuItem value="comoda">Cómoda</MenuItem>
+                  <MenuItem value="espaciosa">Espaciosa</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
 
-              <label className="theme-option">
-                <input
-                  type="radio"
-                  name="tema"
-                  value="oscuro"
-                  checked={apariencia.tema === "oscuro"}
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <FormLabel>Tamaño de Fuente</FormLabel>
+                <Select
+                  name="tamanoFuente"
+                  value={apariencia.tamanoFuente}
                   onChange={handleChange}
                   disabled={!canEdit}
-                />
-                <div className="theme-preview oscuro">
-                  <div className="theme-demo"></div>
-                </div>
-                <span>Tema Oscuro</span>
-              </label>
+                  sx={{ mt: 1 }}
+                >
+                  <MenuItem value="pequeno">Pequeño</MenuItem>
+                  <MenuItem value="medio">Medio</MenuItem>
+                  <MenuItem value="grande">Grande</MenuItem>
+                  <MenuItem value="muy-grande">Muy Grande</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
 
-              <label className="theme-option">
-                <input
-                  type="radio"
-                  name="tema"
-                  value="auto"
-                  checked={apariencia.tema === "auto"}
-                  onChange={handleChange}
-                  disabled={!canEdit}
-                />
-                <div className="theme-preview auto">
-                  <div className="theme-demo"></div>
-                </div>
-                <span>Automático</span>
-              </label>
-            </div>
-          </div>
+            {/* Color Primario */}
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <FormLabel>Color Primario</FormLabel>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
+                  <TextField
+                    type="color"
+                    name="colorPrimario"
+                    value={apariencia.colorPrimario}
+                    onChange={handleChange}
+                    disabled={!canEdit}
+                    sx={{
+                      width: 60,
+                      height: 60,
+                      '& .MuiInputBase-input': {
+                        padding: 1,
+                        height: '100%'
+                      }
+                    }}
+                  />
+                  <Typography variant="body2" color="text.secondary">
+                    {apariencia.colorPrimario}
+                  </Typography>
+                </Box>
+              </FormControl>
+            </Grid>
+          </Grid>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label>Densidad de la Interfaz</label>
-              <select
-                name="densidad"
-                value={apariencia.densidad}
-                onChange={handleChange}
-                disabled={!canEdit}
-              >
-                <option value="compacta">Compacta</option>
-                <option value="comoda">Cómoda</option>
-                <option value="espaciosa">Espaciosa</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label>Tamaño de Fuente</label>
-              <select
-                name="tamanoFuente"
-                value={apariencia.tamanoFuente}
-                onChange={handleChange}
-                disabled={!canEdit}
-              >
-                <option value="pequeno">Pequeño</option>
-                <option value="medio">Medio</option>
-                <option value="grande">Grande</option>
-                <option value="muy-grande">Muy Grande</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label>Color Primario</label>
-            <div className="color-picker-container">
-              <input
-                type="color"
-                name="colorPrimario"
-                value={apariencia.colorPrimario}
-                onChange={handleChange}
-                className="color-picker"
-                disabled={!canEdit}
-              />
-              <span className="color-value">{apariencia.colorPrimario}</span>
-            </div>
-          </div>
-
-          <div className="form-actions">
-            <button 
+          {/* Acciones */}
+          <Box sx={{ display: 'flex', gap: 2, mt: 4, pt: 2, borderTop: 1, borderColor: 'divider' }}>
+            <Button 
               type="submit" 
-              className="btn-primary"
+              variant="contained"
               disabled={!canEdit}
             >
               {canEdit ? "Aplicar Cambios" : "Solo Lectura"}
-            </button>
-            <button 
+            </Button>
+            <Button 
               type="button" 
-              className="btn-secondary"
+              variant="outlined"
               onClick={handleReset}
               disabled={!canEdit}
             >
               Restablecer
-            </button>
-          </div>
+            </Button>
+          </Box>
 
           {!canEdit && (
-            <div className="permissions-info">
-              <p>
-                <strong>Permisos requeridos:</strong> Rol de Administrador o Super Administrador
-              </p>
-            </div>
+            <Alert severity="info" sx={{ mt: 2 }}>
+              <strong>Permisos requeridos:</strong> Rol de Administrador o Super Administrador
+            </Alert>
           )}
         </form>
-      </div>
-    </div>
+      </Paper>
+    </Box>
   );
 };
 

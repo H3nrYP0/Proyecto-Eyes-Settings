@@ -1,25 +1,23 @@
-import { Box, Typography, Paper, Link, Chip } from "@mui/material";
+import { Box, Typography, Paper, Link, Alert } from "@mui/material";
+import { Gavel } from "@mui/icons-material";
 
 const Licencias = ({ canEdit = false }) => {
   return (
-    <div className="configuracion-section">
-      <div className="section-header">
-        <h2>Licencias de Software Open Source</h2>
-        <Chip 
-          label={canEdit ? "Administrador" : "Solo Lectura"} 
-          color={canEdit ? "primary" : "default"}
-          size="small"
-          variant="outlined"
-        />
-      </div>
+    <Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+        <Gavel color="primary" />
+        <Typography variant="h6" component="h2">
+          Licencias de Software Open Source
+        </Typography>
+      </Box>
       
       {!canEdit && (
-        <div className="read-only-notice">
-          <p>ⓘ Esta sección es informativa. Todos los usuarios pueden ver las licencias del software.</p>
-        </div>
+        <Alert severity="info" sx={{ mb: 3 }}>
+          Esta sección es informativa. Todos los usuarios pueden ver las licencias del software.
+        </Alert>
       )}
 
-      <Paper elevation={2} sx={{ p: 3, mb: 3, backgroundColor: '#f8f9fa' }}>
+      <Paper elevation={2} sx={{ p: 3, mb: 3, backgroundColor: 'background.default' }}>
         <Typography variant="h6" gutterBottom color="primary">
           Aviso de Uso de Software Open Source
         </Typography>
@@ -38,26 +36,26 @@ const Licencias = ({ canEdit = false }) => {
             Tecnologías Utilizadas:
           </Typography>
           
-          <Box component="ul" sx={{ pl: 3 }}>
+          <Box component="ul" sx={{ pl: 3, '& li': { mb: 1 } }}>
             <li>
               <strong>React</strong> © Meta Platforms, Inc. — Licencia MIT —{" "}
-              <Link href="https://react.dev" target="_blank">https://react.dev</Link>
+              <Link href="https://react.dev" target="_blank" rel="noopener">https://react.dev</Link>
             </li>
             <li>
               <strong>Material UI (MUI)</strong> © MUI, Inc. — Licencia MIT —{" "}
-              <Link href="https://mui.com" target="_blank">https://mui.com</Link>
+              <Link href="https://mui.com" target="_blank" rel="noopener">https://mui.com</Link>
             </li>
             <li>
               <strong>Apache ECharts</strong> © Apache Software Foundation — Licencia Apache 2.0 —{" "}
-              <Link href="https://echarts.apache.org" target="_blank">https://echarts.apache.org</Link>
+              <Link href="https://echarts.apache.org" target="_blank" rel="noopener">https://echarts.apache.org</Link>
             </li>
             <li>
               <strong>React Router</strong> — Licencia MIT —{" "}
-              <Link href="https://reactrouter.com" target="_blank">https://reactrouter.com</Link>
+              <Link href="https://reactrouter.com" target="_blank" rel="noopener">https://reactrouter.com</Link>
             </li>
             <li>
               <strong>Vite</strong> — Licencia MIT —{" "}
-              <Link href="https://vitejs.dev" target="_blank">https://vitejs.dev</Link>
+              <Link href="https://vitejs.dev" target="_blank" rel="noopener">https://vitejs.dev</Link>
             </li>
           </Box>
         </Box>
@@ -76,13 +74,13 @@ const Licencias = ({ canEdit = false }) => {
         </Box>
       </Paper>
 
-      <div className="legal-disclaimer">
+      <Box sx={{ mt: 2 }}>
         <Typography variant="caption" color="text.secondary">
           <strong>Nota:</strong> Esta información sobre licencias es de acceso público y 
           cumple con los requisitos de transparencia de las licencias open source utilizadas.
         </Typography>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 

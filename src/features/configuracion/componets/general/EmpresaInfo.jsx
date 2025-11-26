@@ -1,13 +1,24 @@
 import { useState } from "react";
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Alert,
+  Grid,
+  Paper,
+  Divider
+} from "@mui/material";
+import { Business, Save, Cancel } from "@mui/icons-material";
 
-const EmpresaInfo = ({ canEdit = false }) => {
+const EmpresaInfo = ({ canEdit = false, isGlobal = false }) => {
   const [formData, setFormData] = useState({
-    nombre: "",
-    ruc: "",
-    direccion: "",
-    telefono: "",
-    email: "",
-    sitioWeb: ""
+    nombre: "Óptica Visual Center",
+    ruc: "12345678901",
+    direccion: "Av. Principal #123, Ciudad",
+    telefono: "+57 123 456 7890",
+    email: "info@opticavisual.com",
+    sitioWeb: "https://www.opticavisual.com"
   });
 
   const handleChange = (e) => {
@@ -32,73 +43,79 @@ const EmpresaInfo = ({ canEdit = false }) => {
       alert("No tienes permisos para realizar esta acción");
       return;
     }
-    setFormData({
-      nombre: "",
-      ruc: "",
-      direccion: "",
-      telefono: "",
-      email: "",
-      sitioWeb: ""
-    });
+    // En una implementación real, aquí se restaurarían los datos originales
     alert("Cambios cancelados");
   };
 
   return (
-    <div className="configuracion-section">
-      <h2>Información de la Empresa</h2>
+    <Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+        <Business color="primary" />
+        <Typography variant="h6" component="h2">
+          Información de la Empresa
+        </Typography>
+        {isGlobal && (
+          <Alert severity="warning" sx={{ py: 0 }}>
+            Configuración Global
+          </Alert>
+        )}
+      </Box>
       
       {!canEdit && (
-        <div className="read-only-notice">
-          <p>ⓘ Modo de solo lectura. Solo los administradores pueden modificar la información de la empresa.</p>
-        </div>
+        <Alert severity="info" sx={{ mb: 3 }}>
+          Modo de solo lectura. Solo los administradores pueden modificar la información de la empresa.
+        </Alert>
       )}
 
-      <div className="config-form">
+      <Paper elevation={1} sx={{ p: 3 }}>
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Nombre de la Óptica *</label>
-            <input
-              type="text"
-              name="nombre"
-              value={formData.nombre}
-              onChange={handleChange}
-              placeholder="Ingresa el nombre de tu óptica"
-              required
-              disabled={!canEdit}
-            />
-          </div>
+          <Grid container spacing={3}>
+            {/* Información Básica */}
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                Información Básica
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
+            </Grid>
 
-          <div className="form-group">
-            <label>RUC/Cédula *</label>
-            <input
-              type="text"
-              name="ruc"
-              value={formData.ruc}
-              onChange={handleChange}
-              placeholder="Número de identificación tributaria"
-              required
-              disabled={!canEdit}
-            />
-          </div>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Nombre de la Óptica *"
+                name="nombre"
+                value={formData.nombre}
+                onChange={handleChange}
+                placeholder="Ingresa el nombre de tu óptica"
+                required
+                disabled={!canEdit}
+              />
+            </Grid>
 
-          <div className="form-group">
-            <label>Dirección *</label>
-            <input
-              type="text"
-              name="direccion"
-              value={formData.direccion}
-              onChange={handleChange}
-              placeholder="Dirección completa"
-              required
-              disabled={!canEdit}
-            />
-          </div>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Dirección *"
+                name="direccion"
+                value={formData.direccion}
+                onChange={handleChange}
+                placeholder="Dirección completa"
+                required
+                disabled={!canEdit}
+              />
+            </Grid>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label>Teléfono *</label>
-              <input
-                type="tel"
+            {/* Información de Contacto */}
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ mt: 2 }}>
+                Información de Contacto
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Teléfono *"
                 name="telefono"
                 value={formData.telefono}
                 onChange={handleChange}
@@ -106,62 +123,65 @@ const EmpresaInfo = ({ canEdit = false }) => {
                 required
                 disabled={!canEdit}
               />
-            </div>
+            </Grid>
 
-            <div className="form-group">
-              <label>Email</label>
-              <input
-                type="email"
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Email"
                 name="email"
+                type="email"
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="correo@ejemplo.com"
                 disabled={!canEdit}
               />
-            </div>
-          </div>
+            </Grid>
 
-          <div className="form-group">
-            <label>Sitio Web</label>
-            <input
-              type="url"
-              name="sitioWeb"
-              value={formData.sitioWeb}
-              onChange={handleChange}
-              placeholder="https://www.ejemplo.com"
-              disabled={!canEdit}
-            />
-          </div>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Sitio Web"
+                name="sitioWeb"
+                type="url"
+                value={formData.sitioWeb}
+                onChange={handleChange}
+                placeholder="https://www.ejemplo.com"
+                disabled={!canEdit}
+              />
+            </Grid>
+          </Grid>
 
-          <div className="form-actions">
-            <button 
+          {/* Acciones */}
+          <Box sx={{ display: 'flex', gap: 2, mt: 4, pt: 2, borderTop: 1, borderColor: 'divider' }}>
+            <Button 
               type="submit" 
-              className="btn-primary"
+              variant="contained"
+              startIcon={<Save />}
               disabled={!canEdit}
             >
               {canEdit ? "Guardar Cambios" : "Solo Lectura"}
-            </button>
-            <button 
+            </Button>
+            <Button 
               type="button" 
-              className="btn-secondary"
+              variant="outlined"
+              startIcon={<Cancel />}
               onClick={handleCancel}
               disabled={!canEdit}
             >
               Cancelar
-            </button>
-          </div>
+            </Button>
+          </Box>
 
           {!canEdit && (
-            <div className="permissions-info">
-              <p>
-                <strong>Información importante:</strong> Esta sección contiene datos legales y fiscales de la empresa. 
-                Solo usuarios con rol de Administrador pueden modificarlos.
-              </p>
-            </div>
+            <Alert severity="info" sx={{ mt: 2 }}>
+              <strong>Información importante:</strong> Esta sección contiene datos legales y fiscales de la empresa. 
+              Solo usuarios con rol de Administrador pueden modificarlos.
+            </Alert>
           )}
         </form>
-      </div>
-    </div>
+      </Paper>
+    </Box>
   );
 };
 
