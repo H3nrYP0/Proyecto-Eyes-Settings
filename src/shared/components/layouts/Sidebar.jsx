@@ -1,4 +1,3 @@
-// components/layouts/Sidebar.jsx
 import { useMemo } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Button, Tooltip } from "@mui/material";
@@ -16,14 +15,25 @@ import { IconRenderer } from "../ui/SidebarIcons";
 import { ROLES } from "../../constants/roles";
 import "../../styles/components/Sidebar.css";
 
-const HeaderContent = ({ isOpen }) => {
+const HeaderContent = ({ isOpen, onToggle }) => {
   return (
-    <div className="sidebar-header-content">
+    <div 
+      className="sidebar-header-content"
+      onClick={!isOpen ? onToggle : undefined}
+      style={{ 
+        cursor: !isOpen ? 'pointer' : 'default',
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: isOpen ? 'flex-start' : 'center'
+      }}
+    >
       {isOpen ? (
-        <>
+        <div className="header-title-container">
           <h1>Visual Outlet</h1>
-          <p>Sistema de Gestión</p>
-        </>
+          <span className="system-text">Sistema de Gestión</span>
+        </div>
       ) : (
         <div className="collapsed-logo">VO</div>
       )}
@@ -48,9 +58,6 @@ const SectionItem = ({ item, isOpen }) => (
     className={({ isActive }) => `nav-item ${isActive ? 'nav-item-active' : ''}`}
     end
   >
-    <span className="item-icon">
-      <IconRenderer name={item.icon} />
-    </span>
     {isOpen && <span className="item-text">{item.name}</span>}
   </NavLink>
 );
@@ -167,10 +174,14 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
   return (
     <aside className={`admin-sidebar ${isOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
       <div className="sidebar-header">
-        <HeaderContent isOpen={isOpen} />
-        <button className="sidebar-toggle" onClick={onToggle}>
-          {isOpen ? <CollapseIcon sx={{ fontSize: 16 }} /> : <MenuIcon sx={{ fontSize: 16 }} />}
-        </button>
+        <HeaderContent isOpen={isOpen} onToggle={onToggle} />
+        
+        {/* Botón solo visible cuando expandido */}
+        {isOpen && (
+          <button className="sidebar-toggle" onClick={onToggle}>
+            <CollapseIcon sx={{ fontSize: 16 }} />
+          </button>
+        )}
       </div>
 
       <nav className="sidebar-nav">

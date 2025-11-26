@@ -1,4 +1,3 @@
-/* styles/components/Sidebar.css */
 .admin-sidebar {
   --sidebar-open-width: 280px;
   --sidebar-collapsed-width: 70px;
@@ -33,6 +32,7 @@
   align-items: center;
   position: relative;
   flex-shrink: 0;
+  cursor: pointer; /* Hacer header clickeable cuando está colapsado */
 }
 
 .sidebar-header-content {
@@ -83,6 +83,14 @@
   display: block;
 }
 
+/* Efecto hover cuando está colapsado */
+.sidebar-collapsed .sidebar-header:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  margin: 0.25rem;
+  padding: 0.75rem 0.25rem;
+}
+
 /* ===== BOTÓN TOGGLE ===== */
 .sidebar-toggle {
   position: absolute;
@@ -104,8 +112,9 @@
   z-index: 10;
 }
 
+/* Botón invisible cuando está colapsado */
 .sidebar-collapsed .sidebar-toggle {
-  right: 8px;
+  display: none;
 }
 
 .sidebar-toggle:hover {
@@ -252,11 +261,11 @@
   overflow: hidden;
 }
 
-/* ===== FOOTER - CORREGIDO ===== */
+/* ===== FOOTER ===== */
 .sidebar-footer {
   padding: 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.2) !important; /* Fuerza el color oscuro */
+  background: rgba(0, 0, 0, 0.2) !important;
   backdrop-filter: blur(10px);
   flex-shrink: 0;
   margin-top: auto;
@@ -343,7 +352,7 @@
   font-size: 18px;
 }
 
-/* ===== ESTADO COLAPSADO - FOOTER CORREGIDO ===== */
+/* ===== ESTADO COLAPSADO ===== */
 .sidebar-collapsed .sidebar-footer {
   padding: 0.75rem 0.5rem;
   background: rgba(0, 0, 0, 0.2) !important;
@@ -442,7 +451,6 @@
   }
 }
 
-/* ===== CORRECCIONES ESPECÍFICAS PARA MATERIAL-UI ===== */
 /* Override de estilos de Material-UI */
 .sidebar-footer .MuiButton-root {
   background: rgba(255, 255, 255, 0.1) !important;
