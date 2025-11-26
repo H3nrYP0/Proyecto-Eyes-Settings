@@ -1,4 +1,3 @@
-// src/features/ventas/pages/Dashboard.jsx
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   Box,
@@ -521,7 +520,7 @@ const AnalisisCategorias = ({ data, timeFilter, yearFilter }) => {
       top: '60px',
       bottom: processedData.length > 15 ? '100px' : '60px'
     },
-    // CORRECCIÓN: Ejes específicos para barras
+    // Ejes específicos para barras
     xAxis: {
       type: 'category',
       data: processedData.map(item => item.name),
@@ -1111,153 +1110,161 @@ export default function Dashboard() {
       background: `linear-gradient(135deg, ${alpha(theme.palette.primary.light, 0.1)} 0%, ${alpha(theme.palette.background.default, 0.3)} 50%, ${theme.palette.background.default} 100%)`,
       p: 3
     }}>
-      {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography 
-          variant="h3" 
-          component="h1" 
-          fontWeight="bold" 
-          gutterBottom
-          sx={{ 
-            background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-            backgroundClip: 'text',
-            WebkitBackgroundClip: 'text',
-            color: 'transparent',
-            mb: 1
-          }}
-        >
-          Resumen Operativo {/*timeFilter === 'año' ? yearFilter : ''*/}
-        </Typography>
-        <Typography 
-          variant="h6" 
-          component="h2" 
-          color="text.primary"
-          fontWeight="500"
-          sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}
-        >
-          Visual Outlet
-          <Chip 
-            label={getPeriodText()} 
-            size="small" 
-            color="primary"
-            variant="outlined"
-            sx={{ fontWeight: 600, fontSize: '0.75rem' }}
-          />
-        </Typography>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <ButtonGroup variant="outlined" size="medium">
-              <Button 
-                onClick={() => setTimeFilter('dia')}
-                variant={timeFilter === 'dia' ? 'contained' : 'outlined'}
-                startIcon={<CalendarToday />}
+      {/* Header compacto */}
+      <Box sx={{ mb: 3 }}>
+        <Grid container spacing={3} alignItems="center">
+          {/* Título y controles */}
+          <Grid item xs={12} md={8}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+              <Typography 
+                variant="h4" 
+                component="h1" 
+                fontWeight="bold"
+                sx={{ 
+                  background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  color: 'transparent'
+                }}
               >
-                Día
-              </Button>
-              <Button 
-                onClick={() => setTimeFilter('mes')}
-                variant={timeFilter === 'mes' ? 'contained' : 'outlined'}
-                startIcon={<CalendarToday />}
-              >
-                Mes
-              </Button>
-              <Button 
-                onClick={() => setTimeFilter('año')}
-                variant={timeFilter === 'año' ? 'contained' : 'outlined'}
-                startIcon={<CalendarToday />}
-              >
-                Año
-              </Button>
-            </ButtonGroup>
+                Resumen Operativo
+              </Typography>
+              <Chip 
+                label={getPeriodText()} 
+                size="small" 
+                color="primary"
+                variant="outlined"
+                sx={{ fontWeight: 600 }}
+              />
+            </Box>
             
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel>Año</InputLabel>
-              <Select
-                value={yearFilter}
-                label="Año"
-                onChange={(e) => setYearFilter(e.target.value)}
-                disabled={timeFilter !== 'año'}
-              >
-                <MenuItem value="2022">2022</MenuItem>
-                <MenuItem value="2023">2023</MenuItem>
-                <MenuItem value="2024">2024</MenuItem>
-                <MenuItem value="2025">2025</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
-          
-          {/* Indicador de período actual */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <TrendingUp color="primary" />
-            <Typography variant="body2" color="text.secondary" fontWeight="500">
-              {timeFilter === 'dia' ? 'Hoy' : 
-               timeFilter === 'mes' ? 'Septiembre 2024' : 
-               `Año completo ${yearFilter}`}
-            </Typography>
-          </Box>
-        </Box>
-      </Box>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+              <ButtonGroup variant="outlined" size="medium">
+                <Button 
+                  onClick={() => setTimeFilter('dia')}
+                  variant={timeFilter === 'dia' ? 'contained' : 'outlined'}
+                  startIcon={<CalendarToday />}
+                >
+                  Día
+                </Button>
+                <Button 
+                  onClick={() => setTimeFilter('mes')}
+                  variant={timeFilter === 'mes' ? 'contained' : 'outlined'}
+                  startIcon={<CalendarToday />}
+                >
+                  Mes
+                </Button>
+                <Button 
+                  onClick={() => setTimeFilter('año')}
+                  variant={timeFilter === 'año' ? 'contained' : 'outlined'}
+                  startIcon={<CalendarToday />}
+                >
+                  Año
+                </Button>
+              </ButtonGroup>
+              
+              <FormControl size="small" sx={{ minWidth: 120 }}>
+                <InputLabel>Año</InputLabel>
+                <Select
+                  value={yearFilter}
+                  label="Año"
+                  onChange={(e) => setYearFilter(e.target.value)}
+                  disabled={timeFilter !== 'año'}
+                >
+                  <MenuItem value="2022">2022</MenuItem>
+                  <MenuItem value="2023">2023</MenuItem>
+                  <MenuItem value="2024">2024</MenuItem>
+                  <MenuItem value="2025">2025</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+          </Grid>
 
-      {/* Contenido principal */}
-      <Grid container spacing={3}>
-        {/* Columna izquierda: Métricas y Productos */}
-        <Grid item xs={12} lg={4}>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <MetricasOperativas 
-                metricas={dashboardData.metricas} 
-                timeFilter={timeFilter} 
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <ProductosMasVendidos 
-                productos={dashboardData.productos} 
-                timeFilter={timeFilter} 
-              />
-            </Grid>
+          {/* Métricas operativas en horizontal */}
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardContent sx={{ p: 2 }}>
+                <Typography variant="subtitle2" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <TrendingUp fontSize="small" />
+                  Métricas del Día
+                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="h6" fontWeight="bold" color="primary">
+                      {dashboardData.metricas.clientes}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Clientes
+                    </Typography>
+                  </Box>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="h6" fontWeight="bold" color="secondary">
+                      {dashboardData.metricas.productosVendidos}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Productos
+                    </Typography>
+                  </Box>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="h6" fontWeight="bold" color="success.main">
+                      {dashboardData.metricas.citasEfectivas}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Citas
+                    </Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
+      </Box>
 
-        {/* Columna derecha: Gráficas principales */}
-        <Grid item xs={12} lg={8}>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Card>
-                <CardContent sx={{ p: 3 }}>
-                  <VentasChart 
-                    data={dashboardData.ventas} 
-                    timeFilter={timeFilter} 
-                    title={`Totales de Ventas - ${getPeriodText()}`}
-                    chartType={ventasChartType}
-                    onChartTypeChange={setVentasChartType}
-                  />
-                </CardContent>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12}>
-              <Card>
-                <CardContent sx={{ p: 3 }}>
-                  <VentasChart 
-                    data={dashboardData.compras} 
-                    timeFilter={timeFilter} 
-                    title={`Totales de Compras - ${getPeriodText()}`}
-                    chartType={comprasChartType}
-                    onChartTypeChange={setComprasChartType}
-                  />
-                </CardContent>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12}>
-              <AnalisisCategorias 
-                data={dashboardData.categorias} 
-                timeFilter={timeFilter}
-                yearFilter={yearFilter} 
+      {/* Contenido principal optimizado */}
+      <Grid container spacing={3}>
+        {/* Primera fila: Gráficas principales lado a lado */}
+        <Grid item xs={12} lg={6}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent sx={{ p: 3, height: '100%' }}>
+              <VentasChart 
+                data={dashboardData.ventas} 
+                timeFilter={timeFilter} 
+                title={`Ventas - ${getPeriodText()}`}
+                chartType={ventasChartType}
+                onChartTypeChange={setVentasChartType}
               />
-            </Grid>
-          </Grid>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} lg={6}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent sx={{ p: 3, height: '100%' }}>
+              <VentasChart 
+                data={dashboardData.compras} 
+                timeFilter={timeFilter} 
+                title={`Compras - ${getPeriodText()}`}
+                chartType={comprasChartType}
+                onChartTypeChange={setComprasChartType}
+              />
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Segunda fila: Análisis de categorías y productos más vendidos */}
+        <Grid item xs={12} lg={8}>
+          <AnalisisCategorias 
+            data={dashboardData.categorias} 
+            timeFilter={timeFilter}
+            yearFilter={yearFilter} 
+          />
+        </Grid>
+
+        <Grid item xs={12} lg={4}>
+          <ProductosMasVendidos 
+            productos={dashboardData.productos} 
+            timeFilter={timeFilter} 
+          />
         </Grid>
       </Grid>
     </Box>
