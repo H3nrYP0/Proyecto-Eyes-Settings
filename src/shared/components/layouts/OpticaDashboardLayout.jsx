@@ -131,20 +131,8 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               <Route path="roles" element={<Roles />} />
             </Route>
 
-            {/* RUTAS DE CONFIGURACIÓN */}
-            <Route path="configuracion/general/empresa" element={<Configuracion section="empresa" />}>
-              {/* RUTAS DE CONFIGURACIÓN GENERAL */}
-              <Route path="general/empresa" element={<Configuracion section="empresa" />} />
-              <Route path="general/preferencias" element={<Configuracion section="preferencias" />} />
-              <Route path="general/apariencia" element={<Configuracion section="apariencia" />} />
-              
-              {/* RUTAS DE CONFIGURACIÓN LEGAL */}
-              <Route path="legal/terminos" element={<Configuracion section="terminos" />} />
-              <Route path="legal/privacidad" element={<Configuracion section="privacidad" />} />
-              
-              {/* RUTA POR DEFECTO PARA CONFIGURACIÓN */}
-              <Route index element={<Navigate to="general/empresa" replace />} />
-            </Route>
+            {/* ESTAS ES LA RUTA DE CONFIGURACIÓN */}
+            <Route path="configuracion" element={<Configuracion user={user} />} />
 
             {/* ESTA ES LA RUTA 404 PARA PÁGINAS NO ENCONTRADAS */}
             <Route

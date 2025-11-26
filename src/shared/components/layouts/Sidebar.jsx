@@ -1,15 +1,8 @@
 import { useState, useEffect } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { 
-  Box,
-  Button
-} from "@mui/material";
-import { 
-  Logout as LogoutIcon,
-  PersonOutlineOutlined as PersonOutlineOutlinedIcon,
-  Settings as SettingsIcon
-} from "@mui/icons-material";
-import { ROLES } from "../../constants/roles";
+import { Box, Button } from "@mui/material";
+import { Logout as LogoutIcon, PersonOutlineOutlined as PersonOutlineOutlinedIcon, Settings as SettingsIcon } from "@mui/icons-material";
+import { ROLES, PERMISSIONS } from "../../constants/roles";
 import "/src/shared/styles/components/Sidebar.css";
 
 // Componente Sidebar - Navegación principal del sistema
@@ -39,11 +32,6 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
     if (!user?.role) return false;
     const userPermissions = PERMISSIONS[user.role] || [];
     return userPermissions.includes('*') || userPermissions.includes('config:view');
-  };
-
-  const canEditConfig = () => {
-    // Solo admin y super admin pueden editar
-    return user?.role === ROLES.ADMIN || user?.role === ROLES.SUPER_ADMIN;
   };
 
   // Función que determina la sección activa basada en la URL
@@ -135,19 +123,6 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
         { name: "Roles", path: "/admin/seguridad/roles", icon: "roles-icon" }
       ]
     },
-    // NUEVA SECCIÓN DE CONFIGURACIÓN
-    {
-      id: "configuracion",
-      title: "Configuración",
-      icon: "configuracion-icon",
-      items: [
-        { 
-          name: "Panel de Configuración", 
-          path: "/admin/configuracion", 
-          icon: "settings-icon" 
-        }
-      ]
-    }
   ].filter(section => hasPermission(section.id));
 
   // Render principal del sidebar
@@ -238,7 +213,7 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
           )}
         </div>
 
-        {/* Botón de Configuración */}
+        {/* Botón de Configuración - Solo visible si tiene permiso */}
         {isOpen && canViewConfig() && (
           <Box sx={{ mt: 1, px: 2 }}>
             <Button
