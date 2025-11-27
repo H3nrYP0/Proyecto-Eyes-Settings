@@ -1,13 +1,11 @@
-// src/shared/components/layouts/OpticaDashboardLayout.jsx - COMPLETO
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 // ESTOS SON LOS COMPONENTES DE LAYOUT
 import Sidebar from "./Sidebar";
 
-
 // ESTAS SON LAS FEATURES DE VENTAS
-import Dashboard from "../../../features/ventas/pages/Dashboard";
+import Dashboard from "../../../features/dashboard/Dashboard";
 import Ventas from "../../../features/ventas/pages/Ventas";
 import Clientes from "../../../features/ventas/pages/Clientes";
 import Pedidos from "../../../features/ventas/pages/Pedidos";
@@ -142,7 +140,7 @@ export default function OpticaDashboardLayout({ user, setUser }) {
             <Route index element={<Navigate to="dashboard" replace />} />
 
             {/* ESTAS SON LAS RUTAS DEL DASHBOARD PRINCIPAL */}
-            <Route path="dashboard" element={<Dashboard user={user} />} />
+            <Route path="dashboard" element={<Dashboard />} />
 
             {/* ESTAS SON LAS RUTAS DEL MÓDULO DE VENTAS */}
             <Route path="ventas">
