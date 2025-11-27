@@ -71,12 +71,56 @@ export default function Login({ setUser }) {
         minHeight: "100vh",
         background: "linear-gradient(135deg, #e3f2fd 0%, #f3f8ff 50%, #ffffff 100%)",
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         py: 2,
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif"
       }}
     >
+      {/* Logo fuera de la card - centrado en la parte superior */}
+      <Box sx={{ textAlign: "center", mb: 1 }}>
+        <Box 
+          sx={{ 
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 1,
+            mb: 2
+          }}
+        >
+          <Box 
+            sx={{ 
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 52,
+              height: 52,
+              background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
+              borderRadius: '12px',
+              boxShadow: '0 4px 12px rgba(25, 118, 210, 0.2)'
+            }}
+          >
+            <VisibilityOutlinedIcon 
+              sx={{ 
+                fontSize: 26, 
+                color: 'white'
+              }} 
+            />
+          </Box>
+          <Typography 
+            variant="h4" 
+            component="h1" 
+            color="primary"
+            fontWeight="700"
+            fontFamily="inherit"
+            sx={{ letterSpacing: '-0.025em' }}
+          >
+            Visual Outlet
+          </Typography>
+        </Box>
+      </Box>
+
       <Container 
         component="main" 
         maxWidth="md"
@@ -97,50 +141,15 @@ export default function Login({ setUser }) {
           }}
         >
           <CardContent sx={{ p: 1 }}>
-            {/* Header */}
+            {/* Header dentro de la card */}
             <Box sx={{ textAlign: "center", mb: 3 }}>
-              {/* Icono del ojo con fondo cuadrado y degradado */}
-              <Box 
-                sx={{ 
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 52,
-                  height: 52,
-                  background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
-                  borderRadius: '12px',
-                  mb: 2,
-                  boxShadow: '0 4px 12px rgba(25, 118, 210, 0.2)'
-                }}
-              >
-                <VisibilityOutlinedIcon 
-                  sx={{ 
-                    fontSize: 26, 
-                    color: 'white'
-                  }} 
-                />
-              </Box>
               <Typography 
                 variant="h5" 
-                component="h1" 
+                component="h2" 
                 gutterBottom
-                color="primary"
+                color="text.primary"
                 fontWeight="600"
                 fontFamily="inherit"
-                sx={{ letterSpacing: '-0.025em' }}
-              >
-                Visual Outlet
-              </Typography>
-              <Typography 
-                variant="body1" 
-                component="h2" 
-                color="text.secondary"
-                sx={{ 
-                  fontSize: '0.95rem',
-                  fontFamily: 'inherit',
-                  fontWeight: '400',
-                  letterSpacing: '0.01em'
-                }}
               >
                 Inicia sesión en tu cuenta
               </Typography>
@@ -213,7 +222,8 @@ export default function Login({ setUser }) {
                   sx={{ 
                     '& .MuiFormControlLabel-label': { 
                       fontSize: '0.85rem',
-                      fontFamily: 'inherit'
+                      fontFamily: 'inherit',
+                      fontWeight: '500'
                     } 
                   }}
                 />
@@ -227,7 +237,7 @@ export default function Login({ setUser }) {
                     textTransform: 'none',
                     fontSize: '0.85rem',
                     fontFamily: 'inherit',
-                    fontWeight: '500'
+                    fontWeight: '600'
                   }}
                 >
                   ¿Olvidaste tu contraseña?
@@ -269,7 +279,7 @@ export default function Login({ setUser }) {
                   textTransform: 'none',
                   fontSize: '0.95rem',
                   fontFamily: 'inherit',
-                  fontWeight: '600',
+                  fontWeight: '700',
                   borderRadius: 2,
                   letterSpacing: '0.01em'
                 }}
@@ -287,7 +297,7 @@ export default function Login({ setUser }) {
                   sx={{ 
                     fontSize: '0.85rem',
                     fontFamily: 'inherit',
-                    fontWeight: '500'
+                    fontWeight: '600'
                   }}
                 >
                   O continúa con
@@ -305,7 +315,7 @@ export default function Login({ setUser }) {
                   textTransform: 'none',
                   fontSize: '0.85rem',
                   fontFamily: 'inherit',
-                  fontWeight: '500',
+                  fontWeight: '600',
                   borderRadius: 2
                 }}
               >
@@ -322,7 +332,7 @@ export default function Login({ setUser }) {
                   textTransform: 'none',
                   fontSize: '0.85rem',
                   fontFamily: 'inherit',
-                  fontWeight: '500',
+                  fontWeight: '600',
                   borderRadius: 2
                 }}
               >
@@ -337,7 +347,8 @@ export default function Login({ setUser }) {
                 color="text.secondary" 
                 sx={{ 
                   fontSize: '0.85rem',
-                  fontFamily: 'inherit'
+                  fontFamily: 'inherit',
+                  fontWeight: '500'
                 }}
               >
                 ¿No tienes una cuenta?{" "}
@@ -350,7 +361,7 @@ export default function Login({ setUser }) {
                     textTransform: 'none',
                     fontSize: '0.85rem',
                     fontFamily: 'inherit',
-                    fontWeight: '600'
+                    fontWeight: '700'
                   }}
                 >
                   Regístrate aquí

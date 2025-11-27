@@ -73,33 +73,12 @@ export default function ForgotPassword() {
           <CardContent sx={{ p: 1 }}>
             {/* Header */}
             <Box sx={{ textAlign: "center", mb: 3 }}>
-              {/* Icono de email */}
-              <Box 
-                sx={{ 
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 52,
-                  height: 52,
-                  background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
-                  borderRadius: '12px',
-                  mb: 2,
-                  boxShadow: '0 4px 12px rgba(25, 118, 210, 0.2)'
-                }}
-              >
-                <EmailIcon 
-                  sx={{ 
-                    fontSize: 26, 
-                    color: 'white'
-                  }} 
-                />
-              </Box>
               <Typography 
-                variant="h5" 
+                variant="h4" 
                 component="h1" 
                 gutterBottom
                 color="primary"
-                fontWeight="600"
+                fontWeight="500"
                 fontFamily="inherit"
                 sx={{ letterSpacing: '-0.025em' }}
               >
