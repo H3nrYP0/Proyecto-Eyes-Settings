@@ -87,7 +87,10 @@ import GestionAcceso from "../../../features/usuarios/pages/GestionAcceso";
 
 // ESTAS SON LAS FEATURES DE CONFIGURACIÓN
 import Configuracion from "../../../features/configuracion/Configuration";
+
+// ESTAS SON LAS FEATURES DE SEGURIDAD - YA ESTÁ CORRECTO
 import Roles from "../../../features/seguridad/pages/Roles";
+import Permisos from "../../../features/seguridad/pages/Permisos";
 
 // ESTOS SON LOS ESTILOS DEL LAYOUT
 import "/src/shared/styles/layouts/OpticaDashboardLayout.css";
@@ -130,7 +133,6 @@ export default function OpticaDashboardLayout({ user, setUser }) {
       <div className={`main-content ${sidebarOpen ? "sidebar-expanded" : "sidebar-collapsed"}`}>
         
         {/* ESTE ES EL HEADER SUPERIOR */}
-
 
         {/* ESTA ES EL ÁREA DONDE SE RENDERIZAN LAS PÁGINAS */}
         <main className="content-area">
@@ -201,7 +203,6 @@ export default function OpticaDashboardLayout({ user, setUser }) {
                 <Route path="crear" element={<CrearProveedor />} />
                 <Route path="editar/:id" element={<EditarProveedor />} />
                 <Route path="detalle/:id" element={<DetalleProveedor />} />
-
               </Route>
             </Route>
 
@@ -243,6 +244,12 @@ export default function OpticaDashboardLayout({ user, setUser }) {
 
             {/* ESTAS SON LAS RUTAS DEL MÓDULO DE CONFIGURACIÓN */}
             <Route path="configuracion" element={<Configuracion user={user} />} />
+
+            {/* ===== NUEVAS RUTAS DE SEGURIDAD ===== */}
+            <Route path="seguridad">
+              <Route path="roles" element={<Roles />} />
+              <Route path="permisos" element={<Permisos />} />
+            </Route>
 
             {/* ESTA ES LA RUTA 404 PARA PÁGINAS NO ENCONTRADAS */}
             <Route
