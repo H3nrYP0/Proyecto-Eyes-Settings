@@ -86,8 +86,8 @@ import DetalleUsuario from "../../../features/usuarios/pages/usuario/DetalleUsua
 import GestionAcceso from "../../../features/usuarios/pages/GestionAcceso";
 
 // ESTAS SON LAS FEATURES DE CONFIGURACIÓN
-import Roles from "../../../features/configuracion/pages/Roles";
-import Permisos from "../../../features/configuracion/pages/Permisos";
+import Configuracion from "../../../features/configuracion/Configuration";
+import Roles from "../../../features/seguridad/pages/Roles";
 
 // ESTOS SON LOS ESTILOS DEL LAYOUT
 import "/src/shared/styles/layouts/OpticaDashboardLayout.css";
@@ -242,10 +242,7 @@ export default function OpticaDashboardLayout({ user, setUser }) {
             </Route>
 
             {/* ESTAS SON LAS RUTAS DEL MÓDULO DE CONFIGURACIÓN */}
-            <Route path="configuracion">
-              <Route path="roles" element={<Roles />} />
-              <Route path="permisos" element={<Permisos />} />
-            </Route>
+            <Route path="configuracion" element={<Configuracion user={user} />} />
 
             {/* ESTA ES LA RUTA 404 PARA PÁGINAS NO ENCONTRADAS */}
             <Route
