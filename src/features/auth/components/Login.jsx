@@ -1,17 +1,33 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-
-// Roles locales (sin archivo externo)
-const ROLES = {
-  ADMIN: 'admin',
-  DEMO: 'demo', 
-  VENDEDOR: 'vendedor',
-  OPTICO: 'optico'
-};
+import { useNavigate, Link } from "react-router-dom";
+import { 
+  Box,
+  Card,
+  CardContent,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormControlLabel,
+  Checkbox,
+  Button,
+  Typography,
+  Divider,
+  Container,
+  Alert
+} from "@mui/material";
+import { 
+  Facebook as FacebookIcon,
+  VisibilityOutlined as VisibilityOutlinedIcon
+} from "@mui/icons-material";
+import { FcGoogle } from "react-icons/fc";
+import { ROLES } from "../../../shared/constants/roles";
 
 export default function Login({ setUser }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [role, setRole] = useState(ROLES.ADMIN);
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -45,175 +61,305 @@ export default function Login({ setUser }) {
     return permissionsMap[role] || ['dashboard'];
   };
 
+  const handleSocialLogin = (provider) => {
+    console.log(`Iniciando sesión con ${provider}`);
+  };
+
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        {/* Header */}
-        <div style={styles.header}>
-          <div style={styles.logo}>
-            <span style={styles.logoIcon}>👁️</span>
-          </div>
-          <h1 style={styles.title}>Visual Outlet</h1>
-          <p style={styles.subtitle}>Inicia sesión en tu cuenta</p>
-        </div>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #e3f2fd 0%, #f3f8ff 50%, #ffffff 100%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        py: 2,
+        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif"
+      }}
+    >
+      <Container 
+        component="main" 
+        maxWidth="md"
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Card 
+          elevation={2}
+          sx={{
+            width: "100%",
+            maxWidth: 440,
+            p: 4,
+            borderRadius: 3,
+            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif"
+          }}
+        >
+          <CardContent sx={{ p: 1 }}>
+            {/* Header */}
+            <Box sx={{ textAlign: "center", mb: 3 }}>
+              {/* Icono del ojo con fondo cuadrado y degradado */}
+              <Box 
+                sx={{ 
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 52,
+                  height: 52,
+                  background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
+                  borderRadius: '12px',
+                  mb: 2,
+                  boxShadow: '0 4px 12px rgba(25, 118, 210, 0.2)'
+                }}
+              >
+                <VisibilityOutlinedIcon 
+                  sx={{ 
+                    fontSize: 26, 
+                    color: 'white'
+                  }} 
+                />
+              </Box>
+              <Typography 
+                variant="h5" 
+                component="h1" 
+                gutterBottom
+                color="primary"
+                fontWeight="600"
+                fontFamily="inherit"
+                sx={{ letterSpacing: '-0.025em' }}
+              >
+                Visual Outlet
+              </Typography>
+              <Typography 
+                variant="body1" 
+                component="h2" 
+                color="text.secondary"
+                sx={{ 
+                  fontSize: '0.95rem',
+                  fontFamily: 'inherit',
+                  fontWeight: '400',
+                  letterSpacing: '0.01em'
+                }}
+              >
+                Inicia sesión en tu cuenta
+              </Typography>
+            </Box>
 
-        {/* Error */}
-        {error && (
-          <div style={styles.error}>
-            {error}
-          </div>
-        )}
+            {/* Error Alert */}
+            {error && (
+              <Alert severity="error" sx={{ 
+                mb: 2, 
+                fontSize: '0.85rem',
+                fontFamily: 'inherit',
+                borderRadius: 2
+              }}>
+                {error}
+              </Alert>
+            )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <input
-            type="email"
-            placeholder="Correo Electrónico"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={styles.input}
-            required
-          />
-          
-          <input
-            type="password"
-            placeholder="Contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={styles.input}
-            required
-          />
+            {/* Login Form */}
+            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="email"
+                label="Correo Electrónico"
+                name="email"
+                autoComplete="email"
+                autoFocus
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="tu@visualoutlet.com"
+                size="small"
+                sx={{ fontFamily: 'inherit' }}
+              />
+              
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                name="password"
+                label="Contraseña"
+                type="password"
+                id="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="········"
+                size="small"
+                sx={{ fontFamily: 'inherit' }}
+              />
 
-          <select 
-            value={role} 
-            onChange={(e) => setRole(e.target.value)}
-            style={styles.select}
-          >
-            <option value={ROLES.ADMIN}>Administrador</option>
-            <option value={ROLES.DEMO}>Usuario Demo</option>
-            <option value={ROLES.VENDEDOR}>Vendedor</option>
-            <option value={ROLES.OPTICO}>Óptico</option>
-          </select>
+              {/* Options Row */}
+              <Box sx={{ 
+                display: "flex", 
+                justifyContent: "space-between", 
+                alignItems: "center",
+                mt: 1,
+                mb: 1
+              }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox 
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      color="primary"
+                      size="small"
+                    />
+                  }
+                  label="Recordarme"
+                  sx={{ 
+                    '& .MuiFormControlLabel-label': { 
+                      fontSize: '0.85rem',
+                      fontFamily: 'inherit'
+                    } 
+                  }}
+                />
+                
+                <Button 
+                  component={Link}
+                  to="/forgot-password"
+                  variant="text"
+                  size="small"
+                  sx={{ 
+                    textTransform: 'none',
+                    fontSize: '0.85rem',
+                    fontFamily: 'inherit',
+                    fontWeight: '500'
+                  }}
+                >
+                  ¿Olvidaste tu contraseña?
+                </Button>
+              </Box>
 
-          <button type="submit" style={styles.submitButton}>
-            Iniciar sesión
-          </button>
-        </form>
+              {/* Role Selector */}
+              <FormControl fullWidth margin="normal" size="small">
+                <InputLabel 
+                  id="role-label"
+                  sx={{ fontFamily: 'inherit' }}
+                >
+                  Rol
+                </InputLabel>
+                <Select
+                  labelId="role-label"
+                  id="role"
+                  value={role}
+                  label="Rol"
+                  onChange={(e) => setRole(e.target.value)}
+                  sx={{ fontFamily: 'inherit' }}
+                >
+                  <MenuItem value={ROLES.ADMIN} sx={{ fontFamily: 'inherit' }}>Administrador</MenuItem>
+                  <MenuItem value={ROLES.DEMO} sx={{ fontFamily: 'inherit' }}>Usuario Demo</MenuItem>
+                  <MenuItem value={ROLES.VENDEDOR} sx={{ fontFamily: 'inherit' }}>Vendedor</MenuItem>
+                  <MenuItem value={ROLES.OPTICO} sx={{ fontFamily: 'inherit' }}>Óptico</MenuItem>
+                </Select>
+              </FormControl>
 
-        {/* Footer */}
-        <div style={styles.footer}>
-          <p style={styles.footerText}>
-            ¿No tienes una cuenta?{" "}
-            <button 
-              onClick={() => navigate("/register")}
-              style={styles.linkButton}
-            >
-              Regístrate aquí
-            </button>
-          </p>
-        </div>
-      </div>
-    </div>
+              {/* Login Button */}
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{ 
+                  mt: 2, 
+                  mb: 2, 
+                  py: 1.1,
+                  textTransform: 'none',
+                  fontSize: '0.95rem',
+                  fontFamily: 'inherit',
+                  fontWeight: '600',
+                  borderRadius: 2,
+                  letterSpacing: '0.01em'
+                }}
+              >
+                Iniciar sesión
+              </Button>
+            </Box>
+
+            {/* Social Login */}
+            <Box sx={{ mt: 2, mb: 1 }}>
+              <Divider sx={{ mb: 2 }}>
+                <Typography 
+                  variant="body2" 
+                  color="text.secondary" 
+                  sx={{ 
+                    fontSize: '0.85rem',
+                    fontFamily: 'inherit',
+                    fontWeight: '500'
+                  }}
+                >
+                  O continúa con
+                </Typography>
+              </Divider>
+              
+              <Button
+                fullWidth
+                variant="outlined"
+                startIcon={<FcGoogle style={{ fontSize: '1.2rem' }} />}
+                onClick={() => handleSocialLogin('google')}
+                sx={{ 
+                  mb: 1, 
+                  py: 0.9,
+                  textTransform: 'none',
+                  fontSize: '0.85rem',
+                  fontFamily: 'inherit',
+                  fontWeight: '500',
+                  borderRadius: 2
+                }}
+              >
+                Continuar con Google
+              </Button>
+              
+              <Button
+                fullWidth
+                variant="outlined"
+                startIcon={<FacebookIcon />}
+                onClick={() => handleSocialLogin('facebook')}
+                sx={{ 
+                  py: 0.9,
+                  textTransform: 'none',
+                  fontSize: '0.85rem',
+                  fontFamily: 'inherit',
+                  fontWeight: '500',
+                  borderRadius: 2
+                }}
+              >
+                Continuar con Facebook
+              </Button>
+            </Box>
+
+            {/* Footer */}
+            <Box sx={{ textAlign: "center", mt: 2 }}>
+              <Typography 
+                variant="body2" 
+                color="text.secondary" 
+                sx={{ 
+                  fontSize: '0.85rem',
+                  fontFamily: 'inherit'
+                }}
+              >
+                ¿No tienes una cuenta?{" "}
+                <Button 
+                  component={Link}
+                  to="/register"
+                  variant="text"
+                  size="small"
+                  sx={{ 
+                    textTransform: 'none',
+                    fontSize: '0.85rem',
+                    fontFamily: 'inherit',
+                    fontWeight: '600'
+                  }}
+                >
+                  Regístrate aquí
+                </Button>
+              </Typography>
+            </Box>
+          </CardContent>
+        </Card>
+      </Container>
+    </Box>
   );
 }
-
-// Estilos en objeto
-const styles = {
-  container: {
-    minHeight: "100vh",
-    background: "linear-gradient(135deg, #e3f2fd 0%, #f3f8ff 100%)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "2rem"
-  },
-  card: {
-    background: "white",
-    padding: "3rem",
-    borderRadius: "1rem",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
-    width: "100%",
-    maxWidth: "400px"
-  },
-  header: {
-    textAlign: "center",
-    marginBottom: "2rem"
-  },
-  logo: {
-    width: "60px",
-    height: "60px",
-    background: "linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)",
-    borderRadius: "12px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    margin: "0 auto 1rem",
-    fontSize: "1.5rem"
-  },
-  logoIcon: {
-    color: "white"
-  },
-  title: {
-    color: "#1976d2",
-    margin: "0 0 0.5rem 0",
-    fontSize: "1.5rem"
-  },
-  subtitle: {
-    color: "#666",
-    margin: 0,
-    fontSize: "0.95rem"
-  },
-  error: {
-    background: "#fee2e2",
-    color: "#dc2626",
-    padding: "0.75rem",
-    borderRadius: "0.5rem",
-    marginBottom: "1rem",
-    fontSize: "0.85rem"
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "1rem"
-  },
-  input: {
-    padding: "0.75rem 1rem",
-    border: "1px solid #d1d5db",
-    borderRadius: "0.5rem",
-    fontSize: "0.95rem"
-  },
-  select: {
-    padding: "0.75rem 1rem",
-    border: "1px solid #d1d5db",
-    borderRadius: "0.5rem",
-    fontSize: "0.95rem",
-    background: "white"
-  },
-  submitButton: {
-    padding: "0.75rem",
-    background: "#1976d2",
-    color: "white",
-    border: "none",
-    borderRadius: "0.5rem",
-    fontSize: "0.95rem",
-    fontWeight: "600",
-    cursor: "pointer",
-    marginTop: "0.5rem"
-  },
-  footer: {
-    textAlign: "center",
-    marginTop: "2rem"
-  },
-  footerText: {
-    color: "#666",
-    fontSize: "0.85rem",
-    margin: 0
-  },
-  linkButton: {
-    background: "none",
-    border: "none",
-    color: "#1976d2",
-    cursor: "pointer",
-    fontWeight: "600"
-  }
-};
