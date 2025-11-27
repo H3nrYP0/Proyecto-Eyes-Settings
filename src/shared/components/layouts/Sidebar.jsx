@@ -14,10 +14,15 @@ import { IconRenderer } from "../ui/SidebarIcons";
 import { ROLES } from "../../constants/roles";
 import "../../styles/components/Sidebar.css";
 
+/**
+ * Componente para el contenido del header del sidebar
+ * Maneja el estado expandido/colapsado y el toggle
+ */
 const HeaderContent = ({ isOpen, onToggle }) => {
   return (
     <div 
       className="sidebar-header-content"
+      // Hacer el header clickeable cuando está colapsado para expandirlo
       onClick={!isOpen ? onToggle : undefined}
       style={{ 
         cursor: !isOpen ? 'pointer' : 'default',
@@ -29,17 +34,23 @@ const HeaderContent = ({ isOpen, onToggle }) => {
       }}
     >
       {isOpen ? (
+        // Estado expandido: mostrar nombre completo y sistema
         <div className="header-title-container">
           <div className="company-name">Visual Outlet</div>
           <span className="system-name">Sistema de Gestión</span>
         </div>
       ) : (
+        // Estado colapsado: mostrar solo las iniciales
         <div className="collapsed-logo">VO</div>
       )}
     </div>
   );
 };
 
+/**
+ * Componente para mostrar el rol del usuario de forma legible
+ * Convierte los códigos de rol en texto descriptivo
+ */
 const UserRole = ({ role }) => {
   const roleMap = {
     [ROLES.ADMIN]: 'Administrador',
@@ -51,34 +62,52 @@ const UserRole = ({ role }) => {
   return roleMap[role] || role;
 };
 
+/**
+ * Componente para items individuales de navegación
+ * Maneja el estado activo y la navegación
+ */
 const SectionItem = ({ item, isOpen }) => (
   <NavLink 
     to={item.path}
     className={({ isActive }) => `nav-item ${isActive ? 'nav-item-active' : ''}`}
     end
   >
+    {/* Solo mostrar texto cuando el sidebar está expandido */}
     {isOpen && <span className="item-text">{item.name}</span>}
   </NavLink>
 );
 
+/**
+ * Componente para secciones del menú con capacidad de expandir/colapsar
+ * Incluye tooltips para estado colapsado
+ */
 const MenuSection = ({ section, isOpen, expandedSections, onToggle }) => (
   <div className="nav-section">
-    <button 
-      className={`section-header ${expandedSections[section.id] ? 'active' : ''}`}
-      onClick={() => onToggle(section.id)}
-      data-tooltip={section.title}
+    {/* Tooltip que solo se muestra cuando el sidebar está colapsado */}
+    <Tooltip 
+      title={section.title} 
+      placement="right"
+      disableHoverListener={isOpen} // Deshabilitar tooltip cuando está expandido
     >
-      <span className="section-icon">
-        <IconRenderer name={section.icon} />
-      </span>
-      {isOpen && (
-        <>
-          <span className="section-title">{section.title}</span>
-          <span className="section-arrow">▾</span>
-        </>
-      )}
-    </button>
+      <button 
+        className={`section-header ${expandedSections[section.id] ? 'active' : ''}`}
+        onClick={() => onToggle(section.id)}
+        data-tooltip={section.title}
+      >
+        <span className="section-icon">
+          <IconRenderer name={section.icon} />
+        </span>
+        {/* Contenido solo visible cuando expandido */}
+        {isOpen && (
+          <>
+            <span className="section-title">{section.title}</span>
+            <span className="section-arrow">▾</span>
+          </>
+        )}
+      </button>
+    </Tooltip>
 
+    {/* Mostrar items solo cuando la sección está expandida y el sidebar también */}
     {isOpen && expandedSections[section.id] && (
       <div className="section-items">
         {section.items.map((item) => (
@@ -89,15 +118,21 @@ const MenuSection = ({ section, isOpen, expandedSections, onToggle }) => (
   </div>
 );
 
+/**
+ * Componente para el footer del sidebar
+ * Muestra información del usuario y botones de acción
+ */
 const SidebarFooter = ({ isOpen, user, canViewConfig, onLogout }) => {
   const navigate = useNavigate();
 
   return (
     <div className="sidebar-footer">
+      {/* Información del usuario */}
       <div className="user-info">
         <div className="user-avatar">
           <PersonIcon sx={{ fontSize: 20, color: 'rgba(255,255,255,0.9)' }} />
         </div>
+        {/* Detalles del usuario solo visibles cuando expandido */}
         {isOpen && (
           <div className="user-details">
             <span className="user-name">{user?.name || "Usuario"}</span>
@@ -108,7 +143,9 @@ const SidebarFooter = ({ isOpen, user, canViewConfig, onLogout }) => {
         )}
       </div>
 
+      {/* Botones de acción */}
       <div className="sidebar-footer-buttons">
+        {/* Botón de configuración - solo visible si el usuario tiene permisos */}
         {canViewConfig() && (
           <Tooltip title="Configuración" placement="right" disableHoverListener={isOpen}>
             <Button
@@ -127,11 +164,13 @@ const SidebarFooter = ({ isOpen, user, canViewConfig, onLogout }) => {
                 }
               }}
             >
+              {/* Texto solo visible cuando expandido */}
               {isOpen && "Configuración"}
             </Button>
           </Tooltip>
         )}
         
+        {/* Botón de cerrar sesión */}
         <Tooltip title="Cerrar Sesión" placement="right" disableHoverListener={isOpen}>
           <Button
             className="footer-button"
@@ -149,6 +188,7 @@ const SidebarFooter = ({ isOpen, user, canViewConfig, onLogout }) => {
               }
             }}
           >
+            {/* Texto solo visible cuando expandido */}
             {isOpen && "Cerrar Sesión"}
           </Button>
         </Tooltip>
@@ -157,7 +197,12 @@ const SidebarFooter = ({ isOpen, user, canViewConfig, onLogout }) => {
   );
 };
 
+/**
+ * Componente principal del Sidebar
+ * Gestiona el estado de expansión/colapso y la lógica de permisos
+ */
 export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
+  // Hook personalizado para manejar el estado del sidebar
   const { 
     expandedSections, 
     hasPermission, 
@@ -165,6 +210,7 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
     toggleSection 
   } = useSidebar(user);
 
+  // Filtrar secciones basado en los permisos del usuario
   const filteredSections = useMemo(() => 
     menuStructure.filter(section => hasPermission(section.id)), 
     [hasPermission]
@@ -172,10 +218,11 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
 
   return (
     <aside className={`admin-sidebar ${isOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
+      {/* Header del sidebar */}
       <div className="sidebar-header">
         <HeaderContent isOpen={isOpen} onToggle={onToggle} />
         
-        {/* Botón solo visible cuando expandido */}
+        {/* Botón de colapsar - solo visible cuando está expandido */}
         {isOpen && (
           <button className="sidebar-toggle" onClick={onToggle}>
             <CollapseIcon sx={{ fontSize: 16 }} />
@@ -183,8 +230,10 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
         )}
       </div>
 
+      {/* Navegación principal */}
       <nav className="sidebar-nav">
         <div className="nav-scroll-container">
+          {/* Renderizar secciones filtradas por permisos */}
           {filteredSections.map((section) => (
             <MenuSection 
               key={section.id}
@@ -197,6 +246,7 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
         </div>
       </nav>
 
+      {/* Footer del sidebar */}
       <SidebarFooter 
         isOpen={isOpen}
         user={user}
