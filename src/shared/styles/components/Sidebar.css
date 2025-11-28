@@ -53,7 +53,7 @@
   gap: 0.1rem;
 }
 
-/* Nombre de la empresa - tamaño mediano */
+/* Nombre de la empresa */
 .company-name {
   font-size: 1.3rem;
   font-weight: 700;
@@ -64,7 +64,7 @@
   line-height: 1.2;
 }
 
-/* Nombre del sistema - tamaño pequeño y discreto */
+/* Nombre del sistema */
 .system-name {
   font-size: 0.75rem;
   opacity: 0.8;
@@ -209,7 +209,7 @@
   flex-shrink: 0; /* Evitar que se encoja */
 }
 
-/* Títulos de sección - tamaño pequeño y en mayúsculas */
+/* Títulos de sección*/
 .section-title {
   flex: 1;
   text-align: left;
@@ -217,8 +217,8 @@
   font-size: 0.85rem;
   white-space: nowrap;
   overflow: hidden;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  text-transform: none; 
+  letter-spacing: normal; 
 }
 
 /* Flecha indicadora de expansión */
