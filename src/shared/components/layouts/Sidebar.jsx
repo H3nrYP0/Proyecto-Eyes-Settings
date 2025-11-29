@@ -5,7 +5,8 @@ import {
   Logout as LogoutIcon, 
   PersonOutline as PersonIcon, 
   Settings as SettingsIcon,
-  ChevronLeft as CollapseIcon
+  ChevronLeft as CollapseIcon,
+    Home as HomeIcon // ← NUEVO IMPORT
 } from "@mui/icons-material";
 
 import { useSidebar } from "../../hooks/useSidebar";
@@ -145,6 +146,29 @@ const SidebarFooter = ({ isOpen, user, canViewConfig, onLogout }) => {
 
       {/* Botones de acción */}
       <div className="sidebar-footer-buttons">
+        {/* NUEVO BOTÓN: Ir al Inicio */}
+        <Tooltip title="Ir al Inicio" placement="right" disableHoverListener={isOpen}>
+          <Button
+            className="footer-button"
+            variant="outlined"
+            size="small"
+            startIcon={<HomeIcon />} // Necesitarás importar HomeIcon
+            onClick={() => window.location.href = "http://localhost:5173/Proyecto-Eyes-Settings/"}
+            data-tooltip="Ir al Inicio"
+            sx={{
+              color: 'white !important',
+              borderColor: 'rgba(255,255,255,0.3) !important',
+              '&:hover': {
+                borderColor: 'rgba(255,255,255,0.5) !important',
+                backgroundColor: 'rgba(255,255,255,0.1) !important'
+              }
+            }}
+          >
+            {/* Texto solo visible cuando expandido */}
+            {isOpen && "Ir al Inicio"}
+          </Button>
+        </Tooltip>
+
         {/* Botón de configuración - solo visible si el usuario tiene permisos */}
         {canViewConfig() && (
           <Tooltip title="Configuración" placement="right" disableHoverListener={isOpen}>
@@ -196,7 +220,6 @@ const SidebarFooter = ({ isOpen, user, canViewConfig, onLogout }) => {
     </div>
   );
 };
-
 /**
  * Componente principal del Sidebar
  * Gestiona el estado de expansión/colapso y la lógica de permisos
