@@ -87,7 +87,6 @@ export default function Agenda() {
     { field: "empleado", header: "Empleado" },
     { field: "fecha", header: "Fecha" },
     { field: "hora", header: "Hora" },
-    { field: "duracion", header: "Duración (min)" },
     { field: "metodo_pago", header: "Método Pago" },
     {
       field: "estado",

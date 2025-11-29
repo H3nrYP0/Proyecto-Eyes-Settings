@@ -3,34 +3,21 @@ let agendaDB = [
   {
     id: 1,
     cliente: "María González",
-    servicio: "Examen de la Vista",
+    servicio: "Cita general",
     empleado: "Dr. Carlos Méndez",
     fecha: "2024-01-15",
     hora: "09:00",
-    duracion: 30,
     metodo_pago: "Efectivo",
     estado: "completada",
   },
   {
     id: 2,
     cliente: "Juan Pérez",
-    servicio: "Adaptación Lentes de Contacto",
+    servicio: "Campaña de salud",
     empleado: "Dra. Ana Rodríguez",
     fecha: "2024-01-16",
     hora: "10:30",
-    duracion: 45,
     metodo_pago: "Tarjeta",
-    estado: "pendiente",
-  },
-  {
-    id: 3,
-    cliente: "Ana López",
-    servicio: "Limpieza y Ajuste de Monturas",
-    empleado: "Técnico Javier López",
-    fecha: "2024-01-17",
-    hora: "14:00",
-    duracion: 15,
-    metodo_pago: "",
     estado: "pendiente",
   },
 ];
@@ -50,6 +37,7 @@ export function createAgenda(data) {
   const newId = agendaDB.length ? agendaDB.at(-1).id + 1 : 1;
   const nuevaCita = { 
     id: newId, 
+    estado: "pendiente", // Siempre se crea como pendiente
     ...data 
   };
   

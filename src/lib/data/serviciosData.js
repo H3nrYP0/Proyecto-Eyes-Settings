@@ -2,8 +2,8 @@
 let serviciosDB = [
   {
     id: 1,
-    nombre: "Examen de la Vista",
-    descripcion: "Examen completo de agudeza visual",
+    nombre: "Cita general",
+    descripcion: "Consulta optométrica completa para evaluación visual",
     duracion: 30,
     precio: 50000,
     empleado: "Dr. Carlos Méndez",
@@ -11,20 +11,11 @@ let serviciosDB = [
   },
   {
     id: 2,
-    nombre: "Adaptación Lentes de Contacto",
-    descripcion: "Primera adaptación y enseñanza de uso",
+    nombre: "Campaña de salud",
+    descripcion: "Servicio especial de campañas de salud visual",
     duracion: 45,
     precio: 80000,
     empleado: "Dra. Ana Rodríguez",
-    estado: "activo",
-  },
-  {
-    id: 3,
-    nombre: "Limpieza y Ajuste de Monturas",
-    descripcion: "Mantenimiento y ajuste de armazones",
-    duracion: 15,
-    precio: 15000,
-    empleado: "Técnico Javier López",
     estado: "activo",
   },
 ];
