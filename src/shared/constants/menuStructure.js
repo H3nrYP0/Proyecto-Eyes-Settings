@@ -15,7 +15,7 @@ export const menuStructure = [
       { name: "Ventas", path: "/admin/ventas", icon: "sales-icon" },
       { name: "Clientes", path: "/admin/ventas/clientes", icon: "users-icon" },
       { name: "Pedidos", path: "/admin/ventas/pedidos", icon: "orders-icon" },
-      { name: "Abonos", path: "/admin/ventas/abonos", icon: "payment-icon" }
+
     ]
   },
   {
@@ -38,7 +38,6 @@ export const menuStructure = [
       { name: "Servicios", path: "/admin/servicios", icon: "services-icon" },
       { name: "Agenda", path: "/admin/servicios/agenda", icon: "calendar-icon" },
       { name: "Empleados", path: "/admin/servicios/empleados", icon: "employees-icon" },
-      { name: "Horarios", path: "/admin/servicios/horarios", icon: "time-icon" },
       { name: "Campañas de Salud", path: "/admin/servicios/campanas-salud", icon: "campaigns-icon" }
     ]
   },

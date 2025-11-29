@@ -103,23 +103,29 @@ export default function Empleados() {
   // =============================
   //          ACCIONES
   // =============================
-  const tableActions = [
-    {
-      label: "Ver Detalles",
-      type: "view",
-      onClick: (item) => navigate(`detalle/${item.id}`),
-    },
-    {
-      label: "Editar",
-      type: "edit",
-      onClick: (item) => navigate(`editar/${item.id}`),
-    },
-    {
-      label: "Eliminar",
-      type: "delete",
-      onClick: (item) => handleDelete(item.id, item.nombre),
-    },
-  ];
+  // En el array de tableActions, agregar:
+const tableActions = [
+  {
+    label: "Horarios",
+    type: "schedule",
+    onClick: (item) => navigate(`horarios/${item.id}`),
+  },
+  {
+    label: "Ver Detalles",
+    type: "view",
+    onClick: (item) => navigate(`detalle/${item.id}`),
+  },
+  {
+    label: "Editar",
+    type: "edit",
+    onClick: (item) => navigate(`editar/${item.id}`),
+  },
+  {
+    label: "Eliminar",
+    type: "delete",
+    onClick: (item) => handleDelete(item.id, item.nombre),
+  },
+];
 
   // Función para manejar cambio de filtro
   const handleFilterChange = (value) => {
