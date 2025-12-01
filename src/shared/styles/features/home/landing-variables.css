@@ -1,5 +1,5 @@
 /* === VARIABLES ESPECÍFICAS PARA LANDING PAGE === */
-.landing-page {
+:root {
   /* Paleta de colores principal corregida */
   --deep-teal: #003333;
   --emerald: #027c68;

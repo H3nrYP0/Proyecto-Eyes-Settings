@@ -3,6 +3,8 @@ import { useEffect } from "react";
 
 // PÁGINAS PÚBLICAS
 import LandingPage from "../features/home/pages/LandingPage";
+import ProductsPage from "../features/home/pages/ProductsPage";
+import ServicesPage from "../features/home/pages/ServicesPage";
 import Login from "../features/auth/components/Login";
 import Register from "../features/auth/components/Register";
 import ForgotPassword from "../features/auth/components/ForgotPassword";
@@ -46,6 +48,17 @@ export default function AppRoutes({ user, setUser, onLogin, onLogout }) {
             setUser={setUser}
           />
         }
+      />
+
+      {/* ✅ NUEVAS RUTAS DEL LANDING PAGE */}
+      <Route
+        path="/productos"
+        element={<ProductsPage />}
+      />
+
+      <Route
+        path="/servicios"
+        element={<ServicesPage />}
       />
 
       {/* ✅ RUTA DEL LOGIN */}
