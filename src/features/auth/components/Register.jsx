@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import ReCAPTCHA from "react-google-recaptcha";
 import { 
   Box,
   Card,
@@ -92,7 +93,11 @@ export default function Register({ onRegister }) {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState("");
   const navigate = useNavigate();
+
+  // Clave de prueba para desarrollo
+  const RECAPTCHA_SITE_KEY = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI";
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -101,6 +106,20 @@ export default function Register({ onRegister }) {
       [name]: type === 'checkbox' ? checked : value
     }));
     if (error) setError("");
+  };
+
+  const handleRecaptchaChange = (token) => {
+    setRecaptchaToken(token);
+    if (error) setError("");
+  };
+
+  const handleRecaptchaExpired = () => {
+    setRecaptchaToken("");
+  };
+
+  const handleRecaptchaError = () => {
+    setRecaptchaToken("");
+    setError("Error al verificar el reCAPTCHA. Intenta de nuevo.");
   };
 
   const calculateAge = (birthDate) => {
@@ -115,9 +134,15 @@ export default function Register({ onRegister }) {
     return age;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    // Validación del reCAPTCHA
+    if (!recaptchaToken) {
+      setError("Por favor, verifica que no eres un robot");
+      return;
+    }
 
     // Validaciones básicas
     const requiredFields = ['nombres', 'apellidos', 'correo', 'numeroDocumento', 'password', 'confirmPassword'];
@@ -178,20 +203,33 @@ export default function Register({ onRegister }) {
       return;
     }
 
-    const userData = {
-      ...formData,
-      tipoDocumentoTexto: TIPOS_DOCUMENTO[formData.tipoDocumento],
-      edad: formData.fechaNacimiento ? calculateAge(formData.fechaNacimiento) : null,
-      estado: "activo",
-      fechaRegistro: new Date().toISOString()
-    };
+    // Aquí puedes verificar el token del reCAPTCHA en tu backend
+    try {
+      // Ejemplo de verificación del token en el backend
+      // const recaptchaResponse = await verifyRecaptchaToken(recaptchaToken);
+      // if (!recaptchaResponse.success) {
+      //   setError("Error en la verificación del reCAPTCHA");
+      //   return;
+      // }
 
-    if (onRegister) {
-      onRegister(userData);
+      const userData = {
+        ...formData,
+        tipoDocumentoTexto: TIPOS_DOCUMENTO[formData.tipoDocumento],
+        edad: formData.fechaNacimiento ? calculateAge(formData.fechaNacimiento) : null,
+        estado: "activo",
+        fechaRegistro: new Date().toISOString(),
+        recaptchaToken // Envía el token al backend para verificación
+      };
+
+      if (onRegister) {
+        onRegister(userData);
+      }
+
+      setSuccess(true);
+      setTimeout(() => navigate("/login"), 2000);
+    } catch (err) {
+      setError("Error en el registro. Intenta de nuevo.");
     }
-
-    setSuccess(true);
-    setTimeout(() => navigate("/login"), 2000);
   };
 
   const getDocumentPlaceholder = () => {
@@ -226,7 +264,7 @@ export default function Register({ onRegister }) {
             alignItems: 'center',
             justifyContent: 'center',
             gap: 2,
-            mb: 2
+            mb: 0
           }}
         >
           <Box 
@@ -267,7 +305,7 @@ export default function Register({ onRegister }) {
           }}
         >
           <CardContent sx={{ p: 0, maxHeight: "100%", overflow: "auto" }}>
-            {/* Header dentro de la card */}
+            {/* Header dentro de la card - QUITAMOS "Es fácil" */}
             <Box sx={{ textAlign: "center", mb: 3 }}>
               <Typography 
                 variant="h5" 
@@ -277,9 +315,6 @@ export default function Register({ onRegister }) {
                 fontWeight="600"
               >
                 Crear una cuenta
-              </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1rem' }}>
-                Es fácil.
               </Typography>
             </Box>
 
@@ -451,6 +486,19 @@ export default function Register({ onRegister }) {
                     </Select>
                   </FormControl>
                 </Grid>
+
+                {/* reCAPTCHA */}
+                <Grid item xs={12}>
+                  <Box sx={{ display: 'flex', justifyContent: 'center', my: 1 }}>
+                    <ReCAPTCHA
+                      sitekey={RECAPTCHA_SITE_KEY}
+                      onChange={handleRecaptchaChange}
+                      onExpired={handleRecaptchaExpired}
+                      onErrored={handleRecaptchaError}
+                      size="normal"
+                    />
+                  </Box>
+                </Grid>
               </Grid>
 
               {/* Términos */}
@@ -495,15 +543,15 @@ export default function Register({ onRegister }) {
                   borderRadius: 2,
                   mb: 2
                 }}
-                disabled={success}
+                disabled={success || !recaptchaToken}
               >
                 {success ? 'Cuenta creada' : 'Crear cuenta'}
               </Button>
             </Box>
 
-            {/* Footer */}
+            {/* Footer - AGREGAMOS link de regreso al login */}
             <Box sx={{ textAlign: "center" }}>
-              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem', fontWeight: '500' }}>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem', fontWeight: '500', mb: 1 }}>
                 ¿Ya tienes una cuenta?{" "}
                 <Button 
                   component={Link}
@@ -515,6 +563,22 @@ export default function Register({ onRegister }) {
                   Inicia sesión aquí
                 </Button>
               </Typography>
+              {/* Link adicional para volver al login */}
+              <Button 
+                component={Link}
+                to="/login"
+                variant="outlined"
+                size="small"
+                fullWidth
+                sx={{ 
+                  fontSize: '0.85rem', 
+                  fontWeight: '500', 
+                  textTransform: 'none',
+                  py: 0.8
+                }}
+              >
+                ← Volver al inicio de sesión
+              </Button>
             </Box>
           </CardContent>
         </Card>
