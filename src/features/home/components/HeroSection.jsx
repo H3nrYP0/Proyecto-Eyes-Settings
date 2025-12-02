@@ -53,9 +53,9 @@ const HeroSection = ({ onGetStarted, user }) => {
       <div className="hero-container">
         <div className="hero-content">
           <h1 className="hero-title">
-            Optimiza tu 
-            <span className="gradient-text"> óptica</span> 
-            <br />con inteligencia
+            Calidad Y
+            <span className="gradient-text"> Responsabilidad</span> 
+            <br />A Precio Justo
           </h1>
           
           <p className="hero-description">
