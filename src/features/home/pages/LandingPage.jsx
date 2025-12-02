@@ -8,36 +8,61 @@ import "/src/shared/styles/features/home/LandingPage.css";
 const LandingPage = ({ user, setUser }) => {
   const navigate = useNavigate();
 
+  const handleNavigation = (path) => {
+    navigate(path);
+    window.scrollTo(0, 0);
+  };
+
   const handleLogin = () => navigate("/login");
   const handleDashboard = () => user ? navigate("/admin/dashboard") : navigate("/login");
   const handleLogout = () => { setUser(null); navigate("/"); };
 
   return (
     <div className="landing-page">
-      {/* Navigation - MÁS PEQUEÑO Y ESTILIZADO */}
+      {/* Navigation - MEJORADO */}
       <nav className="landing-nav">
         <div className="nav-container">
           <div className="nav-brand">
-            <a className="logo" href="#">
-              <span className="logo-icon">●</span>
-              Visual Outlet
-            </a>
+            <div className="logo">
+              <span className="logo-text">VISUAL OUTLET</span>
+            </div>
+          </div>
+          
+          <div className="nav-menu">
+            <button 
+              className="nav-link active"
+              onClick={() => handleNavigation("/")}
+            >
+              Inicio
+            </button>
+            <button 
+              className="nav-link"
+              onClick={() => handleNavigation("/productos")}
+            >
+              Productos
+            </button>
+            <button 
+              className="nav-link"
+              onClick={() => handleNavigation("/servicios")}
+            >
+              Servicios
+            </button>
           </div>
           
           <div className="nav-actions">
             {user ? (
               <div className="user-actions">
                 <span className="user-greeting">Hola, {user.name}</span>
-                <button className="btn btn-primary" onClick={handleDashboard}>
+                <button className="btn btn-dashboard" onClick={handleDashboard}>
                   Dashboard
                 </button>
-                <button className="btn btn-outline" onClick={handleLogout}>
+                <button className="btn btn-logout" onClick={handleLogout}>
                   Salir
                 </button>
               </div>
             ) : (
               <div className="guest-actions">
-                <button className="btn btn-primary" onClick={handleLogin}>
+                <button className="btn btn-login" onClick={handleLogin}>
                   Entrar al Sistema
                 </button>
               </div>
@@ -57,47 +82,92 @@ const LandingPage = ({ user, setUser }) => {
         <ContactSection />
       </div>
 
-      {/* Footer */}
+      {/* Footer Integrado */}
       <footer className="landing-footer">
         <div className="footer-container">
           <div className="footer-content">
             <div className="footer-brand">
-              <div className="logo">
+              <div className="footer-logo">
                 <span className="logo-icon">👁️</span>
-                Visual Outlet
+                <span className="logo-text">Visual Outlet</span>
               </div>
               <p className="footer-description">
                 Sistema de gestión especializado para ópticas modernas. 
                 Controla ventas, inventario y clientes en una sola plataforma.
               </p>
+              
+              <div className="social-links">
+                <button className="social-link">📘</button>
+                <button className="social-link">📷</button>
+                <button className="social-link">🐦</button>
+                <button className="social-link">💼</button>
+              </div>
             </div>
-            
+
             <div className="footer-links">
               <div className="link-group">
-                <h4>Producto</h4>
-                <a href="#features">Características</a>
-                <a href="#services">Servicios</a>
-                <a href="#contact">Contacto</a>
+                <h4>Navegación</h4>
+                <div className="link-list">
+                  <button onClick={() => handleNavigation("/")} className="footer-link">
+                    Inicio
+                  </button>
+                  <button onClick={() => handleNavigation("/productos")} className="footer-link">
+                    Productos
+                  </button>
+                  <button onClick={() => handleNavigation("/servicios")} className="footer-link">
+                    Servicios
+                  </button>
+                </div>
               </div>
-              
+
               <div className="link-group">
-                <h4>Empresa</h4>
-                <a href="#">Sobre Nosotros</a>
-                <a href="#">Blog</a>
-                <a href="#">Carreras</a>
+                <h4>Servicios</h4>
+                <div className="link-list">
+                  <span className="footer-link">Exámenes Visuales</span>
+                  <span className="footer-link">Lentes de Contacto</span>
+                  <span className="footer-link">Ajuste de Monturas</span>
+                  <span className="footer-link">Reparaciones</span>
+                </div>
               </div>
-              
+
               <div className="link-group">
-                <h4>Legal</h4>
-                <a href="#">Privacidad</a>
-                <a href="#">Términos</a>
-                <a href="#">Cookies</a>
+                <h4>Contacto</h4>
+                <div className="contact-info">
+                  <div className="contact-item">
+                    <span className="contact-icon">📞</span>
+                    <span className="contact-text">+1 (555) 123-4567</span>
+                  </div>
+                  <div className="contact-item">
+                    <span className="contact-icon">📧</span>
+                    <span className="contact-text">hola@visualoutlet.com</span>
+                  </div>
+                  <div className="contact-item">
+                    <span className="contact-icon">📍</span>
+                    <span className="contact-text">Av. Principal 123, Ciudad, País</span>
+                  </div>
+                  <div className="contact-item">
+                    <span className="contact-icon">🕒</span>
+                    <span className="contact-text">Lun-Vie: 9:00 AM - 6:00 PM</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          
+
           <div className="footer-bottom">
-            <p>&copy; 2024 Visual Outlet. Todos los derechos reservados.</p>
+            <div className="footer-bottom-content">
+              <div className="copyright">
+                <p>&copy; 2024 Visual Outlet. Todos los derechos reservados.</p>
+              </div>
+              
+              <div className="legal-links">
+                <button className="legal-link">Política de Privacidad</button>
+                <span className="separator">•</span>
+                <button className="legal-link">Términos de Servicio</button>
+                <span className="separator">•</span>
+                <button className="legal-link">Cookies</button>
+              </div>
+            </div>
           </div>
         </div>
       </footer>

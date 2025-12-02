@@ -1,5 +1,6 @@
 /* === SERVICES SECTION STYLES === */
 @import './landing-variables.css';
+
 .services-section {
   padding: var(--space-2xl) 0;
   background: var(--soft-gray);
@@ -11,6 +12,32 @@
   padding: 0 var(--space-lg);
 }
 
+.section-header {
+  text-align: center;
+  margin-bottom: var(--space-2xl);
+}
+
+.section-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: var(--space-md);
+}
+
+.section-description {
+  font-size: 1.125rem;
+  color: var(--text-light);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--emerald) 0%, var(--vibrant-green) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 .services-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -20,25 +47,26 @@
 
 .service-category {
   background: var(--pure-white);
-  padding: var(--space-lg);
-  border-radius: var(--radius-xl);
   border: 1px solid var(--medium-gray);
+  border-radius: var(--radius-xl);
+  padding: var(--space-lg);
   transition: all var(--transition-normal);
 }
 
 .service-category:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
-  border-color: var(--ocean-teal);
+  border-color: var(--emerald);
 }
 
 .category-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--deep-teal);
+  color: var(--text-dark);
   margin-bottom: var(--space-md);
-  padding-bottom: var(--space-sm);
-  border-bottom: 2px solid var(--emerald);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
 }
 
 .service-list {
@@ -51,40 +79,37 @@
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  padding: var(--space-sm) 0;
-  color: var(--text-dark);
-  font-weight: 500;
-  border-bottom: 1px solid var(--medium-gray);
+  padding: var(--space-sm);
+  color: var(--text-light);
+  transition: color var(--transition-fast);
 }
 
-.service-item:last-child {
-  border-bottom: none;
+.service-item:hover {
+  color: var(--text-dark);
 }
 
 .check-icon {
   color: var(--vibrant-green);
   font-weight: bold;
-  font-size: 1.125rem;
 }
 
 .services-demo {
-  background: var(--pure-white);
+  background: linear-gradient(135deg, var(--deep-teal) 0%, var(--emerald) 100%);
   border-radius: var(--radius-xl);
   padding: var(--space-2xl);
   text-align: center;
-  border: 1px solid var(--medium-gray);
+  color: var(--pure-white);
 }
 
 .demo-content h3 {
   font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--text-dark);
-  margin-bottom: var(--space-sm);
+  margin-bottom: var(--space-md);
+  color: var(--pure-white);
 }
 
 .demo-content p {
   font-size: 1.125rem;
-  color: var(--text-light);
+  opacity: 0.9;
   margin-bottom: var(--space-lg);
   max-width: 600px;
   margin-left: auto;
@@ -98,27 +123,58 @@
   align-items: center;
 }
 
+/* Botones usando estilos del landing */
+.services-section .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: 0.75rem 1.5rem;
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.services-section .btn-primary {
+  background: var(--pure-white);
+  color: var(--emerald);
+  box-shadow: var(--shadow-md);
+}
+
+.services-section .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.services-section .btn-outline {
+  background: transparent;
+  color: var(--pure-white);
+  border: 2px solid var(--pure-white);
+}
+
+.services-section .btn-outline:hover {
+  background: var(--pure-white);
+  color: var(--emerald);
+  transform: translateY(-2px);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
+  .section-title {
+    font-size: 2rem;
+  }
+  
   .services-grid {
     grid-template-columns: 1fr;
     gap: var(--space-md);
   }
   
-  .service-category {
-    padding: var(--space-md);
-  }
-  
-  .services-demo {
-    padding: var(--space-xl) var(--space-md);
-  }
-  
   .demo-actions {
     flex-direction: column;
-  }
-  
-  .demo-actions .btn {
-    width: 100%;
-    max-width: 250px;
   }
 }

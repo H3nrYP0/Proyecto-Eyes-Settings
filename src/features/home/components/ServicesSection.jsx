@@ -1,4 +1,4 @@
-import "/src/shared/styles/features/home/ServicesSection.css";
+import "../../../shared/styles/features/home/ServicesSection.css";
 
 const ServicesSection = () => {
   const services = [
@@ -12,7 +12,7 @@ const ServicesSection = () => {
     },
     {
       category: "Servicio al Cliente",
-      items: ["Historial Médico", "Recordatorios de Citas", "Segumiento Post-venta", "Fidelización"]
+      items: ["Historial Médico", "Recordatorios de Citas", "Seguimiento Post-venta", "Fidelización"]
     },
     {
       category: "Operaciones",
