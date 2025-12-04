@@ -13,7 +13,7 @@ const HeroSection = ({ onGetStarted, user }) => {
 
   const carouselTexts = [
     "Dashboard intuitivo con métricas en tiempo real",
-    "Gestión completa de historial de clientes",
+    "Gestión completa de historial de clientes", 
     "Control automatizado de inventario"
   ];
 
@@ -23,14 +23,6 @@ const HeroSection = ({ onGetStarted, user }) => {
     }, 5000);
     return () => clearInterval(interval);
   }, []);
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % carouselImages.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + carouselImages.length) % carouselImages.length);
-  };
 
   return (
     <section className="hero-section">
@@ -46,14 +38,6 @@ const HeroSection = ({ onGetStarted, user }) => {
           </div>
         ))}
         
-        {/* Controles del carrusel */}
-        <button className="carousel-control prev" onClick={prevSlide}>
-          ‹
-        </button>
-        <button className="carousel-control next" onClick={nextSlide}>
-          ›
-        </button>
-        
         {/* Indicadores */}
         <div className="carousel-indicators">
           {carouselImages.map((_, index) => (
@@ -68,10 +52,6 @@ const HeroSection = ({ onGetStarted, user }) => {
 
       <div className="hero-container">
         <div className="hero-content">
-          <div className="hero-badge">
-            <span className="badge-text">Sistema de Gestión para Ópticas</span>
-          </div>
-          
           <h1 className="hero-title">
             Optimiza tu 
             <span className="gradient-text"> óptica</span> 
@@ -81,33 +61,6 @@ const HeroSection = ({ onGetStarted, user }) => {
           <p className="hero-description">
             {carouselTexts[currentSlide]}
           </p>
-          
-          <div className="hero-actions">
-            <button 
-              className="btn btn-primary btn-large" 
-              onClick={onGetStarted}
-            >
-              {user ? "Ir al Dashboard" : "Comenzar Gratis"}
-            </button>
-            <button className="btn btn-secondary btn-large">
-              Ver Demo
-            </button>
-          </div>
-          
-          <div className="hero-stats">
-            <div className="stat-item">
-              <div className="stat-number">+500</div>
-              <div className="stat-label">Ópticas Confían</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-number">99.9%</div>
-              <div className="stat-label">Disponibilidad</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-number">24/7</div>
-              <div className="stat-label">Soporte</div>
-            </div>
-          </div>
         </div>
         
         <div className="hero-visual">
@@ -143,7 +96,12 @@ const HeroSection = ({ onGetStarted, user }) => {
         <div className="floating-shape shape-2"></div>
         <div className="floating-shape shape-3"></div>
         <div className="floating-shape shape-4"></div>
+        <div className="floating-shape shape-5"></div>
+        <div className="floating-shape shape-6"></div>
       </div>
+      
+      {/* Ola animada */}
+      <div className="wave-animation"></div>
     </section>
   );
 };

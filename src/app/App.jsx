@@ -8,12 +8,19 @@ import "/src/shared/styles/globals/variables.css";
 
 // PÁGINAS
 import LandingPage from "../features/home/pages/LandingPage";
+import ProductsPage from "../features/home/pages/ProductsPage";
+import ServicesPage from "../features/home/pages/ServicesPage";
 import Login from "../features/auth/components/Login";
 import Register from "../features/auth/components/Register";
 import ForgotPassword from "../features/auth/components/ForgotPassword";
 
 // DASHBOARD
 import OpticaDashboardLayout from "../shared/components/layouts/OpticaDashboardLayout";
+
+// COMPONENTE PROTECTED ROUTE
+function ProtectedRoute({ user, children }) {
+  return user ? children : <Navigate to="/login" replace />;
+}
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -68,13 +75,39 @@ export default function App() {
         {/* RUTA PRINCIPAL */}
         <Route path="/" element={<LandingPage user={user} setUser={setUser} />} />
         
-        {/* AUTH RUTAS */}
-        <Route path="/login" element={user ? <Navigate to="/admin/dashboard" replace /> : <Login setUser={handleLogin} />} />
-        <Route path="/register" element={user ? <Navigate to="/admin/dashboard" replace /> : <Register />} />
-        <Route path="/forgot-password" element={user ? <Navigate to="/admin/dashboard" replace /> : <ForgotPassword />} />
+        {/* NUEVAS RUTAS DEL LANDING PAGE */}
+        <Route path="/productos" element={<ProductsPage user={user} setUser={setUser} />} />
+        <Route path="/servicios" element={<ServicesPage user={user} setUser={setUser} />} />
         
-        {/* DASHBOARD PROTEGIDO */}
-        <Route path="/admin/*" element={user ? <OpticaDashboardLayout user={user} setUser={setUser} /> : <Navigate to="/login" replace />} />
+        {/* RUTAS DE AUTENTICACIÓN */}
+        <Route 
+          path="/login" 
+          element={
+            user ? <Navigate to="/admin/dashboard" replace /> : <Login setUser={handleLogin} />
+          } 
+        />
+        <Route 
+          path="/register" 
+          element={
+            user ? <Navigate to="/admin/dashboard" replace /> : <Register />
+          } 
+        />
+        <Route 
+          path="/forgot-password" 
+          element={
+            user ? <Navigate to="/admin/dashboard" replace /> : <ForgotPassword />
+          } 
+        />
+        
+        {/* RUTAS PROTEGIDAS DEL DASHBOARD */}
+        <Route 
+          path="/admin/*" 
+          element={
+            <ProtectedRoute user={user}>
+              <OpticaDashboardLayout user={user} setUser={setUser} />
+            </ProtectedRoute>
+          } 
+        />
         
         {/* RUTA 404 */}
         <Route path="*" element={<Navigate to="/" replace />} />
