@@ -233,11 +233,11 @@ export default function Sidebar({ isOpen, onToggle, user, onLogout }) {
     toggleSection 
   } = useSidebar(user);
 
-  // Filtrar secciones basado en los permisos del usuario
-  const filteredSections = useMemo(() => 
-    menuStructure.filter(section => hasPermission(section.id)), 
-    [hasPermission]
-  );
+// DEJA ESTO ASÍ, SIN EL FILTRO EXTRA
+const filteredSections = useMemo(() => 
+  menuStructure.filter(section => hasPermission(section.id)), 
+  [hasPermission]
+);
 
   return (
     <aside className={`admin-sidebar ${isOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>

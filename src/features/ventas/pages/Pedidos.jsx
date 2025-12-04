@@ -19,6 +19,7 @@ export default function Pedidos() {
   const [pedidos, setPedidos] = useState([]);
   const [search, setSearch] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
+  const [filterTipo, setFilterTipo] = useState(""); // Nuevo filtro por tipo
 
   const [modalDelete, setModalDelete] = useState({
     open: false,
@@ -96,21 +97,33 @@ export default function Pedidos() {
   };
 
   // =============================
-  //          BUSCADOR
+  //          FILTRADO
   // =============================
-  const filteredPedidos = pedidos.filter((pedido) =>
-    pedido.cliente.toLowerCase().includes(search.toLowerCase()) ||
-    pedido.productoServicio.toLowerCase().includes(search.toLowerCase()) ||
-    pedido.estado.toLowerCase().includes(search.toLowerCase()) ||
-    pedido.tipo.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredPedidos = pedidos.filter((pedido) => {
+    const matchesSearch = 
+      pedido.cliente.toLowerCase().includes(search.toLowerCase()) ||
+      pedido.productoServicio.toLowerCase().includes(search.toLowerCase());
+    
+    const matchesEstado = filterEstado ? pedido.estado === filterEstado : true;
+    const matchesTipo = filterTipo ? pedido.tipo === filterTipo : true;
+    
+    return matchesSearch && matchesEstado && matchesTipo;
+  });
 
   // FILTROS PARA PEDIDOS
   const searchFilters = [
+    { value: '', label: 'Todos los estados' },
     { value: 'En proceso', label: 'En proceso' },
     { value: 'Pendiente pago', label: 'Pendiente pago' },
     { value: 'Pagado', label: 'Pagado' },
     { value: 'Entregado', label: 'Entregado' }
+  ];
+
+  // FILTROS PARA TIPO
+  const tipoFilters = [
+    { value: '', label: 'Todos los tipos' },
+    { value: 'Venta', label: 'Ventas' },
+    { value: 'Servicio', label: 'Servicios' }
   ];
 
   const formatCurrency = (amount) => {
@@ -118,27 +131,11 @@ export default function Pedidos() {
   };
 
   // =============================
-  //          COLUMNAS
+  //          COLUMNAS SIMPLIFICADAS
   // =============================
   const columns = [
     { field: "cliente", header: "Cliente" },
     { field: "productoServicio", header: "Producto/Servicio" },
-    { field: "fechaPedido", header: "Fecha Pedido" },
-    { field: "fechaEntrega", header: "Fecha Entrega" },
-    { 
-      field: "total", 
-      header: "Total",
-      render: (item) => formatCurrency(item.total)
-    },
-    { 
-      field: "saldoPendiente", 
-      header: "Saldo Pendiente",
-      render: (item) => (
-        <span className={item.saldoPendiente > 0 ? "saldo-pendiente" : "saldo-pagado"}>
-          {formatCurrency(item.saldoPendiente)}
-        </span>
-      )
-    },
     {
       field: "estado",
       header: "Estado",
@@ -205,6 +202,30 @@ export default function Pedidos() {
       filterEstado={filterEstado}
       onFilterChange={setFilterEstado}
       searchPosition="left"
+      // Añadir filtro de tipo al layout
+      additionalFilters={
+        <div className="filter-group" style={{ marginLeft: '1rem' }}>
+          <select
+            value={filterTipo}
+            onChange={(e) => setFilterTipo(e.target.value)}
+            style={{
+              padding: 'var(--spacing-sm) var(--spacing-md)',
+              border: '1px solid var(--border-color)',
+              borderRadius: 'var(--border-radius-md)',
+              backgroundColor: 'var(--bg-color)',
+              color: 'var(--text-color)',
+              fontSize: '0.9rem',
+              cursor: 'pointer'
+            }}
+          >
+            {tipoFilters.map(filter => (
+              <option key={filter.value} value={filter.value}>
+                {filter.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      }
     >
       {/* Tabla */}
       <CrudTable 
@@ -212,14 +233,14 @@ export default function Pedidos() {
         data={filteredPedidos} 
         actions={tableActions}
         emptyMessage={
-          search || filterEstado ? 
+          search || filterEstado || filterTipo ? 
             'No se encontraron pedidos para los filtros aplicados' : 
             'No hay pedidos registrados'
         }
       />
 
       {/* Botón para primer pedido */}
-      {filteredPedidos.length === 0 && !search && !filterEstado && (
+      {filteredPedidos.length === 0 && !search && !filterEstado && !filterTipo && (
         <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
           <button 
             onClick={() => navigate("nuevo")}

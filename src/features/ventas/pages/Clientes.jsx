@@ -81,30 +81,6 @@ export default function Clientes() {
     { field: "apellido", header: "Apellido" },
     { field: "documento", header: "Documento" },
     { field: "telefono", header: "Teléfono" },
-    { 
-      field: "correo", 
-      header: "Correo",
-      render: (item) => (
-        <a href={`mailto:${item.correo}`} className="email-link">
-          {item.correo}
-        </a>
-      )
-    },
-    { field: "ciudad", header: "Ciudad" },
-    { 
-      field: "fechaNacimiento", 
-      header: "Fecha Nacimiento",
-      render: (item) => new Date(item.fechaNacimiento).toLocaleDateString('es-ES')
-    },
-    { 
-      field: "genero", 
-      header: "Género",
-      render: (item) => (
-        <span className={`genero-badge ${item.genero.toLowerCase()}`}>
-          {item.genero}
-        </span>
-      )
-    },
   ];
 
   // =============================
