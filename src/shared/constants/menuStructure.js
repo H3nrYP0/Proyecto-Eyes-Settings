@@ -8,14 +8,17 @@ export const menuStructure = [
     ]
   },
   {
-    id: "ventas",
-    title: "Ventas",
+    id: "ventas", // ← ESTA SECCIÓN SE MANTIENE
+    title: "Ventas", // ← ESTE TÍTULO SE SIGUE VIENDO
     icon: "ventas",
     items: [
-      { name: "Ventas", path: "/admin/ventas", icon: "sales-icon" },
+      // ↓↓↓ ESTA LÍNEA ES LA QUE ELIMINAS ↓↓↓
+      // { name: "Ventas", path: "/admin/ventas", icon: "sales-icon" },
+      // ↑↑↑ ELIMINAR SOLO ESTA LÍNEA ↑↑↑
+      
+      // ↓↓↓ ESTAS DOS LÍNEAS SE MANTIENEN ↓↓↓
       { name: "Clientes", path: "/admin/ventas/clientes", icon: "users-icon" },
       { name: "Pedidos", path: "/admin/ventas/pedidos", icon: "orders-icon" },
-
     ]
   },
   {
