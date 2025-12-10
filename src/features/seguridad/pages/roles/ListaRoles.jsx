@@ -17,74 +17,86 @@ export default function DetalleRol() {
     return <div>Cargando...</div>;
   }
 
+  // Mapeo descriptivo de los permisos
+  const permisosDescriptivos = {
+    'dashboard': 'Gestionar Dashboard',
+    'categorias': 'Gestionar Categorías',
+    'compras': 'Gestionar Compras',
+    'empleados': 'Gestionar Empleados',
+    'ventas': 'Gestionar Ventas',
+    'roles': 'Gestionar Roles',
+    'productos': 'Gestionar Productos',
+    'servicios': 'Gestionar Servicios',
+    'clientes': 'Gestionar Clientes',
+    'campanas_salud': 'Gestionar Campañas de Salud',
+    'usuarios': 'Gestionar Usuarios',
+    'proveedores': 'Gestionar Proveedores',
+    'agenda': 'Gestionar Agenda',
+    'pedidos': 'Gestionar Pedidos'
+  };
+
   return (
-    <div className="crud-form-container">
+    <div className="crud-form-container detalle-rol-full-height">
       <div className="crud-form-header">
         <h1>Detalle de Rol: {rol.nombre}</h1>
         <p>Información completa del rol</p>
       </div>
       
-      <div className="crud-form-content">
-        <div className="crud-form-section">
-          <h3>Información Básica</h3>
-          
-          <div className="crud-detail-grid">
-            <div className="crud-detail-item">
-              <strong>Nombre:</strong> 
-              <span>{rol.nombre}</span>
-            </div>
+      <div className="crud-form-content detalle-rol-content">
+        <div className="detalle-rol-layout">
+          {/* Sección de Información General */}
+          <div className="detalle-info-section">
+            <h3>Información General</h3>
             
-            <div className="crud-detail-item">
-              <strong>Estado:</strong> 
-              <span className={`crud-badge ${rol.estado === "activo" ? "crud-badge-success" : "crud-badge-error"}`}>
-                {rol.estado === "activo" ? "Activo" : "Inactivo"}
-              </span>
-            </div>
-
-            <div className="crud-detail-item" style={{gridColumn: '1 / -1'}}>
-              <strong>Descripción:</strong> 
-              <span>{rol.descripcion}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="crud-form-section">
-          <h3>Permisos Asignados ({rol.permisosCount || rol.permisos?.length || 0})</h3>
-          
-          {rol.permisos && rol.permisos.length > 0 ? (
-            <div className="crud-detail-grid" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))'}}>
-              {rol.permisos.map((permiso, index) => (
-                <div key={index} className="crud-detail-item">
-                  <span className="crud-badge crud-badge-info">
-                    {permiso}
+            <div className="info-grid">
+              <div className="info-item">
+                <label>Nombre:</label>
+                <div className="info-value">{rol.nombre}</div>
+              </div>
+              
+              <div className="info-item">
+                <label>Estado:</label>
+                <div className="info-value">
+                  <span className={`estado-badge ${rol.estado === "activo" ? "activo" : "inactivo"}`}>
+                    {rol.estado === "activo" ? "ACTIVO" : "INACTIVO"}
                   </span>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="crud-no-data">
-              <p>Este rol no tiene permisos asignados</p>
-            </div>
-          )}
-        </div>
+              </div>
 
-        <div className="crud-form-section">
-          <h3>Resumen</h3>
-          
-          <div className="crud-detail-grid">
-            <div className="crud-detail-item">
-              <strong>ID:</strong> 
-              <span>{rol.id}</span>
+              <div className="info-item full-width">
+                <label>Descripción:</label>
+                <div className="info-value descripcion">
+                  {rol.descripcion}
+                </div>
+              </div>
             </div>
+          </div>
 
-            <div className="crud-detail-item">
-              <strong>Total Permisos:</strong> 
-              <span>{rol.permisosCount || rol.permisos?.length || 0}</span>
-            </div>
+          {/* Sección de Permisos */}
+          <div className="detalle-permisos-section">
+            <h3>Permisos Asignados</h3>
+            
+            {rol.permisos && rol.permisos.length > 0 ? (
+              <div className="permisos-grid-full">
+                {rol.permisos.map((permiso, index) => (
+                  <div key={index} className="permiso-item-full">
+                    <span className="permiso-check">✓</span>
+                    <span className="permiso-text">
+                      {permisosDescriptivos[permiso] || `Gestionar ${permiso}`}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="no-permisos">
+                <p>Este rol no tiene permisos asignados</p>
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="crud-form-actions">
+        {/* Botones de Acción */}
+        <div className="detalle-actions">
           <button 
             onClick={() => navigate('/admin/seguridad/roles')}
             className="crud-btn crud-btn-secondary"

@@ -881,3 +881,277 @@
   padding: 6px !important;
 }
 
+/* =============================
+   ESTILOS PARA DETALLE ROL - SIN SCROLL, ESPACIO COMPLETO
+   ============================= */
+
+/* Contenedor principal sin scroll */
+.crud-form-container.detalle-rol-full-height {
+  max-width: 100%;
+  height: calc(100vh - 80px);
+  margin: 0;
+  background: white;
+  border-radius: 0;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.detalle-rol-content {
+  flex: 1;
+  padding: 24px 32px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Layout principal - sin scroll */
+.detalle-rol-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 32px;
+  height: calc(100% - 80px);
+  overflow: hidden;
+  flex: 1;
+}
+
+/* Sección de información */
+.detalle-info-section {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 24px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.detalle-info-section h3 {
+  margin: 0 0 24px 0;
+  color: var(--gray-800);
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--primary-color);
+  flex-shrink: 0;
+}
+
+.info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.info-item.full-width {
+  flex: 1;
+  min-height: 0;
+}
+
+.info-item label {
+  color: var(--gray-600);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.info-value {
+  color: var(--gray-800);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.info-value.descripcion {
+  flex: 1;
+  padding: 12px;
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: 6px;
+  overflow-y: auto;
+  max-height: 200px;
+  min-height: 120px;
+}
+
+/* Badge de estado */
+.estado-badge {
+  display: inline-block;
+  padding: 6px 20px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.estado-badge.activo {
+  background: #d4ffd8;
+  color: #15803d;
+  border: 1px solid #b8e6cb;
+}
+
+.estado-badge.inactivo {
+  background: #ffe1e1;
+  color: #b91c1c;
+  border: 1px solid #f5c2c2;
+}
+
+/* Sección de permisos */
+.detalle-permisos-section {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 24px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.detalle-permisos-section h3 {
+  margin: 0 0 24px 0;
+  color: var(--gray-800);
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--primary-color);
+  flex-shrink: 0;
+}
+
+/* Grid de permisos que ocupa todo el espacio */
+.permisos-grid-full {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px;
+  align-content: start;
+}
+
+.permiso-item-full {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  height: fit-content;
+}
+
+.permiso-item-full:hover {
+  background-color: var(--gray-50);
+  border-color: var(--gray-300);
+  transform: translateY(-1px);
+}
+
+.permiso-check {
+  color: #10b981;
+  font-weight: bold;
+  margin-right: 10px;
+  font-size: 0.9rem;
+  min-width: 16px;
+}
+
+.permiso-text {
+  color: var(--gray-700);
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.4;
+  flex: 1;
+}
+
+/* Sin permisos */
+.no-permisos {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: white;
+  border: 1px dashed var(--gray-300);
+  border-radius: 8px;
+  color: var(--gray-500);
+  font-style: italic;
+}
+
+/* Botones de acción */
+.detalle-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 24px;
+  margin-top: 24px;
+  border-top: 1px solid var(--gray-200);
+  flex-shrink: 0;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .detalle-rol-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+    gap: 24px;
+  }
+  
+  .detalle-info-section,
+  .detalle-permisos-section {
+    height: auto;
+    min-height: 300px;
+  }
+  
+  .info-value.descripcion {
+    max-height: 150px;
+  }
+  
+  .permisos-grid-full {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    max-height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .detalle-rol-content {
+    padding: 20px;
+  }
+  
+  .detalle-info-section,
+  .detalle-permisos-section {
+    padding: 20px;
+  }
+  
+  .permisos-grid-full {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  
+  .permiso-item-full {
+    padding: 8px 10px;
+  }
+  
+  .permiso-text {
+    font-size: 0.8rem;
+  }
+  
+  .detalle-actions {
+    flex-direction: column;
+  }
+  
+  .crud-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .permisos-grid-full {
+    grid-template-columns: 1fr;
+  }
+}
