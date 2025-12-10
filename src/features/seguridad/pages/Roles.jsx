@@ -104,6 +104,11 @@ export default function Roles() {
       onClick: (item) => navigate(`editar/${item.id}`),
     },
     {
+    label: "Ver Detalles",
+    type: "view",
+    onClick: (item) => navigate(`detalle/${item.id}`),
+    },
+    {
       label: "Eliminar",
       type: "delete",
       onClick: (item) => handleDelete(item.id, item.nombre),

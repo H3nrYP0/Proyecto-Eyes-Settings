@@ -95,6 +95,7 @@ import Permisos from "../../../features/seguridad/pages/Permisos";
 // ESTOS SON LOS ESTILOS DEL LAYOUT
 import "/src/shared/styles/layouts/OpticaDashboardLayout.css";
 import EditarPermisos from "../../../features/seguridad/pages/roles/EditarPermisos";
+import ListaRoles from "../../../features/seguridad/pages/roles/ListaRoles";
 
 // ESTE ES EL LAYOUT PRINCIPAL DEL DASHBOARD ADMIN
 export default function OpticaDashboardLayout({ user, setUser }) {
@@ -172,7 +173,7 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               <Route path="editar/:id" element={<EditarVenta />} />
             </Route>
 
-            {/* RUTAS DEL MÓDULO DE COMPRAS - ACTUALIZADAS */}
+            {/* RUTAS DEL MÓDULO DE COMPRAS */}
             <Route path="compras">
               <Route index element={<Compras />} />
               <Route path="crear" element={<CrearCompra />} />
@@ -249,6 +250,7 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               <Route path="roles" element={<Roles />} />
               <Route path="roles/crear" element={<CrearRol />} />
               <Route path="roles/editar/:id" element={<EditarPermisos/>} />
+              <Route path="roles/detalle/:id" element={<ListaRoles/>} />
 
               <Route path="permisos" element={<Permisos />} />
             </Route>

@@ -4,51 +4,51 @@ let rolesDB = [
     id: 1,
     nombre: "Administrador",
     descripcion: "Acceso total al sistema con todos los permisos disponibles para gestionar toda la óptica",
-    permisos: ['dashboard', 'categorias', 'compras', 'empleados', 'ventas', 'roles', 'productos', 'servicios', 'clientes', 'campanas_salud', 'usuarios', 'proveedores', 'agenda', 'pedidos'], // Cambiado a array
+    permisos: ['dashboard', 'categorias', 'compras', 'empleados', 'ventas', 'roles', 'productos', 'servicios', 'clientes', 'campanas_salud', 'usuarios', 'proveedores', 'agenda', 'pedidos'],
+    permisosCount: 14, // Agregar contador
     estado: "activo",
   },
   {
     id: 2,
     nombre: "Vendedor",
     descripcion: "Gestiona ventas, clientes y procesos comerciales de la óptica",
-    permisos: ['ventas', 'clientes', 'productos', 'servicios', 'agenda', 'pedidos'], // Cambiado a array
+    permisos: ['ventas', 'clientes', 'productos', 'servicios', 'agenda', 'pedidos'],
+    permisosCount: 6, // Agregar contador
     estado: "activo",
   },
   {
     id: 3,
     nombre: "Optometrista",
     descripcion: "Administra servicios médicos, agenda de citas y exámenes visuales",
-    permisos: ['servicios', 'clientes', 'campanas_salud', 'agenda'], // Cambiado a array
+    permisos: ['servicios', 'clientes', 'campanas_salud', 'agenda'],
+    permisosCount: 4, // Agregar contador
     estado: "activo",
   },
   {
     id: 4,
     nombre: "Recepcionista",
     descripcion: "Atención al cliente, gestión de citas y apoyo administrativo",
-    permisos: ['clientes', 'agenda', 'pedidos'], // Cambiado a array
+    permisos: ['clientes', 'agenda', 'pedidos'],
+    permisosCount: 3, // Agregar contador
     estado: "activo",
   },
   {
     id: 5,
     nombre: "Técnico",
     descripcion: "Manejo de inventario, ajuste de monturas y mantenimiento de equipos",
-    permisos: ['productos', 'compras'], // Cambiado a array
+    permisos: ['productos', 'compras'],
+    permisosCount: 2, // Agregar contador
     estado: "activo",
   },
 ];
 
 // Obtener todos los roles
 export function getAllRoles() {
-  // Para mantener compatibilidad con la tabla que muestra "X permisos"
-  return rolesDB.map(rol => ({
-    ...rol,
-    permisosCount: rol.permisos ? rol.permisos.length : 0 // Agregar contador
-  }));
+  return [...rolesDB];
 }
 
 // Obtener por ID
 export function getRolById(id) {
-  // Convertir id a número ya que en la DB los IDs son números
   const idNum = parseInt(id);
   return rolesDB.find((r) => r.id === idNum);
 }
@@ -58,6 +58,7 @@ export function createRol(data) {
   const newId = rolesDB.length ? rolesDB.at(-1).id + 1 : 1;
   const nuevoRol = { 
     id: newId, 
+    permisosCount: data.permisos ? data.permisos.length : 0, // Calcular contador
     ...data 
   };
   
@@ -69,8 +70,15 @@ export function createRol(data) {
 export function updateRol(id, updated) {
   const idNum = parseInt(id);
   const index = rolesDB.findIndex((r) => r.id === idNum);
+  
   if (index !== -1) {
-    rolesDB[index] = { ...rolesDB[index], ...updated }; // Corregido: } en lugar de ]
+    // Actualizar contador de permisos si se modifican los permisos
+    const updatedWithCount = {
+      ...updated,
+      permisosCount: updated.permisos ? updated.permisos.length : rolesDB[index].permisosCount
+    };
+    
+    rolesDB[index] = { ...rolesDB[index], ...updatedWithCount };
     return rolesDB[index];
   }
   return null;
