@@ -114,7 +114,7 @@ export default function Roles() {
     <CrudLayout
       title="👥 Roles"
       description="Administra los roles del sistema y sus permisos asociados."
-      onAddClick={() => alert("Agregar nuevo rol")}
+      onAddClick={() => navigate("crear")}
       showSearch={true}
       searchPlaceholder="Buscar por nombre, descripción..."
       searchValue={search}

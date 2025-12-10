@@ -87,8 +87,9 @@ import GestionAcceso from "../../../features/usuarios/pages/GestionAcceso";
 // ESTAS SON LAS FEATURES DE CONFIGURACIÓN
 import Configuracion from "../../../features/configuracion/Configuration";
 
-// ESTAS SON LAS FEATURES DE SEGURIDAD - YA ESTÁ CORRECTO
+// ESTAS SON LAS FEATURES DE SEGURIDAD
 import Roles from "../../../features/seguridad/pages/Roles";
+import CrearRol from "../../../features/seguridad/pages/roles/CrearRol";
 import Permisos from "../../../features/seguridad/pages/Permisos";
 
 // ESTOS SON LOS ESTILOS DEL LAYOUT
@@ -170,7 +171,7 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               <Route path="editar/:id" element={<EditarVenta />} />
             </Route>
 
-            {/* ESTAS SON LAS RUTAS DEL MÓDULO DE COMPRAS - ACTUALIZADAS */}
+            {/* RUTAS DEL MÓDULO DE COMPRAS - ACTUALIZADAS */}
             <Route path="compras">
               <Route index element={<Compras />} />
               <Route path="crear" element={<CrearCompra />} />
@@ -205,7 +206,7 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               </Route>
             </Route>
 
-            {/* ESTAS SON LAS RUTAS DEL MÓDULO DE SERVICIOS */}
+            {/* RUTAS DEL MÓDULO DE SERVICIOS */}
             <Route path="servicios">
               <Route index element={<Servicios />} />
               <Route path="crear" element={<CrearServicio />} />
@@ -230,7 +231,7 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               <Route path="campanas-salud/detalle/:id" element={<DetalleCampanaSalud />} />
             </Route>
 
-            {/* ESTAS SON LAS RUTAS DEL MÓDULO DE USUARIOS */}
+            {/* RUTAS DEL MÓDULO DE USUARIOS */}
             <Route path="usuarios">
                 <Route index element={<GestionUsuarios />} />
                 <Route path="crear" element={<CrearUsuario />} />
@@ -239,12 +240,13 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               <Route path="gestion-acceso" element={<GestionAcceso />} />
             </Route>
 
-            {/* ESTAS SON LAS RUTAS DEL MÓDULO DE CONFIGURACIÓN */}
+            {/* RUTAS DE CONFIGURACIÓN DE LA PAGÍNA */}
             <Route path="configuracion" element={<Configuracion user={user} />} />
 
-            {/* ===== NUEVAS RUTAS DE SEGURIDAD ===== */}
+            {/* RUTAS DEL MÓDULO DE CONFIGURACIÓN */}
             <Route path="seguridad">
               <Route path="roles" element={<Roles />} />
+              <Route path="roles/crear" element={<CrearRol />} />
               <Route path="permisos" element={<Permisos />} />
             </Route>
 
