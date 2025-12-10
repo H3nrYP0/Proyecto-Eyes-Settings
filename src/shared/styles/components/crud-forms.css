@@ -565,3 +565,318 @@
     padding: 16px;
   }
 }
+
+/* =============================
+   ESTILOS ESPECÍFICOS PARA CREAR ROL
+   ============================= */
+
+/* Contenedor específico para crear rol - NO CAMBIA COLORES */
+.crud-form-container.crear-rol-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+/* Header específico para crear rol - MANTIENE COLORES ORIGINALES */
+.crud-form-header.crear-rol-header {
+  background: var(--primary-color);
+  color: white;
+  padding: 24px 32px;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.crud-form-header.crear-rol-header h1 {
+  margin: 0 0 8px 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.crud-form-header.crear-rol-header p {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 0.9rem;
+}
+
+/* Contenido específico para crear rol */
+.crud-form-content.crear-rol-content {
+  padding: 32px;
+}
+
+/* Sección de información del rol - LAYOUT MEJORADO */
+.crud-form-section.crear-rol-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 32px;
+  padding: 24px;
+  background: var(--gray-50);
+  border-radius: 8px;
+  border: 1px solid var(--gray-200);
+}
+
+.crud-form-section.crear-rol-section h3 {
+  margin: 0 0 24px 0;
+  color: var(--gray-800);
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--primary-color);
+  width: 100%;
+}
+
+/* Layout de 2 columnas para nombre y estado */
+.crear-rol-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  width: 100%;
+}
+
+/* Sección de permisos - LAYOUT CORREGIDO */
+.permisos-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.permisos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.permisos-header h3 {
+  margin: 0 0 6px 0;
+  color: var(--gray-800);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.permisos-count {
+  margin: 0;
+  color: var(--gray-600);
+  font-size: 0.85rem;
+}
+
+.permisos-numero {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.permisos-total {
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.permisos-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.permiso-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--gray-300);
+  border-radius: 4px;
+  background: white;
+  color: var(--gray-700);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.permiso-btn:hover {
+  background: var(--gray-100);
+  border-color: var(--gray-400);
+}
+
+.permiso-btn-outline {
+  background: transparent;
+}
+
+.permisos-error {
+  margin-bottom: 12px;
+  color: #dc3545;
+  font-size: 0.8rem;
+  padding: 6px 10px;
+  background: #fff5f5;
+  border-radius: 4px;
+  border-left: 4px solid #dc3545;
+  width: 100%;
+}
+
+/* Grid de permisos - MÁS PEQUEÑO */
+.permisos-grid-container {
+  width: 100%;
+}
+
+.permiso-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: 100%;
+  min-height: 42px;
+}
+
+.permiso-item:hover {
+  border-color: var(--primary-color);
+  background: var(--gray-50);
+}
+
+.permiso-item.selected {
+  border-color: var(--primary-color);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.permiso-checkbox {
+  margin-right: 8px;
+}
+
+.permiso-label {
+  font-size: 0.8rem;
+  color: var(--gray-700);
+  flex: 1;
+  line-height: 1.2;
+}
+
+/* Campos de Material UI */
+.crear-rol-mui-field .MuiOutlinedInput-root {
+  background: white;
+}
+
+.crear-rol-mui-field .MuiInputLabel-root {
+  color: var(--gray-600);
+}
+
+.crear-rol-mui-field .MuiOutlinedInput-notchedOutline {
+  border-color: var(--gray-300);
+}
+
+.crear-rol-mui-field .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: var(--gray-400);
+}
+
+.crear-rol-mui-field .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--primary-color);
+}
+
+/* Acciones específicas para crear rol */
+.crud-form-actions.crear-rol-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 24px;
+  margin-top: 24px;
+  border-top: 1px solid var(--gray-200);
+  width: 100%;
+}
+
+/* Botones mantienen colores originales */
+.crud-btn.crear-rol-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+  min-width: 120px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.crud-btn-primary.crear-rol-primary {
+  background: var(--primary-color);
+  color: white;
+}
+
+.crud-btn-primary.crear-rol-primary:hover:not(:disabled) {
+  background: var(--primary-dark);
+}
+
+.crud-btn-secondary.crear-rol-secondary {
+  background: var(--gray-200);
+  color: var(--gray-700);
+  border: 1px solid var(--gray-300);
+}
+
+.crud-btn-secondary.crear-rol-secondary:hover {
+  background: var(--gray-300);
+}
+
+/* Responsive específico para crear rol */
+@media (max-width: 768px) {
+  .crud-form-container.crear-rol-container {
+    max-width: 95%;
+    margin: 0 auto;
+  }
+  
+  .crud-form-content.crear-rol-content {
+    padding: 20px;
+  }
+  
+  .crud-form-section.crear-rol-section {
+    padding: 20px;
+    gap: 20px;
+  }
+  
+  .crear-rol-form-row {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .permisos-section {
+    padding: 16px;
+    gap: 16px;
+  }
+  
+  .permisos-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .permisos-buttons {
+    width: 100%;
+  }
+  
+  .permiso-btn {
+    flex: 1;
+    text-align: center;
+    padding: 8px 12px;
+    font-size: 0.75rem;
+  }
+  
+  .crud-form-actions.crear-rol-actions {
+    flex-direction: column;
+  }
+  
+  .crud-btn.crear-rol-btn {
+    min-width: 100%;
+  }
+}
+
+/* Estilos para el grid de Material UI - MÁS COMPACTO */
+.MuiGrid-container {
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+.MuiGrid-item {
+  padding: 6px !important;
+}

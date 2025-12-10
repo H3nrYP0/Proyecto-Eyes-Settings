@@ -3,12 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { createRol } from '../../../../lib/data/rolesData';
 import {
   Checkbox,
-  FormControlLabel,
   Grid,
-  Paper,
   Typography,
   Box,
-  Button,
   TextField,
   Select,
   MenuItem,
@@ -16,13 +13,10 @@ import {
   InputLabel
 } from '@mui/material';
 import "../../../../shared/styles/components/crud-forms.css";
-// Agrega esta importación si creas un archivo separado
-// import "./CrearRol.css"; 
 
 export default function CrearRol() {
   const navigate = useNavigate();
   
-  // Lista de permisos disponibles según la imagen
   const permisosDisponibles = [
     { id: 'dashboard', nombre: 'Gestionar Dashboard' },
     { id: 'categorias', nombre: 'Gestionar Categorías' },
@@ -52,7 +46,6 @@ export default function CrearRol() {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Validaciones
     const newErrors = {};
     
     if (!formData.nombre.trim()) {
@@ -76,7 +69,6 @@ export default function CrearRol() {
       return;
     }
     
-    // Crear el rol
     const nuevoRol = createRol(formData);
     console.log('Rol creado:', nuevoRol);
     navigate('/admin/seguridad/roles');
@@ -89,7 +81,6 @@ export default function CrearRol() {
       [name]: value
     });
     
-    // Limpiar errores al cambiar
     if (errors[name]) {
       setErrors({
         ...errors,
@@ -101,13 +92,11 @@ export default function CrearRol() {
   const handlePermisoChange = (permisoId) => {
     setFormData(prev => {
       if (prev.permisos.includes(permisoId)) {
-        // Remover permiso
         return {
           ...prev,
           permisos: prev.permisos.filter(id => id !== permisoId)
         };
       } else {
-        // Agregar permiso
         return {
           ...prev,
           permisos: [...prev.permisos, permisoId]
@@ -115,8 +104,7 @@ export default function CrearRol() {
       }
     });
     
-    // Limpiar error de permisos si se selecciona alguno
-    if (errors.permisos && formData.permisos.length >= 0) {
+    if (errors.permisos) {
       setErrors({
         ...errors,
         permisos: ''
@@ -148,6 +136,7 @@ export default function CrearRol() {
       
       <div className="crud-form-content crear-rol-content">
         <form onSubmit={handleSubmit}>
+          {/* Sección de información del rol */}
           <div className="crud-form-section crear-rol-section">
             <h3>Información del Rol</h3>
             
@@ -200,8 +189,8 @@ export default function CrearRol() {
             />
           </div>
 
-          {/* SECCIÓN DE PERMISOS CON MATERIAL UI - ACTUALIZADA */}
-          <div className="crud-form-section crear-rol-section permisos-section">
+          {/* Sección de permisos */}
+          <div className="permisos-section">
             <div className="permisos-header">
               <div>
                 <h3>Permisos</h3>
@@ -229,53 +218,23 @@ export default function CrearRol() {
               </div>
             </div>
             
-            {errors.permisos && <div className="error-message permisos-error">{errors.permisos}</div>}
+            {errors.permisos && <div className="permisos-error">{errors.permisos}</div>}
             
-            <Box sx={{ mt: 2 }} className="permisos-grid-container">
+            <Box className="permisos-grid-container">
               <Grid container spacing={2}>
                 {permisosDisponibles.map(permiso => (
                   <Grid item xs={12} sm={6} md={4} key={permiso.id}>
                     <Box 
                       className={`permiso-item ${formData.permisos.includes(permiso.id) ? 'selected' : ''}`}
-                      sx={{ 
-                        display: 'flex',
-                        alignItems: 'center',
-                        padding: '12px',
-                        backgroundColor: 'white',
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                          borderColor: '#667eea',
-                          backgroundColor: '#f7fafc',
-                          transform: 'translateY(-1px)',
-                          boxShadow: '0 2px 4px rgba(102, 126, 234, 0.1)'
-                        }
-                      }}
                       onClick={() => handlePermisoChange(permiso.id)}
                     >
                       <Checkbox
                         checked={formData.permisos.includes(permiso.id)}
                         onChange={() => handlePermisoChange(permiso.id)}
                         size="small"
-                        sx={{ 
-                          mr: 1,
-                          '&.Mui-checked': {
-                            color: '#667eea'
-                          }
-                        }}
-                        className="permiso-checkbox"
+                        sx={{ mr: 1 }}
                       />
-                      <Typography 
-                        sx={{ 
-                          fontSize: '0.9rem',
-                          color: '#4a5568',
-                          flex: 1,
-                          fontWeight: formData.permisos.includes(permiso.id) ? 600 : 500
-                        }}
-                        className="permiso-label"
-                      >
+                      <Typography className="permiso-label">
                         {permiso.nombre}
                       </Typography>
                     </Box>
