@@ -66,29 +66,20 @@ export default function Roles() {
       field: "nombre", 
       header: "Nombre",
       render: (item) => (
-        <span className={`rol-badge ${item.nombre.toLowerCase()}`}>
-          {item.nombre}
-        </span>
+        <div className="rol-info-cell">
+          <span className="rol-nombre">{item.nombre}</span>
+          <span className="rol-permisos-count">
+            {item.permisosCount || item.permisos?.length || 0} permisos
+          </span>
+        </div>
       )
     },
     { 
       field: "descripcion", 
       header: "Descripción",
       render: (item) => (
-        <span title={item.descripcion}>
-          {item.descripcion.length > 80 
-            ? item.descripcion.substring(0, 80) + '...' 
-            : item.descripcion
-          }
-        </span>
-      )
-    },
-    { 
-      field: "permisos", 
-      header: "Permisos",
-      render: (item) => (
-        <span className="permisos-count">
-          {item.permisos} permisos
+        <span className="rol-descripcion-cell">
+          {item.descripcion}
         </span>
       )
     },
@@ -104,9 +95,9 @@ export default function Roles() {
       onClick: (item) => navigate(`editar/${item.id}`),
     },
     {
-    label: "Ver Detalles",
-    type: "view",
-    onClick: (item) => navigate(`detalle/${item.id}`),
+      label: "Ver Detalles",
+      type: "view",
+      onClick: (item) => navigate(`detalle/${item.id}`),
     },
     {
       label: "Eliminar",
