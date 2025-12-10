@@ -6,7 +6,7 @@ import {
   PersonOutline as PersonIcon, 
   Settings as SettingsIcon,
   ChevronLeft as CollapseIcon,
-    Home as HomeIcon // ← NUEVO IMPORT
+    Home as HomeIcon
 } from "@mui/icons-material";
 
 import { useSidebar } from "../../hooks/useSidebar";
@@ -146,7 +146,7 @@ const SidebarFooter = ({ isOpen, user, canViewConfig, onLogout }) => {
 
       {/* Botones de acción */}
       <div className="sidebar-footer-buttons">
-        {/* NUEVO BOTÓN: Ir al Inicio */}
+        {/* Ir al Inicio */}
         <Tooltip title="Ir al Inicio" placement="right" disableHoverListener={isOpen}>
           <Button
             className="footer-button"

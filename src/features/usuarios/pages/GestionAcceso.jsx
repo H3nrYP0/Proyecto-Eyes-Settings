@@ -1,18 +1,4 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import CrudLayout from "../../../shared/components/layouts/CrudLayout";
-import CrudTable from "../../../shared/components/ui/CrudTable";
-import Modal from "../../../shared/components/ui/Modal";
-import "../../../shared/styles/components/crud-table.css";
-import "../../../shared/styles/components/modal.css";
-
-// Importamos las funciones del backend
-import {
-  getAllAccesos,
-  deleteAcceso,
-  updateEstadoAcceso,
-} from "../../../lib/data/accesosData";
-
+/*
 export default function GestionAcceso() {
   const navigate = useNavigate();
 
@@ -187,7 +173,7 @@ export default function GestionAcceso() {
         }
       ]}
     >
-      {/* Tabla */}
+      {/* Tabla }
       <CrudTable 
         columns={columns} 
         data={filteredAccesos} 
@@ -199,7 +185,7 @@ export default function GestionAcceso() {
         }
       />
 
-      {/* Modal de Confirmación */}
+      {/* Modal de Confirmación }
       <Modal
         open={modalDelete.open}
         type="warning"
@@ -213,4 +199,4 @@ export default function GestionAcceso() {
       />
     </CrudLayout>
   );
-}
+}*/

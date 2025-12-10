@@ -82,7 +82,7 @@ import GestionUsuarios from "../../../features/usuarios/pages/usuario/GestionUsu
 import CrearUsuario from "../../../features/usuarios/pages/usuario/CrearUsuario";
 import EditarUsuario from "../../../features/usuarios/pages/usuario/EditarUsuario";
 import DetalleUsuario from "../../../features/usuarios/pages/usuario/DetalleUsuario";
-import GestionAcceso from "../../../features/usuarios/pages/GestionAcceso";
+//import GestionAcceso from "../../../features/usuarios/pages/GestionAcceso";
 
 // ESTAS SON LAS FEATURES DE CONFIGURACIÓN
 import Configuracion from "../../../features/configuracion/Configuration";
@@ -239,7 +239,7 @@ export default function OpticaDashboardLayout({ user, setUser }) {
                 <Route path="crear" element={<CrearUsuario />} />
                 <Route path="editar/:id" element={<EditarUsuario />} />
                 <Route path="detalle/:id" element={<DetalleUsuario />} />
-              <Route path="gestion-acceso" element={<GestionAcceso />} />
+              {/*<Route path="gestion-acceso" element={<GestionAcceso />} />*/}
             </Route>
 
             {/* RUTAS DE CONFIGURACIÓN DE LA PAGÍNA */}
