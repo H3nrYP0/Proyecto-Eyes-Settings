@@ -99,9 +99,9 @@ export default function Roles() {
   // =============================
   const tableActions = [
     {
-      label: "Editar Permisos",
+      label: "Editar",
       type: "edit",
-      onClick: (item) => alert(`Editar permisos del rol ${item.nombre}`),
+      onClick: (item) => navigate(`editar/${item.id}`),
     },
     {
       label: "Eliminar",
