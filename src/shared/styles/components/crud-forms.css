@@ -567,128 +567,591 @@
 }
 
 /* =============================
-   SOLUCIÓN DEFINITIVA - BLOQUES ANCHOS
+   ESTILOS ESPECÍFICOS PARA CREAR ROL
    ============================= */
 
-/* Grid con 3 columnas anchas (en desktop) */
-.crud-detail-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr); /* TRES COLUMNAS ANCHAS */
-  gap: 14px;
+/* Contenedor específico para crear rol - NO CAMBIA COLORES */
+.crud-form-container.crear-rol-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  overflow: hidden;
 }
 
-/* Bloques más anchos y altos */
-.crud-detail-item {
+/* Header específico para crear rol - MANTIENE COLORES ORIGINALES */
+.crud-form-header.crear-rol-header {
+  background: var(--primary-color);
+  color: white;
+  padding: 24px 32px;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.crud-form-header.crear-rol-header h1 {
+  margin: 0 0 8px 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.crud-form-header.crear-rol-header p {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 0.9rem;
+}
+
+/* Contenido específico para crear rol */
+.crud-form-content.crear-rol-content {
+  padding: 32px;
+}
+
+/* Sección de información del rol - LAYOUT MEJORADO */
+.crud-form-section.crear-rol-section {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 14px;
-  background: white;
+  gap: 24px;
+  margin-bottom: 32px;
+  padding: 24px;
+  background: var(--gray-50);
   border-radius: 8px;
   border: 1px solid var(--gray-200);
-  min-height: 80px; /* Más alto */
-  justify-content: center;
+}
+
+.crud-form-section.crear-rol-section h3 {
+  margin: 0 0 24px 0;
+  color: var(--gray-800);
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--primary-color);
+  width: 100%;
+}
+
+/* Layout de 2 columnas para nombre y estado */
+.crear-rol-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  width: 100%;
+}
+
+/* Sección de permisos - LAYOUT CORREGIDO */
+.permisos-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.permisos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.permisos-header h3 {
+  margin: 0 0 6px 0;
+  color: var(--gray-800);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.permisos-count {
+  margin: 0;
+  color: var(--gray-600);
+  font-size: 0.85rem;
+}
+
+.permisos-numero {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.permisos-total {
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.permisos-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.permiso-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--gray-300);
+  border-radius: 4px;
+  background: white;
+  color: var(--gray-700);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.permiso-btn:hover {
+  background: var(--gray-100);
+  border-color: var(--gray-400);
+}
+
+.permiso-btn-outline {
+  background: transparent;
+}
+
+.permisos-error {
+  margin-bottom: 12px;
+  color: #dc3545;
+  font-size: 0.8rem;
+  padding: 6px 10px;
+  background: #fff5f5;
+  border-radius: 4px;
+  border-left: 4px solid #dc3545;
+  width: 100%;
+}
+
+/* Grid de permisos - MÁS PEQUEÑO */
+.permisos-grid-container {
+  width: 100%;
+}
+
+.permiso-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: 100%;
+  min-height: 42px;
+}
+
+.permiso-item:hover {
+  border-color: var(--primary-color);
+  background: var(--gray-50);
+}
+
+.permiso-item.selected {
+  border-color: var(--primary-color);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.permiso-checkbox {
+  margin-right: 8px;
+}
+
+.permiso-label {
+  font-size: 0.8rem;
+  color: var(--gray-700);
+  flex: 1;
+  line-height: 1.2;
+}
+
+/* Campos de Material UI */
+.crear-rol-mui-field .MuiOutlinedInput-root {
+  background: white;
+}
+
+.crear-rol-mui-field .MuiInputLabel-root {
+  color: var(--gray-600);
+}
+
+.crear-rol-mui-field .MuiOutlinedInput-notchedOutline {
+  border-color: var(--gray-300);
+}
+
+.crear-rol-mui-field .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: var(--gray-400);
+}
+
+.crear-rol-mui-field .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--primary-color);
+}
+
+/* Acciones específicas para crear rol */
+.crud-form-actions.crear-rol-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 24px;
+  margin-top: 24px;
+  border-top: 1px solid var(--gray-200);
+  width: 100%;
+}
+
+/* Botones mantienen colores originales */
+.crud-btn.crear-rol-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+  min-width: 120px;
+  text-align: center;
   transition: all 0.2s ease;
 }
 
-/* Hover sutil */
-.crud-detail-item:hover {
-  border-color: var(--primary-color);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+.crud-btn-primary.crear-rol-primary {
+  background: var(--primary-color);
+  color: white;
 }
 
-/* Dirección ocupa 2 columnas (no todas) */
-.crud-detail-item[style*="gridColumn: 1 / -1"] {
-  grid-column: 1 / 3; /* Solo 2 columnas, no todas */
+.crud-btn-primary.crear-rol-primary:hover:not(:disabled) {
+  background: var(--primary-dark);
 }
 
-/* Si hay correo y dirección, ajustamos */
-/* Cuando hay correo (9 items), el último item (ciudad) se expande */
-.crud-detail-item:nth-child(9):nth-last-child(2) {
-  grid-column: 3 / 4;
+.crud-btn-secondary.crear-rol-secondary {
+  background: var(--gray-200);
+  color: var(--gray-700);
+  border: 1px solid var(--gray-300);
 }
 
-/* Cuando NO hay correo (8 items), ajustamos */
-.crud-detail-item:nth-child(8):nth-last-child(2) {
-  grid-column: 2 / 4;
+.crud-btn-secondary.crear-rol-secondary:hover {
+  background: var(--gray-300);
 }
 
-/* Contenedor más ancho */
-.crud-form-container {
-  max-width: 1100px !important; /* Más ancho */
+/* Responsive específico para crear rol */
+@media (max-width: 768px) {
+  .crud-form-container.crear-rol-container {
+    max-width: 95%;
+    margin: 0 auto;
+  }
+  
+  .crud-form-content.crear-rol-content {
+    padding: 20px;
+  }
+  
+  .crud-form-section.crear-rol-section {
+    padding: 20px;
+    gap: 20px;
+  }
+  
+  .crear-rol-form-row {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .permisos-section {
+    padding: 16px;
+    gap: 16px;
+  }
+  
+  .permisos-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .permisos-buttons {
+    width: 100%;
+  }
+  
+  .permiso-btn {
+    flex: 1;
+    text-align: center;
+    padding: 8px 12px;
+    font-size: 0.75rem;
+  }
+  
+  .crud-form-actions.crear-rol-actions {
+    flex-direction: column;
+  }
+  
+  .crud-btn.crear-rol-btn {
+    min-width: 100%;
+  }
 }
 
-/* Sección sin márgenes laterales */
-.crud-form-section {
-  padding: 20px !important;
-  background: transparent !important;
-  border: none !important;
+/* Estilos para el grid de Material UI - MÁS COMPACTO */
+.MuiGrid-container {
+  width: 100% !important;
+  margin: 0 !important;
 }
 
-/* Título más destacado */
-.crud-form-section h3 {
-  font-size: 1.3rem !important;
-  color: var(--gray-900) !important;
-  margin-bottom: 24px !important;
-  padding-bottom: 12px !important;
-  border-bottom: 3px solid var(--primary-color) !important;
+.MuiGrid-item {
+  padding: 6px !important;
 }
 
-/* Texto dentro de los bloques */
-.crud-detail-item strong {
-  font-size: 0.85rem;
+/* =============================
+   ESTILOS PARA DETALLE ROL - SIN SCROLL, ESPACIO COMPLETO
+   ============================= */
+
+/* Contenedor principal sin scroll */
+.crud-form-container.detalle-rol-full-height {
+  max-width: 100%;
+  height: calc(100vh - 80px);
+  margin: 0;
+  background: white;
+  border-radius: 0;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.detalle-rol-content {
+  flex: 1;
+  padding: 24px 32px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Layout principal - sin scroll */
+.detalle-rol-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 32px;
+  height: calc(100% - 80px);
+  overflow: hidden;
+  flex: 1;
+}
+
+/* Sección de información */
+.detalle-info-section {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 24px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.detalle-info-section h3 {
+  margin: 0 0 24px 0;
+  color: var(--gray-800);
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--primary-color);
+  flex-shrink: 0;
+}
+
+.info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.info-item.full-width {
+  flex: 1;
+  min-height: 0;
+}
+
+.info-item label {
   color: var(--gray-600);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.info-value {
+  color: var(--gray-800);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.info-value.descripcion {
+  flex: 1;
+  padding: 12px;
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: 6px;
+  overflow-y: auto;
+  max-height: 200px;
+  min-height: 120px;
+}
+
+/* Badge de estado */
+.estado-badge {
+  display: inline-block;
+  padding: 6px 20px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-.crud-detail-item span {
-  font-size: 1rem;
-  color: var(--gray-800);
-  font-weight: 500;
+.estado-badge.activo {
+  background: #d4ffd8;
+  color: #15803d;
+  border: 1px solid #b8e6cb;
 }
 
-/* Badge de género más grande */
-.genero-badge {
-  display: inline-block;
-  padding: 5px 14px;
-  border-radius: 16px;
-  font-size: 0.9rem;
+.estado-badge.inactivo {
+  background: #ffe1e1;
+  color: #b91c1c;
+  border: 1px solid #f5c2c2;
+}
+
+/* Sección de permisos */
+.detalle-permisos-section {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 24px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.detalle-permisos-section h3 {
+  margin: 0 0 24px 0;
+  color: var(--gray-800);
+  font-size: 1.2rem;
   font-weight: 600;
-  text-transform: capitalize;
-  width: fit-content;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--primary-color);
+  flex-shrink: 0;
+}
+
+/* Grid de permisos que ocupa todo el espacio */
+.permisos-grid-full {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px;
+  align-content: start;
+}
+
+.permiso-item-full {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  height: fit-content;
+}
+
+.permiso-item-full:hover {
+  background-color: var(--gray-50);
+  border-color: var(--gray-300);
+  transform: translateY(-1px);
+}
+
+.permiso-check {
+  color: #10b981;
+  font-weight: bold;
+  margin-right: 10px;
+  font-size: 0.9rem;
+  min-width: 16px;
+}
+
+.permiso-text {
+  color: var(--gray-700);
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.4;
+  flex: 1;
+}
+
+/* Sin permisos */
+.no-permisos {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: white;
+  border: 1px dashed var(--gray-300);
+  border-radius: 8px;
+  color: var(--gray-500);
+  font-style: italic;
+}
+
+/* Botones de acción */
+.detalle-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 24px;
+  margin-top: 24px;
+  border-top: 1px solid var(--gray-200);
+  flex-shrink: 0;
 }
 
 /* Responsive */
 @media (max-width: 1024px) {
-  .crud-detail-grid {
-    grid-template-columns: repeat(2, 1fr); /* 2 columnas en tablet */
+  .detalle-rol-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+    gap: 24px;
   }
   
-  .crud-detail-item[style*="gridColumn: 1 / -1"],
-  .crud-detail-item:nth-child(9):nth-last-child(2),
-  .crud-detail-item:nth-child(8):nth-last-child(2) {
-    grid-column: 1 / -1; /* En tablet, direccion ocupa todo */
-  }
-}
-
-@media (max-width: 640px) {
-  .crud-detail-grid {
-    grid-template-columns: 1fr; /* 1 columna en móvil */
+  .detalle-info-section,
+  .detalle-permisos-section {
+    height: auto;
+    min-height: 300px;
   }
   
-  .crud-form-container {
-    max-width: 100% !important;
-    border-radius: 0;
+  .info-value.descripcion {
+    max-height: 150px;
+  }
+  
+  .permisos-grid-full {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    max-height: 400px;
   }
 }
 
-/* Eliminar espacios innecesarios del layout base */
-.crud-form-section {
-  display: block !important; /* Elimina el grid del contenedor */
-  margin-bottom: 10px !important;
+@media (max-width: 768px) {
+  .detalle-rol-content {
+    padding: 20px;
+  }
+  
+  .detalle-info-section,
+  .detalle-permisos-section {
+    padding: 20px;
+  }
+  
+  .permisos-grid-full {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  
+  .permiso-item-full {
+    padding: 8px 10px;
+  }
+  
+  .permiso-text {
+    font-size: 0.8rem;
+  }
+  
+  .detalle-actions {
+    flex-direction: column;
+  }
+  
+  .crud-btn {
+    width: 100%;
+  }
 }
 
-.crud-form-content {
-  padding-top: 0 !important;
+@media (max-width: 480px) {
+  .permisos-grid-full {
+    grid-template-columns: 1fr;
+  }
 }

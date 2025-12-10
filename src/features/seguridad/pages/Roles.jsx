@@ -66,29 +66,20 @@ export default function Roles() {
       field: "nombre", 
       header: "Nombre",
       render: (item) => (
-        <span className={`rol-badge ${item.nombre.toLowerCase()}`}>
-          {item.nombre}
-        </span>
+        <div className="rol-info-cell">
+          <span className="rol-nombre">{item.nombre}</span>
+          <span className="rol-permisos-count">
+            {item.permisosCount || item.permisos?.length || 0} permisos
+          </span>
+        </div>
       )
     },
     { 
       field: "descripcion", 
       header: "Descripción",
       render: (item) => (
-        <span title={item.descripcion}>
-          {item.descripcion.length > 80 
-            ? item.descripcion.substring(0, 80) + '...' 
-            : item.descripcion
-          }
-        </span>
-      )
-    },
-    { 
-      field: "permisos", 
-      header: "Permisos",
-      render: (item) => (
-        <span className="permisos-count">
-          {item.permisos} permisos
+        <span className="rol-descripcion-cell">
+          {item.descripcion}
         </span>
       )
     },
@@ -99,9 +90,14 @@ export default function Roles() {
   // =============================
   const tableActions = [
     {
-      label: "Editar Permisos",
+      label: "Editar",
       type: "edit",
-      onClick: (item) => alert(`Editar permisos del rol ${item.nombre}`),
+      onClick: (item) => navigate(`editar/${item.id}`),
+    },
+    {
+      label: "Ver Detalles",
+      type: "view",
+      onClick: (item) => navigate(`detalle/${item.id}`),
     },
     {
       label: "Eliminar",
@@ -114,7 +110,7 @@ export default function Roles() {
     <CrudLayout
       title="👥 Roles"
       description="Administra los roles del sistema y sus permisos asociados."
-      onAddClick={() => alert("Agregar nuevo rol")}
+      onAddClick={() => navigate("crear")}
       showSearch={true}
       searchPlaceholder="Buscar por nombre, descripción..."
       searchValue={search}

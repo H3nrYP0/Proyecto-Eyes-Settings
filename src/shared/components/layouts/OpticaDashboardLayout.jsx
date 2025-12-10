@@ -82,17 +82,20 @@ import GestionUsuarios from "../../../features/usuarios/pages/usuario/GestionUsu
 import CrearUsuario from "../../../features/usuarios/pages/usuario/CrearUsuario";
 import EditarUsuario from "../../../features/usuarios/pages/usuario/EditarUsuario";
 import DetalleUsuario from "../../../features/usuarios/pages/usuario/DetalleUsuario";
-import GestionAcceso from "../../../features/usuarios/pages/GestionAcceso";
+//import GestionAcceso from "../../../features/usuarios/pages/GestionAcceso";
 
 // ESTAS SON LAS FEATURES DE CONFIGURACIÓN
 import Configuracion from "../../../features/configuracion/Configuration";
 
-// ESTAS SON LAS FEATURES DE SEGURIDAD - YA ESTÁ CORRECTO
+// ESTAS SON LAS FEATURES DE SEGURIDAD
 import Roles from "../../../features/seguridad/pages/Roles";
+import CrearRol from "../../../features/seguridad/pages/roles/CrearRol";
 import Permisos from "../../../features/seguridad/pages/Permisos";
 
 // ESTOS SON LOS ESTILOS DEL LAYOUT
 import "/src/shared/styles/layouts/OpticaDashboardLayout.css";
+import EditarPermisos from "../../../features/seguridad/pages/roles/EditarPermisos";
+import ListaRoles from "../../../features/seguridad/pages/roles/ListaRoles";
 
 // ESTE ES EL LAYOUT PRINCIPAL DEL DASHBOARD ADMIN
 export default function OpticaDashboardLayout({ user, setUser }) {
@@ -170,7 +173,7 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               <Route path="editar/:id" element={<EditarVenta />} />
             </Route>
 
-            {/* ESTAS SON LAS RUTAS DEL MÓDULO DE COMPRAS - ACTUALIZADAS */}
+            {/* RUTAS DEL MÓDULO DE COMPRAS */}
             <Route path="compras">
               <Route index element={<Compras />} />
               <Route path="crear" element={<CrearCompra />} />
@@ -205,7 +208,7 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               </Route>
             </Route>
 
-            {/* ESTAS SON LAS RUTAS DEL MÓDULO DE SERVICIOS */}
+            {/* RUTAS DEL MÓDULO DE SERVICIOS */}
             <Route path="servicios">
               <Route index element={<Servicios />} />
               <Route path="crear" element={<CrearServicio />} />
@@ -230,21 +233,25 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               <Route path="campanas-salud/detalle/:id" element={<DetalleCampanaSalud />} />
             </Route>
 
-            {/* ESTAS SON LAS RUTAS DEL MÓDULO DE USUARIOS */}
+            {/* RUTAS DEL MÓDULO DE USUARIOS */}
             <Route path="usuarios">
                 <Route index element={<GestionUsuarios />} />
                 <Route path="crear" element={<CrearUsuario />} />
                 <Route path="editar/:id" element={<EditarUsuario />} />
                 <Route path="detalle/:id" element={<DetalleUsuario />} />
-              <Route path="gestion-acceso" element={<GestionAcceso />} />
+              {/*<Route path="gestion-acceso" element={<GestionAcceso />} />*/}
             </Route>
 
-            {/* ESTAS SON LAS RUTAS DEL MÓDULO DE CONFIGURACIÓN */}
+            {/* RUTAS DE CONFIGURACIÓN DE LA PAGÍNA */}
             <Route path="configuracion" element={<Configuracion user={user} />} />
 
-            {/* ===== NUEVAS RUTAS DE SEGURIDAD ===== */}
+            {/* RUTAS DEL MÓDULO DE CONFIGURACIÓN */}
             <Route path="seguridad">
               <Route path="roles" element={<Roles />} />
+              <Route path="roles/crear" element={<CrearRol />} />
+              <Route path="roles/editar/:id" element={<EditarPermisos/>} />
+              <Route path="roles/detalle/:id" element={<ListaRoles/>} />
+
               <Route path="permisos" element={<Permisos />} />
             </Route>
 

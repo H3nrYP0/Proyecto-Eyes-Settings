@@ -12,15 +12,14 @@ import ForgotPassword from "../features/auth/components/ForgotPassword";
 // LAYOUT DEL DASHBOARD
 import OpticaDashboardLayout from "../shared/components/layouts/OpticaDashboardLayout";
 
-// CONSTANTES TEMPORALES (si no existe el archivo roles)
+// CONSTANTES TEMPORALES 
 const ROLES = {
-  ADMIN: 'admin',
-  DEMO: 'demo', 
+  ADMIN: 'admin', 
   VENDEDOR: 'vendedor',
   OPTICO: 'optico'
 };
 
-// COMPONENTE PROTECTED ROUTE SIMPLIFICADO
+// COMPONENTE PROTECTED ROUTE
 function ProtectedRoute({ user, children }) {
   return user ? children : <Navigate to="/login" replace />;
 }
@@ -39,7 +38,7 @@ export default function AppRoutes({ user, setUser, onLogin, onLogout }) {
   return (
     <Routes>
       
-      {/* ✅ RUTA PRINCIPAL - NUEVA LANDING PAGE */}
+      {/* RUTA PRINCIPAL */}
       <Route
         path="/"
         element={
