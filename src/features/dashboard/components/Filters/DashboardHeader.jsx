@@ -1,6 +1,4 @@
-// Header principal del dashboard - Contiene filtros, título y métricas resumidas
-// Responsable de: navegación temporal, selección de año y visualización de KPIs clave
-
+// components/Filters/DashboardHeader.jsx
 import React from 'react';
 import {
   Box,
@@ -25,11 +23,19 @@ import { getPeriodLabel, getPeriodText } from '../../utils/formatters';
 const DashboardHeader = ({ 
   timeFilter, 
   yearFilter, 
+  monthFilter,
   onTimeFilterChange, 
-  onYearFilterChange, 
+  onYearFilterChange,
+  onMonthFilterChange,
   metrics 
 }) => {
   const theme = useTheme();
+
+  // Nombres de meses en español
+  const months = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  ];
 
   return (
     <Box sx={{ mb: 3 }}>
@@ -46,7 +52,8 @@ const DashboardHeader = ({
                 background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
                 backgroundClip: 'text',
                 WebkitBackgroundClip: 'text',
-                color: 'transparent'
+                color: 'transparent',
+                fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' }
               }}
             >
               Resumen Operativo
@@ -61,7 +68,7 @@ const DashboardHeader = ({
                 variant={timeFilter === 'dia' ? 'contained' : 'outlined'}
                 startIcon={<CalendarToday />}
               >
-                Día
+                Hoy
               </Button>
               <Button 
                 onClick={() => onTimeFilterChange('mes')}
@@ -79,21 +86,40 @@ const DashboardHeader = ({
               </Button>
             </ButtonGroup>
             
-            {/* Selector de año - Solo visible en vista anual */}
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel>Año</InputLabel>
-              <Select
-                value={yearFilter}
-                label="Año"
-                onChange={(e) => onYearFilterChange(e.target.value)}
-                disabled={timeFilter !== 'año'} // Deshabilitado cuando no está en vista anual
-              >
-                <MenuItem value="2022">2022</MenuItem>
-                <MenuItem value="2023">2023</MenuItem>
-                <MenuItem value="2024">2024</MenuItem>
-                <MenuItem value="2025">2025</MenuItem>
-              </Select>
-            </FormControl>
+            {/* Selector de mes - Solo visible en vista mensual */}
+            {timeFilter === 'mes' && (
+              <FormControl size="small" sx={{ minWidth: 120 }}>
+                <InputLabel>Mes</InputLabel>
+                <Select
+                  value={monthFilter}
+                  label="Mes"
+                  onChange={(e) => onMonthFilterChange(e.target.value)}
+                >
+                  {months.map((month, index) => (
+                    <MenuItem key={index} value={index + 1}>
+                      {month}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+            
+            {/* Selector de año - Solo visible en vista anual y mensual */}
+            {(timeFilter === 'año' || timeFilter === 'mes') && (
+              <FormControl size="small" sx={{ minWidth: 120 }}>
+                <InputLabel>Año</InputLabel>
+                <Select
+                  value={yearFilter}
+                  label="Año"
+                  onChange={(e) => onYearFilterChange(e.target.value)}
+                >
+                  <MenuItem value="2022">2022</MenuItem>
+                  <MenuItem value="2023">2023</MenuItem>
+                  <MenuItem value="2024">2024</MenuItem>
+                  <MenuItem value="2025">2025</MenuItem>
+                </Select>
+              </FormControl>
+            )}
           </Box>
         </Grid>
 

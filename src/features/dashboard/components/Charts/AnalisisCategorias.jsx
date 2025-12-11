@@ -330,7 +330,7 @@ const AnalisisCategorias = ({ data, timeFilter, yearFilter }) => {
   // Genera título dinámico basado en el período
   const getTitle = () => {
     const periodText = getPeriodText(timeFilter, yearFilter);
-    return `Análisis de Categorías `;
+    return `Categorías más vendidas`;
   };
 
   const hasManyCategories = data.length > 8;
