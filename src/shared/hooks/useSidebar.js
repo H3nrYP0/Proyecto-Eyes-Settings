@@ -1,10 +1,19 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { ROLES, PERMISSIONS } from '../constants/roles';
 
 export const useSidebar = (user) => {
   const [expandedSections, setExpandedSections] = useState({});
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const location = useLocation();
+  
+  // Usamos una referencia para tener siempre el valor más reciente
+  const expandedSectionsRef = useRef(expandedSections);
+  
+  // Actualizamos la referencia cada vez que cambia el estado
+  useEffect(() => {
+    expandedSectionsRef.current = expandedSections;
+  }, [expandedSections]);
 
   const hasPermission = useCallback((section) => {
     if (!user?.role) return false;
@@ -17,7 +26,6 @@ export const useSidebar = (user) => {
     return hasPermission('config:view');
   }, [hasPermission]);
 
-  // CORRECCIÓN: Solo una sección expandida a la vez
   const activeSection = useMemo(() => {
     const pathSections = [
       { path: '/compras', section: 'compras' },
@@ -33,37 +41,72 @@ export const useSidebar = (user) => {
     return found ? found.section : null;
   }, [location.pathname]);
 
-  // CORRECCIÓN: Auto-expandir la sección activa y cerrar las demás
   useEffect(() => {
     if (activeSection) {
-      setExpandedSections(prev => ({
-        [activeSection]: true // Solo expande la sección activa
-      }));
+      setExpandedSections({
+        [activeSection]: true
+      });
     }
   }, [activeSection]);
 
   const toggleSection = useCallback((section) => {
     if (!hasPermission(section)) return;
     
+    // Indicar que estamos en transición para evitar tooltips
+    setIsTransitioning(true);
+    
     setExpandedSections(prev => {
-      // Si ya está expandida, la contraemos
       if (prev[section]) {
         const newState = { ...prev };
         delete newState[section];
         return newState;
       }
-      // Si no está expandida, expandimos solo esta y cerramos las demás
+      
       return {
         [section]: true
       };
     });
+    
+    // Terminar transición después de un momento
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 300);
   }, [hasPermission]);
+
+  // Nueva función para expandir automáticamente una sección
+  const expandSection = useCallback((section) => {
+    if (!hasPermission(section)) return;
+    
+    setIsTransitioning(true);
+    
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: true
+    }));
+    
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 300);
+  }, [hasPermission]);
+
+  // Función para cerrar todos los tooltips
+  const closeAllTooltips = useCallback(() => {
+    const tooltips = document.querySelectorAll('.MuiTooltip-popper, .MuiTooltip-tooltip, [role="tooltip"]');
+    tooltips.forEach(tooltip => {
+      tooltip.style.opacity = '0';
+      tooltip.style.visibility = 'hidden';
+      tooltip.style.display = 'none';
+    });
+  }, []);
 
   return {
     expandedSections,
     activeSection,
     hasPermission,
     canViewConfig,
-    toggleSection
+    toggleSection,
+    expandSection,
+    isTransitioning,
+    closeAllTooltips
   };
 };
