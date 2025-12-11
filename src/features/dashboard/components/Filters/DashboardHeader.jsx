@@ -1,4 +1,3 @@
-// components/Filters/DashboardHeader.jsx
 import React from 'react';
 import {
   Box,
@@ -37,6 +36,11 @@ const DashboardHeader = ({
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
   ];
 
+  // Función para formatear texto de botones
+  const formatButtonText = (text) => {
+    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+  };
+
   return (
     <Box sx={{ mb: 3 }}>
       <Grid container spacing={3} alignItems="center">
@@ -67,22 +71,25 @@ const DashboardHeader = ({
                 onClick={() => onTimeFilterChange('dia')}
                 variant={timeFilter === 'dia' ? 'contained' : 'outlined'}
                 startIcon={<CalendarToday />}
+                sx={{ textTransform: 'none' }}
               >
-                Hoy
+                {formatButtonText('hoy')}
               </Button>
               <Button 
                 onClick={() => onTimeFilterChange('mes')}
                 variant={timeFilter === 'mes' ? 'contained' : 'outlined'}
                 startIcon={<CalendarToday />}
+                sx={{ textTransform: 'none' }}
               >
-                Mes
+                {formatButtonText('mes')}
               </Button>
               <Button 
                 onClick={() => onTimeFilterChange('año')}
                 variant={timeFilter === 'año' ? 'contained' : 'outlined'}
                 startIcon={<CalendarToday />}
+                sx={{ textTransform: 'none' }}
               >
-                Año
+                {formatButtonText('año')}
               </Button>
             </ButtonGroup>
             
@@ -125,34 +132,78 @@ const DashboardHeader = ({
 
         {/* Sección derecha: Métricas resumidas del período */}
         <Grid item xs={12} md={4}>
-          <Card>
-            <CardContent sx={{ p: 2 }}>
-              <Typography variant="subtitle2" fontWeight={600} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent sx={{ 
+              p: 1.5,
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column'
+            }}>
+              <Typography 
+                variant="subtitle2" 
+                fontWeight={600} 
+                gutterBottom 
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 1,
+                  mb: 0.5
+                }}
+              >
                 <TrendingUp fontSize="small" />
                 Métricas operativas
               </Typography>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Box sx={{ textAlign: 'center' }}>
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flex: 1,
+                gap: 4
+              }}>
+                <Box sx={{ 
+                  textAlign: 'center',
+                  flex: 1,
+                  px: 1
+                }}>
                   <Typography variant="h6" fontWeight="bold" color="primary">
                     {metrics.clientes}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography 
+                    variant="caption" 
+                    color="text.secondary"
+                  >
                     Clientes
                   </Typography>
                 </Box>
-                <Box sx={{ textAlign: 'center' }}>
+                <Box sx={{ 
+                  textAlign: 'center',
+                  flex: 1,
+                  px: 1 // Padding horizontal interno
+                }}>
                   <Typography variant="h6" fontWeight="bold" color="secondary">
                     {metrics.productosVendidos}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography 
+                    variant="caption" 
+                    color="text.secondary"
+                    sx={{ mt: 0.5 }}
+                  >
                     Productos
                   </Typography>
                 </Box>
-                <Box sx={{ textAlign: 'center' }}>
+                <Box sx={{ 
+                  textAlign: 'center',
+                  flex: 1,
+                  px: 1 // Padding horizontal interno
+                }}>
                   <Typography variant="h6" fontWeight="bold" color="success.main">
                     {metrics.citasEfectivas}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography 
+                    variant="caption" 
+                    color="text.secondary"
+                    sx={{ mt: 0.5 }}
+                  >
                     Citas
                   </Typography>
                 </Box>
