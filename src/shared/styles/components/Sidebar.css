@@ -1,157 +1,267 @@
-/**
- * ESTILOS PRINCIPALES DEL SIDEBAR
- * Variables CSS para mantener consistencia
- */
-.admin-sidebar {
-  --sidebar-open-width: 280px;
-  --sidebar-collapsed-width: 70px;
-  --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+/* ============================================================================
+   1. VARIABLES Y CONFIGURACIÓN
+   ============================================================================ */
+:root {
+  /* Dimensiones */
+  --sidebar-width-open: 280px;
+  --sidebar-width-collapsed: 70px;
   
-  /* Estilos base */
-  width: var(--sidebar-open-width);
-  height: 100vh;
-  background: linear-gradient(180deg, #1e40af 0%, #2563eb 100%);
-  color: white;
+  /* Colores primarios (gradiente) */
+  --sidebar-primary: #1e40af;
+  --sidebar-secondary: #2563eb;
+  
+  /* Sistema de colores de texto */
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.85);
+  --text-muted: rgba(255, 255, 255, 0.7);
+  --text-disabled: rgba(255, 255, 255, 0.5);
+  
+  /* Fondos y overlays */
+  --bg-hover: rgba(255, 255, 255, 0.1);
+  --bg-active: rgba(255, 255, 255, 0.15);
+  --bg-pressed: rgba(255, 255, 255, 0.2);
+  --border-color: rgba(255, 255, 255, 0.15);
+  
+  /* Bordes y sombras */
+  --border-radius-sm: 4px;
+  --border-radius-md: 6px;
+  --border-radius-lg: 8px;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.2);
+  
+  /* Espaciado */
+  --spacing-xs: 0.25rem;    /* 4px */
+  --spacing-sm: 0.5rem;     /* 8px */
+  --spacing-md: 0.75rem;    /* 12px */
+  --spacing-lg: 1rem;       /* 16px */
+  --spacing-xl: 1.25rem;    /* 20px */
+  
+  /* Tipografía */
+  --font-size-xs: 0.75rem;   /* 12px */
+  --font-size-sm: 0.85rem;   /* 13.6px */
+  --font-size-md: 0.9rem;    /* 14.4px */
+  --font-size-lg: 1rem;      /* 16px */
+  --font-size-xl: 1.3rem;    /* 20.8px */
+  
+  /* Transiciones */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Z-index */
+  --z-sidebar: 1000;
+  --z-tooltip: 1100;
+}
+
+/* ============================================================================
+   2. ESTILOS BASE DEL COMPONENTE
+   ============================================================================ */
+.admin-sidebar {
+  /* Posicionamiento y estructura */
   position: fixed;
-  left: 0;
   top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: var(--z-sidebar);
+  
+  /* Dimensiones y layout */
+  width: var(--sidebar-width-open);
   display: flex;
   flex-direction: column;
-  transition: all 0.3s var(--transition-timing);
-  z-index: 1000;
-  box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  
+  /* Apariencia */
+  background: linear-gradient(180deg, var(--sidebar-primary) 0%, var(--sidebar-secondary) 100%);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-lg);
+  
+  /* Transición */
+  transition: width var(--transition-base);
 }
 
-/* Estado colapsado del sidebar */
+/* Estado colapsado */
 .admin-sidebar.sidebar-collapsed {
-  width: var(--sidebar-collapsed-width);
+  width: var(--sidebar-width-collapsed);
 }
 
-/* ===== HEADER DEL SIDEBAR ===== */
+/* ============================================================================
+   3. HEADER DEL SIDEBAR
+   ============================================================================ */
+
+/* Contenedor principal del header */
 .sidebar-header {
-  padding: 1.25rem 1rem 1rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.05);
-  min-height: 70px;
+  /* Layout */
   display: flex;
   align-items: center;
-  position: relative;
   flex-shrink: 0;
-  cursor: pointer; /* Hacer clickeable para expandir cuando está colapsado */
+  position: relative;
+  
+  /* Dimensiones y espaciado */
+  min-height: 80px;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  
+  /* Apariencia */
+  border-bottom: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.05);
+  
+  /* Interacción */
+  cursor: pointer;
+  transition: all var(--transition-fast);
 }
 
+/* Efecto hover */
+.sidebar-header:hover {
+  background: var(--bg-hover);
+}
+
+/* Contenido interno del header */
 .sidebar-header-content {
   flex: 1;
-  min-width: 0; /* Permitir que se encoja correctamente */
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
 }
 
-/* Contenedor del título principal */
+/* ============================================================================
+   3.1 TÍTULO EXPANDIDO
+   ============================================================================ */
+
+/* Contenedor del título completo */
 .header-title-container {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: var(--spacing-xs);
+  overflow: hidden;
+  justify-content: center;
 }
 
 /* Nombre de la empresa */
 .company-name {
-  font-size: 1.3rem;
+  font-size: var(--font-size-xl);
   font-weight: 700;
-  margin: 0;
-  color: white;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
   line-height: 1.2;
 }
 
 /* Nombre del sistema */
 .system-name {
-  font-size: 0.75rem;
-  opacity: 0.8;
-  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
-  line-height: 1.2;
+  text-overflow: ellipsis;
+  line-height: 1.3;
   font-weight: 400;
+  margin-top: 4px;
 }
+
+/* ============================================================================
+   3.2 LOGO COLAPSADO
+   ============================================================================ */
 
 /* Logo cuando está colapsado */
 .collapsed-logo {
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  color: white;
+  color: var(--text-primary);
   text-align: center;
   width: 100%;
-  display: block;
-}
-
-/* ===== ESTILOS PARA ESTADO COLAPSADO DEL HEADER ===== */
-.sidebar-collapsed .sidebar-header {
-  padding: 1rem 0.5rem;
-  justify-content: center;
-}
-
-/* Ocultar título completo cuando está colapsado */
-.sidebar-collapsed .header-title-container {
-  display: none;
-}
-
-/* Mostrar solo el logo cuando está colapsado */
-.sidebar-collapsed .collapsed-logo {
-  display: block;
-}
-
-/* Efecto hover para indicar que es clickeable */
-.sidebar-collapsed .sidebar-header:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  margin: 0.25rem;
-  padding: 0.75rem 0.25rem;
-}
-
-/* ===== BOTÓN DE TOGGLE (COLAPSAR/EXPANDIR) ===== */
-.sidebar-toggle {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  transition: all 0.2s ease;
-  z-index: 10;
 }
 
-/* Ocultar botón toggle cuando está colapsado */
+/* ============================================================================
+   3.3 BOTÓN DE TOGGLE
+   ============================================================================ */
+
+/* Botón para colapsar/expandir */
+.sidebar-toggle {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  
+  /* Dimensiones */
+  width: 32px;
+  height: 32px;
+  
+  /* Apariencia */
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--border-radius-md);
+  color: var(--text-primary);
+  
+  /* Tipografía */
+  font-size: var(--font-size-sm);
+  
+  /* Interacción */
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+/* Efecto hover del botón */
+.sidebar-toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.05);
+}
+
+/* Ocultar indicador de expansión cuando sidebar está colapsado */
+.sidebar-collapsed .expand-indicator {
+  display: none;
+}
+
+/* Asegurar que todo esté alineado verticalmente en el header */
+.sidebar-header-content {
+  align-items: center;
+}
+
+/* Ajuste fino para el toggle en relación al header más grande */
+.sidebar-toggle {
+  margin-left: auto;
+}
+
+/* ============================================================================
+   3.4 HEADER - ESTADO COLAPSADO
+   ============================================================================ */
+
+/* Ajustes cuando el sidebar está colapsado */
+.sidebar-collapsed .sidebar-header {
+  padding: var(--spacing-lg) var(--spacing-sm);
+  min-height: 80px;
+  justify-content: center;
+}
+
+/* Ocultar elementos no necesarios cuando colapsado */
+.sidebar-collapsed .header-title-container,
 .sidebar-collapsed .sidebar-toggle {
   display: none;
 }
 
-.sidebar-toggle:hover {
-  background: rgba(255, 255, 255, 0.25);
-}
+/* ============================================================================
+   4. ÁREA DE NAVEGACIÓN PRINCIPAL
+   ============================================================================ */
 
-/* ===== ÁREA DE NAVEGACIÓN PRINCIPAL ===== */
+/* Contenedor de navegación */
 .sidebar-nav {
-  flex: 1; /* Ocupar todo el espacio disponible */
+  flex: 1;
   overflow: hidden;
-  padding: 0.5rem 0;
+  padding: var(--spacing-md) 0;
 }
 
-/* Contenedor con scroll para navegación larga */
+/* Contenedor con scroll */
 .nav-scroll-container {
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0 0.75rem;
+  padding: 0 var(--spacing-lg);
 }
 
 /* Personalización del scrollbar */
@@ -161,6 +271,7 @@
 
 .nav-scroll-container::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
 }
 
 .nav-scroll-container::-webkit-scrollbar-thumb {
@@ -168,101 +279,117 @@
   border-radius: 2px;
 }
 
-/* ===== SECCIONES DE NAVEGACIÓN ===== */
-.nav-section {
-  margin-bottom: 0.5rem;
-  position: relative; /* Para posicionar tooltips */
+.nav-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
-/* Cabecera de cada sección */
+/* ============================================================================
+   5. SECCIONES DE NAVEGACIÓN
+   ============================================================================ */
+
+/* Contenedor de sección */
+.nav-section {
+  margin-bottom: var(--spacing-md);
+  position: relative;
+}
+
+/* Cabecera de sección */
 .section-header {
+  /* Layout */
   width: 100%;
-  background: none;
-  border: none;
-  color: white;
-  padding: 0.75rem;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--spacing-md);
+  
+  /* Dimensiones y espaciado */
+  padding: var(--spacing-md);
+  
+  /* Apariencia */
+  background: transparent;
+  border: none;
+  border-radius: var(--border-radius-lg);
+  color: var(--text-primary) !important;
+  
+  /* Tipografía */
+  font-size: var(--font-size-md);
+  
+  /* Interacción */
   cursor: pointer;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  font-size: 0.9rem;
-  position: relative; /* Para tooltips personalizados */
+  transition: all var(--transition-fast);
 }
 
+/* Estados de la cabecera */
 .section-header:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-hover);
 }
 
 .section-header.active {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--bg-active);
 }
 
-/* Ícono de la sección */
-.section-icon {
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0; /* Evitar que se encoja */
-}
+/* ============================================================================
+   5.1 ELEMENTOS DE LA CABECERA 
+   ============================================================================ */
 
-/* Títulos de sección*/
+/* Título de la sección */
 .section-title {
   flex: 1;
   text-align: left;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: var(--font-size-sm);
+  color: var(--text-primary) !important;
   white-space: nowrap;
   overflow: hidden;
-  text-transform: none; 
-  letter-spacing: normal; 
 }
 
-/* Flecha indicadora de expansión */
-.section-arrow {
-  font-size: 0.8rem;
-  transition: transform 0.2s ease;
-  flex-shrink: 0;
+/* Asegurar que en estado activo también sea blanco */
+.section-header.active .section-title {
+  color: var(--text-primary) !important;
 }
 
-/* Rotar flecha cuando la sección está expandida */
-.section-header.active .section-arrow {
-  transform: rotate(90deg);
-}
-
-/* ===== ITEMS DENTRO DE LAS SECCIONES ===== */
-.section-items {
-  margin: 0.25rem 0 0.25rem 1.5rem;
-  border-left: 2px solid rgba(255, 255, 255, 0.1);
-  padding-left: 0.75rem;
-}
-
-/* Items individuales de navegación */
-.nav-item {
+/* Ícono de sección */
+.section-icon {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.6rem 0.75rem;
-  color: rgba(255, 255, 255, 0.9);
+  justify-content: center;
+}
+
+/* ============================================================================
+   6. ITEMS DE NAVEGACIÓN 
+   ============================================================================ */
+
+/* Item individual */
+.nav-item {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  
+  /* Dimensiones y espaciado */
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-bottom: var(--spacing-xs);
+  
+  /* Apariencia */
+  color: var(--text-secondary) !important;
   text-decoration: none;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  font-size: 0.85rem;
-  margin-bottom: 0.1rem;
+  border-radius: var(--border-radius-md);
+  
+  /* Tipografía */
+  font-size: var(--font-size-sm);
+  
+  /* Interacción */
+  transition: all var(--transition-fast);
 }
 
+/* Estados del item */
 .nav-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: white;
+  background: var(--bg-hover);
+  color: var(--text-primary) !important;
 }
 
-/* Estado activo del item de navegación */
 .nav-item-active {
-  background: rgba(255, 255, 255, 0.12);
-  color: white;
+  background: var(--bg-active);
+  color: var(--text-primary) !important;
   font-weight: 500;
   position: relative;
 }
@@ -276,223 +403,585 @@
   transform: translateY(-50%);
   width: 3px;
   height: 18px;
-  background: white;
-  border-radius: 2px;
+  background: var(--text-primary);
+  border-radius: var(--border-radius-sm);
 }
 
-/* Ícono de items */
-.item-icon {
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-/* Texto de items */
+/* Texto del item */
 .item-text {
   white-space: nowrap;
   overflow: hidden;
-  font-size: 0.85rem;
+  font-size: var(--font-size-sm);
 }
 
-/* ===== FOOTER DEL SIDEBAR ===== */
+/* Ocultar items individuales cuando sidebar está colapsado */
+.sidebar-collapsed .nav-item {
+  display: none;
+}
+
+/* ============================================================================
+   7. FOOTER DEL SIDEBAR
+   ============================================================================ */
+
+/* Contenedor principal del footer */
 .sidebar-footer {
-  padding: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.2) !important;
+  /* Layout */
+  flex-shrink: 0;
+  margin-top: auto;
+  
+  /* Dimensiones y espaciado */
+  padding: 12px 16px;
+  box-sizing: border-box;
+  width: 100%;
+  
+  /* Apariencia */
+  border-top: 1px solid var(--border-color);
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.1) 0%,
+    rgba(0, 0, 0, 0.2) 100%
+  ) !important;
   backdrop-filter: blur(10px);
-  flex-shrink: 0; /* Evitar que se encoja */
-  margin-top: auto; /* Empujar hacia abajo */
 }
 
-/* Información del usuario */
+/* Ajustes cuando sidebar colapsado */
+.sidebar-collapsed .sidebar-footer {
+  padding: 12px 8px;
+}
+
+/* ============================================================================
+   7.1 INFORMACIÓN DEL USUARIO
+   ============================================================================ */
+
+/* Contenedor de info usuario */
 .user-info {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+/* Info usuario colapsada */
+.sidebar-collapsed .user-info {
+  justify-content: center;
+  margin-bottom: var(--spacing-sm);
 }
 
 /* Avatar del usuario */
 .user-avatar {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--bg-hover);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
   flex-shrink: 0;
 }
 
+/* Avatar colapsado */
+.sidebar-collapsed .user-avatar {
+  width: 40px;
+  height: 40px;
+  margin: 0;
+}
+
+/* Detalles del usuario */
 .user-details {
   flex: 1;
-  min-width: 0; /* Permitir truncado de texto */
-}
-
-.user-name {
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: white;
-  white-space: nowrap;
+  min-width: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
-  display: block;
 }
 
-.user-role {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.8);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: block;
-}
-
-/* Botones de acción del footer - Versión más compacta */
-.sidebar-footer-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.footer-button {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  color: white !important;
-  padding: 0.5rem 0.75rem !important;
-  border-radius: 5px !important;
-  cursor: pointer;
-  font-size: 0.8rem !important;
-  transition: all 0.2s ease !important;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  text-decoration: none;
-  width: 100%;
-  text-transform: none !important;
-  min-height: auto;
-}
-
-.footer-button:hover {
-  background: rgba(255, 255, 255, 0.15) !important;
-  border-color: rgba(255, 255, 255, 0.3) !important;
-  transform: translateY(-1px);
-}
-
-.footer-button .MuiButton-startIcon {
-  margin-right: 0.4rem;
-  margin-left: 0;
-}
-
-.footer-button .MuiButton-startIcon svg {
-  font-size: 16px;
-}
-
-/* Estados cuando el sidebar está colapsado */
-.sidebar-collapsed .footer-button {
-  padding: 0.5rem !important;
-  justify-content: center;
-}
-
-.sidebar-collapsed .footer-button span:not(.MuiButton-startIcon) {
-  display: none;
-}
-
-/* ===== ESTILOS PARA ESTADO COLAPSADO DEL FOOTER ===== */
-.sidebar-collapsed .sidebar-footer {
-  padding: 0.75rem 0.5rem;
-  background: rgba(0, 0, 0, 0.2) !important;
-}
-
-.sidebar-collapsed .user-info {
-  justify-content: center;
-  margin-bottom: 0.75rem;
-}
-
-/* Ocultar detalles del usuario cuando está colapsado */
+/* Ocultar detalles cuando colapsado */
 .sidebar-collapsed .user-details {
   display: none;
 }
 
-.sidebar-collapsed .user-avatar {
-  width: 44px;
-  height: 44px;
-  margin: 0;
+/* Nombre del usuario */
+.user-name {
+  display: block;
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
 }
 
-/* Cambiar a disposición horizontal de botones */
+/* Rol del usuario */
+.user-role {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+/* ============================================================================
+   7.2 BOTONES DE ACCIÓN DEL FOOTER - ESPACIADO CORREGIDO
+   ============================================================================ */
+
+/* Contenedor de botones */
+.sidebar-footer-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Asegurar que no haya espacios innecesarios */
+.sidebar-footer-buttons > * {
+  flex-shrink: 0;
+}
+
+/* Botones cuadrados cuando colapsado */
 .sidebar-collapsed .sidebar-footer-buttons {
   flex-direction: row;
   justify-content: center;
-  gap: 0.3rem;
+  align-items: center;
+  gap: 10px;
+  padding: 0 4px;
 }
 
-/* Botones cuadrados cuando está colapsado */
+/* Botón individual */
+.footer-button {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  
+  /* Dimensiones y espaciado */
+  padding: 8px 12px !important;
+  min-height: 36px;
+  
+  /* Apariencia */
+  background: var(--bg-hover) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--border-radius-sm) !important;
+  color: var(--text-primary) !important;
+  
+  /* Tipografía */
+  font-size: var(--font-size-xs) !important;
+  text-transform: none !important;
+  text-decoration: none;
+  
+  /* Interacción */
+  cursor: pointer;
+  transition: all 0.3s ease !important;
+}
+
+/* Botones cuando sidebar está expandido */
+.admin-sidebar:not(.sidebar-collapsed) .footer-button {
+  justify-content: flex-start;
+}
+
+/* Botones cuadrados en modo colapsado */
 .sidebar-collapsed .footer-button {
   width: 40px !important;
   height: 40px !important;
+  min-width: 40px !important;
   padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 8px !important;
   justify-content: center;
-  border-radius: 6px !important;
-  min-width: auto !important;
 }
 
-/* Ocultar texto de botones cuando está colapsado */
+/* Ocultar texto, mostrar solo ícono cuando colapsado */
 .sidebar-collapsed .footer-button span:not(.MuiButton-startIcon) {
   display: none;
 }
 
+/* Ícono dentro del botón */
+.footer-button .MuiButton-startIcon {
+  margin-right: var(--spacing-sm);
+}
+
+.footer-button .MuiButton-startIcon svg {
+  font-size: 14px;
+}
+
+/* Íconos dentro de botones colapsados */
 .sidebar-collapsed .footer-button .MuiButton-startIcon {
   margin: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .sidebar-collapsed .footer-button .MuiButton-startIcon svg {
   font-size: 20px;
 }
 
-/* ===== TOOLTIPS MEJORADOS ===== */
-/* Tooltips para secciones cuando está colapsado */
-.sidebar-collapsed .nav-section .MuiTooltip-tooltip {
-  background: #1e293b !important;
-  color: white !important;
-  font-size: 0.8rem !important;
-  padding: 0.6rem 0.8rem !important;
-  border-radius: 6px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  font-weight: 500 !important;
+/* Estados del botón */
+.footer-button:hover {
+  background: var(--bg-active) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  transform: translateY(-1px);
 }
 
-/* Tooltips para botones del footer cuando está colapsado */
+/* ============================================================================
+   8. TOOLTIPS MEJORADOS
+   ============================================================================ */
+
+/* Ocultar tooltips cuando el sidebar está expandido */
+.admin-sidebar:not(.sidebar-collapsed) .MuiTooltip-popper {
+  display: none !important;
+}
+
+/* Tooltips para estado colapsado */
+.sidebar-collapsed .nav-section .MuiTooltip-tooltip,
 .sidebar-collapsed .sidebar-footer .MuiTooltip-tooltip {
+  /* Apariencia */
   background: #1e293b !important;
-  color: white !important;
-  font-size: 0.8rem !important;
-  padding: 0.6rem 0.8rem !important;
-  border-radius: 6px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--border-radius-md) !important;
+  box-shadow: var(--shadow-md) !important;
+  
+  /* Tipografía */
+  font-size: var(--font-size-sm) !important;
   font-weight: 500 !important;
+  
+  /* Espaciado */
+  padding: var(--spacing-sm) var(--spacing-md) !important;
 }
 
-/* Asegurar posicionamiento correcto de tooltips */
+/* Asegurar que tooltips desaparezcan suavemente */
+.MuiTooltip-tooltip {
+  transition: opacity 0.2s ease !important;
+}
+
+/* Posicionamiento de tooltips */
 .MuiTooltip-popper[data-popper-placement*="right"] .MuiTooltip-tooltip {
-  margin-left: 8px !important;
+  margin-left: var(--spacing-sm) !important;
 }
 
-/* ===== DISEÑO RESPONSIVE ===== */
+/* Asegurar que el tooltip muestre el nombre completo */
+.sidebar-collapsed .MuiTooltip-tooltip {
+  white-space: nowrap;
+}
+
+/* ============================================================================
+   9. ESTADO COLAPSADO - SOLO ÍCONOS PRINCIPALES
+   ============================================================================ */
+
+/* Mostrar solo las secciones principales cuando colapsado */
+.sidebar-collapsed .nav-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-bottom: var(--spacing-md);
+}
+
+/* Header de sección cuando colapsado - solo el ícono */
+.sidebar-collapsed .section-header {
+  width: 44px;
+  height: 44px;
+  padding: var(--spacing-sm);
+  margin: 0;
+  justify-content: center;
+  border-radius: var(--border-radius-md);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-collapsed .section-header:hover {
+  background: var(--bg-hover);
+}
+
+.sidebar-collapsed .section-header.active {
+  background: var(--bg-active);
+}
+
+/* Ocultar todos los elementos excepto el ícono en secciones colapsadas */
+.sidebar-collapsed .section-title,
+.sidebar-collapsed .section-arrow {
+  display: none;
+}
+
+/* Mostrar solo el ícono de la sección */
+.sidebar-collapsed .section-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.sidebar-collapsed .section-icon svg {
+  font-size: 20px;
+  color: var(--text-secondary);
+}
+
+.sidebar-collapsed .section-header:hover .section-icon svg {
+  color: var(--text-primary);
+}
+
+.sidebar-collapsed .section-header.active .section-icon svg {
+  color: var(--text-primary);
+}
+
+/* Ocultar contenedores de items individuales cuando colapsado */
+.sidebar-collapsed .collapsed-items,
+.sidebar-collapsed .section-items,
+.sidebar-collapsed .collapsed-item-wrapper {
+  display: none;
+}
+
+/* Indicador visual para secciones con subitems */
+.sidebar-collapsed .section-header.has-items::after {
+  content: "";
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 6px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+}
+
+.sidebar-collapsed .section-header.active.has-items::after {
+  background: var(--text-primary);
+}
+
+/* ============================================================================
+   10. OVERRIDES DE MATERIAL-UI (ESPECÍFICOS)
+   ============================================================================ */
+
+/* Reset para botones MUI en el footer */
+.sidebar-footer .MuiButton-root {
+  background: var(--bg-hover) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.sidebar-footer .MuiButton-root:hover {
+  background: var(--bg-active) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* ============================================================================
+   11. OVERRIDES PARA CORREGIR COLORES VERDES
+   ============================================================================ */
+
+/* OVERRIDE URGENTE - ELIMINAR VERDES DEL SIDEBAR */
+.admin-sidebar * {
+  color: inherit !important;
+}
+
+.admin-sidebar .section-title {
+  color: rgba(255, 255, 255, 0.95) !important;
+  background: none !important;
+  background-image: none !important;
+  -webkit-background-clip: initial !important;
+  background-clip: initial !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.95) !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+  line-height: normal !important;
+}
+
+/* Reset total para elementos dentro del sidebar */
+.admin-sidebar .section-header,
+.admin-sidebar .section-header * {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* Anular cualquier !important verde que venga de CSS global */
+.admin-sidebar :where(.section-title, .section-header, .nav-item) {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* ============================================================================
+   12. UTILIDADES Y ESTADOS ESPECIALES
+   ============================================================================ */
+
+/* Clase para transiciones suaves */
+.transition-all {
+  transition: all var(--transition-base);
+}
+
+/* Clase para elementos ocultos */
+.hidden-collapsed {
+  transition: opacity var(--transition-fast);
+}
+
+.sidebar-collapsed .hidden-collapsed {
+  opacity: 0;
+  visibility: hidden;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* Indicador de expansión para logo */
+.expand-hint {
+  font-size: var(--font-size-xs);
+  opacity: 0.6;
+  animation: pulse 2s infinite;
+  display: block;
+  margin-top: 2px;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ============================================================================
+   13. ANIMACIONES Y TRANSICIONES MEJORADAS
+   ============================================================================ */
+
+/* Transición suave para todos los cambios de estado */
+.admin-sidebar,
+.sidebar-header,
+.sidebar-footer,
+.footer-button,
+.sidebar-toggle {
+  transition: all var(--transition-base);
+}
+
+/* Animación para expansión de sidebar */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.sidebar-open .nav-section,
+.sidebar-open .sidebar-footer {
+  animation: slideIn 0.2s ease-out;
+}
+
+/* Animación específica para expansión/contracción */
+@keyframes headerExpand {
+  from {
+    opacity: 0.8;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.sidebar-open .sidebar-header,
+.sidebar-open .sidebar-footer {
+  animation: headerExpand 0.3s ease-out;
+}
+
+/* ============================================================================
+   14. ESTADOS DE INTERACCIÓN MEJORADOS
+   ============================================================================ */
+
+/* Mejor contraste y focus para elementos interactivos */
+.section-header:focus-visible,
+.nav-item:focus-visible,
+.footer-button:focus-visible,
+.sidebar-toggle:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.6);
+  outline-offset: 2px;
+}
+
+/* Efecto de presión para botones */
+.section-header:active,
+.footer-button:active,
+.sidebar-toggle:active {
+  transform: scale(0.98);
+}
+
+/* Feedback táctil para móviles */
+@media (hover: none) and (pointer: coarse) {
+  .section-header:active,
+  .nav-item:active,
+  .footer-button:active {
+    background: var(--bg-pressed) !important;
+    transform: scale(0.98);
+  }
+  
+  .sidebar-toggle:active {
+    transform: scale(0.95);
+  }
+}
+
+/* Mejor contraste para accesibilidad */
+@media (prefers-contrast: high) {
+  .sidebar-header {
+    border-bottom: 2px solid var(--text-primary);
+  }
+  
+  .nav-item-active::before {
+    width: 4px;
+    background: var(--text-primary);
+  }
+}
+
+/* ============================================================================
+   15. DISEÑO RESPONSIVE
+   ============================================================================ */
+
+/* Tablets */
+@media (max-width: 1024px) {
+  .sidebar-header {
+    min-height: 72px;
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+  
+  .company-name {
+    font-size: var(--font-size-lg);
+  }
+  
+  .system-name {
+    font-size: 0.65rem;
+  }
+  
+  /* Footer más compacto en tablets */
+  .sidebar-footer {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+  
+  .footer-button {
+    padding: 8px var(--spacing-sm) !important;
+    min-height: 34px;
+  }
+  
+  .sidebar-collapsed .section-header {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .sidebar-collapsed .section-icon svg {
+    font-size: 18px;
+  }
+}
+
+/* Tablets y móviles */
 @media (max-width: 768px) {
   .admin-sidebar {
     width: 100%;
-    transform: translateX(-100%); /* Ocultar fuera de pantalla */
+    transform: translateX(-100%);
   }
   
   .admin-sidebar.sidebar-open {
-    transform: translateX(0); /* Mostrar */
+    transform: translateX(0);
   }
   
   .admin-sidebar.sidebar-collapsed {
@@ -500,29 +989,111 @@
     transform: translateX(-100%);
   }
   
+  /* Header más compacto en móviles */
+  .sidebar-header {
+    min-height: 68px;
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+  
+  .sidebar-header-content {
+    gap: var(--spacing-sm);
+  }
+  
+  .sidebar-toggle {
+    width: 28px;
+    height: 28px;
+  }
+  
+  /* Footer compacto en móviles */
+  .sidebar-footer {
+    padding: 8px 12px;
+  }
+  
+  .sidebar-collapsed .sidebar-footer {
+    padding: 8px 6px;
+  }
+  
+  .user-info {
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .user-name {
+    font-size: 0.8rem;
+  }
+  
+  .footer-button {
+    padding: 6px var(--spacing-xs) !important;
+    min-height: 32px;
+    font-size: 0.75rem !important;
+  }
+  
+  .footer-button .MuiButton-startIcon svg {
+    font-size: 12px;
+  }
+  
+  .sidebar-collapsed .footer-button {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+  }
+  
+  .sidebar-collapsed .section-header {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .sidebar-collapsed .section-icon svg {
+    font-size: 16px;
+  }
+  
+  .sidebar-collapsed .sidebar-footer-buttons {
+    gap: 8px;
+  }
+  
+  /* Ajuste de fondo para móviles */
   .sidebar-footer {
     background: rgba(0, 0, 0, 0.3) !important;
   }
 }
 
-/* ===== OVERRIDES DE MATERIAL-UI ===== */
-.sidebar-footer .MuiButton-root {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  color: white !important;
-}
-
-.sidebar-footer .MuiButton-root:hover {
-  background: rgba(255, 255, 255, 0.15) !important;
-  border-color: rgba(255, 255, 255, 0.3) !important;
-}
-
-/* Asegurar que el color del footer sea consistente */
-.admin-sidebar .sidebar-footer {
-  background: 
-    linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0.1) 0%,
-      rgba(0, 0, 0, 0.2) 100%
-    ) !important;
+/* Pantallas muy pequeñas */
+@media (max-width: 480px) {
+  .sidebar-header {
+    min-height: 64px;
+  }
+  
+  .collapsed-logo {
+    font-size: 1.3rem;
+  }
+  
+  .sidebar-footer {
+    padding: var(--spacing-xs);
+  }
+  
+  /* Botones del footer en fila cuando colapsado */
+  .sidebar-collapsed .sidebar-footer-buttons {
+    flex-direction: row;
+    justify-content: space-around;
+    padding: 0;
+    gap: var(--spacing-xs);
+  }
+  
+  .sidebar-collapsed .footer-button {
+    width: 34px !important;
+    height: 34px !important;
+  }
+  
+  .sidebar-collapsed .footer-button .MuiButton-startIcon svg {
+    font-size: 16px;
+  }
+  
+  .footer-button {
+    padding: var(--spacing-xs) var(--spacing-sm) !important;
+  }
 }
