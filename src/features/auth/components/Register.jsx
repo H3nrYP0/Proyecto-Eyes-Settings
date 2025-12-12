@@ -22,12 +22,15 @@ import {
   DialogContent,
   DialogActions,
   IconButton,
-  CircularProgress
+  CircularProgress,
+  InputAdornment
 } from "@mui/material";
 import { 
   PersonAddOutlined as PersonAddIcon,
   Close as CloseIcon,
-  ArrowBack as ArrowBackIcon
+  ArrowBack as ArrowBackIcon,
+  VisibilityOutlined as VisibilityOutlinedIcon,
+  VisibilityOffOutlined as VisibilityOffOutlinedIcon
 } from "@mui/icons-material";
 
 // Constantes - Documentos para mayores de 18 años
@@ -280,6 +283,8 @@ export default function Register({ onRegister }) {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showVerificationDialog, setShowVerificationDialog] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -289,6 +294,19 @@ export default function Register({ onRegister }) {
       [name]: type === 'checkbox' ? checked : value
     }));
     if (error) setError("");
+  };
+
+  // Funciones para alternar visibilidad de contraseñas
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleClickShowConfirmPassword = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
+
+  const handleMouseDownPassword = (e) => {
+    e.preventDefault();
   };
 
   const calculateAge = (birthDate) => {
@@ -434,19 +452,19 @@ export default function Register({ onRegister }) {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        py: 1, // Reducido de 2 a 1
+        py: 1,
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif"
       }}
     >
       {/* Logo fuera de la card - centrado en la parte superior */}
-      <Box sx={{ textAlign: "center", mb: 0.5 }}> {/* Reducido de 1 a 0.5 */}
+      <Box sx={{ textAlign: "center", mb: 0.5 }}>
         <Box 
           sx={{ 
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
             gap: 1,
-            mb: 1.5 // Reducido de 2 a 1.5
+            mb: 1.5
           }}
         >
           <Box 
@@ -454,8 +472,8 @@ export default function Register({ onRegister }) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 48, // Reducido de 52 a 48
-              height: 48, // Reducido de 52 a 48
+              width: 48,
+              height: 48,
               background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
               borderRadius: '12px',
               boxShadow: '0 4px 12px rgba(25, 118, 210, 0.2)'
@@ -463,7 +481,7 @@ export default function Register({ onRegister }) {
           >
             <PersonAddIcon 
               sx={{ 
-                fontSize: 24, // Reducido de 26 a 24
+                fontSize: 24,
                 color: 'white'
               }} 
             />
@@ -474,7 +492,7 @@ export default function Register({ onRegister }) {
             color="primary"
             fontWeight="700"
             fontFamily="inherit"
-            sx={{ letterSpacing: '-0.025em', fontSize: { xs: '1.75rem', sm: '2rem' } }} // Ajustado tamaño
+            sx={{ letterSpacing: '-0.025em', fontSize: { xs: '1.75rem', sm: '2rem' } }}
           >
             Visual Outlet
           </Typography>
@@ -494,15 +512,15 @@ export default function Register({ onRegister }) {
           elevation={2}
           sx={{
             width: "100%",
-            maxWidth: 500,
-            p: 3, // Reducido de 4 a 3
+            maxWidth: 520, // Aumentado ligeramente
+            p: 3.5, // Aumentado padding de la card
             borderRadius: 3,
             fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif"
           }}
         >
-          <CardContent sx={{ p: 0 }}> {/* Reducido de 1 a 0 */}
+          <CardContent sx={{ p: 0 }}>
             {/* Header dentro de la card */}
-            <Box sx={{ textAlign: "center", mb: 2.5 }}> {/* Reducido de 3 a 2.5 */}
+            <Box sx={{ textAlign: "center", mb: 3 }}> {/* Aumentado */}
               <Typography 
                 variant="h5" 
                 component="h2" 
@@ -510,7 +528,7 @@ export default function Register({ onRegister }) {
                 color="text.primary"
                 fontWeight="600"
                 fontFamily="inherit"
-                sx={{ mb: 0.5 }} // Reducido margen
+                sx={{ mb: 0.5 }}
               >
                 Crear una cuenta
               </Typography>
@@ -519,11 +537,11 @@ export default function Register({ onRegister }) {
             {/* Error Alert */}
             {error && (
               <Alert severity="error" sx={{ 
-                mb: 1.5, // Reducido de 2 a 1.5
+                mb: 2, // Aumentado
                 fontSize: '0.85rem',
                 fontFamily: 'inherit',
                 borderRadius: 2,
-                py: 0.75 // Reducido padding
+                py: 0.75
               }}>
                 {error}
               </Alert>
@@ -531,20 +549,19 @@ export default function Register({ onRegister }) {
 
             {success && (
               <Alert severity="success" sx={{ 
-                mb: 1.5, // Reducido de 2 a 1.5
+                mb: 2, // Aumentado
                 fontSize: '0.85rem',
                 fontFamily: 'inherit',
                 borderRadius: 2,
-                py: 0.75 // Reducido padding
+                py: 0.75
               }}>
                 ¡Registro exitoso! Serás redirigido al inicio de sesión...
               </Alert>
             )}
 
             {/* Form */}
-            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 0.5 }}> {/* Reducido de 1 a 0.5 */}
-              <Grid container spacing={1.5}> {/* Reducido de 2 a 1.5 */}
-                {/* Campos reorganizados para mejor uso del espacio */}
+            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}> {/* Aumentado */}
+              <Grid container spacing={2}> {/* Aumentado spacing */}
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
@@ -647,42 +664,107 @@ export default function Register({ onRegister }) {
                   />
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
+                {/* Campo de contraseña con toggle de visibilidad */}
+                <Grid item xs={11} sm={6}>
                   <TextField
                     fullWidth
                     size="small"
                     name="password"
                     label="Contraseña"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="········"
                     required
                     disabled={success || loading}
-                    sx={{ fontFamily: 'inherit' }}
+                    sx={{ 
+                      fontFamily: 'inherit',
+                      '& .MuiOutlinedInput-root': {
+                        pr: 0.1, // Padding derecho reducido porque el botón ya tiene margen
+                      }
+                    }}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            aria-label="toggle password visibility"
+                            onClick={handleClickShowPassword}
+                            onMouseDown={handleMouseDownPassword}
+                            edge="end"
+                            size="small"
+                            sx={{ 
+                              mr: 1.5, // Aumentado margen derecho
+                              ml: 1.5, // Añadido margen izquierdo
+                              p: 0.75 // Aumentado padding del botón
+                            }}
+                          >
+                            {showPassword ? (
+                              <VisibilityOffOutlinedIcon fontSize="small" />
+                            ) : (
+                              <VisibilityOutlinedIcon fontSize="small" />
+                            )}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
                   />
-                  <PasswordStrength password={formData.password} />
+                  <Box sx={{ mt: 1 }}> {/* Espacio adicional para el indicador */}
+                    <PasswordStrength password={formData.password} />
+                  </Box>
                 </Grid>
                 
+                {/* Campo de confirmar contraseña con toggle de visibilidad - MÁS ESPACIO */}
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
                     size="small"
                     name="confirmPassword"
                     label="Confirmar contraseña"
-                    type="password"
+                    type={showConfirmPassword ? "text" : "password"}
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     placeholder="········"
                     required
                     disabled={success || loading}
-                    sx={{ fontFamily: 'inherit' }}
+                    sx={{ 
+                      fontFamily: 'inherit',
+                      '& .MuiOutlinedInput-root': {
+                        pr: 0.1, // Padding derecho reducido
+                      }
+                    }}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            aria-label="toggle confirm password visibility"
+                            onClick={handleClickShowConfirmPassword}
+                            onMouseDown={handleMouseDownPassword}
+                            edge="end"
+                            size="small"
+                            sx={{ 
+                              mr: 1.5, // Aumentado margen derecho
+                              ml: 0.5, // Añadido margen izquierdo
+                              p: 0.75 // Aumentado padding del botón
+                            }}
+                          >
+                            {showConfirmPassword ? (
+                              <VisibilityOffOutlinedIcon fontSize="small" />
+                            ) : (
+                              <VisibilityOutlinedIcon fontSize="small" />
+                            )}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
                   />
+                  <Box sx={{ height: 24, mt: 1 }}> {/* Espacio equivalente al PasswordStrength */}
+                    {/* Espacio reservado para mantener alineación */}
+                  </Box>
                 </Grid>
               </Grid>
 
-              {/* Términos y condiciones - MEJOR ALINEADO */}
-              <Box sx={{ mt: 2, mb: 1, display: 'flex', alignItems: 'flex-start' }}>
+              {/* Términos y condiciones */}
+              <Box sx={{ mt: 3, mb: 2, display: 'flex', alignItems: 'flex-start' }}> {/* Más espacio */}
                 <Checkbox 
                   name="agreeTerms"
                   checked={formData.agreeTerms}
@@ -690,7 +772,7 @@ export default function Register({ onRegister }) {
                   color="primary"
                   size="small"
                   disabled={success || loading}
-                  sx={{ mt: -0.5 }} // Ajuste fino para alineación vertical
+                  sx={{ mt: -0.5 }}
                 />
                 <Typography sx={{ 
                   fontSize: '0.85rem', 
@@ -727,9 +809,9 @@ export default function Register({ onRegister }) {
                 variant="contained"
                 disabled={success || loading}
                 sx={{ 
-                  mt: 1, // Reducido de 2 a 1
-                  mb: 1.5, // Reducido de 3 a 1.5
-                  py: 1, // Reducido de 1.1 a 1
+                  mt: 2, // Aumentado
+                  mb: 2.5, // Aumentado
+                  py: 1.2, // Aumentado padding vertical
                   textTransform: 'none',
                   fontSize: '0.95rem',
                   fontFamily: 'inherit',
@@ -749,8 +831,8 @@ export default function Register({ onRegister }) {
               </Button>
             </Box>
 
-            {/* Footer - MEJOR ALINEADO */}
-            <Box sx={{ textAlign: "center", mt: 1.5 }}> {/* Añadido margen superior */}
+            {/* Footer */}
+            <Box sx={{ textAlign: "center", mt: 2.5 }}> {/* Más espacio */}
               <Typography 
                 variant="body2" 
                 color="text.secondary" 
@@ -758,7 +840,7 @@ export default function Register({ onRegister }) {
                   fontSize: '0.85rem',
                   fontFamily: 'inherit',
                   fontWeight: '500',
-                  display: 'inline' // Para mejor alineación con el botón
+                  display: 'inline'
                 }}
               >
                 ¿Ya tienes una cuenta?{" "}
@@ -775,7 +857,7 @@ export default function Register({ onRegister }) {
                   fontWeight: '700',
                   p: 0,
                   minWidth: 'auto',
-                  verticalAlign: 'baseline' // Para alinear con el texto
+                  verticalAlign: 'baseline'
                 }}
               >
                 Inicia sesión aquí

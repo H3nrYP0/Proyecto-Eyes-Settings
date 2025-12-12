@@ -10,10 +10,13 @@ import {
   Button,
   Typography,
   Container,
-  Alert
+  Alert,
+  InputAdornment,
+  IconButton
 } from "@mui/material";
 import { 
-  VisibilityOutlined as VisibilityOutlinedIcon
+  VisibilityOutlined as VisibilityOutlinedIcon,
+  VisibilityOffOutlined as VisibilityOffOutlinedIcon
 } from "@mui/icons-material";
 import { ROLES, TEST_USERS } from "../../../shared/constants/roles";
 
@@ -22,6 +25,7 @@ export default function Login({ setUser }) {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // Nuevo estado
   const navigate = useNavigate();
 
   // Función para verificar usuarios especiales
@@ -76,6 +80,16 @@ export default function Login({ setUser }) {
     
     // IMPORTANTE: Usar replace: true para limpiar el historial
     navigate("/", { replace: true });
+  };
+
+  // Función para alternar visibilidad de contraseña
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
+  // Función para evitar que el botón active el submit
+  const handleMouseDownPassword = (e) => {
+    e.preventDefault();
   };
 
   return (
@@ -223,7 +237,7 @@ export default function Login({ setUser }) {
                 fullWidth
                 name="password"
                 label="Contraseña"
-                type="password"
+                type={showPassword ? "text" : "password"} // Cambia el tipo dinámicamente
                 id="password"
                 autoComplete="current-password"
                 value={password}
@@ -231,6 +245,26 @@ export default function Login({ setUser }) {
                 placeholder="········"
                 size="small"
                 sx={{ fontFamily: 'inherit' }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={handleClickShowPassword}
+                        onMouseDown={handleMouseDownPassword}
+                        edge="end"
+                        size="small"
+                        sx={{ mr: 0.5 }}
+                      >
+                        {showPassword ? (
+                          <VisibilityOffOutlinedIcon fontSize="small" />
+                        ) : (
+                          <VisibilityOutlinedIcon fontSize="small" />
+                        )}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
               />
 
               {/* Options Row */}

@@ -53,9 +53,6 @@ const LandingPage = ({ user, setUser }) => {
             {user ? (
               <div className="user-actions">
                 <span className="user-greeting">Hola, {user.name}</span>
-                <button className="btn btn-dashboard" onClick={handleDashboard}>
-                  Dashboard
-                </button>
                 <button className="btn btn-logout" onClick={handleLogout}>
                   Salir
                 </button>
@@ -63,7 +60,7 @@ const LandingPage = ({ user, setUser }) => {
             ) : (
               <div className="guest-actions">
                 <button className="btn btn-login" onClick={handleLogin}>
-                  Entrar al Sistema
+                  Iniciar sesión
                 </button>
               </div>
             )}
