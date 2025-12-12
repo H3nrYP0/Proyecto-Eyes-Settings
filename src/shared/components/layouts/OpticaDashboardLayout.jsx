@@ -97,6 +97,8 @@ import "/src/shared/styles/layouts/OpticaDashboardLayout.css";
 import EditarPermisos from "../../../features/seguridad/pages/roles/EditarPermisos";
 import ListaRoles from "../../../features/seguridad/pages/roles/ListaRoles";
 
+import { ROLES } from "../../../shared/constants/roles";
+
 // ESTE ES EL LAYOUT PRINCIPAL DEL DASHBOARD ADMIN
 export default function OpticaDashboardLayout({ user, setUser }) {
   // ESTE ESTADO CONTROLA SI EL SIDEBAR ESTÁ ABIERTO O CERRADO
@@ -115,9 +117,22 @@ export default function OpticaDashboardLayout({ user, setUser }) {
     navigate("/login", { replace: true });
   };
 
-  // ESTA VALIDACIÓN REDIRIGE AL LOGIN SI NO HAY USUARIO
+  // Y dentro de la función, después de verificar si hay usuario:
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  // NUEVO: Validación adicional de roles
+  const dashboardRoles = [
+    ROLES.SUPER_ADMIN,
+    ROLES.ADMIN,
+    ROLES.VENDEDOR,
+    ROLES.OPTICO
+  ];
+
+  if (!dashboardRoles.includes(user.role)) {
+    console.log(`Usuario ${user.email} (${user.role}) intentó acceder al dashboard`);
+    return <Navigate to="/" replace />;
   }
 
   return (

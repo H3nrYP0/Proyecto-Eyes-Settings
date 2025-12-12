@@ -9,15 +9,13 @@ import {
   Checkbox,
   Button,
   Typography,
-  Divider,
   Container,
   Alert
 } from "@mui/material";
 import { 
   VisibilityOutlined as VisibilityOutlinedIcon
 } from "@mui/icons-material";
-import { FcGoogle } from "react-icons/fc";
-import { ROLES } from "../../../shared/constants/roles";
+import { ROLES, TEST_USERS } from "../../../shared/constants/roles";
 
 export default function Login({ setUser }) {
   const [email, setEmail] = useState("");
@@ -25,6 +23,21 @@ export default function Login({ setUser }) {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+
+  // Función para verificar usuarios especiales
+  const verifySpecialUser = (email, password) => {
+    const normalizedEmail = email.toLowerCase().trim();
+    
+    // Verificar si es usuario especial (de TEST_USERS)
+    for (const [key, user] of Object.entries(TEST_USERS)) {
+      if (user.email.toLowerCase() === normalizedEmail && user.password === password) {
+        console.log(`✅ Usuario especial encontrado: ${key} (${user.role})`);
+        return user;
+      }
+    }
+    
+    return null; // No es usuario especial
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -35,19 +48,34 @@ export default function Login({ setUser }) {
       return;
     }
 
-    // Simulación de autenticación
-    // En producción, aquí llamarías a tu backend
-    const userData = { 
-      name: email.split('@')[0], 
-      email,
-      // Todos los usuarios tienen rol "usuario" por defecto
-      // Los roles específicos se asignan internamente
-      role: ROLES.USUARIO,
-      // Este será actualizado por el backend según las credenciales
+    // 1. Verificar si es usuario especial (admin, vendedor, óptico)
+    const specialUser = verifySpecialUser(email, password);
+    
+    if (specialUser) {
+      // Es usuario especial - redirigir al dashboard
+      console.log("🔑 Autenticación exitosa como:", specialUser.role);
+      setUser(specialUser);
+      
+      // Solo usuarios especiales van al dashboard
+      navigate("/admin/dashboard");
+      return;
+    }
+
+    // 2. Si NO es usuario especial, es usuario normal
+    console.log("👤 Usuario normal detectado - Redirigiendo a landing");
+    const normalUser = {
+      id: Date.now(),
+      name: email.split('@')[0],
+      email: email.trim(),
+      role: ROLES.USUARIO, // Rol USUARIO por defecto
       permissions: []
     };
-    setUser(userData);
-    navigate("/admin/dashboard");
+    
+    setUser(normalUser);
+    console.log("📍 Navegando a / (landing page)");
+    
+    // IMPORTANTE: Usar replace: true para limpiar el historial
+    navigate("/", { replace: true });
   };
 
   return (
@@ -152,6 +180,25 @@ export default function Login({ setUser }) {
               </Alert>
             )}
 
+            {/* Información para probar usuarios especiales */}
+            <Alert severity="info" sx={{ mb: 3, fontSize: '0.8rem', borderRadius: 2 }}>
+              <Typography variant="body2" fontWeight="600" gutterBottom>
+                Usuarios de prueba:
+              </Typography>
+              <Typography variant="body2" component="div">
+                <strong>Admin:</strong> admin@visualoutlet.com / Admin123! (Dashboard)
+              </Typography>
+              <Typography variant="body2" component="div">
+                <strong>Vendedor:</strong> vendedor@visualoutlet.com / Vendedor123! (Dashboard)
+              </Typography>
+              <Typography variant="body2" component="div">
+                <strong>Óptico:</strong> optico@visualoutlet.com / Optico123! (Dashboard)
+              </Typography>
+              <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
+                <strong>Cualquier otro correo/contraseña:</strong> Irá a la Landing Page
+              </Typography>
+            </Alert>
+
             {/* Login Form */}
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
               <TextField
@@ -165,7 +212,7 @@ export default function Login({ setUser }) {
                 autoFocus
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="tu@visualoutlet.com"
+                placeholder="ejemplo@correo.com"
                 size="small"
                 sx={{ fontFamily: 'inherit' }}
               />
