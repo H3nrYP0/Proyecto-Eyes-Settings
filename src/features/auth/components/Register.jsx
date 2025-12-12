@@ -1,6 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import ReCAPTCHA from "react-google-recaptcha";
 import { 
   Box,
   Card,
@@ -17,20 +16,26 @@ import {
   Container,
   Alert,
   Grid,
-  LinearProgress
+  LinearProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
+  CircularProgress
 } from "@mui/material";
 import { 
-  PersonAddOutlined as PersonAddIcon
+  PersonAddOutlined as PersonAddIcon,
+  Close as CloseIcon,
+  ArrowBack as ArrowBackIcon
 } from "@mui/icons-material";
-import { ROLES } from "../../../shared/constants/roles";
 
-// Constantes
+// Constantes - Documentos para mayores de 18 años
 const TIPOS_DOCUMENTO = {
   CC: "Cédula de Ciudadanía",
-  CE: "Cédula de Extranjería", 
+  CE: "Cédula de Extranjería",
   PASAPORTE: "Pasaporte",
-  NIT: "NIT",
-  TI: "Tarjeta de Identidad"
+  PEP: "Permiso Especial de Permanencia"
 };
 
 // Componente de fortaleza de contraseña
@@ -76,16 +81,196 @@ const PasswordStrength = ({ password }) => {
   );
 };
 
+// Componente de verificación por código con reenvío controlado
+const VerificationCodeDialog = ({ open, email, onClose, onVerify }) => {
+  const [code, setCode] = useState(["", "", "", "", "", ""]);
+  const [resendTimer, setResendTimer] = useState(0);
+  const [canResend, setCanResend] = useState(false);
+  const inputRefs = useRef([]);
+
+  // Temporizador para reenvío
+  useEffect(() => {
+    let timer;
+    if (resendTimer > 0) {
+      timer = setTimeout(() => {
+        setResendTimer(prev => prev - 1);
+      }, 1000);
+    } else if (resendTimer === 0) {
+      setCanResend(true);
+    }
+    return () => clearTimeout(timer);
+  }, [resendTimer]);
+
+  // Iniciar temporizador al abrir el diálogo
+  useEffect(() => {
+    if (open) {
+      setResendTimer(30);
+      setCanResend(false);
+    }
+  }, [open]);
+
+  const handleChange = (index, value) => {
+    if (!/^\d?$/.test(value)) return;
+    
+    const newCode = [...code];
+    newCode[index] = value;
+    setCode(newCode);
+    
+    if (value && index < 5) {
+      setTimeout(() => {
+        inputRefs.current[index + 1]?.focus();
+      }, 10);
+    }
+  };
+
+  const handleKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !code[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleVerify = () => {
+    const verificationCode = code.join('');
+    if (verificationCode.length === 6) {
+      onVerify(verificationCode);
+    }
+  };
+
+  const handleResendCode = () => {
+    if (!canResend) return;
+    
+    console.log("Reenviar código a:", email);
+    setCanResend(false);
+    setResendTimer(30);
+    console.log("Código reenviado");
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
+
+  return (
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="xs" 
+      fullWidth
+      PaperProps={{
+        sx: { 
+          borderRadius: 2,
+          mx: 2
+        }
+      }}
+    >
+      <DialogTitle sx={{ pb: 1 }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Typography variant="h6" fontSize="1.1rem">
+            Verifica tu correo
+          </Typography>
+          <IconButton onClick={onClose} size="small">
+            <CloseIcon />
+          </IconButton>
+        </Box>
+      </DialogTitle>
+      <DialogContent>
+        <Typography variant="body2" color="text.secondary" paragraph>
+          Hemos enviado un código de verificación de 6 dígitos a:
+        </Typography>
+        <Typography variant="body1" fontWeight="600" paragraph>
+          {email}
+        </Typography>
+        
+        <Box 
+          display="flex" 
+          justifyContent="center" 
+          gap={{ xs: 0.5, sm: 1 }} 
+          mb={3}
+          flexWrap="wrap"
+        >
+          {code.map((digit, index) => (
+            <TextField
+              key={index}
+              inputRef={el => inputRefs.current[index] = el}
+              value={digit}
+              onChange={(e) => handleChange(index, e.target.value)}
+              onKeyDown={(e) => handleKeyDown(index, e)}
+              inputProps={{
+                maxLength: 1,
+                style: { 
+                  textAlign: 'center', 
+                  fontSize: { xs: '1rem', sm: '1.2rem' },
+                  padding: { xs: '8px', sm: '12px' }
+                }
+              }}
+              sx={{
+                width: { xs: 40, sm: 45 },
+                '& .MuiInputBase-input': {
+                  textAlign: 'center'
+                }
+              }}
+            />
+          ))}
+        </Box>
+        
+        <Typography variant="body2" color="text.secondary" align="center">
+          ¿No recibiste el código?{" "}
+          {canResend ? (
+            <Button 
+              variant="text" 
+              size="small" 
+              onClick={handleResendCode}
+              sx={{ 
+                textTransform: 'none', 
+                fontSize: '0.85rem',
+                fontWeight: '600'
+              }}
+            >
+              Reenviar código
+            </Button>
+          ) : (
+            <Typography 
+              component="span" 
+              variant="body2" 
+              color="text.secondary"
+              sx={{ fontSize: '0.85rem' }}
+            >
+              Reenviar en {formatTime(resendTimer)}
+            </Typography>
+          )}
+        </Typography>
+      </DialogContent>
+      <DialogActions sx={{ px: 3, pb: 2 }}>
+        <Button 
+          onClick={onClose} 
+          color="inherit" 
+          size="small"
+        >
+          Volver
+        </Button>
+        <Button 
+          onClick={handleVerify} 
+          variant="contained" 
+          size="small"
+          disabled={code.join('').length !== 6}
+          sx={{ minWidth: 100 }}
+        >
+          Verificar
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
 export default function Register({ onRegister }) {
   const [formData, setFormData] = useState({
-    nombres: "",
-    apellidos: "",
+    nombreCompleto: "",
     correo: "",
     telefono: "",
     fechaNacimiento: "",
     tipoDocumento: "CC",
     numeroDocumento: "",
-    rol: ROLES.VENDEDOR,
     password: "",
     confirmPassword: "",
     agreeTerms: false
@@ -93,11 +278,9 @@ export default function Register({ onRegister }) {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [recaptchaToken, setRecaptchaToken] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showVerificationDialog, setShowVerificationDialog] = useState(false);
   const navigate = useNavigate();
-
-  // Clave de prueba para desarrollo
-  const RECAPTCHA_SITE_KEY = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI";
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -108,21 +291,8 @@ export default function Register({ onRegister }) {
     if (error) setError("");
   };
 
-  const handleRecaptchaChange = (token) => {
-    setRecaptchaToken(token);
-    if (error) setError("");
-  };
-
-  const handleRecaptchaExpired = () => {
-    setRecaptchaToken("");
-  };
-
-  const handleRecaptchaError = () => {
-    setRecaptchaToken("");
-    setError("Error al verificar el reCAPTCHA. Intenta de nuevo.");
-  };
-
   const calculateAge = (birthDate) => {
+    if (!birthDate) return 0;
     const today = new Date();
     const birth = new Date(birthDate);
     let age = today.getFullYear() - birth.getFullYear();
@@ -137,88 +307,89 @@ export default function Register({ onRegister }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
-    // Validación del reCAPTCHA
-    if (!recaptchaToken) {
-      setError("Por favor, verifica que no eres un robot");
-      return;
-    }
+    try {
+      const requiredFields = ['nombreCompleto', 'correo', 'numeroDocumento', 'password', 'confirmPassword'];
+      const missingFields = requiredFields.filter(field => !formData[field].trim());
+      
+      if (missingFields.length > 0) {
+        setError("Completa todos los campos obligatorios");
+        return;
+      }
 
-    // Validaciones básicas
-    const requiredFields = ['nombres', 'apellidos', 'correo', 'numeroDocumento', 'password', 'confirmPassword'];
-    const missingFields = requiredFields.filter(field => !formData[field].trim());
-    
-    if (missingFields.length > 0) {
-      setError("Completa todos los campos obligatorios");
-      return;
-    }
+      if (!formData.correo.includes('@')) {
+        setError("Ingresa un correo electrónico válido");
+        return;
+      }
 
-    if (!formData.correo.includes('@')) {
-      setError("Ingresa un correo electrónico válido");
-      return;
-    }
+      if (formData.password !== formData.confirmPassword) {
+        setError("Las contraseñas no coinciden");
+        return;
+      }
 
-    if (formData.password !== formData.confirmPassword) {
-      setError("Las contraseñas no coinciden");
-      return;
-    }
+      if (formData.password.length < 6) {
+        setError("La contraseña debe tener al menos 6 caracteres");
+        return;
+      }
 
-    if (formData.password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres");
-      return;
-    }
+      if (!formData.fechaNacimiento) {
+        setError("La fecha de nacimiento es obligatoria");
+        return;
+      }
 
-    if (formData.fechaNacimiento) {
       const age = calculateAge(formData.fechaNacimiento);
       if (age < 18) {
         setError("Debes ser mayor de 18 años para registrarte");
         return;
       }
-    }
 
-    if (!formData.agreeTerms) {
-      setError("Debes aceptar los términos y condiciones");
-      return;
-    }
+      if (!formData.agreeTerms) {
+        setError("Debes aceptar los términos y condiciones");
+        return;
+      }
 
-    // Validaciones de documento
-    const docValidations = {
-      CC: /^\d{8,10}$/,
-      CE: /^\d{6,12}$/,
-      NIT: /^\d{9}$/,
-      TI: /^\d{6,12}$/,
-      PASAPORTE: /^[A-Z0-9]{6,12}$/
-    };
-
-    const validation = docValidations[formData.tipoDocumento];
-    if (validation && !validation.test(formData.numeroDocumento)) {
-      const errors = {
-        CC: "La cédula de ciudadanía debe tener entre 8 y 10 dígitos",
-        CE: "La cédula de extranjería debe tener entre 6 y 12 dígitos",
-        NIT: "El NIT debe tener 9 dígitos",
-        TI: "La tarjeta de identidad debe tener entre 6 y 12 dígitos",
-        PASAPORTE: "El pasaporte debe tener entre 6 y 12 caracteres alfanuméricos"
+      const docValidations = {
+        CC: /^\d{8,10}$/,
+        CE: /^\d{6,12}$/,
+        PASAPORTE: /^[A-Z0-9]{6,12}$/,
+        PEP: /^[A-Z0-9]{6,15}$/
       };
-      setError(errors[formData.tipoDocumento]);
-      return;
+
+      const validation = docValidations[formData.tipoDocumento];
+      if (validation && !validation.test(formData.numeroDocumento)) {
+        const errors = {
+          CC: "La cédula de ciudadanía debe tener entre 8 y 10 dígitos",
+          CE: "La cédula de extranjería debe tener entre 6 y 12 dígitos",
+          PASAPORTE: "El pasaporte debe tener entre 6 y 12 caracteres alfanuméricos",
+          PEP: "El Permiso Especial de Permanencia debe tener entre 6 y 15 caracteres alfanuméricos"
+        };
+        setError(errors[formData.tipoDocumento]);
+        return;
+      }
+
+      setShowVerificationDialog(true);
+      
+    } catch (err) {
+      setError("Ocurrió un error al procesar el registro");
+    } finally {
+      setLoading(false);
     }
+  };
 
-    // Aquí puedes verificar el token del reCAPTCHA en tu backend
+  const handleVerifyCode = async (code) => {
+    setLoading(true);
+    
     try {
-      // Ejemplo de verificación del token en el backend
-      // const recaptchaResponse = await verifyRecaptchaToken(recaptchaToken);
-      // if (!recaptchaResponse.success) {
-      //   setError("Error en la verificación del reCAPTCHA");
-      //   return;
-      // }
-
+      console.log("Código verificado:", code);
+      
       const userData = {
         ...formData,
         tipoDocumentoTexto: TIPOS_DOCUMENTO[formData.tipoDocumento],
-        edad: formData.fechaNacimiento ? calculateAge(formData.fechaNacimiento) : null,
-        estado: "activo",
+        edad: calculateAge(formData.fechaNacimiento),
+        estado: "pendiente",
         fechaRegistro: new Date().toISOString(),
-        recaptchaToken // Envía el token al backend para verificación
+        rol: "usuario"
       };
 
       if (onRegister) {
@@ -226,9 +397,21 @@ export default function Register({ onRegister }) {
       }
 
       setSuccess(true);
-      setTimeout(() => navigate("/login"), 2000);
+      setShowVerificationDialog(false);
+      
+      setTimeout(() => {
+        navigate("/login", { 
+          state: { 
+            message: "Registro completado. Tu cuenta está pendiente de activación.",
+            email: formData.correo 
+          } 
+        });
+      }, 2000);
+      
     } catch (err) {
-      setError("Error en el registro. Intenta de nuevo.");
+      setError("Error al verificar el código");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -236,9 +419,8 @@ export default function Register({ onRegister }) {
     const placeholders = {
       CC: "12345678",
       CE: "123456789012", 
-      TI: "1234567890",
-      NIT: "123456789",
-      PASAPORTE: "AB123456"
+      PASAPORTE: "AB123456",
+      PEP: "PEP2023001"
     };
     return placeholders[formData.tipoDocumento] || "Número de documento";
   };
@@ -252,19 +434,19 @@ export default function Register({ onRegister }) {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        py: 2,
+        py: 1, // Reducido de 2 a 1
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif"
       }}
     >
       {/* Logo fuera de la card - centrado en la parte superior */}
-      <Box sx={{ textAlign: "center", mb: 4 }}>
+      <Box sx={{ textAlign: "center", mb: 0.5 }}> {/* Reducido de 1 a 0.5 */}
         <Box 
           sx={{ 
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 2,
-            mb: 0
+            gap: 1,
+            mb: 1.5 // Reducido de 2 a 1.5
           }}
         >
           <Box 
@@ -272,98 +454,113 @@ export default function Register({ onRegister }) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 52,
-              height: 52,
+              width: 48, // Reducido de 52 a 48
+              height: 48, // Reducido de 52 a 48
               background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
               borderRadius: '12px',
               boxShadow: '0 4px 12px rgba(25, 118, 210, 0.2)'
             }}
           >
-            <PersonAddIcon sx={{ fontSize: 26, color: 'white' }} />
+            <PersonAddIcon 
+              sx={{ 
+                fontSize: 24, // Reducido de 26 a 24
+                color: 'white'
+              }} 
+            />
           </Box>
           <Typography 
             variant="h4" 
             component="h1" 
             color="primary"
             fontWeight="700"
-            sx={{ letterSpacing: '-0.025em' }}
+            fontFamily="inherit"
+            sx={{ letterSpacing: '-0.025em', fontSize: { xs: '1.75rem', sm: '2rem' } }} // Ajustado tamaño
           >
             Visual Outlet
           </Typography>
         </Box>
       </Box>
 
-      <Container component="main" maxWidth="sm">
+      <Container 
+        component="main" 
+        maxWidth="md"
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <Card 
           elevation={2}
           sx={{
-            p: 3,
+            width: "100%",
+            maxWidth: 500,
+            p: 3, // Reducido de 4 a 3
             borderRadius: 3,
-            fontFamily: "inherit",
-            maxHeight: "85vh",
-            overflow: "hidden"
+            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif"
           }}
         >
-          <CardContent sx={{ p: 0, maxHeight: "100%", overflow: "auto" }}>
-            {/* Header dentro de la card - QUITAMOS "Es fácil" */}
-            <Box sx={{ textAlign: "center", mb: 3 }}>
+          <CardContent sx={{ p: 0 }}> {/* Reducido de 1 a 0 */}
+            {/* Header dentro de la card */}
+            <Box sx={{ textAlign: "center", mb: 2.5 }}> {/* Reducido de 3 a 2.5 */}
               <Typography 
                 variant="h5" 
                 component="h2" 
                 gutterBottom
                 color="text.primary"
                 fontWeight="600"
+                fontFamily="inherit"
+                sx={{ mb: 0.5 }} // Reducido margen
               >
                 Crear una cuenta
               </Typography>
             </Box>
 
-            {/* Alertas */}
+            {/* Error Alert */}
             {error && (
-              <Alert severity="error" sx={{ mb: 2, fontSize: '0.85rem', borderRadius: 2 }}>
+              <Alert severity="error" sx={{ 
+                mb: 1.5, // Reducido de 2 a 1.5
+                fontSize: '0.85rem',
+                fontFamily: 'inherit',
+                borderRadius: 2,
+                py: 0.75 // Reducido padding
+              }}>
                 {error}
               </Alert>
             )}
 
             {success && (
-              <Alert severity="success" sx={{ mb: 2, fontSize: '0.85rem', borderRadius: 2 }}>
-                ¡Registro exitoso! Redirigiendo al inicio de sesión...
+              <Alert severity="success" sx={{ 
+                mb: 1.5, // Reducido de 2 a 1.5
+                fontSize: '0.85rem',
+                fontFamily: 'inherit',
+                borderRadius: 2,
+                py: 0.75 // Reducido padding
+              }}>
+                ¡Registro exitoso! Serás redirigido al inicio de sesión...
               </Alert>
             )}
 
             {/* Form */}
-            <Box component="form" onSubmit={handleSubmit}>
-              <Grid container spacing={1.5}>
-                {/* Información Personal - Primera fila */}
+            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 0.5 }}> {/* Reducido de 1 a 0.5 */}
+              <Grid container spacing={1.5}> {/* Reducido de 2 a 1.5 */}
+                {/* Campos reorganizados para mejor uso del espacio */}
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
                     size="small"
-                    name="nombres"
-                    label="Nombres"
-                    value={formData.nombres}
+                    name="nombreCompleto"
+                    label="Nombre completo"
+                    value={formData.nombreCompleto}
                     onChange={handleChange}
-                    placeholder="Tus nombres"
+                    placeholder="Tu nombre completo"
                     required
-                    disabled={success}
+                    disabled={success || loading}
+                    sx={{ fontFamily: 'inherit' }}
                   />
                 </Grid>
+                
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    name="apellidos"
-                    label="Apellidos"
-                    value={formData.apellidos}
-                    onChange={handleChange}
-                    placeholder="Tus apellidos"
-                    required
-                    disabled={success}
-                  />
-                </Grid>
-
-                {/* Correo */}
-                <Grid item xs={12}>
                   <TextField
                     fullWidth
                     size="small"
@@ -374,11 +571,11 @@ export default function Register({ onRegister }) {
                     onChange={handleChange}
                     placeholder="tu@visualoutlet.com"
                     required
-                    disabled={success}
+                    disabled={success || loading}
+                    sx={{ fontFamily: 'inherit' }}
                   />
                 </Grid>
 
-                {/* Teléfono y Fecha Nacimiento */}
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
@@ -389,9 +586,11 @@ export default function Register({ onRegister }) {
                     value={formData.telefono}
                     onChange={handleChange}
                     placeholder="+57 300 123 4567"
-                    disabled={success}
+                    disabled={success || loading}
+                    sx={{ fontFamily: 'inherit' }}
                   />
                 </Grid>
+                
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
@@ -402,27 +601,37 @@ export default function Register({ onRegister }) {
                     value={formData.fechaNacimiento}
                     onChange={handleChange}
                     InputLabelProps={{ shrink: true }}
-                    disabled={success}
+                    required
+                    disabled={success || loading}
+                    sx={{ fontFamily: 'inherit' }}
+                    InputProps={{
+                      sx: {
+                        '& input': {
+                          fontSize: { xs: '0.9rem', sm: '1rem' },
+                          fontFamily: 'inherit'
+                        }
+                      }
+                    }}
                   />
                 </Grid>
 
-                {/* Documento */}
                 <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth size="small">
+                  <FormControl fullWidth size="small" sx={{ fontFamily: 'inherit' }}>
                     <InputLabel>Tipo de documento</InputLabel>
                     <Select
                       name="tipoDocumento"
                       value={formData.tipoDocumento}
                       label="Tipo de documento"
                       onChange={handleChange}
-                      disabled={success}
+                      disabled={success || loading}
                     >
                       {Object.entries(TIPOS_DOCUMENTO).map(([key, value]) => (
-                        <MenuItem key={key} value={key}>{value}</MenuItem>
+                        <MenuItem key={key} value={key} sx={{ fontFamily: 'inherit' }}>{value}</MenuItem>
                       ))}
                     </Select>
                   </FormControl>
                 </Grid>
+                
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
@@ -433,11 +642,11 @@ export default function Register({ onRegister }) {
                     onChange={handleChange}
                     placeholder={getDocumentPlaceholder()}
                     required
-                    disabled={success}
+                    disabled={success || loading}
+                    sx={{ fontFamily: 'inherit' }}
                   />
                 </Grid>
 
-                {/* Contraseñas */}
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
@@ -449,10 +658,12 @@ export default function Register({ onRegister }) {
                     onChange={handleChange}
                     placeholder="········"
                     required
-                    disabled={success}
+                    disabled={success || loading}
+                    sx={{ fontFamily: 'inherit' }}
                   />
                   <PasswordStrength password={formData.password} />
                 </Grid>
+                
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
@@ -464,125 +675,123 @@ export default function Register({ onRegister }) {
                     onChange={handleChange}
                     placeholder="········"
                     required
-                    disabled={success}
+                    disabled={success || loading}
+                    sx={{ fontFamily: 'inherit' }}
                   />
-                </Grid>
-
-                {/* Rol */}
-                <Grid item xs={12}>
-                  <FormControl fullWidth size="small">
-                    <InputLabel>Rol</InputLabel>
-                    <Select
-                      name="rol"
-                      value={formData.rol}
-                      label="Rol"
-                      onChange={handleChange}
-                      disabled={success}
-                    >
-                      <MenuItem value={ROLES.ADMIN}>Administrador</MenuItem>
-                      <MenuItem value={ROLES.DEMO}>Usuario demo</MenuItem>
-                      <MenuItem value={ROLES.VENDEDOR}>Vendedor</MenuItem>
-                      <MenuItem value={ROLES.OPTICO}>Óptico</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-
-                {/* reCAPTCHA */}
-                <Grid item xs={12}>
-                  <Box sx={{ display: 'flex', justifyContent: 'center', my: 1 }}>
-                    <ReCAPTCHA
-                      sitekey={RECAPTCHA_SITE_KEY}
-                      onChange={handleRecaptchaChange}
-                      onExpired={handleRecaptchaExpired}
-                      onErrored={handleRecaptchaError}
-                      size="normal"
-                    />
-                  </Box>
                 </Grid>
               </Grid>
 
-              {/* Términos */}
-              <FormControlLabel
-                control={
-                  <Checkbox 
-                    name="agreeTerms"
-                    checked={formData.agreeTerms}
-                    onChange={handleChange}
-                    color="primary"
+              {/* Términos y condiciones - MEJOR ALINEADO */}
+              <Box sx={{ mt: 2, mb: 1, display: 'flex', alignItems: 'flex-start' }}>
+                <Checkbox 
+                  name="agreeTerms"
+                  checked={formData.agreeTerms}
+                  onChange={handleChange}
+                  color="primary"
+                  size="small"
+                  disabled={success || loading}
+                  sx={{ mt: -0.5 }} // Ajuste fino para alineación vertical
+                />
+                <Typography sx={{ 
+                  fontSize: '0.85rem', 
+                  fontWeight: '500',
+                  fontFamily: 'inherit',
+                  lineHeight: 1.5
+                }}>
+                  Acepto los{' '}
+                  <Button 
+                    component={Link}
+                    to="/terms"
+                    variant="text"
                     size="small"
-                  />
-                }
-                label={
-                  <Typography sx={{ fontSize: '0.85rem', fontWeight: '500' }}>
-                    Acepto los{' '}
-                    <Button 
-                      component={Link}
-                      to="/terms"
-                      variant="text"
-                      size="small"
-                      sx={{ fontSize: '0.85rem', p: 0, minWidth: 'auto', fontWeight: '600', textTransform: 'none' }}
-                    >
-                      términos y condiciones
-                    </Button>
-                  </Typography>
-                }
-                sx={{ mt: 2, mb: 2 }}
-              />
+                    sx={{ 
+                      fontSize: '0.85rem', 
+                      p: 0, 
+                      minWidth: 'auto', 
+                      fontWeight: '600', 
+                      textTransform: 'none',
+                      fontFamily: 'inherit',
+                      verticalAlign: 'baseline'
+                    }}
+                    disabled={success || loading}
+                  >
+                    términos y condiciones
+                  </Button>
+                </Typography>
+              </Box>
 
-              {/* Submit */}
+              {/* Submit Button */}
               <Button
                 type="submit"
                 fullWidth
                 variant="contained"
-                size="large"
+                disabled={success || loading}
                 sx={{ 
-                  py: 1.2,
+                  mt: 1, // Reducido de 2 a 1
+                  mb: 1.5, // Reducido de 3 a 1.5
+                  py: 1, // Reducido de 1.1 a 1
                   textTransform: 'none',
-                  fontSize: '1rem',
-                  fontWeight: '600',
+                  fontSize: '0.95rem',
+                  fontFamily: 'inherit',
+                  fontWeight: '700',
                   borderRadius: 2,
-                  mb: 2
+                  letterSpacing: '0.01em',
+                  position: 'relative'
                 }}
-                disabled={success || !recaptchaToken}
               >
-                {success ? 'Cuenta creada' : 'Crear cuenta'}
+                {loading ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : success ? (
+                  'Cuenta creada'
+                ) : (
+                  'Crear cuenta'
+                )}
               </Button>
             </Box>
 
-            {/* Footer - AGREGAMOS link de regreso al login */}
-            <Box sx={{ textAlign: "center" }}>
-              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem', fontWeight: '500', mb: 1 }}>
+            {/* Footer - MEJOR ALINEADO */}
+            <Box sx={{ textAlign: "center", mt: 1.5 }}> {/* Añadido margen superior */}
+              <Typography 
+                variant="body2" 
+                color="text.secondary" 
+                sx={{ 
+                  fontSize: '0.85rem',
+                  fontFamily: 'inherit',
+                  fontWeight: '500',
+                  display: 'inline' // Para mejor alineación con el botón
+                }}
+              >
                 ¿Ya tienes una cuenta?{" "}
-                <Button 
-                  component={Link}
-                  to="/login"
-                  variant="text"
-                  size="small"
-                  sx={{ fontSize: '0.85rem', fontWeight: '600', textTransform: 'none' }}
-                >
-                  Inicia sesión aquí
-                </Button>
               </Typography>
-              {/* Link adicional para volver al login */}
               <Button 
                 component={Link}
                 to="/login"
-                variant="outlined"
+                variant="text"
                 size="small"
-                fullWidth
                 sx={{ 
-                  fontSize: '0.85rem', 
-                  fontWeight: '500', 
                   textTransform: 'none',
-                  py: 0.8
+                  fontSize: '0.85rem',
+                  fontFamily: 'inherit',
+                  fontWeight: '700',
+                  p: 0,
+                  minWidth: 'auto',
+                  verticalAlign: 'baseline' // Para alinear con el texto
                 }}
               >
-                ← Volver al inicio de sesión
+                Inicia sesión aquí
               </Button>
             </Box>
           </CardContent>
         </Card>
       </Container>
+
+      {/* Diálogo de verificación */}
+      <VerificationCodeDialog
+        open={showVerificationDialog}
+        email={formData.correo}
+        onClose={() => setShowVerificationDialog(false)}
+        onVerify={handleVerifyCode}
+      />
     </Box>
   );
 }

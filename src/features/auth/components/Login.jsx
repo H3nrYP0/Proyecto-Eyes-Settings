@@ -5,10 +5,6 @@ import {
   Card,
   CardContent,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   FormControlLabel,
   Checkbox,
   Button,
@@ -18,7 +14,6 @@ import {
   Alert
 } from "@mui/material";
 import { 
-  Facebook as FacebookIcon,
   VisibilityOutlined as VisibilityOutlinedIcon
 } from "@mui/icons-material";
 import { FcGoogle } from "react-icons/fc";
@@ -28,7 +23,6 @@ export default function Login({ setUser }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [role, setRole] = useState(ROLES.ADMIN);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -41,28 +35,19 @@ export default function Login({ setUser }) {
       return;
     }
 
+    // Simulación de autenticación
+    // En producción, aquí llamarías a tu backend
     const userData = { 
       name: email.split('@')[0], 
       email,
-      role,
-      permissions: getPermissionsByRole(role)
+      // Todos los usuarios tienen rol "usuario" por defecto
+      // Los roles específicos se asignan internamente
+      role: ROLES.USUARIO,
+      // Este será actualizado por el backend según las credenciales
+      permissions: []
     };
     setUser(userData);
     navigate("/admin/dashboard");
-  };
-
-  const getPermissionsByRole = (role) => {
-    const permissionsMap = {
-      [ROLES.ADMIN]: ['*'],
-      [ROLES.DEMO]: ['dashboard'],
-      [ROLES.VENDEDOR]: ['dashboard', 'ventas', 'clientes'],
-      [ROLES.OPTICO]: ['dashboard', 'servicios', 'agenda']
-    };
-    return permissionsMap[role] || ['dashboard'];
-  };
-
-  const handleSocialLogin = (provider) => {
-    console.log(`Iniciando sesión con ${provider}`);
   };
 
   return (
@@ -244,29 +229,6 @@ export default function Login({ setUser }) {
                 </Button>
               </Box>
 
-              {/* Role Selector */}
-              <FormControl fullWidth margin="normal" size="small">
-                <InputLabel 
-                  id="role-label"
-                  sx={{ fontFamily: 'inherit' }}
-                >
-                  Rol
-                </InputLabel>
-                <Select
-                  labelId="role-label"
-                  id="role"
-                  value={role}
-                  label="Rol"
-                  onChange={(e) => setRole(e.target.value)}
-                  sx={{ fontFamily: 'inherit' }}
-                >
-                  <MenuItem value={ROLES.ADMIN} sx={{ fontFamily: 'inherit' }}>Administrador</MenuItem>
-                  <MenuItem value={ROLES.DEMO} sx={{ fontFamily: 'inherit' }}>Usuario Demo</MenuItem>
-                  <MenuItem value={ROLES.VENDEDOR} sx={{ fontFamily: 'inherit' }}>Vendedor</MenuItem>
-                  <MenuItem value={ROLES.OPTICO} sx={{ fontFamily: 'inherit' }}>Óptico</MenuItem>
-                </Select>
-              </FormControl>
-
               {/* Login Button */}
               <Button
                 type="submit"
@@ -285,58 +247,6 @@ export default function Login({ setUser }) {
                 }}
               >
                 Iniciar sesión
-              </Button>
-            </Box>
-
-            {/* Social Login */}
-            <Box sx={{ mt: 2, mb: 1 }}>
-              <Divider sx={{ mb: 2 }}>
-                <Typography 
-                  variant="body2" 
-                  color="text.secondary" 
-                  sx={{ 
-                    fontSize: '0.85rem',
-                    fontFamily: 'inherit',
-                    fontWeight: '600'
-                  }}
-                >
-                  O continúa con
-                </Typography>
-              </Divider>
-              
-              <Button
-                fullWidth
-                variant="outlined"
-                startIcon={<FcGoogle style={{ fontSize: '1.2rem' }} />}
-                onClick={() => handleSocialLogin('google')}
-                sx={{ 
-                  mb: 1, 
-                  py: 0.9,
-                  textTransform: 'none',
-                  fontSize: '0.85rem',
-                  fontFamily: 'inherit',
-                  fontWeight: '600',
-                  borderRadius: 2
-                }}
-              >
-                Continuar con Google
-              </Button>
-              
-              <Button
-                fullWidth
-                variant="outlined"
-                startIcon={<FacebookIcon />}
-                onClick={() => handleSocialLogin('facebook')}
-                sx={{ 
-                  py: 0.9,
-                  textTransform: 'none',
-                  fontSize: '0.85rem',
-                  fontFamily: 'inherit',
-                  fontWeight: '600',
-                  borderRadius: 2
-                }}
-              >
-                Continuar con Facebook
               </Button>
             </Box>
 
