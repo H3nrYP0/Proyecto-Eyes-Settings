@@ -1,10 +1,15 @@
-// Dashboard principal - Componente contenedor que orquesta todos los subcomponentes
-// Responsable de: estado global, estructura de layout y comunicación entre componentes
-
+// Dashboard principal - Componente contenedor
 import React, { useState, useEffect } from 'react';
-import { Box, Grid, useTheme, alpha } from '@mui/material';
+import {
+  Box,
+  Grid,
+  useTheme,
+  alpha,
+  useMediaQuery,
+  Container
+} from '@mui/material';
 
-// Importaciones de componentes modulares
+// Importaciones de componentes
 import {
   DashboardHeader,
   VentasChart,
@@ -12,7 +17,7 @@ import {
   ProductosMasVendidos
 } from './components';
 
-// Importar datos mock actualizados
+// Importar datos
 import {
   getYearData,
   getMonthData,
@@ -27,8 +32,10 @@ import {
 
 const Dashboard = () => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'lg'));
   
-  // Estados globales del dashboard
+  // Estados
   const [timeFilter, setTimeFilter] = useState('dia');
   const [yearFilter, setYearFilter] = useState('2024');
   const [monthFilter, setMonthFilter] = useState(9);
@@ -46,16 +53,13 @@ const Dashboard = () => {
     citasEfectivas: 0
   });
 
-  // Efecto para cargar datos cuando cambian los filtros
   useEffect(() => {
     loadData();
   }, [timeFilter, yearFilter, monthFilter]);
 
-  // Función para cargar datos según los filtros
   const loadData = () => {
     switch (timeFilter) {
       case 'dia':
-        // Datos para vista diaria
         const hours = generateHours();
         const ventasDiarias = Array.from({length: 12}, () => Math.floor(Math.random() * 10000) + 5000);
         
@@ -81,7 +85,6 @@ const Dashboard = () => {
         break;
         
       case 'mes':
-        // Datos para vista mensual con mes específico
         const monthData = getMonthData(yearFilter, monthFilter);
         
         setVentasData({
@@ -96,13 +99,11 @@ const Dashboard = () => {
           lineData: monthData.compras
         });
         
-        // Obtener productos para el mes específico
         const productosMes = typeof productosCompletos.mes === 'function' 
           ? productosCompletos.mes(yearFilter, monthFilter)
           : productosCompletos.mes || [];
         setProductosData(productosMes);
         
-        // Obtener categorías para el mes específico
         const categoriasMes = typeof categoriasData.mes === 'function'
           ? categoriasData.mes(yearFilter, monthFilter)
           : categoriasData.mes || [];
@@ -112,7 +113,6 @@ const Dashboard = () => {
         break;
         
       case 'año':
-        // Datos para vista anual
         const yearData = getYearData(yearFilter);
         const months = generateMonths();
         
@@ -130,7 +130,6 @@ const Dashboard = () => {
         
         setProductosData(productosCompletos.año[yearFilter] || productosCompletos.año['2024'] || []);
         
-        // Obtener categorías para el año específico
         const categoriasAno = typeof categoriasData.año === 'function'
           ? categoriasData.año(yearFilter)
           : (categoriasData.año || []);
@@ -140,7 +139,6 @@ const Dashboard = () => {
         break;
         
       default:
-        // Datos por defecto (diario)
         const defaultHours = generateHours();
         const defaultVentas = Array.from({length: 12}, () => Math.floor(Math.random() * 10000) + 5000);
         
@@ -161,84 +159,79 @@ const Dashboard = () => {
     }
   };
 
-  // Manejador para cambio de filtro de tiempo
-  const handleTimeFilterChange = (filter) => {
-    setTimeFilter(filter);
-  };
+  const handleTimeFilterChange = (filter) => setTimeFilter(filter);
+  const handleYearFilterChange = (year) => setYearFilter(year);
+  const handleMonthFilterChange = (month) => setMonthFilter(parseInt(month));
 
-  // Manejador para cambio de año
-  const handleYearFilterChange = (year) => {
-    setYearFilter(year);
-  };
-
-  // Nuevo manejador para cambio de mes
-  const handleMonthFilterChange = (month) => {
-    setMonthFilter(parseInt(month));
-  };
+  // Configuración responsive
+  const gridSpacing = isMobile ? 2 : isTablet ? 2.5 : 3;
+  const padding = isMobile ? 1.5 : isTablet ? 2 : 3;
 
   return (
     <Box sx={{ 
       minHeight: '100vh',
       background: `linear-gradient(135deg, ${alpha(theme.palette.primary.light, 0.1)} 0%, ${alpha(theme.palette.background.default, 0.3)} 50%, ${theme.palette.background.default} 100%)`,
-      p: 3
+      p: padding,
+      // 👇 **SOLUCIÓN PRINCIPAL** - Margen superior para navbar fijo
+      mt: { xs: 7, sm: 8, md: 0 }, // 7 = 56px (móvil), 8 = 64px (tablet/desktop)
+      ml: 0,
+      position: 'relative',
+      zIndex: 1
     }}>
-      
-      {/* Header con controles de filtro y métricas resumidas - Actualizado con monthFilter */}
-      <DashboardHeader 
-        timeFilter={timeFilter}
-        yearFilter={yearFilter}
-        monthFilter={monthFilter}
-        onTimeFilterChange={handleTimeFilterChange}
-        onYearFilterChange={handleYearFilterChange}
-        onMonthFilterChange={handleMonthFilterChange}
-        metrics={metrics}
-      />
+      <Container maxWidth="xl" sx={{ 
+        px: isMobile ? 1 : 2,
+        width: '100%'
+      }}>
+        <DashboardHeader 
+          timeFilter={timeFilter}
+          yearFilter={yearFilter}
+          monthFilter={monthFilter}
+          onTimeFilterChange={handleTimeFilterChange}
+          onYearFilterChange={handleYearFilterChange}
+          onMonthFilterChange={handleMonthFilterChange}
+          metrics={metrics}
+        />
 
-      {/* Layout principal con grid responsivo */}
-      <Grid container spacing={3}>
-        
-        {/* Gráfica de Ventas - Muestra tendencias de ingresos */}
-        <Grid item xs={12} lg={6}>
-          <VentasChart 
-            data={ventasData} 
-            timeFilter={timeFilter} 
-            title="Ventas"
-            chartType={ventasChartType}
-            onChartTypeChange={setVentasChartType}
-            chartKey="ventas"
-          />
-        </Grid>
+        <Grid container spacing={gridSpacing}>
+          <Grid item xs={12} lg={6}>
+            <VentasChart 
+              data={ventasData} 
+              timeFilter={timeFilter} 
+              title="Ventas"
+              chartType={ventasChartType}
+              onChartTypeChange={setVentasChartType}
+              chartKey="ventas"
+            />
+          </Grid>
 
-        {/* Gráfica de Compras - Muestra tendencias de gastos */}
-        <Grid item xs={12} lg={6}>
-          <VentasChart 
-            data={comprasData} 
-            timeFilter={timeFilter} 
-            title="Compras"
-            chartType={comprasChartType}
-            onChartTypeChange={setComprasChartType}
-            chartKey="compras"
-          />
-        </Grid>
+          <Grid item xs={12} lg={6}>
+            <VentasChart 
+              data={comprasData} 
+              timeFilter={timeFilter} 
+              title="Compras"
+              chartType={comprasChartType}
+              onChartTypeChange={setComprasChartType}
+              chartKey="compras"
+            />
+          </Grid>
 
-        {/* Análisis de Categorías (Categorías Más Vendidas) */}
-        <Grid item xs={12} lg={8}>
-          <AnalisisCategorias 
-            data={categoriasDataState} 
-            timeFilter={timeFilter}
-            yearFilter={yearFilter} 
-          />
-        </Grid>
+          <Grid item xs={12} md={8} lg={8}>
+            <AnalisisCategorias 
+              data={categoriasDataState} 
+              timeFilter={timeFilter}
+              yearFilter={yearFilter} 
+            />
+          </Grid>
 
-        {/* Productos Más Vendidos - Ranking de productos por volumen */}
-        <Grid item xs={12} lg={4}>
-          <ProductosMasVendidos 
-            productos={productosData} 
-            timeFilter={timeFilter}
-            yearFilter={yearFilter}
-          />
+          <Grid item xs={12} md={4} lg={4}>
+            <ProductosMasVendidos 
+              productos={productosData} 
+              timeFilter={timeFilter}
+              yearFilter={yearFilter}
+            />
+          </Grid>
         </Grid>
-      </Grid>
+      </Container>
     </Box>
   );
 };

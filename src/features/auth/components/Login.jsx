@@ -5,32 +5,43 @@ import {
   Card,
   CardContent,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   FormControlLabel,
   Checkbox,
   Button,
   Typography,
-  Divider,
   Container,
-  Alert
+  Alert,
+  InputAdornment,
+  IconButton
 } from "@mui/material";
 import { 
-  Facebook as FacebookIcon,
-  VisibilityOutlined as VisibilityOutlinedIcon
+  VisibilityOutlined as VisibilityOutlinedIcon,
+  VisibilityOffOutlined as VisibilityOffOutlinedIcon
 } from "@mui/icons-material";
-import { FcGoogle } from "react-icons/fc";
-import { ROLES } from "../../../shared/constants/roles";
+import { ROLES, TEST_USERS } from "../../../shared/constants/roles";
 
 export default function Login({ setUser }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [role, setRole] = useState(ROLES.ADMIN);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // Nuevo estado
   const navigate = useNavigate();
+
+  // Función para verificar usuarios especiales
+  const verifySpecialUser = (email, password) => {
+    const normalizedEmail = email.toLowerCase().trim();
+    
+    // Verificar si es usuario especial (de TEST_USERS)
+    for (const [key, user] of Object.entries(TEST_USERS)) {
+      if (user.email.toLowerCase() === normalizedEmail && user.password === password) {
+        console.log(`✅ Usuario especial encontrado: ${key} (${user.role})`);
+        return user;
+      }
+    }
+    
+    return null; // No es usuario especial
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -41,28 +52,44 @@ export default function Login({ setUser }) {
       return;
     }
 
-    const userData = { 
-      name: email.split('@')[0], 
-      email,
-      role,
-      permissions: getPermissionsByRole(role)
+    // 1. Verificar si es usuario especial (admin, vendedor, óptico)
+    const specialUser = verifySpecialUser(email, password);
+    
+    if (specialUser) {
+      // Es usuario especial - redirigir al dashboard
+      console.log("🔑 Autenticación exitosa como:", specialUser.role);
+      setUser(specialUser);
+      
+      // Solo usuarios especiales van al dashboard
+      navigate("/admin/dashboard");
+      return;
+    }
+
+    // 2. Si NO es usuario especial, es usuario normal
+    console.log("👤 Usuario normal detectado - Redirigiendo a landing");
+    const normalUser = {
+      id: Date.now(),
+      name: email.split('@')[0],
+      email: email.trim(),
+      role: ROLES.USUARIO, // Rol USUARIO por defecto
+      permissions: []
     };
-    setUser(userData);
-    navigate("/admin/dashboard");
+    
+    setUser(normalUser);
+    console.log("📍 Navegando a / (landing page)");
+    
+    // IMPORTANTE: Usar replace: true para limpiar el historial
+    navigate("/", { replace: true });
   };
 
-  const getPermissionsByRole = (role) => {
-    const permissionsMap = {
-      [ROLES.ADMIN]: ['*'],
-      [ROLES.DEMO]: ['dashboard'],
-      [ROLES.VENDEDOR]: ['dashboard', 'ventas', 'clientes'],
-      [ROLES.OPTICO]: ['dashboard', 'servicios', 'agenda']
-    };
-    return permissionsMap[role] || ['dashboard'];
+  // Función para alternar visibilidad de contraseña
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword);
   };
 
-  const handleSocialLogin = (provider) => {
-    console.log(`Iniciando sesión con ${provider}`);
+  // Función para evitar que el botón active el submit
+  const handleMouseDownPassword = (e) => {
+    e.preventDefault();
   };
 
   return (
@@ -167,6 +194,25 @@ export default function Login({ setUser }) {
               </Alert>
             )}
 
+            {/* Información para probar usuarios especiales */}
+            <Alert severity="info" sx={{ mb: 3, fontSize: '0.8rem', borderRadius: 2 }}>
+              <Typography variant="body2" fontWeight="600" gutterBottom>
+                Usuarios de prueba:
+              </Typography>
+              <Typography variant="body2" component="div">
+                <strong>Admin:</strong> admin@visualoutlet.com / Admin123! (Dashboard)
+              </Typography>
+              <Typography variant="body2" component="div">
+                <strong>Vendedor:</strong> vendedor@visualoutlet.com / Vendedor123! (Dashboard)
+              </Typography>
+              <Typography variant="body2" component="div">
+                <strong>Óptico:</strong> optico@visualoutlet.com / Optico123! (Dashboard)
+              </Typography>
+              <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
+                <strong>Cualquier otro correo/contraseña:</strong> Irá a la Landing Page
+              </Typography>
+            </Alert>
+
             {/* Login Form */}
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
               <TextField
@@ -180,7 +226,7 @@ export default function Login({ setUser }) {
                 autoFocus
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="tu@visualoutlet.com"
+                placeholder="ejemplo@correo.com"
                 size="small"
                 sx={{ fontFamily: 'inherit' }}
               />
@@ -191,7 +237,7 @@ export default function Login({ setUser }) {
                 fullWidth
                 name="password"
                 label="Contraseña"
-                type="password"
+                type={showPassword ? "text" : "password"} // Cambia el tipo dinámicamente
                 id="password"
                 autoComplete="current-password"
                 value={password}
@@ -199,6 +245,26 @@ export default function Login({ setUser }) {
                 placeholder="········"
                 size="small"
                 sx={{ fontFamily: 'inherit' }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={handleClickShowPassword}
+                        onMouseDown={handleMouseDownPassword}
+                        edge="end"
+                        size="small"
+                        sx={{ mr: 0.5 }}
+                      >
+                        {showPassword ? (
+                          <VisibilityOffOutlinedIcon fontSize="small" />
+                        ) : (
+                          <VisibilityOutlinedIcon fontSize="small" />
+                        )}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
               />
 
               {/* Options Row */}
@@ -244,29 +310,6 @@ export default function Login({ setUser }) {
                 </Button>
               </Box>
 
-              {/* Role Selector */}
-              <FormControl fullWidth margin="normal" size="small">
-                <InputLabel 
-                  id="role-label"
-                  sx={{ fontFamily: 'inherit' }}
-                >
-                  Rol
-                </InputLabel>
-                <Select
-                  labelId="role-label"
-                  id="role"
-                  value={role}
-                  label="Rol"
-                  onChange={(e) => setRole(e.target.value)}
-                  sx={{ fontFamily: 'inherit' }}
-                >
-                  <MenuItem value={ROLES.ADMIN} sx={{ fontFamily: 'inherit' }}>Administrador</MenuItem>
-                  <MenuItem value={ROLES.DEMO} sx={{ fontFamily: 'inherit' }}>Usuario Demo</MenuItem>
-                  <MenuItem value={ROLES.VENDEDOR} sx={{ fontFamily: 'inherit' }}>Vendedor</MenuItem>
-                  <MenuItem value={ROLES.OPTICO} sx={{ fontFamily: 'inherit' }}>Óptico</MenuItem>
-                </Select>
-              </FormControl>
-
               {/* Login Button */}
               <Button
                 type="submit"
@@ -285,58 +328,6 @@ export default function Login({ setUser }) {
                 }}
               >
                 Iniciar sesión
-              </Button>
-            </Box>
-
-            {/* Social Login */}
-            <Box sx={{ mt: 2, mb: 1 }}>
-              <Divider sx={{ mb: 2 }}>
-                <Typography 
-                  variant="body2" 
-                  color="text.secondary" 
-                  sx={{ 
-                    fontSize: '0.85rem',
-                    fontFamily: 'inherit',
-                    fontWeight: '600'
-                  }}
-                >
-                  O continúa con
-                </Typography>
-              </Divider>
-              
-              <Button
-                fullWidth
-                variant="outlined"
-                startIcon={<FcGoogle style={{ fontSize: '1.2rem' }} />}
-                onClick={() => handleSocialLogin('google')}
-                sx={{ 
-                  mb: 1, 
-                  py: 0.9,
-                  textTransform: 'none',
-                  fontSize: '0.85rem',
-                  fontFamily: 'inherit',
-                  fontWeight: '600',
-                  borderRadius: 2
-                }}
-              >
-                Continuar con Google
-              </Button>
-              
-              <Button
-                fullWidth
-                variant="outlined"
-                startIcon={<FacebookIcon />}
-                onClick={() => handleSocialLogin('facebook')}
-                sx={{ 
-                  py: 0.9,
-                  textTransform: 'none',
-                  fontSize: '0.85rem',
-                  fontFamily: 'inherit',
-                  fontWeight: '600',
-                  borderRadius: 2
-                }}
-              >
-                Continuar con Facebook
               </Button>
             </Box>
 

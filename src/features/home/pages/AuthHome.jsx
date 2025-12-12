@@ -28,16 +28,13 @@ const AuthHome = ({ user, setUser }) => {
           {user ? (
             <>
               <span className="user-welcome">Hola, {user?.name}</span>
-              <button className="btn btn-primary" onClick={handleDashboardAccess}>
-                Ir al Dashboard
-              </button>
               <button className="btn btn-danger" onClick={handleLogout}>
-                Cerrar Sesión
+                Cerrar sesión
               </button>
             </>
           ) : (
             <button className="btn btn-primary" onClick={handleLoginClick}>
-              Entrar al Sistema
+              Iniciar sesión
             </button>
           )}
         </div>

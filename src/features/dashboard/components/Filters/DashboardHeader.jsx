@@ -1,3 +1,4 @@
+// features/dashboard/components/Filters/DashboardHeader.jsx
 import React from 'react';
 import {
   Box,
@@ -11,13 +12,12 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  Stack,
+  useMediaQuery
 } from '@mui/material';
 import { CalendarToday, TrendingUp } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
-
-// Utilidades para formateo y textos
-import { getPeriodLabel, getPeriodText } from '../../utils/formatters';
 
 const DashboardHeader = ({ 
   timeFilter, 
@@ -29,73 +29,78 @@ const DashboardHeader = ({
   metrics 
 }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
 
-  // Nombres de meses en español
-  const months = [
-    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-  ];
+  // Meses abreviados para móvil
+  const months = isMobile 
+    ? ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+    : ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
-  // Función para formatear texto de botones
-  const formatButtonText = (text) => {
-    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+  // Textos de botones responsivos
+  const getButtonText = (text) => {
+    if (isMobile) {
+      const shortTexts = { 'dia': 'Hoy', 'mes': 'Mes', 'año': 'Año' };
+      return shortTexts[text] || text.charAt(0).toUpperCase();
+    }
+    return text.charAt(0).toUpperCase() + text.slice(1);
   };
 
   return (
-    <Box sx={{ mb: 3 }}>
-      <Grid container spacing={3} alignItems="center">
+    <Box sx={{ mb: isMobile ? 2 : 3 }}>
+      <Grid container spacing={isMobile ? 1.5 : 2} alignItems="center">
         
-        {/* Sección izquierda: Título y controles de filtro */}
+        {/* Sección izquierda: Título y filtros */}
         <Grid item xs={12} md={8}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+          <Box sx={{ mb: isMobile ? 1 : 2 }}>
             <Typography 
-              variant="h4" 
-              component="h1" 
+              variant={isMobile ? "h5" : "h4"}
               fontWeight="bold"
               sx={{ 
                 background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
                 backgroundClip: 'text',
                 WebkitBackgroundClip: 'text',
                 color: 'transparent',
-                fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' }
+                fontSize: isMobile ? '1.25rem' : isTablet ? '1.75rem' : '2.125rem'
               }}
             >
-              Resumen Operativo
+              {isMobile ? 'Dashboard' : 'Resumen Operativo'}
             </Typography>
           </Box>
           
-          {/* Controles de filtro de tiempo */}
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-            <ButtonGroup variant="outlined" size="medium">
-              <Button 
-                onClick={() => onTimeFilterChange('dia')}
-                variant={timeFilter === 'dia' ? 'contained' : 'outlined'}
-                startIcon={<CalendarToday />}
-                sx={{ textTransform: 'none' }}
-              >
-                {formatButtonText('hoy')}
-              </Button>
-              <Button 
-                onClick={() => onTimeFilterChange('mes')}
-                variant={timeFilter === 'mes' ? 'contained' : 'outlined'}
-                startIcon={<CalendarToday />}
-                sx={{ textTransform: 'none' }}
-              >
-                {formatButtonText('mes')}
-              </Button>
-              <Button 
-                onClick={() => onTimeFilterChange('año')}
-                variant={timeFilter === 'año' ? 'contained' : 'outlined'}
-                startIcon={<CalendarToday />}
-                sx={{ textTransform: 'none' }}
-              >
-                {formatButtonText('año')}
-              </Button>
+          {/* Filtros responsivos */}
+          <Stack 
+            direction={isMobile ? "column" : "row"} 
+            spacing={isMobile ? 1 : 1.5} 
+            alignItems={isMobile ? "stretch" : "center"}
+            sx={{ flexWrap: 'wrap' }}
+          >
+            <ButtonGroup 
+              variant="outlined" 
+              size={isMobile ? "small" : "medium"}
+              fullWidth={isMobile}
+            >
+              {['dia', 'mes', 'año'].map((filter) => (
+                <Button 
+                  key={filter}
+                  onClick={() => onTimeFilterChange(filter)}
+                  variant={timeFilter === filter ? 'contained' : 'outlined'}
+                  startIcon={isMobile ? null : <CalendarToday />}
+                  sx={{ 
+                    textTransform: 'none',
+                    fontSize: isMobile ? '0.75rem' : '0.875rem',
+                    flex: 1,
+                    minWidth: isMobile ? '60px' : '80px'
+                  }}
+                >
+                  {getButtonText(filter)}
+                </Button>
+              ))}
             </ButtonGroup>
             
-            {/* Selector de mes - Solo visible en vista mensual */}
+            {/* Selector de mes */}
             {timeFilter === 'mes' && (
-              <FormControl size="small" sx={{ minWidth: 120 }}>
+              <FormControl size={isMobile ? "small" : "medium"} sx={{ minWidth: isMobile ? '100%' : 120 }}>
                 <InputLabel>Mes</InputLabel>
                 <Select
                   value={monthFilter}
@@ -111,102 +116,69 @@ const DashboardHeader = ({
               </FormControl>
             )}
             
-            {/* Selector de año - Solo visible en vista anual y mensual */}
+            {/* Selector de año */}
             {(timeFilter === 'año' || timeFilter === 'mes') && (
-              <FormControl size="small" sx={{ minWidth: 120 }}>
+              <FormControl size={isMobile ? "small" : "medium"} sx={{ minWidth: isMobile ? '100%' : 120 }}>
                 <InputLabel>Año</InputLabel>
                 <Select
                   value={yearFilter}
                   label="Año"
                   onChange={(e) => onYearFilterChange(e.target.value)}
                 >
-                  <MenuItem value="2022">2022</MenuItem>
-                  <MenuItem value="2023">2023</MenuItem>
-                  <MenuItem value="2024">2024</MenuItem>
-                  <MenuItem value="2025">2025</MenuItem>
+                  {['2022', '2023', '2024', '2025'].map((year) => (
+                    <MenuItem key={year} value={year}>
+                      {year}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             )}
-          </Box>
+          </Stack>
         </Grid>
 
-        {/* Sección derecha: Métricas resumidas del período */}
+        {/* Métricas */}
         <Grid item xs={12} md={4}>
-          <Card sx={{ height: '100%' }}>
-            <CardContent sx={{ 
-              p: 1.5,
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column'
-            }}>
+          <Card sx={{ height: '100%', boxShadow: isMobile ? 1 : 2 }}>
+            <CardContent sx={{ p: isMobile ? 1.5 : 2 }}>
               <Typography 
-                variant="subtitle2" 
+                variant={isMobile ? "caption" : "subtitle2"} 
                 fontWeight={600} 
-                gutterBottom 
+                gutterBottom
                 sx={{ 
                   display: 'flex', 
                   alignItems: 'center', 
-                  gap: 1,
-                  mb: 0.5
+                  gap: 0.5,
+                  fontSize: isMobile ? '0.75rem' : '0.875rem'
                 }}
               >
-                <TrendingUp fontSize="small" />
-                Métricas operativas
+                <TrendingUp fontSize={isMobile ? "small" : "medium"} />
+                {isMobile ? 'Métricas' : 'Métricas operativas'}
               </Typography>
-              <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flex: 1,
-                gap: 4
-              }}>
-                <Box sx={{ 
-                  textAlign: 'center',
-                  flex: 1,
-                  px: 1
-                }}>
-                  <Typography variant="h6" fontWeight="bold" color="primary">
-                    {metrics.clientes}
-                  </Typography>
-                  <Typography 
-                    variant="caption" 
-                    color="text.secondary"
-                  >
-                    Clientes
-                  </Typography>
-                </Box>
-                <Box sx={{ 
-                  textAlign: 'center',
-                  flex: 1,
-                  px: 1 // Padding horizontal interno
-                }}>
-                  <Typography variant="h6" fontWeight="bold" color="secondary">
-                    {metrics.productosVendidos}
-                  </Typography>
-                  <Typography 
-                    variant="caption" 
-                    color="text.secondary"
-                    sx={{ mt: 0.5 }}
-                  >
-                    Productos
-                  </Typography>
-                </Box>
-                <Box sx={{ 
-                  textAlign: 'center',
-                  flex: 1,
-                  px: 1 // Padding horizontal interno
-                }}>
-                  <Typography variant="h6" fontWeight="bold" color="success.main">
-                    {metrics.citasEfectivas}
-                  </Typography>
-                  <Typography 
-                    variant="caption" 
-                    color="text.secondary"
-                    sx={{ mt: 0.5 }}
-                  >
-                    Citas
-                  </Typography>
-                </Box>
+              
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1 }}>
+                {[
+                  { label: 'Clientes', value: metrics.clientes, color: 'primary' },
+                  { label: 'Productos', value: metrics.productosVendidos, color: 'secondary' },
+                  { label: 'Citas', value: metrics.citasEfectivas, color: 'success.main' }
+                ].map((item, index) => (
+                  <Box key={index} sx={{ textAlign: 'center', flex: 1 }}>
+                    <Typography 
+                      variant={isMobile ? "body1" : "h6"} 
+                      fontWeight="bold" 
+                      color={item.color}
+                      sx={{ fontSize: isMobile ? '0.875rem' : '1.125rem' }}
+                    >
+                      {item.value}
+                    </Typography>
+                    <Typography 
+                      variant="caption" 
+                      color="text.secondary"
+                      sx={{ fontSize: isMobile ? '0.7rem' : '0.75rem' }}
+                    >
+                      {item.label}
+                    </Typography>
+                  </Box>
+                ))}
               </Box>
             </CardContent>
           </Card>

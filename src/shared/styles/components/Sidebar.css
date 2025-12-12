@@ -975,95 +975,102 @@
 
 /* Tablets y móviles */
 @media (max-width: 768px) {
+  /* Estado por defecto - colapsado y visible */
   .admin-sidebar {
-    width: 100%;
-    transform: translateX(-100%);
+    width: 70px !important; /* Ancho colapsado */
+    transform: translateX(0) !important; /* Visible siempre */
+    left: 0;
+    display: flex !important;
+    visibility: visible !important;
+    z-index: 1000 !important;
   }
   
+  /* Cuando está EXPANDIDO - ocupa toda la pantalla */
   .admin-sidebar.sidebar-open {
-    transform: translateX(0);
+    width: 100vw !important; /* Ocupa todo el ancho de la pantalla */
+    height: 100vh !important; /* Ocupa toda la altura */
+    transform: translateX(0) !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 1300 !important; /* Encima de todo */
   }
   
+  /* Cuando está colapsado - solo 70px */
   .admin-sidebar.sidebar-collapsed {
-    width: 100%;
-    transform: translateX(-100%);
+    width: 70px !important;
+    height: 100vh !important;
+    transform: translateX(0) !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 1000 !important;
   }
   
-  /* Header más compacto en móviles */
-  .sidebar-header {
-    min-height: 68px;
-    padding: var(--spacing-sm) var(--spacing-md);
+  /* Remover cualquier overlay que pueda estar bloqueando */
+  .sidebar-overlay {
+    display: none !important;
   }
   
-  .sidebar-header-content {
-    gap: var(--spacing-sm);
+  /* Ajustes específicos para cuando está expandido en móvil */
+  .sidebar-open .sidebar-header {
+    padding: var(--spacing-lg) var(--spacing-xl);
+    min-height: 80px;
   }
   
-  .sidebar-toggle {
-    width: 28px;
-    height: 28px;
+  .sidebar-open .company-name {
+    font-size: var(--font-size-xl);
   }
   
-  /* Footer compacto en móviles */
-  .sidebar-footer {
-    padding: 8px 12px;
+  .sidebar-open .system-name {
+    font-size: var(--font-size-xs);
   }
   
-  .sidebar-collapsed .sidebar-footer {
-    padding: 8px 6px;
+  /* Mostrar todo el contenido cuando está expandido */
+  .sidebar-open .section-title,
+  .sidebar-open .item-text,
+  .sidebar-open .user-details,
+  .sidebar-open .footer-button span:not(.MuiButton-startIcon) {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
   
-  .user-info {
-    gap: var(--spacing-xs);
-    margin-bottom: var(--spacing-sm);
-  }
-  
-  .user-avatar {
-    width: 32px;
-    height: 32px;
-  }
-  
-  .user-name {
-    font-size: 0.8rem;
-  }
-  
-  .footer-button {
-    padding: 6px var(--spacing-xs) !important;
-    min-height: 32px;
-    font-size: 0.75rem !important;
-  }
-  
-  .footer-button .MuiButton-startIcon svg {
-    font-size: 12px;
-  }
-  
-  .sidebar-collapsed .footer-button {
-    width: 36px !important;
-    height: 36px !important;
-    min-width: 36px !important;
-  }
-  
-  .sidebar-collapsed .section-header {
-    width: 36px;
-    height: 36px;
-  }
-  
-  .sidebar-collapsed .section-icon svg {
-    font-size: 16px;
-  }
-  
-  .sidebar-collapsed .sidebar-footer-buttons {
+  /* Botones del footer expandidos */
+  .sidebar-open .sidebar-footer-buttons {
+    flex-direction: column !important;
     gap: 8px;
   }
   
-  /* Ajuste de fondo para móviles */
-  .sidebar-footer {
-    background: rgba(0, 0, 0, 0.3) !important;
+  .sidebar-open .footer-button {
+    width: 100% !important;
+    justify-content: flex-start !important;
+    padding: 8px 12px !important;
+  }
+  
+  .sidebar-open .footer-button .MuiButton-startIcon {
+    margin-right: 8px !important;
   }
 }
 
 /* Pantallas muy pequeñas */
 @media (max-width: 480px) {
+  /* Estado colapsado */
+  .admin-sidebar {
+    width: 60px !important;
+  }
+  
+  /* Estado expandido - pantalla completa */
+  .admin-sidebar.sidebar-open {
+    width: 100vw !important;
+  }
+  
+  /* Estado colapsado */
+  .admin-sidebar.sidebar-collapsed {
+    width: 60px !important;
+  }
+  
+  /* Header ajustado */
   .sidebar-header {
     min-height: 64px;
   }
