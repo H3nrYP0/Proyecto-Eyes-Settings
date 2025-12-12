@@ -1,13 +1,14 @@
-// Componente wrapper seguro para ReactECharts
-// Previene memory leaks y errores al desmontar componentes con gráficas ECharts
-
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import ReactECharts from 'echarts-for-react';
+import { useTheme, useMediaQuery } from '@mui/material';
 
 const SafeECharts = React.forwardRef(({ option, style, ...props }, ref) => {
   const echartsRef = useRef(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [chartKey, setChartKey] = useState(0);
 
-  // Efecto para limpieza: destruye la instancia de ECharts cuando el componente se desmonta
+  // Efecto para limpieza
   useEffect(() => {
     return () => {
       if (echartsRef.current) {
@@ -23,11 +24,33 @@ const SafeECharts = React.forwardRef(({ option, style, ...props }, ref) => {
     };
   }, []);
 
+  // Forzar re-render cuando cambia el tamaño de pantalla
+  useEffect(() => {
+    setChartKey(prev => prev + 1);
+  }, [isMobile]);
+
+  // Función para manejar el resize del chart
+  const handleResize = () => {
+    if (echartsRef.current) {
+      try {
+        echartsRef.current.resize();
+      } catch (error) {
+        console.warn('Error resizing ECharts:', error);
+      }
+    }
+  };
+
+  // Escuchar cambios de tamaño de ventana
+  useEffect(() => {
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <ReactECharts
+      key={chartKey}
       ref={(node) => {
         echartsRef.current = node;
-        // Maneja tanto ref de función como ref de objeto
         if (ref) {
           if (typeof ref === 'function') {
             ref(node);
@@ -37,8 +60,17 @@ const SafeECharts = React.forwardRef(({ option, style, ...props }, ref) => {
         }
       }}
       option={option}
-      style={style}
-      opts={{ renderer: 'svg' }} // Usa renderizador SVG para mejor calidad y escalabilidad
+      style={{ 
+        ...style,
+        transition: 'all 0.3s ease'
+      }}
+      opts={{ 
+        renderer: 'svg',
+        height: 'auto'
+      }}
+      onEvents={{
+        resize: handleResize
+      }}
       {...props}
     />
   );
