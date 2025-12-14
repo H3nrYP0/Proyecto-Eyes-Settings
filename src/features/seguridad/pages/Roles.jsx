@@ -6,10 +6,11 @@ import Modal from "../../../shared/components/ui/Modal";
 import "../../../shared/styles/components/crud-table.css";
 import "../../../shared/styles/components/modal.css";
 
-// Importamos las funciones del backend
+// Importamos las funciones CORRECTAS para roles
 import {
   getAllRoles,
   deleteRol,
+  updateEstadoRol
 } from "../../../lib/data/rolesData";
 
 export default function Roles() {
@@ -17,6 +18,7 @@ export default function Roles() {
 
   const [roles, setRoles] = useState([]);
   const [search, setSearch] = useState("");
+  const [filterEstado, setFilterEstado] = useState("");
 
   const [modalDelete, setModalDelete] = useState({
     open: false,
@@ -48,14 +50,24 @@ export default function Roles() {
   };
 
   // =============================
+  //       CAMBIAR ESTADO
+  // =============================
+  const toggleEstado = (id) => {
+    const updated = updateEstadoRol(id);
+    setRoles(updated); 
+  };
+
+  // =============================
   //          BUSCADOR
   // =============================
   const filteredRoles = roles.filter((rol) => {
     const matchesSearch = 
       rol.nombre.toLowerCase().includes(search.toLowerCase()) ||
-      rol.descripcion.toLowerCase().includes(search.toLowerCase());
+      (rol.descripcion && rol.descripcion.toLowerCase().includes(search.toLowerCase()));
     
-    return matchesSearch;
+    const matchesFilterEstado = !filterEstado || rol.estado === filterEstado;
+    
+    return matchesSearch && matchesFilterEstado;
   });
 
   // =============================
@@ -68,20 +80,28 @@ export default function Roles() {
       render: (item) => (
         <div className="rol-info-cell">
           <span className="rol-nombre">{item.nombre}</span>
-          <span className="rol-permisos-count">
-            {item.permisosCount || item.permisos?.length || 0} permisos
-          </span>
         </div>
       )
     },
     { 
-      field: "descripcion", 
-      header: "Descripción",
+      field: "permisos", 
+      header: "Permisos",
+      render: (item) => {
+        const totalPermisos = item.permisosCount || item.permisos?.length || 0;
+        return <span>{totalPermisos} permisos</span>;
+      }
+    },
+    {
+      field: "estado",
+      header: "Estado",
       render: (item) => (
-        <span className="rol-descripcion-cell">
-          {item.descripcion}
-        </span>
-      )
+        <button
+          className={`estado-btn ${item.estado === "activo" ? "activo" : "inactivo"}`}
+          onClick={() => toggleEstado(item.id)}
+        >
+          {item.estado === "activo" ? "✅ Activo" : "⛔ Inactivo"}
+        </button>
+      ),
     },
   ];
 
@@ -106,6 +126,13 @@ export default function Roles() {
     },
   ];
 
+  // Filtros para roles
+  const estadoFilters = [
+    { value: '', label: 'Todos los estados' },
+    { value: 'activo', label: 'Activos' },
+    { value: 'inactivo', label: 'Inactivos' }
+  ];
+
   return (
     <CrudLayout
       title="👥 Roles"
@@ -116,6 +143,15 @@ export default function Roles() {
       searchValue={search}
       onSearchChange={setSearch}
       searchPosition="left"
+      showFilters={true}
+      filters={[
+        {
+          label: "Estado",
+          value: filterEstado,
+          onChange: setFilterEstado,
+          options: estadoFilters
+        }
+      ]}
     >
       {/* Tabla */}
       <CrudTable 
@@ -123,7 +159,7 @@ export default function Roles() {
         data={filteredRoles} 
         actions={tableActions}
         emptyMessage={
-          search ? 
+          search || filterEstado ? 
             'No se encontraron roles para los filtros aplicados' : 
             'No hay roles configurados'
         }

@@ -48,6 +48,7 @@ export default function EditarPermisos() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [todosSeleccionados, setTodosSeleccionados] = useState(false);
 
   // Cargar datos del rol al montar el componente
   useEffect(() => {
@@ -63,6 +64,10 @@ export default function EditarPermisos() {
             estado: rol.estado || 'activo',
             permisos: rol.permisos || []
           });
+          // Verificar si todos los permisos están seleccionados
+          if (rol.permisos && rol.permisos.length === permisosDisponibles.length) {
+            setTodosSeleccionados(true);
+          }
         } else {
           setError('No se encontró el rol');
         }
@@ -138,16 +143,24 @@ export default function EditarPermisos() {
   const handlePermisoChange = (permisoId) => {
     setFormData(prev => {
       if (prev.permisos.includes(permisoId)) {
-        // Remover permiso
+        const nuevosPermisos = prev.permisos.filter(id => id !== permisoId);
+        // Si después de deseleccionar todos están vacíos, actualiza el botón
+        if (nuevosPermisos.length === 0) {
+          setTodosSeleccionados(false);
+        }
         return {
           ...prev,
-          permisos: prev.permisos.filter(id => id !== permisoId)
+          permisos: nuevosPermisos
         };
       } else {
-        // Agregar permiso
+        const nuevosPermisos = [...prev.permisos, permisoId];
+        // Si después de seleccionar llegamos a todos, actualiza el botón
+        if (nuevosPermisos.length === permisosDisponibles.length) {
+          setTodosSeleccionados(true);
+        }
         return {
           ...prev,
-          permisos: [...prev.permisos, permisoId]
+          permisos: nuevosPermisos
         };
       }
     });
@@ -161,19 +174,30 @@ export default function EditarPermisos() {
     }
   };
 
-  const seleccionarTodosPermisos = () => {
-    const todosIds = permisosDisponibles.map(permiso => permiso.id);
-    setFormData(prev => ({
-      ...prev,
-      permisos: todosIds
-    }));
-  };
-
-  const deseleccionarTodosPermisos = () => {
-    setFormData(prev => ({
-      ...prev,
-      permisos: []
-    }));
+  const toggleSeleccionarTodos = () => {
+    if (todosSeleccionados) {
+      // Deseleccionar todos
+      setFormData(prev => ({
+        ...prev,
+        permisos: []
+      }));
+      setTodosSeleccionados(false);
+    } else {
+      // Seleccionar todos
+      const todosIds = permisosDisponibles.map(permiso => permiso.id);
+      setFormData(prev => ({
+        ...prev,
+        permisos: todosIds
+      }));
+      setTodosSeleccionados(true);
+    }
+    
+    if (errors.permisos) {
+      setErrors({
+        ...errors,
+        permisos: ''
+      });
+    }
   };
 
   if (loading) {
@@ -222,10 +246,9 @@ export default function EditarPermisos() {
       
       <div className="crud-form-content crear-rol-content">
         <form onSubmit={handleSubmit}>
-          {/* Sección de información del rol */}
+          {/* Sección de información del rol - Actualizada con el diseño de CrearRol */}
           <div className="crud-form-section crear-rol-section">
-            <h3>Información del Rol</h3>
-            
+            {/* Nombre del Rol */}
             <div className="crear-rol-form-row">
               <TextField
                 fullWidth
@@ -237,12 +260,15 @@ export default function EditarPermisos() {
                 helperText={errors.nombre}
                 required
                 placeholder="Ej: Administrador"
-                size="small"
                 variant="outlined"
-                className="crear-rol-mui-field"
+                size="small"
+                className="crear-rol-input"
               />
-              
-              <FormControl fullWidth size="small" className="crear-rol-mui-field">
+            </div>
+
+            {/* Estado y Descripción en filas separadas */}
+            <div className="crear-rol-form-row">
+              <FormControl fullWidth size="small" className="crear-rol-input">
                 <InputLabel>Estado</InputLabel>
                 <Select
                   label="Estado"
@@ -257,70 +283,85 @@ export default function EditarPermisos() {
               </FormControl>
             </div>
 
-            <TextField
-              fullWidth
-              multiline
-              rows={3}
-              label="Descripción"
-              name="descripcion"
-              value={formData.descripcion}
-              onChange={handleChange}
-              error={!!errors.descripcion}
-              helperText={errors.descripcion}
-              required
-              placeholder="Describe las funciones y responsabilidades de este rol..."
-              variant="outlined"
-              size="small"
-              className="crear-rol-mui-field"
-            />
+            <div className="crear-rol-form-row">
+              <TextField
+                fullWidth
+                label="Descripción"
+                name="descripcion"
+                value={formData.descripcion}
+                onChange={handleChange}
+                error={!!errors.descripcion}
+                helperText={errors.descripcion}
+                required
+                placeholder="Descripción del rol..."
+                variant="outlined"
+                size="small"
+                className="crear-rol-input"
+              />
+            </div>
           </div>
 
-          {/* Sección de permisos */}
-          <div className="permisos-section">
-            <div className="permisos-header">
-              <div>
-                <h3>Permisos</h3>
-                <p className="permisos-count">
-                  <span className="permisos-numero">{formData.permisos.length}</span> de{' '}
-                  <span className="permisos-total">{permisosDisponibles.length}</span> permisos seleccionados
-                </p>
+          {/* Sección de permisos - Actualizada con el diseño de CrearRol */}
+          <div className="permisos-section no-scroll">
+            <div className="permisos-header-boolean">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <h3 style={{ margin: 0 }}>Permisos</h3>
+                <span style={{ 
+                  fontSize: '14px', 
+                  backgroundColor: '#f0f0f0',
+                  padding: '2px 8px',
+                  borderRadius: '12px',
+                  fontWeight: '500'
+                }}>
+                  ({formData.permisos.length} de {permisosDisponibles.length})
+                </span>
               </div>
-              
-              <div className="permisos-buttons">
-                <button 
-                  type="button" 
-                  className="permiso-btn permiso-btn-outline"
-                  onClick={seleccionarTodosPermisos}
-                >
-                  Seleccionar Todos
-                </button>
-                <button 
-                  type="button" 
-                  className="permiso-btn permiso-btn-outline"
-                  onClick={deseleccionarTodosPermisos}
-                >
-                  Deseleccionar Todos
-                </button>
-              </div>
+              <button 
+                type="button" 
+                className={`permiso-toggle-btn ${todosSeleccionados ? 'todos-seleccionados' : ''}`}
+                onClick={toggleSeleccionarTodos}
+              >
+                {todosSeleccionados ? 'Deseleccionar Todos' : 'Seleccionar Todos'}
+              </button>
             </div>
             
             {errors.permisos && <div className="permisos-error">{errors.permisos}</div>}
             
-            <Box className="permisos-grid-container">
-              <Grid container spacing={2}>
+            <Box className="permisos-grid-boolean">
+              <Grid container spacing={1}>
                 {permisosDisponibles.map(permiso => (
                   <Grid item xs={12} sm={6} md={4} key={permiso.id}>
                     <Box 
-                      className={`permiso-item ${formData.permisos.includes(permiso.id) ? 'selected' : ''}`}
+                      className={`permiso-item-boolean ${formData.permisos.includes(permiso.id) ? 'selected' : ''}`}
                       onClick={() => handlePermisoChange(permiso.id)}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '8px 10px',
+                        border: '1px solid #ddd',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        backgroundColor: formData.permisos.includes(permiso.id) ? '#e3f2fd' : '#fff',
+                        borderColor: formData.permisos.includes(permiso.id) ? '#1976d2' : '#ddd',
+                        '&:hover': {
+                          backgroundColor: formData.permisos.includes(permiso.id) ? '#bbdefb' : '#f5f5f5'
+                        }
+                      }}
                     >
                       <Checkbox
                         checked={formData.permisos.includes(permiso.id)}
                         onChange={() => handlePermisoChange(permiso.id)}
                         size="small"
-                        sx={{ mr: 1 }}
+                        sx={{ mr: 0.5, padding: '4px' }}
                       />
-                      <Typography className="permiso-label">
+                      <Typography 
+                        sx={{ 
+                          fontSize: '0.8rem', 
+                          color: 'text.primary',
+                          lineHeight: 1.2 
+                        }}
+                      >
                         {permiso.nombre}
                       </Typography>
                     </Box>

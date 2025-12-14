@@ -1,0 +1,156 @@
+/* =============================
+   ESTILOS MINIMALISTAS PARA ROLES
+   ============================= */
+
+/* === TABLA DE ROLES - SIMPLE === */
+.rol-info-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rol-nombre {
+  font-weight: 600;
+  color: #333;
+}
+
+.rol-descripcion {
+  font-size: 0.85rem;
+  color: #666;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.permisos-count-cell {
+  color: #1976d2;
+  font-weight: 500;
+}
+
+.estado-btn {
+  padding: 4px 12px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  background: white;
+  min-width: 100px;
+  text-align: center;
+}
+
+.estado-btn.activo {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border-color: #c8e6c9;
+}
+
+.estado-btn.inactivo {
+  background-color: #ffebee;
+  color: #c62828;
+  border-color: #ffcdd2;
+}
+
+/* === FORMULARIO ROL - SIMPLE === */
+.crear-rol-input .MuiOutlinedInput-root {
+  height: 40px;
+}
+
+.crear-rol-input .MuiOutlinedInput-input {
+  padding: 10px 14px;
+  font-size: 0.9rem;
+}
+
+.permisos-header-boolean {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.permisos-title-boolean h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.permisos-count-boolean {
+  color: #1976d2;
+  font-size: 0.8rem;
+  background: #e3f2fd;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 8px;
+}
+
+.permiso-toggle-btn {
+  padding: 6px 16px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  background: white;
+  color: #666;
+  min-width: 140px;
+}
+
+.permiso-toggle-btn.todos-seleccionados {
+  background-color: #1976d2;
+  color: white;
+  border-color: #1976d2;
+}
+
+.permisos-error {
+  margin: 10px 0;
+  padding: 8px 12px;
+  background-color: #ffebee;
+  border-radius: 6px;
+  color: #c62828;
+  font-size: 0.85rem;
+}
+
+.permisos-grid-boolean .MuiGrid-item {
+  padding: 4px !important;
+}
+
+.permiso-item-boolean {
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: white;
+}
+
+.permiso-item-boolean.selected {
+  background-color: #e3f2fd;
+  border-color: #1976d2;
+}
+
+.permiso-item-boolean .MuiCheckbox-root {
+  padding: 2px !important;
+  margin-right: 2px;
+}
+
+.permiso-item-boolean .MuiTypography-root {
+  font-size: 0.75rem !important;
+  color: #333;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .permisos-header-boolean {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .permiso-toggle-btn {
+    width: 100%;
+  }
+  
+  .rol-descripcion {
+    max-width: 200px;
+  }
+}
