@@ -65,8 +65,7 @@ const SafeECharts = React.forwardRef(({ option, style, ...props }, ref) => {
         transition: 'all 0.3s ease'
       }}
       opts={{ 
-        renderer: 'svg',
-        height: 'auto'
+        renderer: 'svg'
       }}
       onEvents={{
         resize: handleResize

@@ -1,4 +1,4 @@
-import { useState } from "react";
+/* import { useState } from "react";
 import {
   Box,
   Typography,
@@ -88,7 +88,7 @@ const PreferenciasSistema = ({ canEdit = false, isGlobal = false }) => {
       <Paper elevation={1} sx={{ p: 3 }}>
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
-            {/* Configuración Regional */}
+            {/* Configuración Regional }
             <Grid item xs={12}>
               <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
                 Configuración Regional
@@ -149,7 +149,7 @@ const PreferenciasSistema = ({ canEdit = false, isGlobal = false }) => {
               </FormControl>
             </Grid>
 
-            {/* Notificaciones */}
+            {/* Notificaciones }
             <Grid item xs={12}>
               <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ mt: 2 }}>
                 Configuración de Notificaciones
@@ -199,7 +199,7 @@ const PreferenciasSistema = ({ canEdit = false, isGlobal = false }) => {
               />
             </Grid>
 
-            {/* Backup y Seguridad */}
+            {/* Backup y Seguridad }
             <Grid item xs={12}>
               <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ mt: 2 }}>
                 Backup y Seguridad
@@ -235,7 +235,7 @@ const PreferenciasSistema = ({ canEdit = false, isGlobal = false }) => {
             </Grid>
           </Grid>
 
-          {/* Acciones */}
+          {/* Acciones }
           <Box sx={{ display: 'flex', gap: 2, mt: 4, pt: 2, borderTop: 1, borderColor: 'divider' }}>
             <Button 
               type="submit" 
@@ -266,6 +266,18 @@ const PreferenciasSistema = ({ canEdit = false, isGlobal = false }) => {
       </Paper>
     </Box>
   );
+}; */
+
+import EnConstruccionUniversal from "../EnConstruccionUniversal";
+
+const PreferenciasSistema = () => {
+  return (
+    <EnConstruccionUniversal 
+      titulo="Información de la Empresa"
+      mensaje="Esta sección de configuración está en desarrollo. Volverá pronto con nuevas funcionalidades."
+    />
+  );
 };
+
 
 export default PreferenciasSistema;

@@ -70,32 +70,30 @@ import CrearAgenda from "../../../features/servicios/pages/agenda/CrearAgenda";
 import EditarAgenda from "../../../features/servicios/pages/agenda/EditarAgenda";
 import DetalleAgenda from "../../../features/servicios/pages/agenda/DetalleAgenda";
 
-import Horarios from "../../../features/servicios/pages//horario/Horarios";
+import Horarios from "../../../features/servicios/pages/horario/Horarios";
 
 import CampanasSalud from "../../../features/servicios/pages/campanaSalud/CampanasSalud";
 import CrearCampanaSalud from "../../../features/servicios/pages/campanaSalud/CrearCampanaSalud";
 import EditarCampanaSalud from "../../../features/servicios/pages/campanaSalud/EditarCampanaSalud";
 import DetalleCampanaSalud from "../../../features/servicios/pages/campanaSalud/DetalleCampanaSalud";
 
-// ESTAS SON LAS FEATURES DE USUARIOS
-import GestionUsuarios from "../../../features/usuarios/pages/usuario/GestionUsuarios";
-import CrearUsuario from "../../../features/usuarios/pages/usuario/CrearUsuario";
-import EditarUsuario from "../../../features/usuarios/pages/usuario/EditarUsuario";
-import DetalleUsuario from "../../../features/usuarios/pages/usuario/DetalleUsuario";
-//import GestionAcceso from "../../../features/usuarios/pages/GestionAcceso";
+// ESTAS SON LAS FEATURES DE SEGURIDAD (AHORA CON USUARIOS)
+import Roles from "../../../features/seguridad/pages/Roles";
+import CrearRol from "../../../features/seguridad/pages/roles/CrearRol";
+import EditarPermisos from "../../../features/seguridad/pages/roles/EditarPermisos";
+import ListaRoles from "../../../features/seguridad/pages/roles/ListaRoles";
+
+// COMPONENTES DE USUARIOS MOVIDOS A SEGURIDAD
+import GestionUsuarios from "../../../features/seguridad/pages/GestionUsuarios";
+import CrearUsuario from "../../../features/seguridad/pages/usuario/CrearUsuario";
+import EditarUsuario from "../../../features/seguridad/pages/usuario/EditarUsuario";
+import DetalleUsuario from "../../../features/seguridad/pages/usuario/DetalleUsuario";
 
 // ESTAS SON LAS FEATURES DE CONFIGURACIÓN
 import Configuracion from "../../../features/configuracion/Configuration";
 
-// ESTAS SON LAS FEATURES DE SEGURIDAD
-import Roles from "../../../features/seguridad/pages/Roles";
-import CrearRol from "../../../features/seguridad/pages/roles/CrearRol";
-import Permisos from "../../../features/seguridad/pages/Permisos";
-
 // ESTOS SON LOS ESTILOS DEL LAYOUT
 import "/src/shared/styles/layouts/OpticaDashboardLayout.css";
-import EditarPermisos from "../../../features/seguridad/pages/roles/EditarPermisos";
-import ListaRoles from "../../../features/seguridad/pages/roles/ListaRoles";
 
 import { ROLES } from "../../../shared/constants/roles";
 
@@ -178,11 +176,11 @@ export default function OpticaDashboardLayout({ user, setUser }) {
                 <Route path="detalle" element={<DetalleAbono />} />
               </Route>
               <Route path="pedidos">
-              <Route index element={<Pedidos />} />
-              <Route path="crear" element={<CrearPedido />} />
-              <Route path="editar/:id" element={<EditarPedido />} />
-              <Route path="detalle/:id" element={<DetallePedido />} />
-            </Route>
+                <Route index element={<Pedidos />} />
+                <Route path="crear" element={<CrearPedido />} />
+                <Route path="editar/:id" element={<EditarPedido />} />
+                <Route path="detalle/:id" element={<DetallePedido />} />
+              </Route>
               <Route path="nueva" element={<NuevaVenta />} />
               <Route path="detalle/:id" element={<DetalleVenta />} />
               <Route path="editar/:id" element={<EditarVenta />} />
@@ -208,12 +206,11 @@ export default function OpticaDashboardLayout({ user, setUser }) {
                 <Route path="editar/:id" element={<EditarMarca />} />
                 <Route path="detalle/:id" element={<DetalleMarca />} />
               </Route>
- 
+
               <Route path="productos" element={<Products />} />
               <Route path="productos/crear" element={<CrearProducto />} />
               <Route path="productos/editar/:id" element={<EditarProducto />} />
               <Route path="productos/detalle/:id" element={<DetalleProducto />} />
-
 
               <Route path="proveedores">
                 <Route index element={<Proveedores />} />
@@ -248,27 +245,30 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               <Route path="campanas-salud/detalle/:id" element={<DetalleCampanaSalud />} />
             </Route>
 
-            {/* RUTAS DEL MÓDULO DE USUARIOS */}
-            <Route path="usuarios">
+            {/* RUTAS DEL MÓDULO DE SEGURIDAD (AHORA CON USUARIOS) */}
+            <Route path="seguridad">
+              {/* RUTAS DE USUARIOS */}
+              <Route path="usuarios">
                 <Route index element={<GestionUsuarios />} />
                 <Route path="crear" element={<CrearUsuario />} />
                 <Route path="editar/:id" element={<EditarUsuario />} />
                 <Route path="detalle/:id" element={<DetalleUsuario />} />
-              {/*<Route path="gestion-acceso" element={<GestionAcceso />} />*/}
+              </Route>
+
+              {/* RUTAS DE ROLES */}
+              <Route path="roles">
+                <Route index element={<Roles />} />
+                <Route path="crear" element={<CrearRol />} />
+                <Route path="editar/:id" element={<EditarPermisos />} />
+                <Route path="detalle/:id" element={<ListaRoles />} />
+              </Route>
+              
+              {/* REDIRECCIÓN POR DEFECTO EN SEGURIDAD */}
+              <Route index element={<Navigate to="usuarios" replace />} />
             </Route>
 
-            {/* RUTAS DE CONFIGURACIÓN DE LA PAGÍNA */}
+            {/* RUTAS DE CONFIGURACIÓN DE LA PÁGINA */}
             <Route path="configuracion" element={<Configuracion user={user} />} />
-
-            {/* RUTAS DEL MÓDULO DE CONFIGURACIÓN */}
-            <Route path="seguridad">
-              <Route path="roles" element={<Roles />} />
-              <Route path="roles/crear" element={<CrearRol />} />
-              <Route path="roles/editar/:id" element={<EditarPermisos/>} />
-              <Route path="roles/detalle/:id" element={<ListaRoles/>} />
-
-              <Route path="permisos" element={<Permisos />} />
-            </Route>
 
             {/* ESTA ES LA RUTA 404 PARA PÁGINAS NO ENCONTRADAS */}
             <Route

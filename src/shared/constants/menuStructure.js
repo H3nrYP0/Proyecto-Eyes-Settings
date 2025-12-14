@@ -41,18 +41,11 @@ export const menuStructure = [
     ]
   },
   {
-    id: "usuarios",
-    title: "Usuarios",
-    icon: "usuarios",
-    items: [
-      { name: "Usuarios", path: "/admin/usuarios", icon: "users-icon" },
-    ]
-  },
-  {
     id: "seguridad",
     title: "Seguridad",
     icon: "seguridad",
     items: [
+      { name: "Usuarios", path: "/admin/seguridad/usuarios", icon: "users-icon" },
       { name: "Roles", path: "/admin/seguridad/roles", icon: "roles-icon" }
     ]
   },

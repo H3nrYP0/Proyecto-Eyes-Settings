@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import CrudLayout from "../../../../shared/components/layouts/CrudLayout";
-import CrudTable from "../../../../shared/components/ui/CrudTable";
-import Modal from "../../../../shared/components/ui/Modal";
-import "../../../../shared/styles/components/crud-table.css";
-import "../../../../shared/styles/components/modal.css";
+import CrudLayout from "../../../shared/components/layouts/CrudLayout";
+import CrudTable from "../../../shared/components/ui/CrudTable";
+import Modal from "../../../shared/components/ui/Modal";
+import "../../../shared/styles/components/crud-table.css";
+import "../../../shared/styles/components/modal.css";
 
 // Importamos las funciones del backend
 import {
   getAllUsuarios,
   deleteUsuario,
   updateEstadoUsuario,
-} from "../../../../lib/data/usuariosData";
+} from "../../../lib/data/usuariosData";
 
 export default function GestionUsuarios() {
   const navigate = useNavigate();
@@ -51,7 +51,7 @@ export default function GestionUsuarios() {
   };
 
   // =============================
-  //    CAMBIAR ESTADO
+  //       CAMBIAR ESTADO
   // =============================
   const toggleEstado = (id) => {
     const updated = updateEstadoUsuario(id);
@@ -59,7 +59,7 @@ export default function GestionUsuarios() {
   };
 
   // =============================
-  //          BUSCADOR Y FILTRO
+  //      BUSCADOR Y FILTRO
   // =============================
   const filteredUsuarios = usuarios.filter((usuario) => {
     const matchesSearch = 
@@ -92,7 +92,6 @@ export default function GestionUsuarios() {
   // =============================
   const columns = [
     { field: "nombre", header: "Nombre" },
-    { field: "email", header: "Email" },
     { 
       field: "rol", 
       header: "Rol",
@@ -102,7 +101,6 @@ export default function GestionUsuarios() {
         </span>
       )
     },
-    { field: "fechaRegistro", header: "Fecha Registro" },
     {
       field: "estado",
       header: "Estado",

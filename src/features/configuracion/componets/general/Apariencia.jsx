@@ -1,4 +1,4 @@
-import { useState } from "react";
+/* import { useState } from "react";
 import {
   Box,
   Typography,
@@ -88,7 +88,7 @@ const Apariencia = ({ canEdit = false, isGlobal = false, userRole = "" }) => {
       <Paper elevation={1} sx={{ p: 3 }}>
         <form onSubmit={handleSubmit}>
           <Grid container spacing={4}>
-            {/* Tema de la Aplicación */}
+            {/* Tema de la Aplicación }
             <Grid item xs={12}>
               <FormControl component="fieldset">
                 <FormLabel component="legend">Tema de la Aplicación</FormLabel>
@@ -128,7 +128,7 @@ const Apariencia = ({ canEdit = false, isGlobal = false, userRole = "" }) => {
               </FormControl>
             </Grid>
 
-            {/* Densidad y Tamaño de Fuente */}
+            {/* Densidad y Tamaño de Fuente }
             <Grid item xs={12} md={6}>
               <FormControl fullWidth>
                 <FormLabel>Densidad de la Interfaz</FormLabel>
@@ -164,7 +164,7 @@ const Apariencia = ({ canEdit = false, isGlobal = false, userRole = "" }) => {
               </FormControl>
             </Grid>
 
-            {/* Color Primario */}
+            {/* Color Primario }
             <Grid item xs={12}>
               <FormControl fullWidth>
                 <FormLabel>Color Primario</FormLabel>
@@ -192,7 +192,7 @@ const Apariencia = ({ canEdit = false, isGlobal = false, userRole = "" }) => {
             </Grid>
           </Grid>
 
-          {/* Acciones */}
+          {/* Acciones }
           <Box sx={{ display: 'flex', gap: 2, mt: 4, pt: 2, borderTop: 1, borderColor: 'divider' }}>
             <Button 
               type="submit" 
@@ -220,6 +220,18 @@ const Apariencia = ({ canEdit = false, isGlobal = false, userRole = "" }) => {
       </Paper>
     </Box>
   );
+}; */
+
+import EnConstruccionUniversal from "../EnConstruccionUniversal";
+
+const Apariencia = () => {
+  return (
+    <EnConstruccionUniversal 
+      titulo="Información de la Empresa"
+      mensaje="Esta sección de configuración está en desarrollo. Volverá pronto con nuevas funcionalidades."
+    />
+  );
 };
+
 
 export default Apariencia;
