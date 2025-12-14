@@ -25,9 +25,7 @@ export default function DetalleUsuario() {
       </div>
       
       <div className="crud-form-content">
-        <div className="crud-form-section">
-          <h3>Información General</h3>
-          
+        <div className="crud-form-section">     
           <div className="crud-detail-grid">
             <div className="crud-detail-item">
               <strong>Nombre:</strong> 
@@ -37,6 +35,32 @@ export default function DetalleUsuario() {
             <div className="crud-detail-item">
               <strong>Email:</strong> 
               <span>{usuario.email}</span>
+            </div>
+
+            <div className="crud-detail-item">
+              <strong>Teléfono:</strong> 
+              <span>{usuario.telefono || 'No especificado'}</span>
+            </div>
+
+            <div className="crud-detail-item">
+              <strong>Fecha de Nacimiento:</strong> 
+              <span>{usuario.fechaNacimiento || 'No especificada'}</span>
+            </div>
+
+            <div className="crud-detail-item">
+              <strong>Tipo de Documento:</strong> 
+              <span>
+                {usuario.tipoDocumento === 'cedula' ? 'Cédula de Ciudadanía' :
+                 usuario.tipoDocumento === 'cedula_extranjera' ? 'Cédula de Extranjería' :
+                 usuario.tipoDocumento === 'pasaporte' ? 'Pasaporte' :
+                 usuario.tipoDocumento === 'ppt' ? 'PPT (Permiso de Permanencia)' :
+                 usuario.tipoDocumento || 'No especificado'}
+              </span>
+            </div>
+
+            <div className="crud-detail-item">
+              <strong>Número de Documento:</strong> 
+              <span>{usuario.numeroDocumento || 'No especificado'}</span>
             </div>
 
             <div className="crud-detail-item">
@@ -62,12 +86,17 @@ export default function DetalleUsuario() {
 
         <div className="crud-form-actions">
           <button 
-            onClick={() => navigate('/admin/usuarios')}
+            onClick={() => navigate('/admin/seguridad/usuarios')}
             className="crud-btn crud-btn-secondary"
           >
             Volver
           </button>
-          
+            <button
+            onClick={() => navigate(`/admin/seguridad/usuarios/editar/${usuario.id}`)}
+            className="crud-btn crud-btn-primary"
+          >
+            Editar Usuario
+          </button>       
         </div>
       </div>
     </div>
