@@ -1,4 +1,4 @@
-import { useState } from "react";
+/*import { useState } from "react";
 import {
   Box,
   Typography,
@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { Business, Save, Cancel } from "@mui/icons-material";
 
-const EmpresaInfo = ({ canEdit = false, isGlobal = false }) => {
+ const EmpresaInfo = ({ canEdit = false, isGlobal = false }) => {
   const [formData, setFormData] = useState({
     nombre: "Óptica Visual Center",
     ruc: "12345678901",
@@ -70,7 +70,7 @@ const EmpresaInfo = ({ canEdit = false, isGlobal = false }) => {
       <Paper elevation={1} sx={{ p: 3 }}>
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
-            {/* Información Básica */}
+            {/* Información Básica }
             <Grid item xs={12}>
               <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
                 Información Básica
@@ -104,7 +104,7 @@ const EmpresaInfo = ({ canEdit = false, isGlobal = false }) => {
               />
             </Grid>
 
-            {/* Información de Contacto */}
+            {/* Información de Contacto }
             <Grid item xs={12}>
               <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ mt: 2 }}>
                 Información de Contacto
@@ -152,7 +152,7 @@ const EmpresaInfo = ({ canEdit = false, isGlobal = false }) => {
             </Grid>
           </Grid>
 
-          {/* Acciones */}
+          {/* Acciones }
           <Box sx={{ display: 'flex', gap: 2, mt: 4, pt: 2, borderTop: 1, borderColor: 'divider' }}>
             <Button 
               type="submit" 
@@ -182,6 +182,19 @@ const EmpresaInfo = ({ canEdit = false, isGlobal = false }) => {
         </form>
       </Paper>
     </Box>
+  );
+}; 
+*/
+
+
+import EnConstruccionUniversal from "../EnConstruccionUniversal";
+
+const EmpresaInfo = () => {
+  return (
+    <EnConstruccionUniversal 
+      titulo="Información de la Empresa"
+      mensaje="Esta sección de configuración está en desarrollo. Volverá pronto con nuevas funcionalidades."
+    />
   );
 };
 

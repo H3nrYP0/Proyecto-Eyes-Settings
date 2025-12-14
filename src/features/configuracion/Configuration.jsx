@@ -137,10 +137,7 @@ const Configuration = ({ user }) => {
             mb: 1
           }}
         >
-          Configuración del Sistema
-        </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-          Gestiona las preferencias y configuraciones de tu óptica
+          Configuración del Sistema - Ejemplo 
         </Typography>
         
         {/* Indicador de Rol */}
