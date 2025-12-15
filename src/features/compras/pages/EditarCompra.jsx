@@ -112,21 +112,16 @@ export default function EditarCompra() {
   };
 
   return (
-    <CrudLayout
-      title="✏️ Editar Compra"
-      description={`Modifica la compra ${formData.numeroCompra}`}
-    >
+    <CrudLayout>
       <div className="crud-form-container">
         <div className="crud-form-header">
           <h1>Editando: {formData.numeroCompra}</h1>
-          <p>Modifica la información de la compra</p>
         </div>
         
         <div className="crud-form-content">
           <form onSubmit={handleSubmit}>
             {/* Información básica */}
             <div className="crud-form-section">
-              <h3>Información de la Compra</h3>
               <div className="crud-form-grid">
                 <div className="crud-form-group">
                   <label>Proveedor <span className="crud-required">*</span></label>

@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createProducto } from '../../../../lib/data/productosData';
-import { getAllMarcas } from '../../../../lib/data/marcasData';
-import { getAllCategorias } from '../../../../lib/data/categoriasData';
+import { 
+  TextField, 
+  MenuItem
+} from '@mui/material';
+import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
+import DeleteIcon from '@mui/icons-material/Delete';
 import "../../../../shared/styles/components/crud-forms.css";
 import { formatToPesos, parseFromPesos } from '../../../../shared/utils/formatCOP';
 
@@ -36,256 +40,538 @@ export default function CrearProducto() {
     marca: '',
   });
 
-  // Cargar marcas y categorías
-  useEffect(() => {
-    const marcasList = getAllMarcas();
-    const marcasActivas = marcasList.filter(marca => marca.estado === 'activa');
-    setMarcas(marcasActivas);
+  const [imagenes, setImagenes] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
-    const categoriasList = getAllCategorias();
-    const categoriasActivas = categoriasList.filter(categoria => categoria.estado === 'activa');
-    setCategorias(categoriasActivas);
-  }, []);
+  const categorias = [
+    { value: '', label: 'Seleccionar categoría' },
+    { value: 'Monturas', label: 'Monturas' },
+    { value: 'Lentes de Sol', label: 'Lentes de Sol' },
+    { value: 'Lentes de Contacto', label: 'Lentes de Contacto' },
+    { value: 'Accesorios', label: 'Accesorios' },
+    { value: 'Cristales', label: 'Cristales' },
+    { value: 'Armazones', label: 'Armazones' },
+    { value: 'Estuches', label: 'Estuches' },
+    { value: 'Líquidos', label: 'Líquidos para lentes' }
+  ];
 
-  // 👇 FUNCIÓN PARA CERRAR LA NOTIFICACIÓN
-  const handleCloseNotification = () => {
-    setNotification({ ...notification, isVisible: false });
+  const marcas = [
+    { value: '', label: 'Seleccionar marca' },
+    { value: 'Ray-Ban', label: 'Ray-Ban' },
+    { value: 'Oakley', label: 'Oakley' },
+    { value: 'Prada', label: 'Prada' },
+    { value: 'Gucci', label: 'Gucci' },
+    { value: 'Versace', label: 'Versace' },
+    { value: 'Dolce & Gabbana', label: 'Dolce & Gabbana' },
+    { value: 'Tom Ford', label: 'Tom Ford' },
+    { value: 'Maui Jim', label: 'Maui Jim' },
+    { value: 'Carrera', label: 'Carrera' },
+    { value: 'Police', label: 'Police' },
+    { value: 'Vogue', label: 'Vogue' },
+    { value: 'Arnette', label: 'Arnette' },
+    { value: 'Emporio Armani', label: 'Emporio Armani' },
+    { value: 'Michael Kors', label: 'Michael Kors' },
+    { value: 'Bvlgari', label: 'Bvlgari' },
+    { value: 'Dior', label: 'Dior' },
+    { value: 'Fendi', label: 'Fendi' },
+    { value: 'Hugo Boss', label: 'Hugo Boss' },
+    { value: 'Lacoste', label: 'Lacoste' },
+    { value: 'Nike', label: 'Nike' },
+    { value: 'Adidas', label: 'Adidas' },
+    { value: 'Puma', label: 'Puma' },
+    { value: 'Reebok', label: 'Reebok' },
+    { value: 'Under Armour', label: 'Under Armour' },
+    { value: 'Otra', label: 'Otra' }
+  ];
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.nombre.trim()) {
+      newErrors.nombre = 'El nombre es requerido';
+    } else if (formData.nombre.length < 3) {
+      newErrors.nombre = 'El nombre debe tener al menos 3 caracteres';
+    }
+    
+    if (!formData.codigo.trim()) {
+      newErrors.codigo = 'El código es requerido';
+    }
+    
+    if (!formData.categoria) {
+      newErrors.categoria = 'La categoría es requerida';
+    }
+    
+    if (!formData.marca) {
+      newErrors.marca = 'La marca es requerida';
+    }
+    
+    if (!formData.precioVenta) {
+      newErrors.precioVenta = 'El precio de venta es requerido';
+    } else if (isNaN(formData.precioVenta) || Number(formData.precioVenta) <= 0) {
+      newErrors.precioVenta = 'El precio de venta debe ser mayor a 0';
+    }
+    
+    if (!formData.precioCompra) {
+      newErrors.precioCompra = 'El precio de compra es requerido';
+    } else if (isNaN(formData.precioCompra) || Number(formData.precioCompra) <= 0) {
+      newErrors.precioCompra = 'El precio de compra debe ser mayor a 0';
+    }
+    
+    if (formData.precioVenta && formData.precioCompra && 
+        Number(formData.precioVenta) < Number(formData.precioCompra)) {
+      newErrors.precioVenta = 'El precio de venta debe ser mayor al precio de compra';
+    }
+    
+    if (formData.stockActual === '' || formData.stockActual === null) {
+      newErrors.stockActual = 'El stock actual es requerido';
+    } else if (isNaN(formData.stockActual) || Number(formData.stockActual) < 0) {
+      newErrors.stockActual = 'El stock actual no puede ser negativo';
+    }
+    
+    if (formData.stockMinimo === '' || formData.stockMinimo === null) {
+      newErrors.stockMinimo = 'El stock mínimo es requerido';
+    } else if (isNaN(formData.stockMinimo) || Number(formData.stockMinimo) < 0) {
+      newErrors.stockMinimo = 'El stock mínimo no puede ser negativo';
+    }
+    
+    if (formData.stockActual && formData.stockMinimo && 
+        Number(formData.stockActual) < Number(formData.stockMinimo)) {
+      newErrors.stockActual = 'El stock actual no puede ser menor al stock mínimo';
+    }
+    
+    if (formData.descripcion && formData.descripcion.length > 500) {
+      newErrors.descripcion = 'La descripción no debe exceder 500 caracteres';
+    }
+    
+    if (imagenes.length > 5) {
+      newErrors.imagenes = 'Máximo 5 imágenes permitidas';
+    }
+    
+    return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const precioVentaNum = Number(formData.precioVenta);
-    const precioCompraNum = Number(formData.precioCompra);
-
-    // Validaciones
-    if (precioCompraNum > precioVentaNum) {
-      // 👇 MOSTRAR NOTIFICACIÓN DE ERROR EN VEZ DE ALERT
-      setNotification({
-        isVisible: true,
-        message: 'El precio de compra no puede ser mayor que el precio de venta.',
-        type: 'error'
-      });
+    
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      const firstError = Object.keys(validationErrors)[0];
+      document.getElementById(firstError)?.scrollIntoView({ behavior: 'smooth' });
       return;
     }
-
-    if (precioVentaNum <= 0 || precioCompraNum <= 0) {
-      setNotification({
-        isVisible: true,
-        message: 'Los precios deben ser mayores que 0.',
-        type: 'error'
-      });
-      return;
-    }
-
+    
     try {
-      // Crear el producto
+      setLoading(true);
+      
+      const imagenesProcesadas = await Promise.all(
+        imagenes.map(async (imagen, index) => {
+          return {
+            url: imagePreviews[index],
+            orden: index + 1,
+            principal: index === 0
+          };
+        })
+      );
+      
       const nuevoProducto = createProducto({
         ...formData,
-        precioVenta: precioVentaNum,
-        precioCompra: precioCompraNum,
-        stockActual: Number(formData.stockActual),
-        stockMinimo: Number(formData.stockMinimo),
-        imagenes: []
+        nombre: formData.nombre.trim(),
+        codigo: formData.codigo.trim(),
+        descripcion: formData.descripcion.trim(),
+        precioVenta: parseFloat(formData.precioVenta),
+        precioCompra: parseFloat(formData.precioCompra),
+        stockActual: parseInt(formData.stockActual),
+        stockMinimo: parseInt(formData.stockMinimo),
+        estado: 'activo',
+        imagenes: imagenesProcesadas,
+        fechaCreacion: new Date().toISOString(),
+        fechaActualizacion: new Date().toISOString(),
+        creadoPor: 'admin'
       });
 
       console.log('Producto creado:', nuevoProducto);
-
-      // 👇 MOSTRAR NOTIFICACIÓN DE ÉXITO
-      setNotification({
-        isVisible: true,
-        message: '¡Producto creado con éxito!',
-        type: 'success'
+      
+      setFormData({
+        nombre: '',
+        codigo: '',
+        descripcion: '',
+        precioVenta: '',
+        precioCompra: '',
+        stockActual: '',
+        stockMinimo: '',
+        categoria: '',
+        marca: ''
       });
-
-      // Redirigir después de 2 segundos
-      setTimeout(() => {
-        navigate('/admin/compras/productos');
-      }, 2000);
-
+      setImagenes([]);
+      setImagePreviews([]);
+      setErrors({});
+      
+      navigate('/admin/compras/productos');
+      
     } catch (error) {
-      // 👇 MANEJO DE ERROR GENÉRICO
-      setNotification({
-        isVisible: true,
-        message: 'Error al guardar el producto. Intente nuevamente.',
-        type: 'error'
-      });
+      console.error('Error al crear producto:', error);
+      setErrors({ general: 'Error al crear el producto. Intente nuevamente.' });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleInputChange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+    
+    let processedValue = value;
+    
+    if (name === 'precioVenta' || name === 'precioCompra') {
+      processedValue = value.replace(/[^0-9.]/g, '');
+      const parts = processedValue.split('.');
+      if (parts.length > 2) {
+        processedValue = parts[0] + '.' + parts.slice(1).join('');
+      }
+      if (parts[1] && parts[1].length > 2) {
+        processedValue = parts[0] + '.' + parts[1].substring(0, 2);
+      }
+    }
+    
+    if (name === 'stockActual' || name === 'stockMinimo') {
+      processedValue = value.replace(/[^0-9]/g, '');
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      [name]: processedValue
+    }));
+    
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
-  const handlePrecioChange = (e, field) => {
-    const rawValue = e.target.value;
-    const cleanValue = parseFromPesos(rawValue);
-    const formattedValue = formatToPesos(rawValue);
-
-    if (field === 'precioVenta') {
-      setPrecioVentaFormatted(formattedValue);
-    } else if (field === 'precioCompra') {
-      setPrecioCompraFormatted(formattedValue);
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    
+    if (imagenes.length + files.length > 5) {
+      setErrors(prev => ({ ...prev, imagenes: 'Máximo 5 imágenes permitidas' }));
+      return;
     }
-
-    setFormData({
-      ...formData,
-      [field]: cleanValue
+    
+    files.forEach(file => {
+      const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        setErrors(prev => ({ ...prev, imagenes: 'Solo se permiten imágenes JPG, PNG o WebP' }));
+        return;
+      }
+      
+      if (file.size > 2 * 1024 * 1024) {
+        setErrors(prev => ({ ...prev, imagenes: 'Cada imagen debe ser menor a 2MB' }));
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagenes(prev => [...prev, file]);
+        setImagePreviews(prev => [...prev, reader.result]);
+      };
+      reader.readAsDataURL(file);
     });
+    
+    if (errors.imagenes) {
+      setErrors(prev => ({ ...prev, imagenes: '' }));
+    }
+    
+    e.target.value = '';
+  };
+
+  const removeImage = (index) => {
+    setImagenes(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
   };
 
   return (
-    <>
-      {/* 👇 TU FORMULARIO EXISTENTE (SIN CAMBIOS) */}
-      <div className="crud-form-container">
-        <div className="crud-form-header">
-          <h1>Crear Nuevo Producto</h1>
-        </div>
-
-        <div className="crud-form-content" style={{ padding: '0px' }}>
-          <form onSubmit={handleSubmit}>
-            <div className="crud-form-section">
-              {/* ... todos tus campos ... (sin cambios) */}
-              
+    <div className="crud-form-container">
+      <div className="crud-form-header">
+        <h1>Crear Nuevo Producto</h1>
+      </div>
+      
+      <div className="crud-form-content">
+        <form onSubmit={handleSubmit}>
+          <div className="crud-form-section">
+            <div className="crud-form-row">
               <div className="crud-form-group">
-                <label htmlFor="nombre">Nombre <span className="crud-required">*</span></label>
-                <input
-                  type="text"
-                  id="nombre"
+                <TextField
+                  fullWidth
+                  label="Nombre del Producto"
                   name="nombre"
                   value={formData.nombre}
-                  onChange={handleInputChange}
-                  className="crud-input"
+                  onChange={handleChange}
                   required
+                  variant="outlined"
+                  error={!!errors.nombre}
+                  helperText={errors.nombre}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                  sx={{ margin: 0 }}
                 />
               </div>
               
               <div className="crud-form-group">
-                <label htmlFor="categoria">Categoría <span className="crud-required">*</span></label>
-                <select
-                  id="categoria"
+                <TextField
+                  fullWidth
+                  label="Código SKU"
+                  name="codigo"
+                  value={formData.codigo}
+                  onChange={handleChange}
+                  required
+                  variant="outlined"
+                  error={!!errors.codigo}
+                  helperText={errors.codigo}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                  sx={{ margin: 0 }}
+                />
+              </div>
+            </div>
+
+            <div className="crud-form-row">
+              <div className="crud-form-group">
+                <TextField
+                  select
+                  fullWidth
+                  label="Categoría"
                   name="categoria"
                   value={formData.categoria}
-                  onChange={handleInputChange}
-                  className="crud-input"
+                  onChange={handleChange}
                   required
+                  variant="outlined"
+                  error={!!errors.categoria}
+                  helperText={errors.categoria}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                  sx={{ margin: 0 }}
                 >
-                  <option value="">Seleccionar categoría</option>
-                  {categorias.map((categoria) => (
-                    <option key={categoria.id} value={categoria.nombre}>
-                      {categoria.nombre}
-                    </option>
+                  {categorias.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
                   ))}
-                </select>
+                </TextField>
               </div>
               
               <div className="crud-form-group">
-                <label htmlFor="marca">Marca <span className="crud-required">*</span></label>
-                <select
-                  id="marca"
+                <TextField
+                  select
+                  fullWidth
+                  label="Marca"
                   name="marca"
                   value={formData.marca}
-                  onChange={handleInputChange}
-                  className="crud-input"
+                  onChange={handleChange}
                   required
+                  variant="outlined"
+                  error={!!errors.marca}
+                  helperText={errors.marca}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                  sx={{ margin: 0 }}
                 >
-                  <option value="">Seleccionar marca</option>
-                  {marcas.map((marca) => (
-                    <option key={marca.id} value={marca.nombre}>
-                      {marca.nombre}
-                    </option>
+                  {marcas.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
                   ))}
-                </select>
+                </TextField>
               </div>
+            </div>
 
-              <div className="crud-form-group">
-                <label htmlFor="precioVenta">Precio Venta <span className="crud-required">*</span></label>
-                <input
-                  type="text"
-                  id="precioVenta"
-                  name="precioVenta"
-                  value={precioVentaFormatted}
-                  onChange={(e) => handlePrecioChange(e, 'precioVenta')}
-                  className="crud-input"
-                  placeholder="0"
-                  required
-                />
-              </div>
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Descripción"
+                name="descripcion"
+                value={formData.descripcion}
+                onChange={handleChange}
+                multiline
+                variant="outlined"
+                error={!!errors.descripcion}
+                helperText={errors.descripcion}
+                InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                sx={{ margin: 0 }}
+              />
+            </div>
 
+            <div className="crud-form-row">
               <div className="crud-form-group">
-                <label htmlFor="precioCompra">Precio Compra <span className="crud-required">*</span></label>
-                <input
-                  type="text"
-                  id="precioCompra"
+                <TextField
+                  fullWidth
+                  label="Precio de Compra"
                   name="precioCompra"
-                  value={precioCompraFormatted}
-                  onChange={(e) => handlePrecioChange(e, 'precioCompra')}
-                  className="crud-input"
-                  placeholder="0"
+                  type="text"
+                  value={formData.precioCompra}
+                  onChange={handleChange}
                   required
+                  variant="outlined"
+                  error={!!errors.precioCompra}
+                  helperText={errors.precioCompra}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                  inputProps={{ 
+                    inputMode: 'decimal',
+                    pattern: '[0-9]*\.?[0-9]*'
+                  }}
+                  sx={{ margin: 0 }}
                 />
               </div>
-
+              
               <div className="crud-form-group">
-                <label htmlFor="stockActual">Stock Actual <span className="crud-required">*</span></label>
-                <input
-                  type="number"
-                  id="stockActual"
+                <TextField
+                  fullWidth
+                  label="Precio de Venta"
+                  name="precioVenta"
+                  type="text"
+                  value={formData.precioVenta}
+                  onChange={handleChange}
+                  required
+                  variant="outlined"
+                  error={!!errors.precioVenta}
+                  helperText={errors.precioVenta}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                  inputProps={{ 
+                    inputMode: 'decimal',
+                    pattern: '[0-9]*\.?[0-9]*'
+                  }}
+                  sx={{ margin: 0 }}
+                />
+              </div>
+            </div>
+
+            <div className="crud-form-row">
+              <div className="crud-form-group">
+                <TextField
+                  fullWidth
+                  label="Stock Actual"
                   name="stockActual"
+                  type="text"
                   value={formData.stockActual}
-                  onChange={handleInputChange}
-                  className="crud-input"
-                  min="0"
+                  onChange={handleChange}
                   required
+                  variant="outlined"
+                  error={!!errors.stockActual}
+                  helperText={errors.stockActual}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                  inputProps={{ 
+                    inputMode: 'numeric',
+                    pattern: '[0-9]*'
+                  }}
+                  sx={{ margin: 0 }}
                 />
               </div>
-
+              
               <div className="crud-form-group">
-                <label htmlFor="stockMinimo">Stock Mínimo <span className="crud-required">*</span></label>
-                <input
-                  type="number"
-                  id="stockMinimo"
+                <TextField
+                  fullWidth
+                  label="Stock Mínimo"
                   name="stockMinimo"
+                  type="text"
                   value={formData.stockMinimo}
-                  onChange={handleInputChange}
-                  className="crud-input"
-                  min="0"
+                  onChange={handleChange}
                   required
-                />
-              </div>
-
-              <div className="crud-form-group full-width">
-                <label htmlFor="descripcion">Descripción</label>
-                <textarea
-                  id="descripcion"
-                  name="descripcion"
-                  value={formData.descripcion}
-                  onChange={handleInputChange}
-                  rows="2"
-                  className="crud-input crud-textarea"
-                  placeholder="Descripción del producto..."
+                  variant="outlined"
+                  error={!!errors.stockMinimo}
+                  helperText={errors.stockMinimo}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                  inputProps={{ 
+                    inputMode: 'numeric',
+                    pattern: '[0-9]*'
+                  }}
+                  sx={{ margin: 0 }}
                 />
               </div>
             </div>
 
-            <div className="crud-form-actions">
-              <button
-                type="button"
-                className="crud-btn crud-btn-secondary"
-                onClick={() => navigate('/admin/compras/productos')}
-              >
-                Cancelar
-              </button>
-              <button type="submit" className="crud-btn crud-btn-primary">
-                Crear Producto
-              </button>
+            <div className="crud-form-group" style={{ marginTop: '16px' }}>
+              <label htmlFor="image-upload" className="upload-image-label">
+                <div className="upload-image-content">
+                  <AddPhotoAlternateIcon className="upload-image-icon" />
+                  <div className="upload-image-text">
+                    <div className="upload-image-title">Subir imágenes del producto</div>
+                    <div className="upload-image-subtitle">Haz clic o arrastra imágenes aquí</div>
+                    <div className="upload-image-info">
+                      Formatos: JPG, PNG, WebP | Máx: 2MB c/u | Máx: 5 imágenes
+                    </div>
+                  </div>
+                </div>
+              </label>
+              
+              <input
+                accept="image/*"
+                style={{ display: 'none' }}
+                id="image-upload"
+                type="file"
+                multiple
+                onChange={handleImageUpload}
+              />
+              
+              {errors.imagenes && (
+                <div className="error-text">
+                  {errors.imagenes}
+                </div>
+              )}
+              
+              {imagePreviews.length > 0 && (
+                <div className="image-previews-container">
+                  <div className="previews-header">
+                    <span className="previews-title">
+                      Imágenes ({imagePreviews.length}/5)
+                    </span>
+                  </div>
+                  <div className="image-previews">
+                    {imagePreviews.map((preview, index) => (
+                      <div key={index} className="image-preview-container">
+                        <div className="image-preview-wrapper">
+                          <img 
+                            src={preview} 
+                            alt={`Preview ${index + 1}`}
+                            className="image-preview"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="image-remove-btn"
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          </form>
-        </div>
+          </div>
+
+          <div className="crud-form-actions">
+            <button 
+              type="button" 
+              className="crud-btn crud-btn-secondary"
+              onClick={() => navigate('/admin/compras/productos')}
+              disabled={loading}
+            >
+              Cancelar
+            </button>
+            <button 
+              type="submit" 
+              className="crud-btn crud-btn-primary crear-rol-btn crear-rol-primary"
+              disabled={loading}
+            >
+              {loading ? 'Creando...' : 'Crear Producto'}
+            </button>
+          </div>
+          
+          {errors.general && (
+            <div className="general-error">
+              {errors.general}
+            </div>
+          )}
+        </form>
       </div>
 
       {/* 👇 RENDERIZA LA NOTIFICACIÓN AQUÍ, FUERA DEL FORMULARIO */}

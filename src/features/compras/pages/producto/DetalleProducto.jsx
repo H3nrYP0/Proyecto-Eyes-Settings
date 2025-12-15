@@ -38,22 +38,15 @@ export default function DetalleProducto() {
   return (
     <div className="crud-form-container">
       <div className="crud-form-header">
-        <h1>Detalle de Producto</h1>
+        <h1>Detalle de Producto: {producto.nombre}</h1>
       </div>
       
-      <div className="crud-form-content" style={{  padding: '0px' }}>
-        <form>
-          <div className="crud-form-section"  >
-            <div className="crud-form-group">
-              <label htmlFor="nombre">Nombre</label>
-              <input
-                type="text"
-                id="nombre"
-                name="nombre"
-                value={producto.nombre || ''}
-                disabled
-                className="crud-input"
-              />
+      <div className="crud-form-content">
+        <div className="crud-form-section">
+          <div className="crud-detail-grid">
+            <div className="crud-detail-item">
+              <strong>Nombre:</strong> 
+              <span>{producto.nombre}</span>
             </div>
 
             <div className="crud-form-group">
@@ -153,16 +146,20 @@ export default function DetalleProducto() {
             </div>
           </div>
 
-          <div className="crud-form-actions" >
+        <div className="crud-form-actions">
+          <button 
+            onClick={() => navigate('/admin/compras/productos')}
+            className="crud-btn crud-btn-secondary"
+          >
+            Volver
+          </button>
             <button
-              type="button"
-              className="crud-btn crud-btn-secondary"
-              onClick={() => navigate('/admin/compras/productos')}
-            >
-              Volver
-            </button>
-          </div>
-        </form>
+            onClick={() => navigate(`/admin/compras/productos/editar/${producto.id}`)}
+            className="crud-btn crud-btn-primary"
+          >
+            Editar Producto
+          </button>
+        </div>
       </div>
     </div>
   );

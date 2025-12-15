@@ -88,14 +88,7 @@ export default function Productos() {
   //          COLUMNAS
   // =============================
   const columns = [
-    { field: "nombre", header: "Nombre" },
-    
-    { 
-      field: "precioVenta", 
-      header: "Precio Venta",
-      render: (item) => formatCurrency(item.precioVenta)
-    },
-    
+    { field: "nombre", header: "nombre" },
     { 
       field: "stockActual", 
       header: "Stock",
@@ -105,8 +98,8 @@ export default function Productos() {
         </span>
       )
     },
-   
-       {
+    { field: "marca", header: "Marca" },
+    {
       field: "estado",
       header: "Estado",
       render: (item) => (
@@ -148,7 +141,6 @@ export default function Productos() {
   return (
     <CrudLayout
       title="Productos"
-   
       onAddClick={() => navigate("/admin/compras/productos/crear")}
       showSearch={true}
       searchPlaceholder="Buscar por nombre, código, categoría..."

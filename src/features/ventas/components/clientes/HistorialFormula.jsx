@@ -89,12 +89,11 @@ export default function HistorialFormula() {
 
   return (
     <CrudLayout
-      title="📋 Historial de Fórmulas"
+      title="Historial de Fórmulas"
       description={`Fórmulas oftalmológicas de ${cliente.nombre} ${cliente.apellido}`}
     >
       <div className="crud-form-container">
         <div className="crud-form-header">
-          <h1>Historial de Fórmulas</h1>
           <p>Fórmulas oftalmológicas de {cliente.nombre} {cliente.apellido}</p>
         </div>
         

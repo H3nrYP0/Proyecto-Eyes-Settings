@@ -81,20 +81,6 @@ export default function Categorias() {
   // =============================
   const columns = [
     { field: "nombre", header: "Nombre" },
-    { 
-      field: "descripcion", 
-      header: "Descripción",
-      render: (item) => (
-        item.descripcion ? (
-          <span title={item.descripcion}>
-            {item.descripcion.length > 50 
-              ? item.descripcion.substring(0, 50) + '...' 
-              : item.descripcion
-            }
-          </span>
-        ) : '-'
-      )
-    },
     {
       field: "estado",
       header: "Estado",
@@ -137,8 +123,7 @@ export default function Categorias() {
 
   return (
     <CrudLayout
-      title="📁 Categorías de Productos"
-      description="Administra las categorías de productos para organizar tu inventario."
+      title="Categorías de Productos"
       onAddClick={() => navigate("crear")}
       showSearch={true}
       searchPlaceholder="Buscar por nombre, descripción..."
@@ -146,7 +131,7 @@ export default function Categorias() {
       onSearchChange={setSearch}
       searchFilters={searchFilters}
       filterEstado={filterEstado}
-      onFilterChange={handleFilterChange} // ✅ Usar función manejadora
+      onFilterChange={handleFilterChange}
       searchPosition="left"
     >
       {/* Tabla */}

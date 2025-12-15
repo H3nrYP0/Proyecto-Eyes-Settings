@@ -116,8 +116,7 @@ export default function Clientes() {
 
   return (
     <CrudLayout
-      title="👥 Clientes"
-      description="Administra la información de los clientes de la óptica."
+      title="Clientes"
       onAddClick={() => navigate("crear")}
       showSearch={true}
       searchPlaceholder="Buscar por nombre, apellido, documento, ciudad..."

@@ -116,8 +116,7 @@ export default function Horarios() {
   return (
     <div className="crud-form-container">
       <div className="crud-form-header">
-        <h1>📅 Horarios - {empleado.nombre}</h1>
-        <p>Gestiona los horarios y disponibilidad del empleado</p>
+        <h1>Horarios - {empleado.nombre}</h1>
       </div>
 
       <div className="crud-form-content">

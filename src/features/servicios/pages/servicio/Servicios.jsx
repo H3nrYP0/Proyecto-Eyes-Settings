@@ -82,14 +82,7 @@ export default function Servicios() {
   // =============================
   const columns = [
     { field: "nombre", header: "Nombre" },
-   
     { field: "duracion", header: "Duración (min)" },
-    { 
-      field: "precio", 
-      header: "Precio",
-      render: (item) => `$${item.precio.toLocaleString()}`
-    },
-   
     {
       field: "estado",
       header: "Estado",
@@ -132,8 +125,7 @@ export default function Servicios() {
 
   return (
     <CrudLayout
-      title=" Servicios"
-   
+      title="Servicios"
       onAddClick={() => navigate("crear")}
       showSearch={true}
       searchPlaceholder="Buscar por nombre, descripción, empleado..."

@@ -1,8 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-// import CrudLayout from "../../../../shared/components/layouts/CrudLayout"; // 👈 ELIMINADO
+import { 
+  TextField, 
+  Select, 
+  MenuItem, 
+  InputLabel,
+  FormControl,
+  FormHelperText
+} from '@mui/material';
 import { getServicioById, updateServicio } from "../../../../lib/data/serviciosData";
-import { getAllEmpleados } from '../../../../lib/data/empleadosData'; // 👈 Para el select
+import { getAllEmpleados } from '../../../../lib/data/empleadosData';
 import "../../../../shared/styles/components/crud-forms.css";
 import { formatToPesos, parseFromPesos } from '../../../../shared/utils/formatCOP'; // 👈 Para el precio
 
@@ -12,6 +19,11 @@ import CrudNotification from "../../../../shared/styles/components/notifications
 export default function EditarServicio() {
   const navigate = useNavigate();
   const { id } = useParams();
+  
+  const [formData, setFormData] = useState(null);
+  const [empleados, setEmpleados] = useState([]);
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(true);
 
   const [empleados, setEmpleados] = useState([]);
   const [precioFormatted, setPrecioFormatted] = useState('');
@@ -45,28 +57,29 @@ export default function EditarServicio() {
   // 👇 Cargar datos del servicio
   // 👇 Cargar datos del servicio
   useEffect(() => {
-    if (!id) return;
+    // Cargar servicio y empleados simultáneamente
     const servicio = getServicioById(Number(id));
+    const empleadosData = getAllEmpleados();
+    
     if (servicio) {
-      // Buscar el ID del empleado usando su NOMBRE
-      const empleadosList = getAllEmpleados();
-      const empleadoEncontrado = empleadosList.find(emp => emp.nombre === servicio.empleado);
-
-      const data = {
+      // Adaptar datos del formulario anterior al nuevo formato
+      const datosAdaptados = {
         nombre: servicio.nombre || '',
         descripcion: servicio.descripcion || '',
-        duracion: servicio.duracion || '',
+        duracion_min: servicio.duracion_min || servicio.duracion || '',
         precio: servicio.precio || '',
-        // 👇 Usar el ID encontrado, o un string vacío si no se encuentra
-        empleadoId: empleadoEncontrado ? String(empleadoEncontrado.id) : '',
-        estado: servicio.estado || 'activo'
+        empleadoId: servicio.empleadoId || servicio.empleado || '',
+        estado: servicio.estado === true || servicio.estado === 'activo'
       };
-      setFormData(data);
-      setOriginalData({ ...data });
-      setPrecioFormatted(formatToPesos(servicio.precio?.toString() || '0'));
+      setFormData(datosAdaptados);
     } else {
       navigate('/admin/servicios');
     }
+    
+    // Filtrar solo empleados activos
+    const empleadosActivos = empleadosData.filter(emp => emp.estado === true || emp.estado === 'Activo');
+    setEmpleados(empleadosActivos);
+    setLoading(false);
   }, [id, navigate]);
 
   // 👇 Cerrar notificación
@@ -76,239 +89,246 @@ export default function EditarServicio() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Validaciones
+    
+    const newErrors = {};
+    
     if (!formData.nombre.trim()) {
-      setNotification({
-        isVisible: true,
-        message: 'El nombre del servicio es obligatorio.',
-        type: 'error'
-      });
-      return;
+      newErrors.nombre = 'El nombre del servicio es requerido';
+    } else if (formData.nombre.trim().length < 3) {
+      newErrors.nombre = 'Mínimo 3 caracteres';
     }
-
+    
+    if (!formData.duracion_min) {
+      newErrors.duracion_min = 'La duración es requerida';
+    } else {
+      const duracion = Number(formData.duracion_min);
+      if (isNaN(duracion) || duracion <= 0) {
+        newErrors.duracion_min = 'La duración debe ser mayor a 0';
+      } else if (duracion > 480) {
+        newErrors.duracion_min = 'La duración máxima es 480 minutos (8 horas)';
+      }
+    }
+    
+    if (!formData.precio) {
+      newErrors.precio = 'El precio es requerido';
+    } else {
+      const precio = Number(formData.precio);
+      if (isNaN(precio) || precio < 0) {
+        newErrors.precio = 'El precio debe ser mayor o igual a 0';
+      }
+    }
+    
     if (!formData.empleadoId) {
-      setNotification({
-        isVisible: true,
-        message: 'Debe seleccionar un empleado.',
-        type: 'error'
-      });
+      newErrors.empleadoId = 'Debe seleccionar un empleado responsable';
+    }
+    
+    if (formData.descripcion.trim().length > 200) {
+      newErrors.descripcion = 'La descripción no puede exceder 200 caracteres';
+    }
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      const firstErrorField = Object.keys(newErrors)[0];
+      const errorElement = document.querySelector(`[name="${firstErrorField}"]`);
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       return;
     }
-
-    const duracionNum = Number(formData.duracion);
-    const precioNum = Number(formData.precio);
-
-    if (duracionNum <= 0) {
-      setNotification({
-        isVisible: true,
-        message: 'La duración debe ser mayor a 0 minutos.',
-        type: 'error'
-      });
-      return;
-    }
-
-    if (precioNum <= 0) {
-      setNotification({
-        isVisible: true,
-        message: 'El precio debe ser mayor a 0.',
-        type: 'error'
-      });
-      return;
-    }
-
-    // 👇 VALIDACIÓN: No permitir guardar si no hay cambios
-    if (originalData && JSON.stringify(formData) === JSON.stringify(originalData)) {
-      setNotification({
-        isVisible: true,
-        message: 'No se han realizado cambios para guardar.',
-        type: 'error'
-      });
-      return;
-    }
-
-    try {
-      // Actualizar en la base de datos
-      const servicioActualizado = {
-        ...formData,
-        duracion: duracionNum,
-        precio: precioNum,
-        // Guardamos el ID del empleado en el campo 'empleado'
-        empleado: formData.empleadoId
-      };
-
-      updateServicio(Number(id), servicioActualizado);
-
-      setNotification({
-        isVisible: true,
-        message: '¡Servicio actualizado con éxito!',
-        type: 'success'
-      });
-
-      // Redirigir después de 2 segundos
-      setTimeout(() => {
-        navigate('/admin/servicios');
-      }, 2000);
-
-    } catch (error) {
-      setNotification({
-        isVisible: true,
-        message: 'Error al actualizar el servicio. Intente nuevamente.',
-        type: 'error'
-      });
-    }
+    
+    const servicioData = {
+      ...formData,
+      duracion_min: Number(formData.duracion_min),
+      precio: Number(formData.precio),
+      empleadoId: Number(formData.empleadoId)
+    };
+    
+    updateServicio(Number(id), servicioData);
+    navigate('/admin/servicios');
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
+    
+    setFormData({
+      ...formData,
       [name]: value
-    }));
+    });
+    
+    if (errors[name]) {
+      setErrors({
+        ...errors,
+        [name]: ''
+      });
+    }
   };
 
-  // 👇 Manejar cambio de precio con formato
-  const handlePrecioChange = (e) => {
-    const rawValue = e.target.value;
-    const cleanValue = parseFromPesos(rawValue);
-    const formattedValue = formatToPesos(rawValue);
-
-    setPrecioFormatted(formattedValue);
-    setFormData(prev => ({
-      ...prev,
-      precio: cleanValue
-    }));
-  };
-
-  if (!formData.nombre && formData.nombre !== '') {
-    return <div>Cargando...</div>;
+  if (loading || !formData) {
+    return (
+      <div className="crud-form-container">
+        <div className="crud-form-content">
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            Cargando...
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <>
-      <div className="crud-form-container">
-        <div className="crud-form-header">
-          <h1>Editando: {formData.nombre}</h1>
-        </div>
+    <div className="crud-form-container">
+      <div className="crud-form-header">
+        <h1>Editar Servicio</h1>
+        <p>Actualizando: {formData.nombre}</p>
+      </div>
+      
+      <div className="crud-form-content">
+        <form onSubmit={handleSubmit}>
+          <div className="crud-form-section">
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Nombre del Servicio"
+                name="nombre"
+                value={formData.nombre}
+                onChange={handleChange}
+                placeholder="Ej: Examen de la Vista, Adaptación Lentes de Contacto"
+                required
+                variant="outlined"
+                error={!!errors.nombre}
+                helperText={errors.nombre}
+                InputLabelProps={{ style: { fontWeight: 'normal' } }}
+              />
+            </div>
 
-        <div className="crud-form-content" style={{ padding: '0px' }}>
-          <form onSubmit={handleSubmit}>
-            <div className="crud-form-section">
-              {/* 👇 MISMO ORDEN QUE CrearServicio */}
-              <div className="crud-form-group">
-                <label htmlFor="nombre">Nombre <span className="crud-required">*</span></label>
-                <input
-                  type="text"
-                  id="nombre"
-                  name="nombre"
-                  value={formData.nombre}
-                  onChange={handleChange}
-                  className="crud-input"
-                  placeholder="Ej: Examen de la Vista, Adaptación Lentes de Contacto, etc."
-                  required
-                />
-              </div>
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Descripción"
+                name="descripcion"
+                value={formData.descripcion}
+                onChange={handleChange}
+                placeholder="Descripción detallada del servicio"
+                variant="outlined"
+                multiline
+                error={!!errors.descripcion}
+                helperText={errors.descripcion}
+                InputLabelProps={{ style: { fontWeight: 'normal' } }}
+              />
+            </div>
 
+            <div className="crud-form-row">
               <div className="crud-form-group">
-                <label htmlFor="duracion">Duración (min) <span className="crud-required">*</span></label>
-                <input
+                <TextField
+                  fullWidth
+                  label="Duración (minutos)"
+                  name="duracion_min"
                   type="number"
-                  id="duracion"
-                  name="duracion"
-                  value={formData.duracion}
+                  value={formData.duracion_min}
                   onChange={handleChange}
-                  className="crud-input"
                   placeholder="30"
-                  min="1"
                   required
+                  variant="outlined"
+                  inputProps={{ 
+                    min: 1,
+                    max: 480
+                  }}
+                  error={!!errors.duracion_min}
+                  helperText={errors.duracion_min}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
                 />
               </div>
 
               <div className="crud-form-group">
-                <label htmlFor="precio">Precio <span className="crud-required">*</span></label>
-                <input
-                  type="text" // 👈 Texto para formatear
-                  id="precio"
+                <TextField
+                  fullWidth
+                  label="Precio"
                   name="precio"
-                  value={precioFormatted}
-                  onChange={handlePrecioChange}
-                  className="crud-input"
-                  placeholder="0"
+                  type="number"
+                  value={formData.precio}
+                  onChange={handleChange}
+                  placeholder="50000"
                   required
+                  variant="outlined"
+                  inputProps={{ 
+                    min: 0,
+                    step: 100
+                  }}
+                  error={!!errors.precio}
+                  helperText={errors.precio}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                  InputProps={{
+                    startAdornment: <span style={{ marginRight: '8px' }}>$</span>
+                  }}
                 />
               </div>
+            </div>
 
-              {/* 👇 SELECT DE EMPLEADOS */}
-              <div className="crud-form-group">
-                <label htmlFor="empleadoId">Empleado <span className="crud-required">*</span></label>
-                <select
-                  id="empleadoId"
+            <div className="crud-form-group">
+              <FormControl fullWidth error={!!errors.empleadoId}>
+                <InputLabel style={{ fontWeight: 'normal' }}>
+                  Empleado Responsable
+                </InputLabel>
+                <Select
                   name="empleadoId"
                   value={formData.empleadoId}
                   onChange={handleChange}
-                  className="crud-input"
+                  label="Empleado Responsable"
                   required
                 >
-                  <option value="">Seleccionar empleado</option>
+                  <MenuItem value="">Seleccione un empleado</MenuItem>
                   {empleados.map((empleado) => (
-                    <option key={empleado.id} value={empleado.id}>
-                      {empleado.nombre} - {empleado.cargo}
-                    </option>
+                    <MenuItem key={empleado.id} value={empleado.id}>
+                      {empleado.nombre} - {empleado.cargo || 'Sin cargo'}
+                    </MenuItem>
                   ))}
-                </select>
-              </div>
+                </Select>
+                {errors.empleadoId && (
+                  <FormHelperText error>{errors.empleadoId}</FormHelperText>
+                )}
+              </FormControl>
+            </div>
 
-              <div className="crud-form-group full-width">
-                <label htmlFor="descripcion">Descripción</label>
-                <textarea
-                  id="descripcion"
-                  name="descripcion"
-                  value={formData.descripcion}
-                  onChange={handleChange}
-                  rows="2"
-                  className="crud-input crud-textarea"
-                  placeholder="Descripción del servicio..."
-                />
-              </div>
-
-              <div className="crud-form-group">
-                <label htmlFor="estado">Estado</label>
-                <select
-                  id="estado"
+            <div className="crud-form-group">
+              <FormControl fullWidth>
+                <InputLabel style={{ fontWeight: 'normal' }}>
+                  Estado
+                </InputLabel>
+                <Select
                   name="estado"
-                  value={formData.estado}
-                  onChange={handleChange}
-                  className="crud-input"
+                  value={formData.estado ? 'Activo' : 'Inactivo'}
+                  onChange={(e) => {
+                    setFormData({
+                      ...formData,
+                      estado: e.target.value === 'Activo'
+                    });
+                  }}
+                  label="Estado"
                 >
-                  <option value="activo">Activo</option>
-                  <option value="inactivo">Inactivo</option>
-                </select>
-              </div>
+                  <MenuItem value="Activo">Activo</MenuItem>
+                  <MenuItem value="Inactivo">Inactivo</MenuItem>
+                </Select>
+              </FormControl>
             </div>
+          </div>
 
-            <div className="crud-form-actions">
-              <button
-                type="button"
-                className="crud-btn crud-btn-secondary"
-                onClick={() => navigate('/admin/servicios')}
-              >
-                Cancelar
-              </button>
-              <button type="submit" className="crud-btn crud-btn-primary">
-                Actualizar Servicio
-              </button>
-            </div>
-          </form>
-        </div>
+          <div className="crud-form-actions">
+            <button 
+              type="button" 
+              className="crud-btn crud-btn-secondary"
+              onClick={() => navigate('/admin/servicios')}
+            >
+              Cancelar
+            </button>
+            <button 
+              type="submit" 
+              className="crud-btn crud-btn-primary"
+            >
+              Actualizar Servicio
+            </button>
+          </div>
+        </form>
       </div>
-
-      {/* 👇 NOTIFICACIÓN REUTILIZABLE */}
-      <CrudNotification
-        message={notification.message}
-        type={notification.type}
-        isVisible={notification.isVisible}
-        onClose={handleCloseNotification}
-      />
-    </>
+    </div>
   );
 }

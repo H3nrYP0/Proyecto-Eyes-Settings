@@ -152,8 +152,7 @@ export default function Compras() {
 
   return (
     <CrudLayout
-      title="💰 Compras"
-      description="Registra y gestiona las compras de productos a proveedores."
+      title="Compras"
       onAddClick={() => navigate("/admin/compras/crear")}
       showSearch={true}
       searchPlaceholder="Buscar por proveedor, observaciones..."

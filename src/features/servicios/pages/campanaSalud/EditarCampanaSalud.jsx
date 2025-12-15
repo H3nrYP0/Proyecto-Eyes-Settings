@@ -1,13 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { 
+  TextField, 
+  Select, 
+  MenuItem, 
+  InputLabel,
+  FormControl,
+  FormHelperText
+} from '@mui/material';
 import { getCampanaSaludById, updateCampanaSalud } from '../../../../lib/data/campanasSaludData';
-import { getAllEmpleados } from '../../../../lib/data/empleadosData'; // Para el select
+import { getAllEmpleados } from '../../../../lib/data/empleadosData';
 import "../../../../shared/styles/components/crud-forms.css";
 import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification"; // Para notificaciones
 
 export default function EditarCampanaSalud() {
   const navigate = useNavigate();
   const { id } = useParams();
+  
+  const [formData, setFormData] = useState(null);
+  const [empleados, setEmpleados] = useState([]);
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(true);
 
   const [empleados, setEmpleados] = useState([]);
   const [notification, setNotification] = useState({
@@ -45,12 +58,33 @@ export default function EditarCampanaSalud() {
   useEffect(() => {
     if (!id) return;
     const campana = getCampanaSaludById(Number(id));
+    const empleadosData = getAllEmpleados();
+    
     if (campana) {
-      setFormData(campana);
-      setOriginalData({ ...campana }); // Guardar copia original
+      // Adaptar datos del formulario anterior al nuevo formato
+      const datosAdaptados = {
+        nombre: campana.nombre || '',
+        empresa: campana.empresa || '',
+        contacto_nombre: campana.contacto_nombre || campana.contacto || '',
+        contacto_telefono: campana.contacto_telefono || '',
+        empleadoId: campana.empleadoId || campana.empleado || '',
+        fecha: campana.fecha || campana.fechaInicio || '',
+        hora_inicio: campana.hora_inicio || '',
+        hora_fin: campana.hora_fin || '',
+        direccion: campana.direccion || '',
+        participantes_estimados: campana.participantes_estimados || '',
+        materiales: campana.materiales || campana.descripcion || '',
+        estado: campana.estado || 'PLANIFICADA',
+        observaciones: campana.observaciones || ''
+      };
+      setFormData(datosAdaptados);
     } else {
       navigate('/admin/servicios/campanas-salud');
     }
+    
+    const empleadosActivos = empleadosData.filter(emp => emp.estado === true || emp.estado === 'Activo');
+    setEmpleados(empleadosActivos);
+    setLoading(false);
   }, [id, navigate]);
 
   const getTodayDate = () => {
@@ -96,218 +130,339 @@ export default function EditarCampanaSalud() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Validación de cambios
-    if (originalData && JSON.stringify(formData) === JSON.stringify(originalData)) {
-      setNotification({
-        isVisible: true,
-        message: 'No se han realizado cambios para guardar.',
-        type: 'error'
-      });
+    
+    const newErrors = {};
+    
+    if (!formData.nombre.trim()) {
+      newErrors.nombre = 'El nombre de la campaña es requerido';
+    } else if (formData.nombre.trim().length < 3) {
+      newErrors.nombre = 'Mínimo 3 caracteres';
+    }
+    
+    if (!formData.empresa.trim()) {
+      newErrors.empresa = 'El nombre de la empresa es requerido';
+    }
+    
+    if (!formData.empleadoId) {
+      newErrors.empleadoId = 'Debe seleccionar un empleado responsable';
+    }
+    
+    if (!formData.fecha) {
+      newErrors.fecha = 'La fecha es requerida';
+    }
+    
+    if (!formData.hora_inicio) {
+      newErrors.hora_inicio = 'La hora de inicio es requerida';
+    }
+    
+    if (!formData.hora_fin) {
+      newErrors.hora_fin = 'La hora de fin es requerida';
+    } else if (formData.hora_inicio && formData.hora_fin) {
+      if (formData.hora_fin <= formData.hora_inicio) {
+        newErrors.hora_fin = 'La hora de fin debe ser mayor a la hora de inicio';
+      }
+    }
+    
+    if (formData.participantes_estimados && Number(formData.participantes_estimados) < 1) {
+      newErrors.participantes_estimados = 'Debe ser mayor a 0';
+    }
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      const firstErrorField = Object.keys(newErrors)[0];
+      const errorElement = document.querySelector(`[name="${firstErrorField}"]`);
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       return;
     }
-
-    // Validación de contacto
-    if (formData.contacto.length !== 10) {
-      setNotification({
-        isVisible: true,
-        message: 'El contacto debe tener exactamente 10 dígitos numéricos.',
-        type: 'error'
-      });
-      return;
-    }
-
-    // Validación de domingo
-    if (isSunday(formData.fecha)) {
-      setNotification({
-        isVisible: true,
-        message: 'No se permiten campañas en días domingos.',
-        type: 'error'
-      });
-      return;
-    }
-
-    try {
-      updateCampanaSalud(Number(id), formData);
-      setNotification({
-        isVisible: true,
-        message: '¡Campaña actualizada con éxito!',
-        type: 'success'
-      });
-      setTimeout(() => {
-        navigate('/admin/servicios/campanas-salud');
-      }, 2000);
-    } catch (error) {
-      setNotification({
-        isVisible: true,
-        message: 'Error al actualizar la campaña. Intente nuevamente.',
-        type: 'error'
-      });
-    }
+    
+    const campanaData = {
+      ...formData,
+      empleadoId: Number(formData.empleadoId),
+      participantes_estimados: formData.participantes_estimados ? Number(formData.participantes_estimados) : null
+    };
+    
+    updateCampanaSalud(Number(id), campanaData);
+    navigate('/admin/servicios/campanas-salud');
   };
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
+    
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
+    
+    if (errors[name]) {
+      setErrors({
+        ...errors,
+        [name]: ''
+      });
+    }
   };
 
-  if (!formData.empresa && formData.empresa !== '') {
-    return <div>Cargando...</div>;
+  if (loading || !formData) {
+    return (
+      <div className="crud-form-container">
+        <div className="crud-form-content">
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            Cargando...
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <>
-      <div className="crud-form-container">
-        <div className="crud-form-header">
-          <h1>Editando: {formData.empresa}</h1>
-        </div>
-        
-        <div className="crud-form-content" style={{ padding: '0px' }}>
-          <form onSubmit={handleSubmit}>
-            <div className="crud-form-section">
+    <div className="crud-form-container">
+      <div className="crud-form-header">
+        <h1>Editar Campaña de Salud</h1>
+        <p>Actualizando: {formData.nombre}</p>
+      </div>
+      
+      <div className="crud-form-content">
+        <form onSubmit={handleSubmit}>
+          <div className="crud-form-section">
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Nombre de la Campaña"
+                name="nombre"
+                value={formData.nombre}
+                onChange={handleChange}
+                placeholder="Ej: Chequeo Visual Gratuito, Descuento en Lentes de Sol"
+                required
+                variant="outlined"
+                error={!!errors.nombre}
+                helperText={errors.nombre}
+                InputLabelProps={{ style: { fontWeight: 'normal' } }}
+              />
+            </div>
+
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Empresa"
+                name="empresa"
+                value={formData.empresa}
+                onChange={handleChange}
+                placeholder="Nombre de la empresa organizadora"
+                required
+                variant="outlined"
+                error={!!errors.empresa}
+                helperText={errors.empresa}
+                InputLabelProps={{ style: { fontWeight: 'normal' } }}
+              />
+            </div>
+
+            <div className="crud-form-row">
               <div className="crud-form-group">
-                <label htmlFor="empresa">Empresa <span className="crud-required">*</span></label>
-                <input
-                  type="text"
-                  id="empresa"
-                  name="empresa"
-                  value={formData.empresa}
+                <TextField
+                  fullWidth
+                  label="Contacto"
+                  name="contacto_nombre"
+                  value={formData.contacto_nombre}
                   onChange={handleChange}
-                  className="crud-input"
-                  placeholder="Ej: Colegio San José, Empresa ABC Ltda"
-                  required
+                  placeholder="Nombre de la persona de contacto"
+                  variant="outlined"
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
                 />
               </div>
 
               <div className="crud-form-group">
-                <label htmlFor="empleadoId">Empleado <span className="crud-required">*</span></label>
-                <select
-                  id="empleadoId"
+                <TextField
+                  fullWidth
+                  label="Teléfono de Contacto"
+                  name="contacto_telefono"
+                  value={formData.contacto_telefono}
+                  onChange={handleChange}
+                  placeholder="Número de teléfono"
+                  variant="outlined"
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                />
+              </div>
+
+            <div className="crud-form-group">
+              <FormControl fullWidth error={!!errors.empleadoId}>
+                <InputLabel style={{ fontWeight: 'normal' }}>
+                  Empleado Responsable
+                </InputLabel>
+                <Select
                   name="empleadoId"
                   value={formData.empleadoId}
                   onChange={handleChange}
-                  className="crud-input"
+                  label="Empleado Responsable"
                   required
                 >
-                  <option value="">Seleccionar empleado</option>
+                  <MenuItem value="">Seleccionar empleado</MenuItem>
                   {empleados.map((empleado) => (
-                    <option key={empleado.id} value={empleado.id}>
-                      {empleado.nombre} - {empleado.cargo}
-                    </option>
+                    <MenuItem key={empleado.id} value={empleado.id}>
+                      {empleado.nombre} - {empleado.cargo || 'Sin cargo'}
+                    </MenuItem>
                   ))}
-                </select>
-              </div>
+                </Select>
+                {errors.empleadoId && (
+                  <FormHelperText error>{errors.empleadoId}</FormHelperText>
+                )}
+              </FormControl>
+            </div>
 
-              <div className="crud-form-row">
-                <div className="crud-form-group">
-                  <label htmlFor="contacto">Contacto <span className="crud-required">*</span></label>
-                  <input
-                    type="text"
-                    id="contacto"
-                    name="contacto"
-                    value={formData.contacto}
-                    onChange={handleContactoChange}
-                    className="crud-input"
-                    placeholder="3001234567"
-                    required
-                  />
-                </div>
-
-                <div className="crud-form-group">
-                  <label htmlFor="direccion">Dirección</label>
-                  <input
-                    type="text"
-                    id="direccion"
-                    name="direccion"
-                    value={formData.direccion}
-                    onChange={handleChange}
-                    className="crud-input"
-                    placeholder="Calle 123 #45-67"
-                  />
-                </div>
-              </div>
-
-              <div className="crud-form-row">
-                <div className="crud-form-group">
-                  <label htmlFor="fecha">Fecha <span className="crud-required">*</span></label>
-                  <input
-                    type="date"
-                    id="fecha"
-                    name="fecha"
-                    value={formData.fecha}
-                    onChange={handleChange}
-                    className="crud-input"
-                    min={getTodayDate()}
-                    required
-                  />
-                </div>
-
-                <div className="crud-form-group">
-                  <label htmlFor="hora">Hora <span className="crud-required">*</span></label>
-                  <select
-                    id="hora"
-                    name="hora"
-                    value={formData.hora}
-                    onChange={handleChange}
-                    className="crud-input"
-                    required
-                  >
-                    <option value="">Seleccionar hora</option>
-                    {generarOpcionesHora().map((opcion) => (
-                      <option key={opcion} value={opcion}>
-                        {opcion}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+            <div className="crud-form-row">
+              <div className="crud-form-group">
+                <TextField
+                  fullWidth
+                  label="Fecha"
+                  name="fecha"
+                  type="date"
+                  value={formData.fecha}
+                  onChange={handleChange}
+                  required
+                  variant="outlined"
+                  InputLabelProps={{ 
+                    shrink: true,
+                    style: { fontWeight: 'normal' }
+                  }}
+                  error={!!errors.fecha}
+                  helperText={errors.fecha}
+                />
               </div>
 
               <div className="crud-form-group">
-                <label htmlFor="estado">Estado</label>
-                <select
-                  id="estado"
-                  name="estado"
-                  value={formData.estado}
+                <TextField
+                  fullWidth
+                  label="Hora Inicio"
+                  name="hora_inicio"
+                  type="time"
+                  value={formData.hora_inicio}
                   onChange={handleChange}
-                  className="crud-input"
-                >
-                  <option value="proxima">Próxima</option>
-                  <option value="activa">Activa</option>
-                  <option value="finalizada">Finalizada</option>
-                  <option value="inactiva">Inactiva</option>
-                </select>
+                  required
+                  variant="outlined"
+                  InputLabelProps={{ 
+                    shrink: true,
+                    style: { fontWeight: 'normal' }
+                  }}
+                  error={!!errors.hora_inicio}
+                  helperText={errors.hora_inicio}
+                />
               </div>
 
-              <div className="crud-form-group width">
-                <label htmlFor="observaciones">Observaciones</label>
-                <textarea
-                  id="observaciones"
-                  name="observaciones"
-                  value={formData.observaciones}
+              <div className="crud-form-group">
+                <TextField
+                  fullWidth
+                  label="Hora Fin"
+                  name="hora_fin"
+                  type="time"
+                  value={formData.hora_fin}
                   onChange={handleChange}
-                  rows="3"
-                  className="crud-input crud-textarea"
-                  placeholder="Detalles adicionales sobre la campaña..."
+                  required
+                  variant="outlined"
+                  InputLabelProps={{ 
+                    shrink: true,
+                    style: { fontWeight: 'normal' }
+                  }}
+                  error={!!errors.hora_fin}
+                  helperText={errors.hora_fin}
                 />
               </div>
             </div>
 
-            <div className="crud-form-actions">
-              <button 
-                type="button" 
-                className="crud-btn crud-btn-secondary"
-                onClick={() => navigate('/admin/servicios/campanas-salud')}
-              >
-                Cancelar
-              </button>
-              <button type="submit" className="crud-btn crud-btn-primary">
-                Actualizar Campaña
-              </button>
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Dirección"
+                name="direccion"
+                value={formData.direccion}
+                onChange={handleChange}
+                placeholder="Dirección donde se realizará la campaña"
+                variant="outlined"
+                multiline
+                InputLabelProps={{ style: { fontWeight: 'normal' } }}
+              />
             </div>
-          </form>
-        </div>
+
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Participantes Estimados"
+                name="participantes_estimados"
+                type="number"
+                value={formData.participantes_estimados}
+                onChange={handleChange}
+                placeholder="Número estimado de participantes"
+                variant="outlined"
+                inputProps={{ min: 1 }}
+                error={!!errors.participantes_estimados}
+                helperText={errors.participantes_estimados}
+                InputLabelProps={{ style: { fontWeight: 'normal' } }}
+              />
+            </div>
+
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Materiales"
+                name="materiales"
+                value={formData.materiales}
+                onChange={handleChange}
+                placeholder="Materiales necesarios para la campaña"
+                variant="outlined"
+                multiline
+                InputLabelProps={{ style: { fontWeight: 'normal' } }}
+              />
+            </div>
+
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Observaciones"
+                name="observaciones"
+                value={formData.observaciones}
+                onChange={handleChange}
+                placeholder="Observaciones adicionales"
+                variant="outlined"
+                multiline
+                InputLabelProps={{ style: { fontWeight: 'normal' } }}
+              />
+            </div>
+
+            <div className="crud-form-group">
+              <FormControl fullWidth>
+                <InputLabel style={{ fontWeight: 'normal' }}>
+                  Estado
+                </InputLabel>
+                <Select
+                  name="estado"
+                  value={formData.estado}
+                  onChange={handleChange}
+                  label="Estado"
+                >
+                  <MenuItem value="PLANIFICADA">Planificada</MenuItem>
+                  <MenuItem value="EN_CURSO">En curso</MenuItem>
+                  <MenuItem value="COMPLETADA">Completada</MenuItem>
+                  <MenuItem value="CANCELADA">Cancelada</MenuItem>
+                </Select>
+              </FormControl>
+            </div>
+          </div>
+
+          <div className="crud-form-actions">
+            <button 
+              type="button" 
+              className="crud-btn crud-btn-secondary"
+              onClick={() => navigate('/admin/servicios/campanas-salud')}
+            >
+              Cancelar
+            </button>
+            <button 
+              type="submit" 
+              className="crud-btn crud-btn-primary"
+            >
+              Actualizar Campaña
+            </button>
+          </div>
+        </form>
       </div>
 
       <CrudNotification

@@ -32,20 +32,12 @@ export default function DetalleServicio() {
         <h1>Detalle de Servicio: {servicio.nombre}</h1>
       </div>
       
-      <div className="crud-form-content" style={{ padding: '0px' }}>
-        <form>
-          <div className="crud-form-section">
-            <div className="crud-form-group">
-              <label htmlFor="nombre">Nombre</label>
-              <input
-                type="text"
-                id="nombre"
-                name="nombre"
-                value={servicio.nombre || ''}
-                disabled
-                className="crud-input"
-                placeholder="Ej: Examen de la Vista, Adaptación Lentes de Contacto, etc."
-              />
+      <div className="crud-form-content">
+        <div className="crud-form-section">
+          <div className="crud-detail-grid">
+            <div className="crud-detail-item">
+              <strong>Nombre:</strong> 
+              <span>{servicio.nombre}</span>
             </div>
 
             <div className="crud-form-group">
@@ -113,16 +105,20 @@ export default function DetalleServicio() {
             </div>
           </div>
 
-          <div className="crud-form-actions">
-            <button 
-              type="button"
-              onClick={() => navigate('/admin/servicios')}
-              className="crud-btn crud-btn-secondary"
-            >
-              Volver
-            </button>
-          </div>
-        </form>
+        <div className="crud-form-actions">
+          <button 
+            onClick={() => navigate('/admin/servicios')}
+            className="crud-btn crud-btn-secondary"
+          >
+            Volver
+          </button>
+          <button 
+              onClick={() => navigate(`/admin/servicios/editar/${servicio.id}`)}
+              className="crud-btn crud-btn-primary"
+          >
+              Editar Servicio
+          </button>
+        </div>
       </div>
     </div>
   );

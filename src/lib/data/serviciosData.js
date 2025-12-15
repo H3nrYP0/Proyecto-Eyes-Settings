@@ -1,71 +1,189 @@
-// Base de datos temporal de servicios
+// Base de datos temporal de servicios - ACTUALIZADA
 let serviciosDB = [
   {
     id: 1,
     nombre: "Cita general",
     descripcion: "Consulta optométrica completa para evaluación visual",
-    duracion: 30,
+    duracion_min: 30,
     precio: 50000,
-    empleado: "Dr. Carlos Méndez",
-    estado: "activo",
+    empleadoId: 1,
+    estado: true,
   },
   {
     id: 2,
     nombre: "Campaña de salud",
     descripcion: "Servicio especial de campañas de salud visual",
-    duracion: 45,
+    duracion_min: 45,
     precio: 80000,
-    empleado: "Dra. Ana Rodríguez",
-    estado: "activo",
+    empleadoId: 2,
+    estado: true,
   },
+  {
+    id: 3,
+    nombre: "Adaptación lentes de contacto",
+    descripcion: "Prueba y adaptación de lentes de contacto",
+    duracion_min: 60,
+    precio: 75000,
+    empleadoId: 1,
+    estado: true,
+  },
+  {
+    id: 4,
+    nombre: "Examen de la vista",
+    descripcion: "Evaluación completa de la agudeza visual",
+    duracion_min: 40,
+    precio: 60000,
+    empleadoId: 2,
+    estado: false,
+  }
 ];
 
-// Obtener todos los servicios
+// Función para obtener el próximo ID disponible
+function getNextId() {
+  if (serviciosDB.length === 0) return 1;
+  const maxId = Math.max(...serviciosDB.map(s => s.id));
+  return maxId + 1;
+}
+
+// Obtener todos los servicios (compatible con ambos formatos)
 export function getAllServicios() {
-  return [...serviciosDB];
+  // Convertir estado booleano a string para la UI si es necesario
+  return serviciosDB.map(servicio => ({
+    ...servicio,
+    estado: servicio.estado ? "activo" : "inactivo",
+    duracion: servicio.duracion_min,
+    // Mantener compatibilidad con el formato antiguo
+    empleado: servicio.empleadoId ? `Empleado #${servicio.empleadoId}` : 'No asignado'
+  }));
 }
 
-// Obtener por ID
+// Obtener por ID (compatible con ambos formatos)
 export function getServicioById(id) {
-  return serviciosDB.find((s) => s.id === id);
+  const servicio = serviciosDB.find((s) => s.id === Number(id));
+  if (!servicio) return null;
+  
+  // Convertir a formato compatible con ambos formularios
+  return {
+    ...servicio,
+    duracion: servicio.duracion_min,
+    estado: servicio.estado ? "activo" : "inactivo",
+    // Mantener compatibilidad con campos antiguos
+    empleado: servicio.empleadoId ? `Empleado #${servicio.empleadoId}` : 'No asignado',
+    // Para compatibilidad con los nuevos campos
+    empleadoId: servicio.empleadoId
+  };
 }
 
-// Crear servicio
+// Crear servicio (compatible con ambos formatos)
 export function createServicio(data) {
-  const newId = serviciosDB.length ? serviciosDB.at(-1).id + 1 : 1;
-  const nuevoServicio = { 
-    id: newId, 
-    ...data 
+  const newId = getNextId();
+  
+  // Asegurar que los campos tengan el formato correcto para la BD
+  const nuevoServicio = {
+    id: newId,
+    nombre: data.nombre || '',
+    descripcion: data.descripcion || '',
+    duracion_min: data.duracion_min || data.duracion || 30,
+    precio: data.precio || 0,
+    empleadoId: data.empleadoId || data.empleado || null,
+    estado: data.estado === undefined ? true : data.estado
   };
   
   serviciosDB.push(nuevoServicio);
   return nuevoServicio;
 }
 
-// Actualizar servicio
-export function updateServicio(id, updated) {
-  const index = serviciosDB.findIndex((s) => s.id === id);
-  if (index !== -1) {
-    serviciosDB[index] = { ...serviciosDB[index], ...updated };
-  }
-  return serviciosDB;
+// Actualizar servicio (compatible con ambos formatos)
+export function updateServicio(id, updatedData) {
+  const index = serviciosDB.findIndex((s) => s.id === Number(id));
+  if (index === -1) return null;
+  
+  // Convertir datos del formulario al formato de la BD
+  const datosActualizados = {
+    nombre: updatedData.nombre || serviciosDB[index].nombre,
+    descripcion: updatedData.descripcion || serviciosDB[index].descripcion,
+    duracion_min: updatedData.duracion_min || updatedData.duracion || serviciosDB[index].duracion_min,
+    precio: updatedData.precio || serviciosDB[index].precio,
+    empleadoId: updatedData.empleadoId || serviciosDB[index].empleadoId,
+    estado: updatedData.estado === undefined ? 
+      (updatedData.estado === 'activo' ? true : 
+       updatedData.estado === 'inactivo' ? false : 
+       serviciosDB[index].estado) : 
+      updatedData.estado
+  };
+  
+  serviciosDB[index] = { 
+    ...serviciosDB[index], 
+    ...datosActualizados 
+  };
+  
+  return serviciosDB[index];
 }
 
 // Eliminar servicio
 export function deleteServicio(id) {
-  serviciosDB = serviciosDB.filter((s) => s.id !== id);
+  serviciosDB = serviciosDB.filter((s) => s.id !== Number(id));
   return serviciosDB;
 }
 
-// Cambiar estado
+// Cambiar estado (mantener compatibilidad)
 export function updateEstadoServicio(id) {
-  serviciosDB = serviciosDB.map((s) =>
-    s.id === id
-      ? { 
-          ...s, 
-          estado: s.estado === "activo" ? "inactivo" : "activo" 
-        }
-      : s
-  );
-  return serviciosDB;
+  const index = serviciosDB.findIndex((s) => s.id === Number(id));
+  if (index === -1) return null;
+  
+  serviciosDB[index].estado = !serviciosDB[index].estado;
+  return serviciosDB[index];
+}
+
+// Función para búsqueda de servicios
+export function searchServicios(query) {
+  const searchTerm = query.toLowerCase();
+  return serviciosDB.filter(servicio => 
+    servicio.nombre.toLowerCase().includes(searchTerm) ||
+    servicio.descripcion.toLowerCase().includes(searchTerm)
+  ).map(servicio => ({
+    ...servicio,
+    estado: servicio.estado ? "activo" : "inactivo",
+    duracion: servicio.duracion_min
+  }));
+}
+
+// Función para obtener servicios activos
+export function getServiciosActivos() {
+  return serviciosDB
+    .filter(s => s.estado)
+    .map(servicio => ({
+      ...servicio,
+      estado: "activo",
+      duracion: servicio.duracion_min
+    }));
+}
+
+// Función para obtener servicios por empleado
+export function getServiciosByEmpleado(empleadoId) {
+  return serviciosDB
+    .filter(s => s.empleadoId === Number(empleadoId) && s.estado)
+    .map(servicio => ({
+      ...servicio,
+      estado: "activo",
+      duracion: servicio.duracion_min
+    }));
+}
+
+// Función para obtener estadísticas
+export function getServiciosStats() {
+  const total = serviciosDB.length;
+  const activos = serviciosDB.filter(s => s.estado).length;
+  const inactivos = total - activos;
+  const precioPromedio = total > 0 
+    ? serviciosDB.reduce((sum, s) => sum + s.precio, 0) / total
+    : 0;
+  
+  return {
+    total,
+    activos,
+    inactivos,
+    precioPromedio: precioPromedio.toFixed(2),
+    porcentajeActivos: total > 0 ? (activos / total * 100).toFixed(1) : 0
+  };
 }

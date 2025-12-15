@@ -1,5 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { 
+  TextField, 
+  Select, 
+  MenuItem, 
+  InputLabel,
+  FormControl,
+  FormHelperText
+} from '@mui/material';
 import { getEmpleadoById, updateEmpleado } from '../../../../lib/data/empleadosData';
 import "../../../../shared/styles/components/crud-forms.css";
 
@@ -8,189 +16,325 @@ export default function EditarEmpleado() {
   const { id } = useParams();
   
   const [formData, setFormData] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const empleado = getEmpleadoById(Number(id));
     if (empleado) {
-      setFormData(empleado);
+      const datosAdaptados = {
+        nombre: empleado.nombre || '',
+        tipoDocumento: empleado.tipoDocumento || empleado.tipo_documento || 'CC',
+        numero_documento: empleado.numero_documento || '',
+        telefono: empleado.telefono || '',
+        correo: empleado.correo || empleado.email || '',
+        cargo: empleado.cargo || '',
+        fecha_ingreso: empleado.fecha_ingreso || '',
+        direccion: empleado.direccion || '',
+        estado: empleado.estado === true || empleado.estado === 'activo'
+      };
+      setFormData(datosAdaptados);
     } else {
       navigate('/admin/servicios/empleados');
     }
+    setLoading(false);
   }, [id, navigate]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Actualizar en la base de datos
-    updateEmpleado(Number(id), formData);
+    const newErrors = {};
+    
+    if (!formData.nombre.trim()) {
+      newErrors.nombre = 'El nombre es requerido';
+    } else if (formData.nombre.trim().length < 3) {
+      newErrors.nombre = 'Mínimo 3 caracteres';
+    }
+    
+    if (!formData.tipoDocumento) {
+      newErrors.tipoDocumento = 'Seleccione un tipo de documento';
+    }
+    
+    if (!formData.numero_documento.trim()) {
+      newErrors.numero_documento = 'El número de documento es requerido';
+    } else {
+      const doc = formData.numero_documento.trim();
+      if (formData.tipoDocumento === 'CC') {
+        if (!/^[0-9]{6,10}$/.test(doc)) {
+          newErrors.numero_documento = 'Cédula inválida (6-10 dígitos)';
+        }
+      } else if (formData.tipoDocumento === 'CE') {
+        if (!/^[0-9]{6,10}$/.test(doc)) {
+          newErrors.numero_documento = 'Cédula extranjería inválida (6-10 dígitos)';
+        }
+      } else if (formData.tipoDocumento === 'PA') {
+        if (!/^[A-Za-z0-9]{6,12}$/.test(doc)) {
+          newErrors.numero_documento = 'Pasaporte inválido (6-12 caracteres)';
+        }
+      }
+    }
+    
+    const telefonoRegex = /^[0-9]{7,15}$/;
+    if (!formData.telefono.trim()) {
+      newErrors.telefono = 'El teléfono es requerido';
+    } else if (!telefonoRegex.test(formData.telefono.replace(/\s/g, ''))) {
+      newErrors.telefono = 'Teléfono inválido (7-15 dígitos)';
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (formData.correo && !emailRegex.test(formData.correo)) {
+      newErrors.correo = 'Formato de email inválido';
+    }
+    
+    if (!formData.cargo) {
+      newErrors.cargo = 'Seleccione un cargo';
+    }
+    
+    if (!formData.fecha_ingreso) {
+      newErrors.fecha_ingreso = 'La fecha de ingreso es requerida';
+    } else {
+      const fechaIngreso = new Date(formData.fecha_ingreso);
+      const hoy = new Date();
+      if (fechaIngreso > hoy) {
+        newErrors.fecha_ingreso = 'La fecha no puede ser futura';
+      }
+    }
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      const firstErrorField = Object.keys(newErrors)[0];
+      const errorElement = document.querySelector(`[name="${firstErrorField}"]`);
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+    
+    const empleadoData = {
+      ...formData
+    };
+    
+    updateEmpleado(Number(id), empleadoData);
     navigate('/admin/servicios/empleados');
   };
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
+    
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
+    
+    if (errors[name]) {
+      setErrors({
+        ...errors,
+        [name]: ''
+      });
+    }
   };
 
-  if (!formData) {
-    return <div>Cargando...</div>;
+  if (loading || !formData) {
+    return (
+      <div className="crud-form-container">
+        <div className="crud-form-content">
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            Cargando...
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="crud-form-container">
       <div className="crud-form-header">
-        <h1>Editando: {formData.nombre}</h1>
-        <p>Modifica la información del empleado</p>
+        <h1>Editar Empleado</h1>
+        <p>Actualizando: {formData.nombre}</p>
       </div>
       
       <div className="crud-form-content">
         <form onSubmit={handleSubmit}>
           <div className="crud-form-section">
-            <h3>Información Personal</h3>
-            
             <div className="crud-form-group">
-              <label htmlFor="nombre">Nombre Completo <span className="crud-required">*</span></label>
-              <input
-                type="text"
-                id="nombre"
+              <TextField
+                fullWidth
+                label="Nombre Completo"
                 name="nombre"
                 value={formData.nombre}
                 onChange={handleChange}
-                className="crud-input"
+                placeholder="Ej: Carlos Andrés Méndez"
                 required
+                variant="outlined"
+                error={!!errors.nombre}
+                helperText={errors.nombre}
+                InputLabelProps={{ style: { fontWeight: 'normal' } }}
               />
             </div>
 
             <div className="crud-form-row">
               <div className="crud-form-group">
-                <label htmlFor="tipo_documento">Tipo Documento <span className="crud-required">*</span></label>
-                <select
-                  id="tipo_documento"
-                  name="tipo_documento"
-                  value={formData.tipo_documento}
-                  onChange={handleChange}
-                  className="crud-input"
-                  required
-                >
-                  <option value="cedula">Cédula</option>
-                  <option value="pasaporte">Pasaporte</option>
-                  <option value="cedula_extranjeria">Cédula Extranjería</option>
-                </select>
+                <FormControl fullWidth error={!!errors.tipoDocumento}>
+                  <InputLabel style={{ fontWeight: 'normal' }}>
+                    Tipo de Documento
+                  </InputLabel>
+                  <Select
+                    name="tipoDocumento"
+                    value={formData.tipoDocumento}
+                    onChange={handleChange}
+                    label="Tipo de Documento"
+                    required
+                  >
+                    <MenuItem value="CC">Cédula de Ciudadanía</MenuItem>
+                    <MenuItem value="CE">Cédula de Extranjería</MenuItem>
+                    <MenuItem value="PA">Pasaporte</MenuItem>
+                  </Select>
+                  {errors.tipoDocumento && (
+                    <FormHelperText error>{errors.tipoDocumento}</FormHelperText>
+                  )}
+                </FormControl>
               </div>
 
               <div className="crud-form-group">
-                <label htmlFor="numero_documento">Número Documento <span className="crud-required">*</span></label>
-                <input
-                  type="text"
-                  id="numero_documento"
+                <TextField
+                  fullWidth
+                  label="Número de Documento"
                   name="numero_documento"
                   value={formData.numero_documento}
                   onChange={handleChange}
-                  className="crud-input"
+                  placeholder="123456789"
                   required
+                  variant="outlined"
+                  error={!!errors.numero_documento}
+                  helperText={errors.numero_documento}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
                 />
               </div>
             </div>
 
             <div className="crud-form-row">
               <div className="crud-form-group">
-                <label htmlFor="telefono">Teléfono <span className="crud-required">*</span></label>
-                <input
-                  type="tel"
-                  id="telefono"
+                <TextField
+                  fullWidth
+                  label="Teléfono"
                   name="telefono"
                   value={formData.telefono}
                   onChange={handleChange}
-                  className="crud-input"
+                  placeholder="3001234567"
                   required
+                  variant="outlined"
+                  error={!!errors.telefono}
+                  helperText={errors.telefono}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
                 />
               </div>
 
               <div className="crud-form-group">
-                <label htmlFor="email">Email</label>
-                <input
+                <TextField
+                  fullWidth
+                  label="Correo Electrónico"
+                  name="correo"
                   type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email || ''}
+                  value={formData.correo}
                   onChange={handleChange}
-                  className="crud-input"
                   placeholder="ejemplo@optica.com"
+                  variant="outlined"
+                  error={!!errors.correo}
+                  helperText={errors.correo}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
                 />
               </div>
             </div>
 
             <div className="crud-form-group">
-              <label htmlFor="direccion">Dirección</label>
-              <textarea
-                id="direccion"
+              <TextField
+                fullWidth
+                label="Dirección"
                 name="direccion"
-                value={formData.direccion || ''}
+                value={formData.direccion}
                 onChange={handleChange}
-                rows="2"
-                className="crud-input crud-textarea"
                 placeholder="Dirección completa..."
+                variant="outlined"
+                multiline
+                InputLabelProps={{ style: { fontWeight: 'normal' } }}
               />
             </div>
-          </div>
 
-          <div className="crud-form-section">
-            <h3>Información Laboral</h3>
-            
             <div className="crud-form-row">
               <div className="crud-form-group">
-                <label htmlFor="cargo">Cargo <span className="crud-required">*</span></label>
-                <select
-                  id="cargo"
-                  name="cargo"
-                  value={formData.cargo}
-                  onChange={handleChange}
-                  className="crud-input"
-                  required
-                >
-                  <option value="Optómetra">Optómetra</option>
-                  <option value="Asistente">Asistente</option>
-                  <option value="Técnico">Técnico</option>
-                  <option value="Administrador">Administrador</option>
-                  <option value="Recepcionista">Recepcionista</option>
-                </select>
+                <FormControl fullWidth error={!!errors.cargo}>
+                  <InputLabel style={{ fontWeight: 'normal' }}>
+                    Cargo
+                  </InputLabel>
+                  <Select
+                    name="cargo"
+                    value={formData.cargo}
+                    onChange={handleChange}
+                    label="Cargo"
+                    required
+                  >
+                    <MenuItem value="">Seleccionar cargo</MenuItem>
+                    <MenuItem value="Optómetra">Optómetra</MenuItem>
+                    <MenuItem value="Asistente">Asistente</MenuItem>
+                    <MenuItem value="Técnico">Técnico</MenuItem>
+                    <MenuItem value="Administrador">Administrador</MenuItem>
+                    <MenuItem value="Recepcionista">Recepcionista</MenuItem>
+                    <MenuItem value="Vendedor">Vendedor</MenuItem>
+                  </Select>
+                  {errors.cargo && (
+                    <FormHelperText error>{errors.cargo}</FormHelperText>
+                  )}
+                </FormControl>
               </div>
 
               <div className="crud-form-group">
-                <label htmlFor="fecha_ingreso">Fecha de Ingreso <span className="crud-required">*</span></label>
-                <input
-                  type="date"
-                  id="fecha_ingreso"
+                <TextField
+                  fullWidth
+                  label="Fecha de Ingreso"
                   name="fecha_ingreso"
+                  type="date"
                   value={formData.fecha_ingreso}
                   onChange={handleChange}
-                  className="crud-input"
                   required
+                  variant="outlined"
+                  InputLabelProps={{ 
+                    shrink: true,
+                    style: { fontWeight: 'normal' }
+                  }}
+                  error={!!errors.fecha_ingreso}
+                  helperText={errors.fecha_ingreso}
                 />
               </div>
             </div>
 
             <div className="crud-form-group">
-              <label htmlFor="estado">Estado</label>
-              <select
-                id="estado"
-                name="estado"
-                value={formData.estado}
-                onChange={handleChange}
-                className="crud-input"
-              >
-                <option value="activo">Activo</option>
-                <option value="inactivo">Inactivo</option>
-              </select>
+              <FormControl fullWidth>
+                <InputLabel style={{ fontWeight: 'normal' }}>
+                  Estado
+                </InputLabel>
+                <Select
+                  name="estado"
+                  value={formData.estado ? 'Activo' : 'Inactivo'}
+                  onChange={(e) => {
+                    setFormData({
+                      ...formData,
+                      estado: e.target.value === 'Activo'
+                    });
+                  }}
+                  label="Estado"
+                >
+                  <MenuItem value="Activo">Activo</MenuItem>
+                  <MenuItem value="Inactivo">Inactivo</MenuItem>
+                </Select>
+              </FormControl>
             </div>
           </div>
 
           <div className="crud-form-actions">
             <button 
               type="button" 
-              onClick={() => navigate('/admin/servicios/empleados')}
               className="crud-btn crud-btn-secondary"
+              onClick={() => navigate('/admin/servicios/empleados')}
             >
               Cancelar
             </button>

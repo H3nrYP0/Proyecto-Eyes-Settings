@@ -58,7 +58,6 @@ export default function NuevoAbono() {
     <div className="page-container">
       <div className="page-header">
         <h1>Nuevo Abono</h1>
-        <p>Registrar un nuevo abono en el sistema</p>
       </div>
       
       <div className="form-container">

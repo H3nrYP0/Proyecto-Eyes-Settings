@@ -73,6 +73,7 @@ export default function Empleados() {
 
   // FILTROS PARA EMPLEADOS
   const searchFilters = [
+    { value: '', label: 'Todos' },
     { value: 'activo', label: 'Activos' },
     { value: 'inactivo', label: 'Inactivos' }
   ];
@@ -82,10 +83,7 @@ export default function Empleados() {
   // =============================
   const columns = [
     { field: "nombre", header: "Nombre" },
-    { field: "numero_documento", header: "Documento" },
-    { field: "telefono", header: "Teléfono" },
     { field: "cargo", header: "Cargo" },
-    { field: "fecha_ingreso", header: "Fecha Ingreso" },
     {
       field: "estado",
       header: "Estado",
@@ -101,31 +99,25 @@ export default function Empleados() {
   ];
 
   // =============================
-  //          ACCIONES
+  //          ACCIONES - CORREGIDAS
   // =============================
-  // En el array de tableActions, agregar:
-const tableActions = [
-  {
-    label: "Horarios",
-    type: "schedule",
-    onClick: (item) => navigate(`horarios/${item.id}`),
-  },
-  {
-    label: "Ver Detalles",
-    type: "view",
-    onClick: (item) => navigate(`detalle/${item.id}`),
-  },
-  {
-    label: "Editar",
-    type: "edit",
-    onClick: (item) => navigate(`editar/${item.id}`),
-  },
-  {
-    label: "Eliminar",
-    type: "delete",
-    onClick: (item) => handleDelete(item.id, item.nombre),
-  },
-];
+  const tableActions = [
+    {
+      label: "Ver Detalles",
+      type: "view",
+      onClick: (item) => navigate(`/admin/servicios/empleados/detalle/${item.id}`),
+    },
+    {
+      label: "Editar",
+      type: "edit",
+      onClick: (item) => navigate(`/admin/servicios/empleados/editar/${item.id}`),
+    },
+    {
+      label: "Eliminar",
+      type: "delete",
+      onClick: (item) => handleDelete(item.id, item.nombre),
+    },
+  ];
 
   // Función para manejar cambio de filtro
   const handleFilterChange = (value) => {
@@ -134,9 +126,8 @@ const tableActions = [
 
   return (
     <CrudLayout
-      title="💼 Empleados"
-      description="Administra la información del personal de la óptica."
-      onAddClick={() => navigate("crear")}
+      title="Empleados"
+      onAddClick={() => navigate("/admin/servicios/empleados/crear")}
       showSearch={true}
       searchPlaceholder="Buscar por nombre, documento, cargo..."
       searchValue={search}
@@ -162,7 +153,7 @@ const tableActions = [
       {filteredEmpleados.length === 0 && !search && !filterEstado && (
         <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
           <button 
-            onClick={() => navigate("crear")}
+            onClick={() => navigate("/admin/servicios/empleados/crear")}
             className="btn-primary"
             style={{padding: 'var(--spacing-md) var(--spacing-lg)'}}
           >

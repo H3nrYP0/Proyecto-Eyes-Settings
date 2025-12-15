@@ -69,16 +69,20 @@ export default function DetalleMarca() {
          
           </div>
 
-          <div className="crud-form-actions">
-            <button 
-            type ="button"
-              onClick={() => navigate('/admin/compras/marcas')}
-              className="crud-btn crud-btn-secondary"
-            >
-              Volver
-            </button>
-          </div>
-        </form>
+        <div className="crud-form-actions">
+          <button 
+            onClick={() => navigate('/admin/compras/marcas')}
+            className="crud-btn crud-btn-secondary"
+          >
+            Volver
+          </button>
+          <button
+            onClick={() => navigate(`/admin/compras/marcas/editar/${marca.id}`)}
+            className="crud-btn crud-btn-primary"
+        >
+            Editar Marca
+        </button>
+        </div>
       </div>
     </div>
   );

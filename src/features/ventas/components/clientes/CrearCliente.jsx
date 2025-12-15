@@ -38,14 +38,11 @@ export default function CrearCliente() {
     <div className="crud-form-container">
       <div className="crud-form-header">
         <h1>Registrar Nuevo Cliente</h1>
-        <p>Agrega un nuevo cliente a la base de datos de la óptica</p>
       </div>
       
       <div className="crud-form-content">
         <form onSubmit={handleSubmit}>
           <div className="crud-form-section">
-            <h3>Información Personal</h3>
-            
             <div className="crud-form-row">
               <div className="crud-form-group">
                 <label htmlFor="nombre">Nombre <span className="crud-required">*</span></label>

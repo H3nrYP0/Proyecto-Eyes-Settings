@@ -84,10 +84,8 @@ export default function Agenda() {
   const columns = [
     { field: "cliente", header: "Cliente" },
     { field: "servicio", header: "Servicio" },
-    { field: "empleado", header: "Empleado" },
     { field: "fecha", header: "Fecha" },
     { field: "hora", header: "Hora" },
-    { field: "metodo_pago", header: "Método Pago" },
     {
       field: "estado",
       header: "Estado",
@@ -130,8 +128,7 @@ export default function Agenda() {
 
   return (
     <CrudLayout
-      title="📅 Agenda"
-      description="Gestiona las citas de tus clientes."
+      title="Agenda"
       onAddClick={() => navigate("crear")}
       showSearch={true}
       searchPlaceholder="Buscar por cliente, servicio, empleado..."
