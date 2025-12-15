@@ -39,7 +39,8 @@ export default function DetalleMarca() {
                 placeholder="Ej: Ray-Ban, Oakley, etc."
               />
             </div>
-               {/* Descripción (ocupa toda la fila) */}
+
+            {/* Descripción (ocupa toda la fila) */}
             <div className="crud-form-group ">
               <label htmlFor="descripcion">Descripción</label>
               <textarea
@@ -65,24 +66,23 @@ export default function DetalleMarca() {
                 className="crud-input"
               />
             </div>
-
-         
           </div>
 
-        <div className="crud-form-actions">
-          <button 
-            onClick={() => navigate('/admin/compras/marcas')}
-            className="crud-btn crud-btn-secondary"
-          >
-            Volver
-          </button>
-          <button
-            onClick={() => navigate(`/admin/compras/marcas/editar/${marca.id}`)}
-            className="crud-btn crud-btn-primary"
-        >
-            Editar Marca
-        </button>
-        </div>
+          <div className="crud-form-actions">
+            <button 
+              onClick={() => navigate('/admin/compras/marcas')}
+              className="crud-btn crud-btn-secondary"
+            >
+              Volver
+            </button>
+            <button
+              onClick={() => navigate(`/admin/compras/marcas/editar/${marca.id}`)}
+              className="crud-btn crud-btn-primary"
+            >
+              Editar Marca
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

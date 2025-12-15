@@ -15,7 +15,6 @@ export default function DetalleServicio() {
     if (servicioData) {
       setServicio(servicioData);
 
-      // Buscar el nombre del empleado por su ID
       const empleados = getAllEmpleados();
       const empleado = empleados.find(emp => emp.nombre === servicioData.empleado);
       setEmpleadoNombre(empleado ? `${empleado.nombre} - ${empleado.cargo}` : 'Empleado no encontrado');
@@ -35,9 +34,16 @@ export default function DetalleServicio() {
       <div className="crud-form-content">
         <div className="crud-form-section">
           <div className="crud-detail-grid">
-            <div className="crud-detail-item">
-              <strong>Nombre:</strong> 
-              <span>{servicio.nombre}</span>
+            <div className="crud-form-group">
+              <label htmlFor="nombre">Nombre</label>
+              <input
+                type="text"
+                id="nombre"
+                name="nombre"
+                value={servicio.nombre || ''}
+                disabled
+                className="crud-input"
+              />
             </div>
 
             <div className="crud-form-group">
@@ -49,7 +55,6 @@ export default function DetalleServicio() {
                 value={servicio.duracion || ''}
                 disabled
                 className="crud-input"
-                placeholder="30"
               />
             </div>
 
@@ -62,11 +67,10 @@ export default function DetalleServicio() {
                 value={formatToPesos(servicio.precio?.toString() || '0')}
                 disabled
                 className="crud-input"
-                placeholder="0"
               />
             </div>
 
-            <div className ="crud-form-group">
+            <div className="crud-form-group">
               <label htmlFor="empleado">Empleado</label>
               <input
                 type="text"
@@ -75,7 +79,6 @@ export default function DetalleServicio() {
                 value={empleadoNombre}
                 disabled
                 className="crud-input"
-                placeholder="Ej: Dr. Carlos Méndez"
               />
             </div>
 
@@ -88,7 +91,6 @@ export default function DetalleServicio() {
                 disabled
                 rows="3"
                 className="crud-input crud-textarea"
-                placeholder="Descripción del servicio..."
               />
             </div>
 
@@ -105,19 +107,20 @@ export default function DetalleServicio() {
             </div>
           </div>
 
-        <div className="crud-form-actions">
-          <button 
-            onClick={() => navigate('/admin/servicios')}
-            className="crud-btn crud-btn-secondary"
-          >
-            Volver
-          </button>
-          <button 
+          <div className="crud-form-actions">
+            <button 
+              onClick={() => navigate('/admin/servicios')}
+              className="crud-btn crud-btn-secondary"
+            >
+              Volver
+            </button>
+            <button 
               onClick={() => navigate(`/admin/servicios/editar/${servicio.id}`)}
               className="crud-btn crud-btn-primary"
-          >
+            >
               Editar Servicio
-          </button>
+            </button>
+          </div>
         </div>
       </div>
     </div>

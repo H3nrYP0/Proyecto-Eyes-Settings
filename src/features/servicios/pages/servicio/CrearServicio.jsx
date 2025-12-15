@@ -9,28 +9,14 @@ import {
   FormHelperText
 } from '@mui/material';
 import { createServicio } from '../../../../lib/data/serviciosData';
-import { getAllEmpleados } from '../../../../lib/data/empleadosData'; // Asumiendo que existe esta función
+import { getAllEmpleados } from '../../../../lib/data/empleadosData';
 import "../../../../shared/styles/components/crud-forms.css";
-import { formatToPesos, parseFromPesos } from '../../../../shared/utils/formatCOP'; // 👈 Nueva importación
-
-// 👇 IMPORTACIÓN DEL COMPONENTE DE NOTIFICACIÓN
-import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
 
 export default function CrearServicio() {
   const navigate = useNavigate();
-
-  // 👇 ESTADO PARA LA NOTIFICACIÓN
-  const [notification, setNotification] = useState({
-    isVisible: false,
-    message: '',
-    type: 'success'
-  });
-
-  // 👇 ESTADO PARA LA LISTA DE EMPLEADOS
+  
   const [empleados, setEmpleados] = useState([]);
-
-  // 👇 ESTADO PARA EL PRECIO CON FORMATO VISUAL
-  const [precioFormatted, setPrecioFormatted] = useState('');
+  const [loading, setLoading] = useState(true);
 
   const [formData, setFormData] = useState({
     nombre: '',
@@ -41,14 +27,10 @@ export default function CrearServicio() {
     estado: true
   });
 
-  const [empleados, setEmpleados] = useState([]);
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Obtener lista de empleados
     const empleadosData = getAllEmpleados();
-    // Filtrar solo empleados activos si es necesario
     const empleadosActivos = empleadosData.filter(emp => emp.estado === true || emp.estado === 'Activo');
     setEmpleados(empleadosActivos);
     setLoading(false);
@@ -57,7 +39,6 @@ export default function CrearServicio() {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Validaciones
     const newErrors = {};
     
     if (!formData.nombre.trim()) {
@@ -104,13 +85,12 @@ export default function CrearServicio() {
       return;
     }
     
-    // Crear el servicio
     const servicioData = {
       ...formData,
       duracion_min: Number(formData.duracion_min),
       precio: Number(formData.precio),
       empleadoId: Number(formData.empleadoId),
-      estado: true // Siempre activo al crear
+      estado: true
     };
     
     createServicio(servicioData);
@@ -125,7 +105,6 @@ export default function CrearServicio() {
       [name]: value
     });
     
-    // Limpiar errores al cambiar
     if (errors[name]) {
       setErrors({
         ...errors,
@@ -187,6 +166,7 @@ export default function CrearServicio() {
               />
             </div>
 
+            <div className="crud-form-row">
               <div className="crud-form-group">
                 <TextField
                   fullWidth
@@ -231,6 +211,7 @@ export default function CrearServicio() {
                   }}
                 />
               </div>
+            </div>
 
             <div className="crud-form-group">
               <FormControl fullWidth error={!!errors.empleadoId}>
@@ -275,14 +256,6 @@ export default function CrearServicio() {
           </div>
         </form>
       </div>
-
-      {/* 👇 NOTIFICACIÓN REUTILIZABLE */}
-      <CrudNotification
-        message={notification.message}
-        type={notification.type}
-        isVisible={notification.isVisible}
-        onClose={handleCloseNotification}
-      />
-    </>
+    </div>
   );
 }

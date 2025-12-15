@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { 
   TextField, 
   Select, 
@@ -8,20 +8,13 @@ import {
   FormControl,
   FormHelperText
 } from '@mui/material';
-import { getCampanaSaludById, updateCampanaSalud } from '../../../../lib/data/campanasSaludData';
+import { createCampanaSalud } from '../../../../lib/data/campanasSaludData';
 import { getAllEmpleados } from '../../../../lib/data/empleadosData';
 import "../../../../shared/styles/components/crud-forms.css";
-import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification"; // Para notificaciones
+import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
 
-export default function EditarCampanaSalud() {
+export default function CrearCampanaSalud() {
   const navigate = useNavigate();
-  const { id } = useParams();
-  
-  const [formData, setFormData] = useState(null);
-  const [empleados, setEmpleados] = useState([]);
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(true);
-
   const [empleados, setEmpleados] = useState([]);
   const [notification, setNotification] = useState({
     isVisible: false,
@@ -29,103 +22,37 @@ export default function EditarCampanaSalud() {
     type: 'success'
   });
 
-  // 👇 Para la validación de cambios
-  const [originalData, setOriginalData] = useState(null);
-
   const [formData, setFormData] = useState({
+    nombre: '',
     empresa: '',
-    contacto: '',
+    contacto_nombre: '',
+    contacto_telefono: '',
     fecha: '',
-    hora: '',
+    hora_inicio: '',
+    hora_fin: '',
     direccion: '',
+    participantes_estimados: '',
+    materiales: '',
+    estado: 'PLANIFICADA',
     observaciones: '',
-    empleadoId: '',
-    estado: 'activa'
+    empleadoId: ''
   });
 
-  const handleCloseNotification = () => {
-    setNotification({ ...notification, isVisible: false });
-  };
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(true);
 
-  // Cargar empleados
   useEffect(() => {
-    const empleadosList = getAllEmpleados();
-    const empleadosActivos = empleadosList.filter(empleado => empleado.estado === 'activo');
-    setEmpleados(empleadosActivos);
-  }, []);
-
-  // Cargar datos de la campaña
-  useEffect(() => {
-    if (!id) return;
-    const campana = getCampanaSaludById(Number(id));
     const empleadosData = getAllEmpleados();
-    
-    if (campana) {
-      // Adaptar datos del formulario anterior al nuevo formato
-      const datosAdaptados = {
-        nombre: campana.nombre || '',
-        empresa: campana.empresa || '',
-        contacto_nombre: campana.contacto_nombre || campana.contacto || '',
-        contacto_telefono: campana.contacto_telefono || '',
-        empleadoId: campana.empleadoId || campana.empleado || '',
-        fecha: campana.fecha || campana.fechaInicio || '',
-        hora_inicio: campana.hora_inicio || '',
-        hora_fin: campana.hora_fin || '',
-        direccion: campana.direccion || '',
-        participantes_estimados: campana.participantes_estimados || '',
-        materiales: campana.materiales || campana.descripcion || '',
-        estado: campana.estado || 'PLANIFICADA',
-        observaciones: campana.observaciones || ''
-      };
-      setFormData(datosAdaptados);
-    } else {
-      navigate('/admin/servicios/campanas-salud');
-    }
-    
     const empleadosActivos = empleadosData.filter(emp => emp.estado === true || emp.estado === 'Activo');
     setEmpleados(empleadosActivos);
     setLoading(false);
-  }, [id, navigate]);
+  }, []);
 
-  const getTodayDate = () => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
-  };
-
-  // 👇 FUNCIÓN CORREGIDA: Verificar si es domingo (hora local)
-  const isSunday = (dateString) => {
-    if (!dateString) return false;
-    const parts = dateString.split('-');
-    const year = parseInt(parts[0], 10);
-    const month = parseInt(parts[1], 10) - 1;
-    const day = parseInt(parts[2], 10);
-    const date = new Date(year, month, day);
-    return date.getDay() === 0;
-  };
-
-  // 👇 Manejar el input de contacto (máximo 10 dígitos)
-  const handleContactoChange = (e) => {
-    let value = e.target.value;
-    value = value.replace(/\D/g, '');
-    if (value.length > 10) {
-      value = value.slice(0, 10);
-    }
-    setFormData({
-      ...formData,
-      contacto: value
+  const handleCloseNotification = () => {
+    setNotification({
+      ...notification,
+      isVisible: false
     });
-  };
-
-  // 👇 Generar opciones de hora (6AM - 6PM)
-  const generarOpcionesHora = () => {
-    const opciones = [];
-    for (let hora = 6; hora <= 18; hora++) {
-      opciones.push(`${hora.toString().padStart(2, '0')}:00`);
-      if (hora < 18) {
-        opciones.push(`${hora.toString().padStart(2, '0')}:30`);
-      }
-    }
-    return opciones;
   };
 
   const handleSubmit = (e) => {
@@ -149,6 +76,13 @@ export default function EditarCampanaSalud() {
     
     if (!formData.fecha) {
       newErrors.fecha = 'La fecha es requerida';
+    } else {
+      const fechaSeleccionada = new Date(formData.fecha);
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      if (fechaSeleccionada < hoy) {
+        newErrors.fecha = 'La fecha no puede ser pasada';
+      }
     }
     
     if (!formData.hora_inicio) {
@@ -180,10 +114,11 @@ export default function EditarCampanaSalud() {
     const campanaData = {
       ...formData,
       empleadoId: Number(formData.empleadoId),
-      participantes_estimados: formData.participantes_estimados ? Number(formData.participantes_estimados) : null
+      participantes_estimados: formData.participantes_estimados ? Number(formData.participantes_estimados) : null,
+      estado: 'PLANIFICADA'
     };
     
-    updateCampanaSalud(Number(id), campanaData);
+    createCampanaSalud(campanaData);
     navigate('/admin/servicios/campanas-salud');
   };
 
@@ -203,12 +138,12 @@ export default function EditarCampanaSalud() {
     }
   };
 
-  if (loading || !formData) {
+  if (loading) {
     return (
       <div className="crud-form-container">
         <div className="crud-form-content">
           <div style={{ textAlign: 'center', padding: '40px' }}>
-            Cargando...
+            Cargando empleados...
           </div>
         </div>
       </div>
@@ -218,8 +153,7 @@ export default function EditarCampanaSalud() {
   return (
     <div className="crud-form-container">
       <div className="crud-form-header">
-        <h1>Editar Campaña de Salud</h1>
-        <p>Actualizando: {formData.nombre}</p>
+        <h1>Crear Nueva Campaña de Salud</h1>
       </div>
       
       <div className="crud-form-content">
@@ -283,6 +217,7 @@ export default function EditarCampanaSalud() {
                   InputLabelProps={{ style: { fontWeight: 'normal' } }}
                 />
               </div>
+            </div>
 
             <div className="crud-form-group">
               <FormControl fullWidth error={!!errors.empleadoId}>
@@ -427,40 +362,18 @@ export default function EditarCampanaSalud() {
               />
             </div>
 
-            <div className="crud-form-group">
-              <FormControl fullWidth>
-                <InputLabel style={{ fontWeight: 'normal' }}>
-                  Estado
-                </InputLabel>
-                <Select
-                  name="estado"
-                  value={formData.estado}
-                  onChange={handleChange}
-                  label="Estado"
-                >
-                  <MenuItem value="PLANIFICADA">Planificada</MenuItem>
-                  <MenuItem value="EN_CURSO">En curso</MenuItem>
-                  <MenuItem value="COMPLETADA">Completada</MenuItem>
-                  <MenuItem value="CANCELADA">Cancelada</MenuItem>
-                </Select>
-              </FormControl>
+            <div className="crud-form-actions">
+              <button 
+                type="button" 
+                className="crud-btn crud-btn-secondary"
+                onClick={() => navigate('/admin/servicios/campanas-salud')}
+              >
+                Cancelar
+              </button>
+              <button type="submit" className="crud-btn crud-btn-primary">
+                Crear Campaña
+              </button>
             </div>
-          </div>
-
-          <div className="crud-form-actions">
-            <button 
-              type="button" 
-              className="crud-btn crud-btn-secondary"
-              onClick={() => navigate('/admin/servicios/campanas-salud')}
-            >
-              Cancelar
-            </button>
-            <button 
-              type="submit" 
-              className="crud-btn crud-btn-primary"
-            >
-              Actualizar Campaña
-            </button>
           </div>
         </form>
       </div>
@@ -471,6 +384,6 @@ export default function EditarCampanaSalud() {
         isVisible={notification.isVisible}
         onClose={handleCloseNotification}
       />
-    </>
+    </div>
   );
 }
