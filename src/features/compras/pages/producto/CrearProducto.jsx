@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createProducto } from '../../../../lib/data/productosData';
 import { 
@@ -8,12 +8,29 @@ import {
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import DeleteIcon from '@mui/icons-material/Delete';
 import "../../../../shared/styles/components/crud-forms.css";
+import { formatToPesos, parseFromPesos } from '../../../../shared/utils/formatCOP';
+
+// 👇 IMPORTA EL COMPONENTE DE NOTIFICACIÓN AQUÍ
+import CrudNotification from '../../../../shared/styles/components/notifications/CrudNotification';
 
 export default function CrearProducto() {
   const navigate = useNavigate();
+
+  const [marcas, setMarcas] = useState([]);
+  const [categorias, setCategorias] = useState([]);
+
+  const [precioVentaFormatted, setPrecioVentaFormatted] = useState('');
+  const [precioCompraFormatted, setPrecioCompraFormatted] = useState('');
+
+  // 👇 ESTADO PARA LA NOTIFICACIÓN (ÉXITO O ERROR)
+  const [notification, setNotification] = useState({
+    isVisible: false,
+    message: '',
+    type: 'success' // o 'error'
+  });
+
   const [formData, setFormData] = useState({
     nombre: '',
-    codigo: '',
     descripcion: '',
     precioVenta: '',
     precioCompra: '',
@@ -556,6 +573,14 @@ export default function CrearProducto() {
           )}
         </form>
       </div>
-    </div>
+
+      {/* 👇 RENDERIZA LA NOTIFICACIÓN AQUÍ, FUERA DEL FORMULARIO */}
+      <CrudNotification
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.isVisible}
+        onClose={handleCloseNotification}
+      />
+    </>
   );
 }

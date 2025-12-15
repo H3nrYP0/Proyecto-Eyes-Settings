@@ -14,41 +14,60 @@ export default function DetalleMarca() {
   }, [id]);
 
   if (!marca) {
-    return <div>Cargando...</div>;
+    return <div className="crud-form-container" style={{ padding: '32px' }}>Cargando...</div>;
   }
 
   return (
     <div className="crud-form-container">
       <div className="crud-form-header">
         <h1>Detalle de Marca: {marca.nombre}</h1>
-        <p>Información completa de la marca</p>
       </div>
       
-      <div className="crud-form-content">
-        <div className="crud-form-section">
-          <h3>Información General</h3>
-          
-          <div className="crud-detail-grid">
-            <div className="crud-detail-item">
-              <strong>Nombre:</strong> 
-              <span>{marca.nombre}</span>
+      <div className="crud-form-content" style={{ padding: '0px' }}>
+        <form>
+          <div className="crud-form-section">
+            {/* Nombre */}
+            <div className="crud-form-group">
+              <label htmlFor="nombre">Nombre</label>
+              <input
+                type="text"
+                id="nombre"
+                name="nombre"
+                value={marca.nombre || ''}
+                disabled
+                className="crud-input"
+                placeholder="Ej: Ray-Ban, Oakley, etc."
+              />
             </div>
-            
-            <div className="crud-detail-item">
-              <strong>Estado:</strong> 
-              <span className={`crud-badge ${marca.estado === "activa" ? "crud-badge-success" : "crud-badge-error"}`}>
-                {marca.estado === "activa" ? "Activa" : "Inactiva"}
-              </span>
+               {/* Descripción (ocupa toda la fila) */}
+            <div className="crud-form-group ">
+              <label htmlFor="descripcion">Descripción</label>
+              <textarea
+                id="descripcion"
+                name="descripcion"
+                value={marca.descripcion || ''}
+                disabled
+                rows="3"
+                className="crud-input crud-textarea"
+                placeholder="Descripción de la marca..."
+              />
             </div>
 
-            {marca.descripcion && (
-              <div className="crud-detail-item" style={{gridColumn: '1 / -1'}}>
-                <strong>Descripción:</strong> 
-                <span>{marca.descripcion}</span>
-              </div>
-            )}
+            {/* Estado - Nuevo campo que faltaba en el detalle original */}
+            <div className="crud-form-group">
+              <label htmlFor="estado">Estado</label>
+              <input
+                type="text"
+                id="estado"
+                name="estado"
+                value={marca.estado === 'activa' ? 'Activa' : 'Inactiva'}
+                disabled
+                className="crud-input"
+              />
+            </div>
+
+         
           </div>
-        </div>
 
         <div className="crud-form-actions">
           <button 

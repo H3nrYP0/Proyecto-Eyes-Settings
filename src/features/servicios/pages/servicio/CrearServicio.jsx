@@ -11,9 +11,27 @@ import {
 import { createServicio } from '../../../../lib/data/serviciosData';
 import { getAllEmpleados } from '../../../../lib/data/empleadosData'; // Asumiendo que existe esta función
 import "../../../../shared/styles/components/crud-forms.css";
+import { formatToPesos, parseFromPesos } from '../../../../shared/utils/formatCOP'; // 👈 Nueva importación
+
+// 👇 IMPORTACIÓN DEL COMPONENTE DE NOTIFICACIÓN
+import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
 
 export default function CrearServicio() {
   const navigate = useNavigate();
+
+  // 👇 ESTADO PARA LA NOTIFICACIÓN
+  const [notification, setNotification] = useState({
+    isVisible: false,
+    message: '',
+    type: 'success'
+  });
+
+  // 👇 ESTADO PARA LA LISTA DE EMPLEADOS
+  const [empleados, setEmpleados] = useState([]);
+
+  // 👇 ESTADO PARA EL PRECIO CON FORMATO VISUAL
+  const [precioFormatted, setPrecioFormatted] = useState('');
+
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: '',
@@ -169,7 +187,6 @@ export default function CrearServicio() {
               />
             </div>
 
-            <div className="crud-form-row">
               <div className="crud-form-group">
                 <TextField
                   fullWidth
@@ -214,7 +231,6 @@ export default function CrearServicio() {
                   }}
                 />
               </div>
-            </div>
 
             <div className="crud-form-group">
               <FormControl fullWidth error={!!errors.empleadoId}>
@@ -259,6 +275,14 @@ export default function CrearServicio() {
           </div>
         </form>
       </div>
-    </div>
+
+      {/* 👇 NOTIFICACIÓN REUTILIZABLE */}
+      <CrudNotification
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.isVisible}
+        onClose={handleCloseNotification}
+      />
+    </>
   );
 }

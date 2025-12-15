@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { TextField } from '@mui/material';
 import { getMarcaById, updateMarca } from "../../../../lib/data/marcasData";
 import "../../../../shared/styles/components/crud-forms.css";
-
+import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification"
 export default function EditarMarca() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -20,6 +20,8 @@ export default function EditarMarca() {
     const marca = getMarcaById(Number(id));
     if (marca) {
       setFormData(marca);
+      // 👇 NUEVO: Guardamos una copia del estado original
+      setOriginalData({ ...marca });
     } else {
       navigate('/admin/compras/marcas');
     }

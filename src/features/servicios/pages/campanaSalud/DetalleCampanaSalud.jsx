@@ -110,6 +110,7 @@ export default function DetalleCampanaSalud() {
               <strong>Participantes Estimados:</strong> 
               <span>{campana.participantes_estimados || 'No especificado'}</span>
             </div>
+
             
             <div className="crud-detail-item">
               <strong>Estado:</strong> 

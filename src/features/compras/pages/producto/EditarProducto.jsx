@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import CrudLayout from "../../../../shared/components/layouts/CrudLayout";
 import { getProductoById, updateProducto } from "../../../../lib/data/productosData";
 import { 
   TextField, 
@@ -9,6 +8,10 @@ import {
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import DeleteIcon from '@mui/icons-material/Delete';
 import "../../../../shared/styles/components/crud-forms.css";
+import { formatToPesos, parseFromPesos } from '../../../../shared/utils/formatCOP';
+
+// 👇 IMPORTACIÓN DEL COMPONENTE DE NOTIFICACIÓN
+import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
 
 export default function EditarProducto() {
   const navigate = useNavigate();
@@ -74,7 +77,48 @@ export default function EditarProducto() {
     { value: 'Otra', label: 'Otra' }
   ];
 
+  const [marcas, setMarcas] = useState([]);
+  const [categorias, setCategorias] = useState([]);
+
+  const [precioVentaFormatted, setPrecioVentaFormatted] = useState('');
+  const [precioCompraFormatted, setPrecioCompraFormatted] = useState('');
+
+  // 👇 ELIMINAMOS setError y usamos notification
+  const [notification, setNotification] = useState({
+    isVisible: false,
+    message: '',
+    type: 'success'
+  });
+
+  // 👇 NUEVO: Guardamos el estado original para comparar cambios
+  const [originalData, setOriginalData] = useState(null);
+
+  const [formData, setFormData] = useState({
+    nombre: '',
+    descripcion: '',
+    precioVenta: '',
+    precioCompra: '',
+    stockActual: '',
+    stockMinimo: '',
+    categoria: '',
+    marca: '',
+    estado: 'activo',
+  });
+
+  // Cargar marcas y categorías
   useEffect(() => {
+    const marcasList = getAllMarcas();
+    const marcasActivas = marcasList.filter(marca => marca.estado === 'activa');
+    setMarcas(marcasActivas);
+
+    const categoriasList = getAllCategorias();
+    const categoriasActivas = categoriasList.filter(categoria => categoria.estado === 'activa');
+    setCategorias(categoriasActivas);
+  }, []);
+
+  // Cargar datos del producto
+  useEffect(() => {
+    if (!id) return;
     const producto = getProductoById(Number(id));
     if (producto) {
       setFormData({
@@ -240,7 +284,7 @@ export default function EditarProducto() {
     }
   };
 
-  const handleChange = (e) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
     
     let processedValue = value;
@@ -331,8 +375,8 @@ export default function EditarProducto() {
         <div className="crud-form-header">
           <h1>Editar Producto</h1>
         </div>
-        
-        <div className="crud-form-content">
+
+        <div className="crud-form-content" style={{ padding: '0px' }}>
           <form onSubmit={handleSubmit}>
             <div className="crud-form-section">
               <div className="crud-form-row">
@@ -598,8 +642,23 @@ export default function EditarProducto() {
                   </div>
                 )}
               </div>
+
+              <div className="crud-form-group full-width">
+                <label htmlFor="descripcion">Descripción</label>
+                <textarea
+                  id="descripcion"
+                  name="descripcion"
+                  value={formData.descripcion}
+                  onChange={handleInputChange}
+                  rows="2"
+                  className="crud-input crud-textarea"
+                  placeholder="Descripción del producto..."
+                />
+              </div>
+
             </div>
 
+            {/* 👇 NO mostramos errores aquí porque usamos notificaciones */}
             <div className="crud-form-actions">
               <button 
                 type="button" 
@@ -626,6 +685,14 @@ export default function EditarProducto() {
           </form>
         </div>
       </div>
-    </CrudLayout>
+
+      {/* 👇 NOTIFICACIÓN REUTILIZABLE */}
+      <CrudNotification
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.isVisible}
+        onClose={handleCloseNotification}
+      />
+    </>
   );
 }

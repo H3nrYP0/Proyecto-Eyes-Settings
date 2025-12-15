@@ -11,9 +11,17 @@ import {
 import { createCampanaSalud } from '../../../../lib/data/campanasSaludData';
 import { getAllEmpleados } from '../../../../lib/data/empleadosData';
 import "../../../../shared/styles/components/crud-forms.css";
+import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
 
 export default function CrearCampanaSalud() {
   const navigate = useNavigate();
+  const [empleados, setEmpleados] = useState([]);
+  const [notification, setNotification] = useState({
+    isVisible: false,
+    message: '',
+    type: 'success'
+  });
+
   const [formData, setFormData] = useState({
     nombre: '',
     empresa: '',
@@ -202,7 +210,6 @@ export default function CrearCampanaSalud() {
                   InputLabelProps={{ style: { fontWeight: 'normal' } }}
                 />
               </div>
-            </div>
 
             <div className="crud-form-group">
               <FormControl fullWidth error={!!errors.empleadoId}>
@@ -346,22 +353,29 @@ export default function CrearCampanaSalud() {
                 InputLabelProps={{ style: { fontWeight: 'normal' } }}
               />
             </div>
-          </div>
 
-          <div className="crud-form-actions">
-            <button 
-              type="button" 
-              className="crud-btn crud-btn-secondary"
-              onClick={() => navigate('/admin/servicios/campanas-salud')}
-            >
-              Cancelar
-            </button>
-            <button type="submit" className="crud-btn crud-btn-primary">
-              Crear Campaña
-            </button>
-          </div>
-        </form>
+            <div className="crud-form-actions">
+              <button 
+                type="button" 
+                className="crud-btn crud-btn-secondary"
+                onClick={() => navigate('/admin/servicios/campanas-salud')}
+              >
+                Cancelar
+              </button>
+              <button type="submit" className="crud-btn crud-btn-primary">
+                Crear Campaña
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+
+      <CrudNotification
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.isVisible}
+        onClose={handleCloseNotification}
+      />
+    </>
   );
 }

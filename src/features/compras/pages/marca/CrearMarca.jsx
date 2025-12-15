@@ -4,8 +4,11 @@ import { createMarca } from '../../../../lib/data/marcasData';
 import { TextField } from '@mui/material';
 import "../../../../shared/styles/components/crud-forms.css";
 
+import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification"
+
 export default function CrearMarca() {
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: '',
@@ -123,6 +126,13 @@ export default function CrearMarca() {
           </div>
         </form>
       </div>
-    </div>
+
+      <CrudNotification
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.isVisible}
+        onClose={handleCloseNotification}
+      />
+    </>
   );
 }

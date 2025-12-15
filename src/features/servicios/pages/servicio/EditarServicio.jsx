@@ -11,6 +11,10 @@ import {
 import { getServicioById, updateServicio } from "../../../../lib/data/serviciosData";
 import { getAllEmpleados } from '../../../../lib/data/empleadosData';
 import "../../../../shared/styles/components/crud-forms.css";
+import { formatToPesos, parseFromPesos } from '../../../../shared/utils/formatCOP'; // 👈 Para el precio
+
+// 👇 IMPORTACIÓN DEL COMPONENTE DE NOTIFICACIÓN
+import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
 
 export default function EditarServicio() {
   const navigate = useNavigate();
@@ -21,6 +25,37 @@ export default function EditarServicio() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
 
+  const [empleados, setEmpleados] = useState([]);
+  const [precioFormatted, setPrecioFormatted] = useState('');
+
+  // 👇 ESTADO PARA NOTIFICACIONES
+  const [notification, setNotification] = useState({
+    isVisible: false,
+    message: '',
+    type: 'success'
+  });
+
+  // 👇 ESTADO PARA VALIDAR CAMBIOS
+  const [originalData, setOriginalData] = useState(null);
+
+  const [formData, setFormData] = useState({
+    nombre: '',
+    descripcion: '',
+    duracion: '',
+    precio: '',
+    empleadoId: '', // 👈 Usamos ID
+    estado: 'activo'
+  });
+
+  // 👇 Cargar empleados activos
+  useEffect(() => {
+    const empleadosList = getAllEmpleados();
+    const empleadosActivos = empleadosList.filter(empleado => empleado.estado === 'activo');
+    setEmpleados(empleadosActivos);
+  }, []);
+
+  // 👇 Cargar datos del servicio
+  // 👇 Cargar datos del servicio
   useEffect(() => {
     // Cargar servicio y empleados simultáneamente
     const servicio = getServicioById(Number(id));
@@ -46,6 +81,11 @@ export default function EditarServicio() {
     setEmpleados(empleadosActivos);
     setLoading(false);
   }, [id, navigate]);
+
+  // 👇 Cerrar notificación
+  const handleCloseNotification = () => {
+    setNotification({ ...notification, isVisible: false });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();

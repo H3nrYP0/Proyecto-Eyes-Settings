@@ -23,7 +23,7 @@ export default function CampanasSalud() {
   const [modalDelete, setModalDelete] = useState({
     open: false,
     id: null,
-    nombre: "",
+    empresa: "", // Cambiado de 'nombre' a 'empresa'
   });
 
   // Cargar datos
@@ -35,18 +35,18 @@ export default function CampanasSalud() {
   // =============================
   //    MODAL DE ELIMINACIÓN
   // =============================
-  const handleDelete = (id, nombre) => {
+  const handleDelete = (id, empresa) => {
     setModalDelete({
       open: true,
       id,
-      nombre,
+      empresa, // Usamos 'empresa' como identificador
     });
   };
 
   const confirmDelete = () => {
     const updated = deleteCampanaSalud(modalDelete.id);
     setCampanas([...updated]);
-    setModalDelete({ open: false, id: null, nombre: "" });
+    setModalDelete({ open: false, id: null, empresa: "" });
   };
 
   // =============================
@@ -62,8 +62,8 @@ export default function CampanasSalud() {
   // =============================
   const filteredCampanas = campanas.filter((campana) => {
     const matchesSearch = 
-      campana.nombre.toLowerCase().includes(search.toLowerCase()) ||
-      campana.descripcion.toLowerCase().includes(search.toLowerCase());
+      campana.empresa.toLowerCase().includes(search.toLowerCase()) ||
+      campana.observaciones?.toLowerCase().includes(search.toLowerCase());
     
     const matchesFilter = !filterEstado || campana.estado === filterEstado;
     
@@ -72,8 +72,8 @@ export default function CampanasSalud() {
 
   // FILTROS PARA CAMPAÑAS
   const searchFilters = [
-    { value: 'activa', label: 'Activas' },
     { value: 'proxima', label: 'Próximas' },
+    { value: 'activa', label: 'Activas' },
     { value: 'finalizada', label: 'Finalizadas' },
     { value: 'inactiva', label: 'Inactivas' }
   ];
@@ -118,7 +118,7 @@ export default function CampanasSalud() {
     {
       label: "Eliminar",
       type: "delete",
-      onClick: (item) => handleDelete(item.id, item.nombre),
+      onClick: (item) => handleDelete(item.id, item.empresa), // Pasamos 'empresa'
     },
   ];
 
@@ -132,7 +132,7 @@ export default function CampanasSalud() {
       title="Campañas de Salud"
       onAddClick={() => navigate("crear")}
       showSearch={true}
-      searchPlaceholder="Buscar por nombre, descripción..."
+      searchPlaceholder="Buscar por empresa o observaciones..."
       searchValue={search}
       onSearchChange={setSearch}
       searchFilters={searchFilters}
@@ -170,12 +170,12 @@ export default function CampanasSalud() {
         open={modalDelete.open}
         type="warning"
         title="¿Eliminar Campaña?"
-        message={`Esta acción eliminará la campaña "${modalDelete.nombre}" y no se puede deshacer.`}
+        message={`Esta acción eliminará la campaña para la empresa "${modalDelete.empresa}" y no se puede deshacer.`}
         confirmText="Eliminar"
         cancelText="Cancelar"
         showCancel={true}
         onConfirm={confirmDelete}
-        onCancel={() => setModalDelete({ open: false, id: null, nombre: "" })}
+        onCancel={() => setModalDelete({ open: false, id: null, empresa: "" })}
       />
     </CrudLayout>
   );

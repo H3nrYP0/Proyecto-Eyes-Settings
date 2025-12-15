@@ -11,6 +11,7 @@ import {
 import { getCampanaSaludById, updateCampanaSalud } from '../../../../lib/data/campanasSaludData';
 import { getAllEmpleados } from '../../../../lib/data/empleadosData';
 import "../../../../shared/styles/components/crud-forms.css";
+import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification"; // Para notificaciones
 
 export default function EditarCampanaSalud() {
   const navigate = useNavigate();
@@ -21,7 +22,41 @@ export default function EditarCampanaSalud() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
 
+  const [empleados, setEmpleados] = useState([]);
+  const [notification, setNotification] = useState({
+    isVisible: false,
+    message: '',
+    type: 'success'
+  });
+
+  // 👇 Para la validación de cambios
+  const [originalData, setOriginalData] = useState(null);
+
+  const [formData, setFormData] = useState({
+    empresa: '',
+    contacto: '',
+    fecha: '',
+    hora: '',
+    direccion: '',
+    observaciones: '',
+    empleadoId: '',
+    estado: 'activa'
+  });
+
+  const handleCloseNotification = () => {
+    setNotification({ ...notification, isVisible: false });
+  };
+
+  // Cargar empleados
   useEffect(() => {
+    const empleadosList = getAllEmpleados();
+    const empleadosActivos = empleadosList.filter(empleado => empleado.estado === 'activo');
+    setEmpleados(empleadosActivos);
+  }, []);
+
+  // Cargar datos de la campaña
+  useEffect(() => {
+    if (!id) return;
     const campana = getCampanaSaludById(Number(id));
     const empleadosData = getAllEmpleados();
     
@@ -51,6 +86,47 @@ export default function EditarCampanaSalud() {
     setEmpleados(empleadosActivos);
     setLoading(false);
   }, [id, navigate]);
+
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
+  // 👇 FUNCIÓN CORREGIDA: Verificar si es domingo (hora local)
+  const isSunday = (dateString) => {
+    if (!dateString) return false;
+    const parts = dateString.split('-');
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    const date = new Date(year, month, day);
+    return date.getDay() === 0;
+  };
+
+  // 👇 Manejar el input de contacto (máximo 10 dígitos)
+  const handleContactoChange = (e) => {
+    let value = e.target.value;
+    value = value.replace(/\D/g, '');
+    if (value.length > 10) {
+      value = value.slice(0, 10);
+    }
+    setFormData({
+      ...formData,
+      contacto: value
+    });
+  };
+
+  // 👇 Generar opciones de hora (6AM - 6PM)
+  const generarOpcionesHora = () => {
+    const opciones = [];
+    for (let hora = 6; hora <= 18; hora++) {
+      opciones.push(`${hora.toString().padStart(2, '0')}:00`);
+      if (hora < 18) {
+        opciones.push(`${hora.toString().padStart(2, '0')}:30`);
+      }
+    }
+    return opciones;
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -207,7 +283,6 @@ export default function EditarCampanaSalud() {
                   InputLabelProps={{ style: { fontWeight: 'normal' } }}
                 />
               </div>
-            </div>
 
             <div className="crud-form-group">
               <FormControl fullWidth error={!!errors.empleadoId}>
@@ -389,6 +464,13 @@ export default function EditarCampanaSalud() {
           </div>
         </form>
       </div>
-    </div>
+
+      <CrudNotification
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.isVisible}
+        onClose={handleCloseNotification}
+      />
+    </>
   );
 }
