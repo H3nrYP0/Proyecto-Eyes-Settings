@@ -150,7 +150,6 @@ export default function CrearRol() {
     <div className="crud-form-container crear-rol-container">
       <div className="crud-form-header crear-rol-header">
         <h1>Crear Nuevo Rol</h1>
-        <p>Define un nuevo rol con sus permisos correspondientes</p>
       </div>
       
       <div className="crud-form-content crear-rol-content">
