@@ -132,8 +132,8 @@ export default function Marcas() {
 
   return (
     <CrudLayout
-      title="🏷️ Marcas"
-      description="Administra las marcas de los productos de la óptica."
+      title="  Marcas"
+      
       onAddClick={() => navigate("crear")}
       showSearch={true}
       searchPlaceholder="Buscar por nombre, descripción..."

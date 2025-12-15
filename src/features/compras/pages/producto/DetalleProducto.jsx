@@ -3,6 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getProductoById } from '../../../../lib/data/productosData';
 import "../../../../shared/styles/components/crud-forms.css";
 
+// Función para formatear números con puntos (igual que en CrearProducto)
+const formatToPesos = (value) => {
+  if (!value && value !== 0) return '';
+  const digits = value.toString().replace(/\D/g, '');
+  if (!digits) return value.toString();
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+};
+
 export default function DetalleProducto() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -14,22 +22,10 @@ export default function DetalleProducto() {
   }, [id]);
 
   if (!producto) {
-    return <div>Cargando...</div>;
+    return <div className="crud-form-container" style={{ padding: '32px' }}>Cargando...</div>;
   }
 
-  const formatCurrency = (amount) => {
-    return `$${amount.toLocaleString()}`;
-  };
-
-  const getEstadoBadge = (estado) => {
-    switch(estado) {
-      case 'activo': return 'crud-badge-success';
-      case 'inactivo': return 'crud-badge-error';
-      case 'bajo-stock': return 'crud-badge-warning';
-      default: return 'crud-badge-success';
-    }
-  };
-
+  // Mapeo de estado a texto legible
   const getEstadoText = (estado) => {
     switch(estado) {
       case 'activo': return 'Activo';
@@ -42,79 +38,131 @@ export default function DetalleProducto() {
   return (
     <div className="crud-form-container">
       <div className="crud-form-header">
-        <h1>Detalle de Producto: {producto.nombre}</h1>
-        <p>Información completa del producto</p>
+        <h1>Detalle de Producto</h1>
       </div>
       
-      <div className="crud-form-content">
-        <div className="crud-form-section">
-          <h3>Información General</h3>
-          
-          <div className="crud-detail-grid">
-            <div className="crud-detail-item">
-              <strong>Nombre:</strong> 
-              <span>{producto.nombre}</span>
-            </div>
-            
-            <div className="crud-detail-item">
-              <strong>Código:</strong> 
-              <span>{producto.codigo}</span>
-            </div>
-            
-            <div className="crud-detail-item">
-              <strong>Categoría:</strong> 
-              <span>{producto.categoria}</span>
+      <div className="crud-form-content" style={{  padding: '0px' }}>
+        <form>
+          <div className="crud-form-section"  >
+            <div className="crud-form-group">
+              <label htmlFor="nombre">Nombre</label>
+              <input
+                type="text"
+                id="nombre"
+                name="nombre"
+                value={producto.nombre || ''}
+                disabled
+                className="crud-input"
+              />
             </div>
 
-            <div className="crud-detail-item">
-              <strong>Marca:</strong> 
-              <span>{producto.marca}</span>
+            <div className="crud-form-group">
+              <label htmlFor="categoria">Categoría</label>
+              <input
+                type="text"
+                id="categoria"
+                name="categoria"
+                value={producto.categoria || ''}
+                disabled
+                className="crud-input"
+              />
             </div>
 
-            <div className="crud-detail-item">
-              <strong>Precio Venta:</strong> 
-              <span>{formatCurrency(producto.precioVenta)}</span>
-            </div>
-            
-            <div className="crud-detail-item">
-              <strong>Precio Compra:</strong> 
-              <span>{formatCurrency(producto.precioCompra)}</span>
-            </div>
-            
-            <div className="crud-detail-item">
-              <strong>Stock Actual:</strong> 
-              <span>{producto.stockActual}</span>
+            <div className="crud-form-group">
+              <label htmlFor="marca">Marca</label>
+              <input
+                type="text"
+                id="marca"
+                name="marca"
+                value={producto.marca || ''}
+                disabled
+                className="crud-input"
+              />
             </div>
 
-            <div className="crud-detail-item">
-              <strong>Stock Mínimo:</strong> 
-              <span>{producto.stockMinimo}</span>
+            <div className="crud-form-group">
+              <label htmlFor="precioVenta">Precio Venta</label>
+              <input
+                type="text"
+                id="precioVenta"
+                name="precioVenta"
+                value={formatToPesos(producto.precioVenta) || ''}
+                disabled
+                className="crud-input"
+              />
             </div>
 
-            <div className="crud-detail-item">
-              <strong>Estado:</strong> 
-              <span className={`crud-badge ${getEstadoBadge(producto.estado)}`}>
-                {getEstadoText(producto.estado)}
-              </span>
+            <div className="crud-form-group">
+              <label htmlFor="precioCompra">Precio Compra</label>
+              <input
+                type="text"
+                id="precioCompra"
+                name="precioCompra"
+                value={formatToPesos(producto.precioCompra) || ''}
+                disabled
+                className="crud-input"
+              />
             </div>
 
-            {producto.descripcion && (
-              <div className="crud-detail-item" style={{gridColumn: '1 / -1'}}>
-                <strong>Descripción:</strong> 
-                <span>{producto.descripcion}</span>
-              </div>
-            )}
+            <div className="crud-form-group">
+              <label htmlFor="stockActual">Stock Actual</label>
+              <input
+                type="text"
+                id="stockActual"
+                name="stockActual"
+                value={producto.stockActual || ''}
+                disabled
+                className="crud-input"
+              />
+            </div>
+
+            <div className="crud-form-group">
+              <label htmlFor="stockMinimo">Stock Mínimo</label>
+              <input
+                type="text"
+                id="stockMinimo"
+                name="stockMinimo"
+                value={producto.stockMinimo || ''}
+                disabled
+                className="crud-input"
+              />
+            </div>
+
+            <div className="crud-form-group">
+              <label htmlFor="estado">Estado</label>
+              <input
+                type="text"
+                id="estado"
+                name="estado"
+                value={getEstadoText(producto.estado) || ''}
+                disabled
+                className="crud-input"
+              />
+            </div>
+
+            <div className="crud-form-group full-width">
+              <label htmlFor="descripcion">Descripción</label>
+              <textarea
+                id="descripcion"
+                name="descripcion"
+                value={producto.descripcion || ''}
+                disabled
+                rows="2"
+                className="crud-input crud-textarea"
+              />
+            </div>
           </div>
-        </div>
 
-        <div className="crud-form-actions">
-          <button 
-            onClick={() => navigate('/admin/compras/productos')}
-            className="crud-btn crud-btn-secondary"
-          >
-            Volver
-          </button>
-        </div>
+          <div className="crud-form-actions" >
+            <button
+              type="button"
+              className="crud-btn crud-btn-secondary"
+              onClick={() => navigate('/admin/compras/productos')}
+            >
+              Volver
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

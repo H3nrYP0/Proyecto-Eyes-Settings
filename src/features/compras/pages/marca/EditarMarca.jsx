@@ -1,19 +1,32 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import CrudLayout from "../../../../shared/components/layouts/CrudLayout";
 import { getMarcaById, updateMarca } from "../../../../lib/data/marcasData";
 import "../../../../shared/styles/components/crud-forms.css";
-
+import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification"
 export default function EditarMarca() {
   const navigate = useNavigate();
   const { id } = useParams();
   
   const [formData, setFormData] = useState(null);
+  // 👇 NUEVO: Guardamos el estado original para comparar cambios
+  const [originalData, setOriginalData] = useState(null);
+
+  const [notification, setNotification] = useState({
+    isVisible: false,
+    message: '',
+    type: 'success'
+  });
+
+  const handleCloseNotification = () => {
+    setNotification({ ...notification, isVisible: false });
+  };
 
   useEffect(() => {
     const marca = getMarcaById(Number(id));
     if (marca) {
       setFormData(marca);
+      // 👇 NUEVO: Guardamos una copia del estado original
+      setOriginalData({ ...marca });
     } else {
       navigate('/admin/compras/marcas');
     }
@@ -21,10 +34,46 @@ export default function EditarMarca() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // Actualizar en la base de datos
-    updateMarca(Number(id), formData);
-    navigate('/admin/compras/marcas');
+
+    if (!formData.nombre.trim()) {
+      setNotification({
+        isVisible: true,
+        message: 'El nombre de la marca es obligatorio.',
+        type: 'error'
+      });
+      return;
+    }
+
+    // 👇 NUEVA VALIDACIÓN: Verificar si hubo cambios
+    if (originalData && JSON.stringify(formData) === JSON.stringify(originalData)) {
+      setNotification({
+        isVisible: true,
+        message: 'No se han realizado cambios para guardar.',
+        type: 'error'
+      });
+      return;
+    }
+
+    try {
+      updateMarca(Number(id), formData);
+
+      setNotification({
+        isVisible: true,
+        message: '¡Marca actualizada con éxito!',
+        type: 'success'
+      });
+
+      setTimeout(() => {
+        navigate('/admin/compras/marcas');
+      }, 2000);
+
+    } catch (error) {
+      setNotification({
+        isVisible: true,
+        message: 'Error al actualizar la marca. Intente nuevamente.',
+        type: 'error'
+      });
+    }
   };
 
   const handleChange = (e) => {
@@ -39,21 +88,15 @@ export default function EditarMarca() {
   }
 
   return (
-    <CrudLayout
-      title="✏️ Editar Marca"
-      description={`Modifica la información de la marca`}
-    >
+    <>
       <div className="crud-form-container">
         <div className="crud-form-header">
           <h1>Editando: {formData.nombre}</h1>
-          <p>Modifica la información de la marca</p>
         </div>
         
-        <div className="crud-form-content">
+        <div className="crud-form-content" style={{ padding: '0px' }}>
           <form onSubmit={handleSubmit}>
             <div className="crud-form-section">
-              <h3>Información de la Marca</h3>
-              
               <div className="crud-form-group">
                 <label htmlFor="nombre">Nombre <span className="crud-required">*</span></label>
                 <input
@@ -67,7 +110,7 @@ export default function EditarMarca() {
                 />
               </div>
 
-              <div className="crud-form-group">
+              <div className="crud-form-group width"> 
                 <label htmlFor="descripcion">Descripción</label>
                 <textarea
                   id="descripcion"
@@ -98,8 +141,8 @@ export default function EditarMarca() {
             <div className="crud-form-actions">
               <button 
                 type="button" 
-                onClick={() => navigate('/admin/compras/marcas')}
                 className="crud-btn crud-btn-secondary"
+                onClick={() => navigate('/admin/compras/marcas')}
               >
                 Cancelar
               </button>
@@ -113,6 +156,13 @@ export default function EditarMarca() {
           </form>
         </div>
       </div>
-    </CrudLayout>
+
+      <CrudNotification
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.isVisible}
+        onClose={handleCloseNotification}
+      />
+    </>
   );
 }

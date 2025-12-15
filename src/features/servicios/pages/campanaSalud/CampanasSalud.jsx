@@ -148,8 +148,8 @@ export default function CampanasSalud() {
 
   return (
     <CrudLayout
-      title="🏥 Campañas de Salud"
-      description="Gestiona las campañas de salud visual y promociones especiales."
+      title="Campañas de Salud"
+      
       onAddClick={() => navigate("crear")}
       showSearch={true}
       searchPlaceholder="Buscar por nombre, descripción..."
