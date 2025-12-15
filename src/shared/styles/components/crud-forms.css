@@ -54,19 +54,24 @@
   grid-column: 1 / -1;
 }
 
+/* Campos de texto que necesitan más espacio */
+.crud-form-group.textarea-expand {
+  grid-column: 1 / -1;
+}
+
 /* GRUPOS DE FORMULARIO - ESTILO UNIFORME */
 .crud-form-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-bottom: 0; /* Eliminamos márgenes verticales entre grupos */
+  margin-bottom: 0;
 }
 
-/* Asegurar que los labels tengan el mismo estilo */
+/* Labels con peso normal */
 .crud-form-group label,
 .crud-form-group .MuiFormLabel-root,
 .crud-form-group .MuiInputLabel-root {
-  font-weight: 600;
+  font-weight: 400; /* Cambiado de 600 a 400 para normal */
   color: var(--gray-700);
   font-size: 0.9rem;
   margin-bottom: 4px;
@@ -80,14 +85,29 @@
 .crud-form-section .MuiFormControl-root,
 .crud-form-section .MuiTextField-root {
   width: 100%;
-  margin: 0; /* Eliminar márgenes */
+  margin: 0;
 }
 
-/* Asegurar altura uniforme para todos los inputs */
-.crud-form-section .MuiOutlinedInput-root,
+/* Asegurar altura uniforme para inputs normales */
+.crud-form-section .MuiOutlinedInput-root:not(.MuiOutlinedInput-multiline),
 .crud-form-section .MuiSelect-select {
   height: 56px;
   box-sizing: border-box;
+}
+
+/* Textareas - permitir expansión */
+.crud-form-section .MuiOutlinedInput-multiline {
+  min-height: 56px;
+  box-sizing: border-box;
+  align-items: flex-start;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.crud-form-section .MuiOutlinedInput-multiline textarea {
+  min-height: 40px;
+  resize: vertical;
+  max-height: 120px; /* Máximo 3 líneas aprox */
 }
 
 .crud-form-section .MuiSelect-select {
@@ -95,7 +115,7 @@
   padding-bottom: 16.5px;
 }
 
-/* INPUTS ESTÁNDAR (para formularios sin Material-UI) */
+/* INPUTS ESTÁNDAR */
 .crud-input,
 .crud-textarea,
 .crud-select {
@@ -120,7 +140,8 @@
 
 .crud-textarea {
   resize: vertical;
-  min-height: 80px;
+  min-height: 56px;
+  max-height: 120px;
   font-family: inherit;
 }
 
@@ -188,7 +209,8 @@
     padding: 20px;
   }
   
-  .crud-form-group.full-width {
+  .crud-form-group.full-width,
+  .crud-form-group.textarea-expand {
     grid-column: 1;
   }
   
@@ -201,7 +223,7 @@
   }
 }
 
-/* ESTILOS ESPECÍFICOS PARA ERRORES */
+/* ESTILOS PARA ERRORES */
 .crud-form-section .MuiFormHelperText-root {
   margin-top: 4px;
   font-size: 0.75rem;
@@ -213,7 +235,7 @@
   margin-top: 4px;
 }
 
-/* Estilo para campos vacíos de emparejamiento */
+/* Campos vacíos para emparejar */
 .crud-form-group.empty-pair {
   opacity: 0.3;
   pointer-events: none;
@@ -229,58 +251,7 @@
   color: var(--gray-400);
 }
 
-/* ESTILOS PARA VISTA DE DETALLE (SIN SCROLL) */
-.crud-input-view {
-  padding: 10px 12px;
-  border: 1px solid var(--gray-300);
-  border-radius: 6px;
-  font-size: 0.9rem;
-  background: #f9fafb;
-  width: 100%;
-  box-sizing: border-box;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  color: var(--gray-800);
-}
-
-/* Reducir gap entre grupos en vista detalle */
-.crud-form-section .crud-form-group {
-  gap: 6px;
-}
-
-/* Reducir padding de la sección si es necesario */
-.crud-form-section {
-  padding: 20px;
-}
-
-/* Si aún hay scroll, reducir más */
-@media (min-height: 700px) {
-  .crud-input-view {
-    min-height: 40px;
-    padding: 8px 12px;
-  }
-  
-  .crud-form-section .crud-form-group {
-    gap: 4px;
-  }
-  
-  .crud-form-section {
-    padding: 16px;
-    gap: 16px;
-  }
-}
-
-/* Estilos para modo visualización (detalle) - COINCIDEN CON MATERIAL-UI */
-.crud-form-label {
-  font-weight: 600;
-  color: var(--gray-700);
-  font-size: 0.9rem;
-  margin-bottom: 4px;
-  transform-origin: top left;
-  transform: translate(0, -1.5px) scale(0.75);
-}
-
+/* VISTA DE DETALLE */
 .crud-input-view {
   padding: 16.5px 14px;
   border: 1px solid var(--gray-300);
@@ -294,11 +265,6 @@
   align-items: center;
   color: var(--gray-800);
   font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
-  transition: border-color 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
-}
-
-.crud-input-view:hover {
-  border-color: var(--gray-400);
 }
 
 .crud-form-group.empty-field {
@@ -307,7 +273,19 @@
   min-height: 56px;
 }
 
-/* Para que los badges se vean bien */
+/* Badges en vista detalle */
 .crud-input-view .crud-badge {
   margin: 0;
+}
+
+/* Hacer que el textarea afecte el grid cuando se expande */
+.crud-form-group:has(.MuiOutlinedInput-multiline) {
+  grid-row: span 2; /* Ocupa 2 filas cuando se expande */
+}
+
+/* Estilo cuando está enfocado/expandido */
+.crud-form-group:has(.MuiOutlinedInput-multiline textarea:focus),
+.crud-form-group:has(.MuiOutlinedInput-multiline textarea:not(:placeholder-shown)) {
+  grid-row: span 2;
+  min-height: 120px;
 }

@@ -25,47 +25,53 @@ export default function DetalleAgenda() {
       
       <div className="crud-form-content">
         <div className="crud-form-section">
-          <div className="crud-detail-grid">
-            <div className="crud-detail-item">
-              <strong>Cliente:</strong> 
-              <span>{cita.cliente}</span>
+          <div className="crud-form-group">
+            <div className="crud-input-view">
+              {cita.cliente}
             </div>
-            
-            <div className="crud-detail-item">
-              <strong>Servicio:</strong> 
-              <span>{cita.servicio}</span>
-            </div>
+          </div>
 
-            <div className="crud-detail-item">
-              <strong>Empleado:</strong> 
-              <span>{cita.empleado}</span>
+          <div className="crud-form-group">
+            <div className="crud-input-view">
+              {cita.servicio}
             </div>
+          </div>
 
-            <div className="crud-detail-item">
-              <strong>Fecha:</strong> 
-              <span>{cita.fecha}</span>
+          <div className="crud-form-group">
+            <div className="crud-input-view">
+              {cita.empleado}
             </div>
+          </div>
 
-            <div className="crud-detail-item">
-              <strong>Hora:</strong> 
-              <span>{cita.hora}</span>
+          <div className="crud-form-group">
+            <div className="crud-input-view">
+              {cita.fecha}
             </div>
+          </div>
 
-            <div className="crud-detail-item">
-              <strong>Duración:</strong> 
-              <span>{cita.duracion} minutos</span>
+          <div className="crud-form-group">
+            <div className="crud-input-view">
+              {cita.hora}
             </div>
+          </div>
 
-            <div className="crud-detail-item">
-              <strong>Método de Pago:</strong> 
-              <span>{cita.metodo_pago || 'No especificado'}</span>
+          <div className="crud-form-group">
+            <div className="crud-input-view">
+              {cita.duracion} minutos
             </div>
-            
-            <div className="crud-detail-item">
-              <strong>Estado:</strong> 
+          </div>
+
+          <div className="crud-form-group">
+            <div className="crud-input-view">
               <span className={`crud-badge ${cita.estado === "completada" ? "crud-badge-success" : cita.estado === "pendiente" ? "crud-badge-warning" : "crud-badge-error"}`}>
                 {cita.estado === "pendiente" ? "Pendiente" : cita.estado === "completada" ? "Completada" : "Cancelada"}
               </span>
+            </div>
+          </div>
+
+          <div className="crud-form-group">
+            <div className="crud-input-view">
+              {cita.metodo_pago || 'No especificado'}
             </div>
           </div>
         </div>
@@ -75,14 +81,14 @@ export default function DetalleAgenda() {
             onClick={() => navigate('/admin/servicios/agenda')}
             className="crud-btn crud-btn-secondary"
           >
-            Volver
+            Cancelar
           </button>
           <button 
             onClick={() => navigate(`/admin/servicios/agenda/editar/${cita.id}`)}
             className="crud-btn crud-btn-primary"
-        >
+          >
             Editar Cita
-        </button>
+          </button>
         </div>
       </div>
     </div>

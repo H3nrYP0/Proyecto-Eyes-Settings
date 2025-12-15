@@ -172,78 +172,74 @@ export default function EditarEmpleado() {
               />
             </div>
 
-            <div className="crud-form-row">
-              <div className="crud-form-group">
-                <FormControl fullWidth error={!!errors.tipoDocumento}>
-                  <InputLabel style={{ fontWeight: 'normal' }}>
-                    Tipo de Documento
-                  </InputLabel>
-                  <Select
-                    name="tipoDocumento"
-                    value={formData.tipoDocumento}
-                    onChange={handleChange}
-                    label="Tipo de Documento"
-                    required
-                  >
-                    <MenuItem value="CC">Cédula de Ciudadanía</MenuItem>
-                    <MenuItem value="CE">Cédula de Extranjería</MenuItem>
-                    <MenuItem value="PA">Pasaporte</MenuItem>
-                  </Select>
-                  {errors.tipoDocumento && (
-                    <FormHelperText error>{errors.tipoDocumento}</FormHelperText>
-                  )}
-                </FormControl>
-              </div>
-
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  label="Número de Documento"
-                  name="numero_documento"
-                  value={formData.numero_documento}
+            <div className="crud-form-group">
+              <FormControl fullWidth error={!!errors.tipoDocumento}>
+                <InputLabel style={{ fontWeight: 'normal' }}>
+                  Tipo de Documento
+                </InputLabel>
+                <Select
+                  name="tipoDocumento"
+                  value={formData.tipoDocumento}
                   onChange={handleChange}
-                  placeholder="123456789"
+                  label="Tipo de Documento"
                   required
-                  variant="outlined"
-                  error={!!errors.numero_documento}
-                  helperText={errors.numero_documento}
-                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
-                />
-              </div>
+                >
+                  <MenuItem value="CC">Cédula de Ciudadanía</MenuItem>
+                  <MenuItem value="CE">Cédula de Extranjería</MenuItem>
+                  <MenuItem value="PA">Pasaporte</MenuItem>
+                </Select>
+                {errors.tipoDocumento && (
+                  <FormHelperText error>{errors.tipoDocumento}</FormHelperText>
+                )}
+              </FormControl>
             </div>
 
-            <div className="crud-form-row">
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  label="Teléfono"
-                  name="telefono"
-                  value={formData.telefono}
-                  onChange={handleChange}
-                  placeholder="3001234567"
-                  required
-                  variant="outlined"
-                  error={!!errors.telefono}
-                  helperText={errors.telefono}
-                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
-                />
-              </div>
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Número de Documento"
+                name="numero_documento"
+                value={formData.numero_documento}
+                onChange={handleChange}
+                placeholder="123456789"
+                required
+                variant="outlined"
+                error={!!errors.numero_documento}
+                helperText={errors.numero_documento}
+                InputLabelProps={{ style: { fontWeight: 'normal' } }}
+              />
+            </div>
 
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  label="Correo Electrónico"
-                  name="correo"
-                  type="email"
-                  value={formData.correo}
-                  onChange={handleChange}
-                  placeholder="ejemplo@optica.com"
-                  variant="outlined"
-                  error={!!errors.correo}
-                  helperText={errors.correo}
-                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
-                />
-              </div>
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Teléfono"
+                name="telefono"
+                value={formData.telefono}
+                onChange={handleChange}
+                placeholder="3001234567"
+                required
+                variant="outlined"
+                error={!!errors.telefono}
+                helperText={errors.telefono}
+                InputLabelProps={{ style: { fontWeight: 'normal' } }}
+              />
+            </div>
+
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Correo Electrónico"
+                name="correo"
+                type="email"
+                value={formData.correo}
+                onChange={handleChange}
+                placeholder="ejemplo@optica.com"
+                variant="outlined"
+                error={!!errors.correo}
+                helperText={errors.correo}
+                InputLabelProps={{ style: { fontWeight: 'normal' } }}
+              />
             </div>
 
             <div className="crud-form-group">
@@ -260,51 +256,49 @@ export default function EditarEmpleado() {
               />
             </div>
 
-            <div className="crud-form-row">
-              <div className="crud-form-group">
-                <FormControl fullWidth error={!!errors.cargo}>
-                  <InputLabel style={{ fontWeight: 'normal' }}>
-                    Cargo
-                  </InputLabel>
-                  <Select
-                    name="cargo"
-                    value={formData.cargo}
-                    onChange={handleChange}
-                    label="Cargo"
-                    required
-                  >
-                    <MenuItem value="">Seleccionar cargo</MenuItem>
-                    <MenuItem value="Optómetra">Optómetra</MenuItem>
-                    <MenuItem value="Asistente">Asistente</MenuItem>
-                    <MenuItem value="Técnico">Técnico</MenuItem>
-                    <MenuItem value="Administrador">Administrador</MenuItem>
-                    <MenuItem value="Recepcionista">Recepcionista</MenuItem>
-                    <MenuItem value="Vendedor">Vendedor</MenuItem>
-                  </Select>
-                  {errors.cargo && (
-                    <FormHelperText error>{errors.cargo}</FormHelperText>
-                  )}
-                </FormControl>
-              </div>
-
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  label="Fecha de Ingreso"
-                  name="fecha_ingreso"
-                  type="date"
-                  value={formData.fecha_ingreso}
+            <div className="crud-form-group">
+              <FormControl fullWidth error={!!errors.cargo}>
+                <InputLabel style={{ fontWeight: 'normal' }}>
+                  Cargo
+                </InputLabel>
+                <Select
+                  name="cargo"
+                  value={formData.cargo}
                   onChange={handleChange}
+                  label="Cargo"
                   required
-                  variant="outlined"
-                  InputLabelProps={{ 
-                    shrink: true,
-                    style: { fontWeight: 'normal' }
-                  }}
-                  error={!!errors.fecha_ingreso}
-                  helperText={errors.fecha_ingreso}
-                />
-              </div>
+                >
+                  <MenuItem value="">Seleccionar cargo</MenuItem>
+                  <MenuItem value="Optómetra">Optómetra</MenuItem>
+                  <MenuItem value="Asistente">Asistente</MenuItem>
+                  <MenuItem value="Técnico">Técnico</MenuItem>
+                  <MenuItem value="Administrador">Administrador</MenuItem>
+                  <MenuItem value="Recepcionista">Recepcionista</MenuItem>
+                  <MenuItem value="Vendedor">Vendedor</MenuItem>
+                </Select>
+                {errors.cargo && (
+                  <FormHelperText error>{errors.cargo}</FormHelperText>
+                )}
+              </FormControl>
+            </div>
+
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Fecha de Ingreso"
+                name="fecha_ingreso"
+                type="date"
+                value={formData.fecha_ingreso}
+                onChange={handleChange}
+                required
+                variant="outlined"
+                InputLabelProps={{ 
+                  shrink: true,
+                  style: { fontWeight: 'normal' }
+                }}
+                error={!!errors.fecha_ingreso}
+                helperText={errors.fecha_ingreso}
+              />
             </div>
 
             <div className="crud-form-group">
@@ -327,6 +321,10 @@ export default function EditarEmpleado() {
                   <MenuItem value="Inactivo">Inactivo</MenuItem>
                 </Select>
               </FormControl>
+            </div>
+
+            <div className="crud-form-group" style={{ opacity: 0 }}>
+              <div style={{ height: '56px' }}></div>
             </div>
           </div>
 

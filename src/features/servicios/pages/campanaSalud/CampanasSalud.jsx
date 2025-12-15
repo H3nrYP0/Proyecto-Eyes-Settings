@@ -23,30 +23,31 @@ export default function CampanasSalud() {
   const [modalDelete, setModalDelete] = useState({
     open: false,
     id: null,
-    empresa: "", // Cambiado de 'nombre' a 'empresa'
+    nombre: "", // Cambiado a 'nombre' que es lo que se muestra
   });
 
   // Cargar datos
   useEffect(() => {
     const campanasData = getAllCampanasSalud();
-    setCampanas(campanasData);
+    console.log("Campañas cargadas:", campanasData); // Para debug
+    setCampanas(campanasData || []);
   }, []);
 
   // =============================
   //    MODAL DE ELIMINACIÓN
   // =============================
-  const handleDelete = (id, empresa) => {
+  const handleDelete = (id, nombre) => {
     setModalDelete({
       open: true,
       id,
-      empresa, // Usamos 'empresa' como identificador
+      nombre, // Usamos 'nombre' de la campaña
     });
   };
 
   const confirmDelete = () => {
     const updated = deleteCampanaSalud(modalDelete.id);
     setCampanas([...updated]);
-    setModalDelete({ open: false, id: null, empresa: "" });
+    setModalDelete({ open: false, id: null, nombre: "" });
   };
 
   // =============================
@@ -54,7 +55,9 @@ export default function CampanasSalud() {
   // =============================
   const toggleEstado = (id) => {
     const updated = updateEstadoCampanaSalud(id);
-    setCampanas([...updated]);
+    if (updated) {
+      setCampanas([...updated]);
+    }
   };
 
   // =============================
@@ -62,29 +65,47 @@ export default function CampanasSalud() {
   // =============================
   const filteredCampanas = campanas.filter((campana) => {
     const matchesSearch = 
-      campana.empresa.toLowerCase().includes(search.toLowerCase()) ||
-      campana.observaciones?.toLowerCase().includes(search.toLowerCase());
+      (campana.nombre && campana.nombre.toLowerCase().includes(search.toLowerCase())) ||
+      (campana.empresa && campana.empresa.toLowerCase().includes(search.toLowerCase())) ||
+      (campana.observaciones && campana.observaciones.toLowerCase().includes(search.toLowerCase()));
     
     const matchesFilter = !filterEstado || campana.estado === filterEstado;
     
     return matchesSearch && matchesFilter;
   });
 
-  // FILTROS PARA CAMPAÑAS
+  // FILTROS PARA CAMPAÑAS (ajustados a tus estados)
   const searchFilters = [
-    { value: 'proxima', label: 'Próximas' },
-    { value: 'activa', label: 'Activas' },
-    { value: 'finalizada', label: 'Finalizadas' },
-    { value: 'inactiva', label: 'Inactivas' }
+    { value: 'PLANIFICADA', label: 'Planificadas' },
+    { value: 'EN_CURSO', label: 'En Curso' },
+    { value: 'COMPLETADA', label: 'Completadas' },
+    { value: 'CANCELADA', label: 'Canceladas' }
   ];
 
   // =============================
   //          COLUMNAS
   // =============================
   const columns = [
-    { field: "nombre", header: "Nombre" },
-    { field: "fechaInicio", header: "Fecha Inicio" },
-    { field: "fechaFin", header: "Fecha Fin" },
+    { 
+      field: "nombre", 
+      header: "Nombre de la Campaña",
+      render: (item) => item.nombre || "Sin nombre"
+    },
+    { 
+      field: "empresa", 
+      header: "Empresa",
+      render: (item) => item.empresa || "Sin empresa"
+    },
+    { 
+      field: "fecha", 
+      header: "Fecha",
+      render: (item) => item.fecha || "Sin fecha"
+    },
+    {
+      field: "hora",
+      header: "Hora inicio",
+      render: (item) => item.hora || "Sin hora"
+    },
     {
       field: "estado",
       header: "Estado",
@@ -118,7 +139,7 @@ export default function CampanasSalud() {
     {
       label: "Eliminar",
       type: "delete",
-      onClick: (item) => handleDelete(item.id, item.empresa), // Pasamos 'empresa'
+      onClick: (item) => handleDelete(item.id, item.nombre),
     },
   ];
 
@@ -132,7 +153,7 @@ export default function CampanasSalud() {
       title="Campañas de Salud"
       onAddClick={() => navigate("crear")}
       showSearch={true}
-      searchPlaceholder="Buscar por empresa o observaciones..."
+      searchPlaceholder="Buscar por nombre, empresa u observaciones..."
       searchValue={search}
       onSearchChange={setSearch}
       searchFilters={searchFilters}
@@ -170,12 +191,12 @@ export default function CampanasSalud() {
         open={modalDelete.open}
         type="warning"
         title="¿Eliminar Campaña?"
-        message={`Esta acción eliminará la campaña para la empresa "${modalDelete.empresa}" y no se puede deshacer.`}
+        message={`Esta acción eliminará la campaña "${modalDelete.nombre}" y no se puede deshacer.`}
         confirmText="Eliminar"
         cancelText="Cancelar"
         showCancel={true}
         onConfirm={confirmDelete}
-        onCancel={() => setModalDelete({ open: false, id: null, empresa: "" })}
+        onCancel={() => setModalDelete({ open: false, id: null, nombre: "" })}
       />
     </CrudLayout>
   );

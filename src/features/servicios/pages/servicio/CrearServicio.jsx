@@ -125,7 +125,7 @@ export default function CrearServicio() {
     );
   }
 
-  return (
+return (
     <div className="crud-form-container">
       <div className="crud-form-header">
         <h1>Crear Nuevo Servicio</h1>
@@ -137,7 +137,7 @@ export default function CrearServicio() {
             <div className="crud-form-group">
               <TextField
                 fullWidth
-                label="Nombre del Servicio"
+                label="Nombre del Servicio *"
                 name="nombre"
                 value={formData.nombre}
                 onChange={handleChange}
@@ -146,7 +146,9 @@ export default function CrearServicio() {
                 variant="outlined"
                 error={!!errors.nombre}
                 helperText={errors.nombre}
-                InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                InputLabelProps={{
+                  style: { fontWeight: 'normal' }
+                }}
               />
             </div>
 
@@ -160,69 +162,74 @@ export default function CrearServicio() {
                 placeholder="Descripción detallada del servicio"
                 variant="outlined"
                 multiline
+                maxRows={3}
                 error={!!errors.descripcion}
                 helperText={errors.descripcion}
-                InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                InputLabelProps={{
+                  style: { fontWeight: 'normal' }
+                }}
               />
             </div>
 
-            <div className="crud-form-row">
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  label="Duración (minutos)"
-                  name="duracion_min"
-                  type="number"
-                  value={formData.duracion_min}
-                  onChange={handleChange}
-                  placeholder="30"
-                  required
-                  variant="outlined"
-                  inputProps={{ 
-                    min: 1,
-                    max: 480
-                  }}
-                  error={!!errors.duracion_min}
-                  helperText={errors.duracion_min}
-                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
-                />
-              </div>
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Duración (minutos) *"
+                name="duracion_min"
+                type="number"
+                value={formData.duracion_min}
+                onChange={handleChange}
+                placeholder="30"
+                required
+                variant="outlined"
+                inputProps={{ 
+                  min: 1,
+                  max: 480
+                }}
+                error={!!errors.duracion_min}
+                helperText={errors.duracion_min}
+                InputLabelProps={{
+                  style: { fontWeight: 'normal' }
+                }}
+              />
+            </div>
 
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  label="Precio"
-                  name="precio"
-                  type="number"
-                  value={formData.precio}
-                  onChange={handleChange}
-                  placeholder="50000"
-                  required
-                  variant="outlined"
-                  inputProps={{ 
-                    min: 0,
-                    step: 100
-                  }}
-                  error={!!errors.precio}
-                  helperText={errors.precio}
-                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
-                  InputProps={{
-                    startAdornment: <span style={{ marginRight: '8px' }}>$</span>
-                  }}
-                />
-              </div>
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Precio *"
+                name="precio"
+                type="number"
+                value={formData.precio}
+                onChange={handleChange}
+                placeholder="50000"
+                required
+                variant="outlined"
+                inputProps={{ 
+                  min: 0,
+                  step: 100
+                }}
+                error={!!errors.precio}
+                helperText={errors.precio}
+                InputProps={{
+                  startAdornment: <span style={{ marginRight: '8px' }}>$</span>
+                }}
+                InputLabelProps={{
+                  style: { fontWeight: 'normal' }
+                }}
+              />
             </div>
 
             <div className="crud-form-group">
               <FormControl fullWidth error={!!errors.empleadoId}>
                 <InputLabel style={{ fontWeight: 'normal' }}>
-                  Empleado Responsable
+                  Empleado Responsable *
                 </InputLabel>
                 <Select
                   name="empleadoId"
                   value={formData.empleadoId}
                   onChange={handleChange}
-                  label="Empleado Responsable"
+                  label="Empleado Responsable *"
                   required
                 >
                   <MenuItem value="">Seleccione un empleado</MenuItem>
@@ -236,6 +243,10 @@ export default function CrearServicio() {
                   <FormHelperText error>{errors.empleadoId}</FormHelperText>
                 )}
               </FormControl>
+            </div>
+
+            <div className="crud-form-group" style={{ opacity: 0 }}>
+              <div style={{ height: '56px' }}></div>
             </div>
           </div>
 

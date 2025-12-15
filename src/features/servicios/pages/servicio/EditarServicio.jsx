@@ -159,13 +159,11 @@ export default function EditarServicio() {
       <div className="crud-form-container">
         <div className="crud-form-header">
           <h1>Editar Servicio</h1>
-          <p>Actualizando: {formData.nombre}</p>
         </div>
 
         <div className="crud-form-content">
           <form onSubmit={handleSubmit}>
             <div className="crud-form-section">
-
               <div className="crud-form-group">
                 <TextField
                   fullWidth
@@ -176,6 +174,9 @@ export default function EditarServicio() {
                   required
                   error={!!errors.nombre}
                   helperText={errors.nombre}
+                  InputLabelProps={{
+                    style: { fontWeight: 'normal' }
+                  }}
                 />
               </div>
 
@@ -187,52 +188,62 @@ export default function EditarServicio() {
                   value={formData.descripcion}
                   onChange={handleChange}
                   multiline
+                  maxRows={3}
                   error={!!errors.descripcion}
                   helperText={errors.descripcion}
+                  InputLabelProps={{
+                    style: { fontWeight: 'normal' }
+                  }}
                 />
               </div>
 
-              <div className="crud-form-row">
-                <div className="crud-form-group">
-                  <TextField
-                    fullWidth
-                    label="Duración (minutos)"
-                    name="duracion_min"
-                    type="number"
-                    value={formData.duracion_min}
-                    onChange={handleChange}
-                    inputProps={{ min: 1, max: 480 }}
-                    error={!!errors.duracion_min}
-                    helperText={errors.duracion_min}
-                  />
-                </div>
+              <div className="crud-form-group">
+                <TextField
+                  fullWidth
+                  label="Duración (minutos) *"
+                  name="duracion_min"
+                  type="number"
+                  value={formData.duracion_min}
+                  onChange={handleChange}
+                  inputProps={{ min: 1, max: 480 }}
+                  error={!!errors.duracion_min}
+                  helperText={errors.duracion_min}
+                  InputLabelProps={{
+                    style: { fontWeight: 'normal' }
+                  }}
+                />
+              </div>
 
-                <div className="crud-form-group">
-                  <TextField
-                    fullWidth
-                    label="Precio"
-                    name="precio"
-                    type="number"
-                    value={formData.precio}
-                    onChange={handleChange}
-                    inputProps={{ min: 0, step: 100 }}
-                    error={!!errors.precio}
-                    helperText={errors.precio}
-                    InputProps={{
-                      startAdornment: <span style={{ marginRight: 6 }}>$</span>
-                    }}
-                  />
-                </div>
+              <div className="crud-form-group">
+                <TextField
+                  fullWidth
+                  label="Precio *"
+                  name="precio"
+                  type="number"
+                  value={formData.precio}
+                  onChange={handleChange}
+                  inputProps={{ min: 0, step: 100 }}
+                  error={!!errors.precio}
+                  helperText={errors.precio}
+                  InputProps={{
+                    startAdornment: <span style={{ marginRight: '6px' }}>$</span>
+                  }}
+                  InputLabelProps={{
+                    style: { fontWeight: 'normal' }
+                  }}
+                />
               </div>
 
               <div className="crud-form-group">
                 <FormControl fullWidth error={!!errors.empleadoId}>
-                  <InputLabel>Empleado Responsable</InputLabel>
+                  <InputLabel style={{ fontWeight: 'normal' }}>
+                    Empleado Responsable *
+                  </InputLabel>
                   <Select
                     name="empleadoId"
                     value={formData.empleadoId}
                     onChange={handleChange}
-                    label="Empleado Responsable"
+                    label="Empleado Responsable *"
                   >
                     <MenuItem value="">Seleccione un empleado</MenuItem>
                     {empleados.map(emp => (
@@ -241,13 +252,15 @@ export default function EditarServicio() {
                       </MenuItem>
                     ))}
                   </Select>
-                  <FormHelperText>{errors.empleadoId}</FormHelperText>
+                  <FormHelperText error>{errors.empleadoId}</FormHelperText>
                 </FormControl>
               </div>
 
               <div className="crud-form-group">
                 <FormControl fullWidth>
-                  <InputLabel>Estado</InputLabel>
+                  <InputLabel style={{ fontWeight: 'normal' }}>
+                    Estado
+                  </InputLabel>
                   <Select
                     value={formData.estado ? 'Activo' : 'Inactivo'}
                     onChange={(e) =>
@@ -264,6 +277,9 @@ export default function EditarServicio() {
                 </FormControl>
               </div>
 
+              <div className="crud-form-group" style={{ opacity: 0 }}>
+                <div style={{ height: '56px' }}></div>
+              </div>
             </div>
 
             <div className="crud-form-actions">
