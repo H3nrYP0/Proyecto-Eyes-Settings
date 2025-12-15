@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createMarca } from '../../../../lib/data/marcasData';
+import { TextField } from '@mui/material';
 import "../../../../shared/styles/components/crud-forms.css";
 
 export default function CrearMarca() {
@@ -11,73 +12,100 @@ export default function CrearMarca() {
     estado: 'activa'
   });
 
+  const [errors, setErrors] = useState({});
+
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Crear la marca
-    const nuevaMarca = createMarca(formData);
+    // Validaciones
+    const newErrors = {};
+    
+    if (!formData.nombre.trim()) {
+      newErrors.nombre = 'El nombre de la marca es requerido';
+    } else if (formData.nombre.length < 2) {
+      newErrors.nombre = 'El nombre debe tener al menos 2 caracteres';
+    }
+    
+    if (!formData.descripcion.trim()) {
+      newErrors.descripcion = 'La descripción es requerida';
+    }
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    
+    // Crear la marca con estado por defecto "activa"
+    const nuevaMarca = createMarca({
+      ...formData,
+      estado: 'activa'
+    });
     console.log('Marca creada:', nuevaMarca);
     navigate('/admin/compras/marcas');
   };
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
+    
+    // Limpiar errores al cambiar
+    if (errors[name]) {
+      setErrors({
+        ...errors,
+        [name]: ''
+      });
+    }
   };
 
   return (
     <div className="crud-form-container">
       <div className="crud-form-header">
         <h1>Crear Nueva Marca</h1>
-        <p>Registra una nueva marca para los productos</p>
       </div>
       
       <div className="crud-form-content">
         <form onSubmit={handleSubmit}>
-          <div className="crud-form-section">
-            <h3>Información de la Marca</h3>
-            
+          <div className="crud-form-section">          
+            {/* Nombre */}
             <div className="crud-form-group">
-              <label htmlFor="nombre">Nombre <span className="crud-required">*</span></label>
-              <input
-                type="text"
-                id="nombre"
+              <TextField
+                fullWidth
+                label="Nombre de la Marca"
                 name="nombre"
                 value={formData.nombre}
                 onChange={handleChange}
-                className="crud-input"
                 placeholder="Ej: Ray-Ban, Oakley, etc."
                 required
+                variant="outlined"
+                error={!!errors.nombre}
+                helperText={errors.nombre}
+                InputLabelProps={{
+                  style: { fontWeight: 'normal' }
+                }}
               />
             </div>
 
+            {/* Descripción */}
             <div className="crud-form-group">
-              <label htmlFor="descripcion">Descripción</label>
-              <textarea
-                id="descripcion"
+              <TextField
+                fullWidth
+                label="Descripción"
                 name="descripcion"
                 value={formData.descripcion}
                 onChange={handleChange}
-                rows="3"
-                className="crud-input crud-textarea"
+                multiline
                 placeholder="Descripción de la marca..."
+                required
+                variant="outlined"
+                error={!!errors.descripcion}
+                helperText={errors.descripcion}
+                InputLabelProps={{
+                  style: { fontWeight: 'normal' }
+                }}
               />
-            </div>
-
-            <div className="crud-form-group">
-              <label htmlFor="estado">Estado</label>
-              <select
-                id="estado"
-                name="estado"
-                value={formData.estado}
-                onChange={handleChange}
-                className="crud-input"
-              >
-                <option value="activa">Activa</option>
-                <option value="inactiva">Inactiva</option>
-              </select>
             </div>
           </div>
 

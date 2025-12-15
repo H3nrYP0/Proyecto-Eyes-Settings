@@ -81,20 +81,6 @@ export default function Marcas() {
   // =============================
   const columns = [
     { field: "nombre", header: "Nombre" },
-    { 
-      field: "descripcion", 
-      header: "Descripción",
-      render: (item) => (
-        item.descripcion ? (
-          <span title={item.descripcion}>
-            {item.descripcion.length > 50 
-              ? item.descripcion.substring(0, 50) + '...' 
-              : item.descripcion
-            }
-          </span>
-        ) : '-'
-      )
-    },
     {
       field: "estado",
       header: "Estado",
