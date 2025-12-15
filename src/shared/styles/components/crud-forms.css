@@ -4,7 +4,7 @@
 
 /* CONTENEDOR PRINCIPAL - AJUSTADO PARA SIDEBAR */
 .crud-form-container {
-  max-width: 1000px;
+  max-width: 1400px; /* Aumentado para 3 columnas */
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -43,10 +43,10 @@
   padding: 32px;
 }
 
-/* SECCIONES */
+/* SECCIONES - 3 COLUMNAS EN DESKTOP */
 .crud-form-section {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr); /* 3 columnas iguales */
   gap: 24px;
   margin-bottom: 24px;
   padding: 24px;
@@ -57,11 +57,22 @@
 
 /* Grupo de formulario que ocupa toda la fila */
 .crud-form-group.full-width {
-  grid-column: 1 / -1;
+  grid-column: 1 / -1; /* Ocupa todas las columnas */
 }
 
+/* Campos de texto que necesitan más espacio */
 .crud-form-group.textarea-expand {
-  grid-column: 1 / -1;
+  grid-column: 1 / -1; /* Ocupa todas las columnas */
+}
+
+/* Para grupos que necesiten ocupar 2 columnas */
+.crud-form-group.double-width {
+  grid-column: span 2;
+}
+
+/* Para grupos que necesiten ocupar 3 columnas */
+.crud-form-group.triple-width {
+  grid-column: span 3;
 }
 
 /* GRUPOS DE FORMULARIO */
@@ -194,7 +205,47 @@
   background: var(--gray-300);
 }
 
-/* RESPONSIVE - SIN POSICIÓN FIJA/ABSOLUTA */
+/* =============================
+   RESPONSIVE - 3 → 2 → 1 COLUMNAS
+   ============================= */
+
+/* TABLET: 2 COLUMNAS (1024px - 768px) */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .crud-form-section {
+    grid-template-columns: repeat(2, 1fr); /* 2 columnas */
+  }
+  
+  /* Ajustar grupos de ancho completo */
+  .crud-form-group.full-width,
+  .crud-form-group.textarea-expand,
+  .crud-form-group.triple-width {
+    grid-column: 1 / -1;
+  }
+  
+  /* Si había un grupo de 2 columnas, ahora ocupa 1 */
+  .crud-form-group.double-width {
+    grid-column: span 1;
+  }
+}
+
+/* TABLET PEQUEÑA: 2 COLUMNAS CON MÁRGENES AJUSTADOS */
+@media (max-width: 900px) and (min-width: 769px) {
+  .crud-form-container {
+    max-width: 95%;
+    width: 95%;
+  }
+  
+  .crud-form-content {
+    padding: 28px;
+  }
+  
+  .crud-form-section {
+    gap: 20px;
+    padding: 20px;
+  }
+}
+
+/* MÓVIL GRANDE: 1 COLUMNA (768px y menos) */
 @media (max-width: 768px) {
   .crud-form-container {
     width: calc(100% - 20px);
@@ -210,14 +261,18 @@
     padding: 20px;
   }
   
+  /* 1 COLUMNA EN MÓVIL */
   .crud-form-section {
     grid-template-columns: 1fr;
     gap: 20px;
     padding: 20px;
   }
   
+  /* Todos los grupos ocupan 1 columna */
   .crud-form-group.full-width,
-  .crud-form-group.textarea-expand {
+  .crud-form-group.textarea-expand,
+  .crud-form-group.double-width,
+  .crud-form-group.triple-width {
     grid-column: 1;
   }
   
@@ -244,6 +299,23 @@
   }
   
   .crud-form-content {
+    padding: 16px;
+  }
+  
+  .crud-form-section {
+    gap: 16px;
+    padding: 16px;
+  }
+}
+
+/* LANDSCAPE MÓVIL - MANTENER 1 COLUMNA PERO AJUSTAR ALTURA */
+@media (max-height: 600px) and (orientation: landscape) {
+  .crud-form-container {
+    max-height: 85vh;
+  }
+  
+  .crud-form-section {
+    gap: 16px;
     padding: 16px;
   }
 }
