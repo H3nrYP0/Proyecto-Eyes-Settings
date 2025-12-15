@@ -18,14 +18,14 @@ import {
   VisibilityOutlined as VisibilityOutlinedIcon,
   VisibilityOffOutlined as VisibilityOffOutlinedIcon
 } from "@mui/icons-material";
-import { ROLES, TEST_USERS } from "../../../shared/constants/roles";
+import { ROLES, TEST_USERS, PERMISSIONS } from "../../../shared/constants/roles"; // Asegúrate de importar PERMISSIONS
 
 export default function Login({ setUser }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // Nuevo estado
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   // Función para verificar usuarios especiales
@@ -36,7 +36,14 @@ export default function Login({ setUser }) {
     for (const [key, user] of Object.entries(TEST_USERS)) {
       if (user.email.toLowerCase() === normalizedEmail && user.password === password) {
         console.log(`✅ Usuario especial encontrado: ${key} (${user.role})`);
-        return user;
+        
+        // IMPORTANTE: Asegurarse de incluir los permisos del rol
+        const userWithPermissions = {
+          ...user,
+          permissions: PERMISSIONS[user.role] || []
+        };
+        
+        return userWithPermissions;
       }
     }
     
@@ -52,12 +59,13 @@ export default function Login({ setUser }) {
       return;
     }
 
-    // 1. Verificar si es usuario especial (admin, vendedor, óptico)
+    // 1. Verificar si es usuario especial (super_admin, admin, vendedor, óptico)
     const specialUser = verifySpecialUser(email, password);
     
     if (specialUser) {
       // Es usuario especial - redirigir al dashboard
       console.log("🔑 Autenticación exitosa como:", specialUser.role);
+      console.log("📋 Permisos:", specialUser.permissions);
       setUser(specialUser);
       
       // Solo usuarios especiales van al dashboard
@@ -72,7 +80,7 @@ export default function Login({ setUser }) {
       name: email.split('@')[0],
       email: email.trim(),
       role: ROLES.USUARIO, // Rol USUARIO por defecto
-      permissions: []
+      permissions: PERMISSIONS[ROLES.USUARIO] || [] // Agregar permisos vacíos
     };
     
     setUser(normalUser);
@@ -200,6 +208,9 @@ export default function Login({ setUser }) {
                 Usuarios de prueba:
               </Typography>
               <Typography variant="body2" component="div">
+                <strong>Super Admin:</strong> superadmin@visualoutlet.com / SuperAdmin123! (Dashboard)
+              </Typography>
+              <Typography variant="body2" component="div">
                 <strong>Admin:</strong> admin@visualoutlet.com / Admin123! (Dashboard)
               </Typography>
               <Typography variant="body2" component="div">
@@ -237,7 +248,7 @@ export default function Login({ setUser }) {
                 fullWidth
                 name="password"
                 label="Contraseña"
-                type={showPassword ? "text" : "password"} // Cambia el tipo dinámicamente
+                type={showPassword ? "text" : "password"}
                 id="password"
                 autoComplete="current-password"
                 value={password}
