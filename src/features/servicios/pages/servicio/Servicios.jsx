@@ -45,16 +45,18 @@ export default function Servicios() {
 
   const confirmDelete = () => {
     const updated = deleteServicio(modalDelete.id);
-    setServicios([...updated]);
+    // ARREGLADO: No usar spread, setear directamente el array
+    setServicios(updated);
     setModalDelete({ open: false, id: null, nombre: "" });
   };
 
   // =============================
-  //    CAMBIAR ESTADO
+  //    CAMBIAR ESTADO - ARREGLADO
   // =============================
   const toggleEstado = (id) => {
     const updated = updateEstadoServicio(id);
-    setServicios([...updated]);
+    // ARREGLADO: No usar spread, setear directamente el array
+    setServicios(updated);
   };
 
   // =============================

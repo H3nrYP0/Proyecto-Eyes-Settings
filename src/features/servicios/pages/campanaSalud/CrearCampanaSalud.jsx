@@ -164,7 +164,7 @@ export default function CrearCampanaSalud() {
     );
   }
 
-  return (
+return (
     <>
       <div className="crud-form-container">
         <div className="crud-form-header">
@@ -174,7 +174,6 @@ export default function CrearCampanaSalud() {
         <div className="crud-form-content">
           <form onSubmit={handleSubmit}>
             <div className="crud-form-section">
-
               <div className="crud-form-group">
                 <TextField
                   fullWidth
@@ -185,6 +184,7 @@ export default function CrearCampanaSalud() {
                   required
                   error={!!errors.nombre}
                   helperText={errors.nombre}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
                 />
               </div>
 
@@ -198,34 +198,37 @@ export default function CrearCampanaSalud() {
                   required
                   error={!!errors.empresa}
                   helperText={errors.empresa}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
                 />
               </div>
 
-              <div className="crud-form-row">
-                <div className="crud-form-group">
-                  <TextField
-                    fullWidth
-                    label="Contacto"
-                    name="contacto_nombre"
-                    value={formData.contacto_nombre}
-                    onChange={handleChange}
-                  />
-                </div>
+              <div className="crud-form-group">
+                <TextField
+                  fullWidth
+                  label="Contacto"
+                  name="contacto_nombre"
+                  value={formData.contacto_nombre}
+                  onChange={handleChange}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                />
+              </div>
 
-                <div className="crud-form-group">
-                  <TextField
-                    fullWidth
-                    label="Teléfono de Contacto"
-                    name="contacto_telefono"
-                    value={formData.contacto_telefono}
-                    onChange={handleChange}
-                  />
-                </div>
+              <div className="crud-form-group">
+                <TextField
+                  fullWidth
+                  label="Teléfono de Contacto"
+                  name="contacto_telefono"
+                  value={formData.contacto_telefono}
+                  onChange={handleChange}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                />
               </div>
 
               <div className="crud-form-group">
                 <FormControl fullWidth error={!!errors.empleadoId}>
-                  <InputLabel>Empleado Responsable</InputLabel>
+                  <InputLabel style={{ fontWeight: 'normal' }}>
+                    Empleado Responsable
+                  </InputLabel>
                   <Select
                     name="empleadoId"
                     value={formData.empleadoId}
@@ -239,78 +242,122 @@ export default function CrearCampanaSalud() {
                       </MenuItem>
                     ))}
                   </Select>
-                  <FormHelperText>{errors.empleadoId}</FormHelperText>
+                  <FormHelperText error>{errors.empleadoId}</FormHelperText>
                 </FormControl>
               </div>
 
-              <div className="crud-form-row">
-                <div className="crud-form-group">
-                  <TextField
-                    fullWidth
-                    type="date"
-                    label="Fecha"
-                    name="fecha"
-                    value={formData.fecha}
-                    onChange={handleChange}
-                    InputLabelProps={{ shrink: true }}
-                    error={!!errors.fecha}
-                    helperText={errors.fecha}
-                  />
-                </div>
-
-                <div className="crud-form-group">
-                  <TextField
-                    fullWidth
-                    type="time"
-                    label="Hora Inicio"
-                    name="hora_inicio"
-                    value={formData.hora_inicio}
-                    onChange={handleChange}
-                    InputLabelProps={{ shrink: true }}
-                    error={!!errors.hora_inicio}
-                    helperText={errors.hora_inicio}
-                  />
-                </div>
-
-                <div className="crud-form-group">
-                  <TextField
-                    fullWidth
-                    type="time"
-                    label="Hora Fin"
-                    name="hora_fin"
-                    value={formData.hora_fin}
-                    onChange={handleChange}
-                    InputLabelProps={{ shrink: true }}
-                    error={!!errors.hora_fin}
-                    helperText={errors.hora_fin}
-                  />
-                </div>
+              <div className="crud-form-group">
+                <TextField
+                  fullWidth
+                  type="date"
+                  label="Fecha"
+                  name="fecha"
+                  value={formData.fecha}
+                  onChange={handleChange}
+                  InputLabelProps={{ shrink: true, style: { fontWeight: 'normal' } }}
+                  error={!!errors.fecha}
+                  helperText={errors.fecha}
+                />
               </div>
 
-              <div className="crud-form-actions">
-                <button
-                  type="button"
-                  className="crud-btn crud-btn-secondary"
-                  onClick={() => navigate('/admin/servicios/campanas-salud')}
-                >
-                  Cancelar
-                </button>
-                <button type="submit" className="crud-btn crud-btn-primary">
-                  Crear Campaña
-                </button>
+              <div className="crud-form-group">
+                <TextField
+                  fullWidth
+                  type="time"
+                  label="Hora Inicio"
+                  name="hora_inicio"
+                  value={formData.hora_inicio}
+                  onChange={handleChange}
+                  InputLabelProps={{ shrink: true, style: { fontWeight: 'normal' } }}
+                  error={!!errors.hora_inicio}
+                  helperText={errors.hora_inicio}
+                />
               </div>
 
+              <div className="crud-form-group">
+                <TextField
+                  fullWidth
+                  type="time"
+                  label="Hora Fin"
+                  name="hora_fin"
+                  value={formData.hora_fin}
+                  onChange={handleChange}
+                  InputLabelProps={{ shrink: true, style: { fontWeight: 'normal' } }}
+                  error={!!errors.hora_fin}
+                  helperText={errors.hora_fin}
+                />
+              </div>
+
+              <div className="crud-form-group">
+                <TextField
+                  fullWidth
+                  label="Dirección"
+                  name="direccion"
+                  value={formData.direccion}
+                  onChange={handleChange}
+                  variant="outlined"
+                  multiline
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                />
+              </div>
+
+              <div className="crud-form-group">
+                <TextField
+                  fullWidth
+                  label="Participantes Estimados"
+                  name="participantes_estimados"
+                  type="number"
+                  value={formData.participantes_estimados}
+                  onChange={handleChange}
+                  inputProps={{ min: 0 }}
+                  error={!!errors.participantes_estimados}
+                  helperText={errors.participantes_estimados}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                />
+              </div>
+
+              <div className="crud-form-group">
+                <TextField
+                  fullWidth
+                  label="Materiales"
+                  name="materiales"
+                  value={formData.materiales}
+                  onChange={handleChange}
+                  variant="outlined"
+                  multiline
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                />
+              </div>
+
+              <div className="crud-form-group">
+                <TextField
+                  fullWidth
+                  label="Observaciones"
+                  name="observaciones"
+                  value={formData.observaciones}
+                  onChange={handleChange}
+                  variant="outlined"
+                  multiline
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                />
+              </div>
+            </div>
+
+            <div className="crud-form-actions">
+              <button
+                type="button"
+                className="crud-btn crud-btn-secondary"
+                onClick={() => navigate('/admin/servicios/campanas-salud')}
+              >
+                Cancelar
+              </button>
+              <button type="submit" className="crud-btn crud-btn-primary">
+                Crear Campaña
+              </button>
             </div>
           </form>
         </div>
       </div>
-
-      <CrudNotification
-        message={notification.message}
-        type={notification.type}
-        isVisible={notification.isVisible}
-        onClose={handleCloseNotification}
-      />
     </>
   );
 }

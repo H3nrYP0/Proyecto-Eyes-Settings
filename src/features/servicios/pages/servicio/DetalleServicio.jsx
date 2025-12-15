@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getServicioById } from '../../../../lib/data/serviciosData';
 import { getAllEmpleados } from '../../../../lib/data/empleadosData'; 
 import { formatToPesos } from '../../../../shared/utils/formatCOP'; 
+import "../../../../shared/styles/components/crud-forms.css";
 
 export default function DetalleServicio() {
   const { id } = useParams();
@@ -33,94 +34,60 @@ export default function DetalleServicio() {
       
       <div className="crud-form-content">
         <div className="crud-form-section">
-          <div className="crud-detail-grid">
-            <div className="crud-form-group">
-              <label htmlFor="nombre-servicio">Nombre</label>
-              <input
-                type="text"
-                id="nombre-servicio"
-                name="nombre"
-                value={servicio.nombre || ''}
-                disabled
-                className="crud-input"
-              />
-            </div>
-
-            <div className="crud-form-group">
-              <label htmlFor="duracion-servicio">Duración (min)</label>
-              <input
-                type="number"
-                id="duracion-servicio"
-                name="duracion"
-                value={servicio.duracion || ''}
-                disabled
-                className="crud-input"
-              />
-            </div>
-
-            <div className="crud-form-group">
-              <label htmlFor="precio-servicio">Precio</label>
-              <input
-                type="text"
-                id="precio-servicio"
-                name="precio"
-                value={formatToPesos(servicio.precio?.toString() || '0')}
-                disabled
-                className="crud-input"
-              />
-            </div>
-
-            <div className="crud-form-group">
-              <label htmlFor="empleado-servicio">Empleado</label>
-              <input
-                type="text"
-                id="empleado-servicio"
-                name="empleado"
-                value={empleadoNombre}
-                disabled
-                className="crud-input"
-              />
-            </div>
-
-            <div className="crud-form-group full-width">
-              <label htmlFor="descripcion-servicio">Descripción</label>
-              <textarea
-                id="descripcion-servicio"
-                name="descripcion"
-                value={servicio.descripcion || ''}
-                disabled
-                rows="3"
-                className="crud-input crud-textarea"
-              />
-            </div>
-
-            <div className="crud-form-group">
-              <label htmlFor="estado-servicio">Estado</label>
-              <input
-                type="text"
-                id="estado-servicio"
-                name="estado"
-                value={servicio.estado === 'activo' ? 'Activo' : 'Inactivo'}
-                disabled
-                className="crud-input"
-              />
+          <div className="crud-form-group">
+            <div className="crud-input-view">
+              {servicio.nombre}
             </div>
           </div>
 
-          <div className="crud-form-actions">
-            <button 
-              onClick={() => navigate('/admin/servicios')}
-              className="crud-btn crud-btn-secondary"
-            >
-              Volver
-            </button>
-            <button 
-              onClick={() => navigate(`/admin/servicios/editar/${servicio.id}`)}
-              className="crud-btn crud-btn-primary"
-            >
-              Editar Servicio
-            </button>
+          <div className="crud-form-group">
+            <div className="crud-input-view" style={{ 
+              minHeight: '56px',
+              alignItems: 'flex-start',
+              paddingTop: '12px'
+            }}>
+              {servicio.descripcion || ''}
+            </div>
           </div>
+
+          <div className="crud-form-group">
+            <div className="crud-input-view">
+              {servicio.duracion || ''} minutos
+            </div>
+          </div>
+
+          <div className="crud-form-group">
+            <div className="crud-input-view">
+              {formatToPesos(servicio.precio?.toString() || '0')}
+            </div>
+          </div>
+
+          <div className="crud-form-group">
+            <div className="crud-input-view">
+              {empleadoNombre}
+            </div>
+          </div>
+
+          <div className="crud-form-group">
+            <div className="crud-input-view">
+              {servicio.estado === 'activo' ? 'Activo' : 'Inactivo'}
+            </div>
+          </div>
+        </div>
+
+        <div className="crud-form-actions">
+          <button 
+            onClick={() => navigate('/admin/servicios')}
+            className="crud-btn crud-btn-secondary"
+          >
+            Cancelar
+          </button>
+          <button 
+            onClick={() => navigate(`/admin/servicios/editar/${servicio.id}`)}
+            className="crud-btn crud-btn-primary"
+          >
+            Editar Servicio
+          </button>
         </div>
       </div>
     </div>

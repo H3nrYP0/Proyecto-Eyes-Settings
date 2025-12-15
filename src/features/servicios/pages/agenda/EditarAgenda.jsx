@@ -223,57 +223,55 @@ export default function EditarAgenda() {
                 </FormControl>
               </div>
 
-              <div className="crud-form-row">
-                <div className="crud-form-group">
-                  <DatePicker
-                    label="Fecha"
-                    value={selectedDate}
-                    onChange={(newValue) => {
-                      setSelectedDate(newValue);
-                      if (errors.fecha) {
-                        setErrors({ ...errors, fecha: '' });
-                      }
-                    }}
-                    minDate={new Date()}
-                    shouldDisableDate={(date) => {
-                      const day = date.getDay();
-                      return day === 0; // Excluir domingos
-                    }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        fullWidth
-                        required
-                        error={!!errors.fecha}
-                        helperText={errors.fecha}
-                        InputLabelProps={{ style: { fontWeight: 'normal' } }}
-                      />
-                    )}
-                  />
-                </div>
+              <div className="crud-form-group">
+                <DatePicker
+                  label="Fecha"
+                  value={selectedDate}
+                  onChange={(newValue) => {
+                    setSelectedDate(newValue);
+                    if (errors.fecha) {
+                      setErrors({ ...errors, fecha: '' });
+                    }
+                  }}
+                  minDate={new Date()}
+                  shouldDisableDate={(date) => {
+                    const day = date.getDay();
+                    return day === 0; // Excluir domingos
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      fullWidth
+                      required
+                      error={!!errors.fecha}
+                      helperText={errors.fecha}
+                      InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                    />
+                  )}
+                />
+              </div>
 
-                <div className="crud-form-group">
-                  <TimePicker
-                    label="Hora"
-                    value={selectedTime}
-                    onChange={(newValue) => {
-                      setSelectedTime(newValue);
-                      if (errors.hora) {
-                        setErrors({ ...errors, hora: '' });
-                      }
-                    }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        fullWidth
-                        required
-                        error={!!errors.hora}
-                        helperText={errors.hora}
-                        InputLabelProps={{ style: { fontWeight: 'normal' } }}
-                      />
-                    )}
-                  />
-                </div>
+              <div className="crud-form-group">
+                <TimePicker
+                  label="Hora"
+                  value={selectedTime}
+                  onChange={(newValue) => {
+                    setSelectedTime(newValue);
+                    if (errors.hora) {
+                      setErrors({ ...errors, hora: '' });
+                    }
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      fullWidth
+                      required
+                      error={!!errors.hora}
+                      helperText={errors.hora}
+                      InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                    />
+                  )}
+                />
               </div>
 
               <div className="crud-form-group">
@@ -338,6 +336,10 @@ export default function EditarAgenda() {
                     <MenuItem value="Transferencia">Transferencia</MenuItem>
                   </Select>
                 </FormControl>
+              </div>
+
+              <div className="crud-form-group" style={{ opacity: 0 }}>
+                <div style={{ height: '56px' }}></div>
               </div>
             </div>
 
