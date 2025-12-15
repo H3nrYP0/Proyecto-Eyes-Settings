@@ -35,10 +35,10 @@ export default function DetalleServicio() {
         <div className="crud-form-section">
           <div className="crud-detail-grid">
             <div className="crud-form-group">
-              <label htmlFor="nombre">Nombre</label>
+              <label htmlFor="nombre-servicio">Nombre</label>
               <input
                 type="text"
-                id="nombre"
+                id="nombre-servicio"
                 name="nombre"
                 value={servicio.nombre || ''}
                 disabled
@@ -47,10 +47,10 @@ export default function DetalleServicio() {
             </div>
 
             <div className="crud-form-group">
-              <label htmlFor="duracion">Duración (min)</label>
+              <label htmlFor="duracion-servicio">Duración (min)</label>
               <input
                 type="number"
-                id="duracion"
+                id="duracion-servicio"
                 name="duracion"
                 value={servicio.duracion || ''}
                 disabled
@@ -59,10 +59,10 @@ export default function DetalleServicio() {
             </div>
 
             <div className="crud-form-group">
-              <label htmlFor="precio">Precio</label>
+              <label htmlFor="precio-servicio">Precio</label>
               <input
                 type="text"
-                id="precio"
+                id="precio-servicio"
                 name="precio"
                 value={formatToPesos(servicio.precio?.toString() || '0')}
                 disabled
@@ -71,10 +71,10 @@ export default function DetalleServicio() {
             </div>
 
             <div className="crud-form-group">
-              <label htmlFor="empleado">Empleado</label>
+              <label htmlFor="empleado-servicio">Empleado</label>
               <input
                 type="text"
-                id="empleado"
+                id="empleado-servicio"
                 name="empleado"
                 value={empleadoNombre}
                 disabled
@@ -83,9 +83,9 @@ export default function DetalleServicio() {
             </div>
 
             <div className="crud-form-group full-width">
-              <label htmlFor="descripcion">Descripción</label>
+              <label htmlFor="descripcion-servicio">Descripción</label>
               <textarea
-                id="descripcion"
+                id="descripcion-servicio"
                 name="descripcion"
                 value={servicio.descripcion || ''}
                 disabled
@@ -95,10 +95,10 @@ export default function DetalleServicio() {
             </div>
 
             <div className="crud-form-group">
-              <label htmlFor="estado">Estado</label>
+              <label htmlFor="estado-servicio">Estado</label>
               <input
                 type="text"
-                id="estado"
+                id="estado-servicio"
                 name="estado"
                 value={servicio.estado === 'activo' ? 'Activo' : 'Inactivo'}
                 disabled
