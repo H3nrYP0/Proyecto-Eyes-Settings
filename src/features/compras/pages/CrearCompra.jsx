@@ -39,14 +39,11 @@ export default function CrearCompra() {
     <div className="crud-form-container">
       <div className="crud-form-header">
         <h1>Crear Nueva Compra</h1>
-        <p>Registra una nueva compra en el sistema</p>
       </div>
       
       <div className="crud-form-content">
         <form onSubmit={handleSubmit}>
           <div className="crud-form-section">
-            <h3>Información Básica</h3>
-            
             <div className="crud-form-group">
               <label htmlFor="proveedorNombre">Proveedor <span className="crud-required">*</span></label>
               <input

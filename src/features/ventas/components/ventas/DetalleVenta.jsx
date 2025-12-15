@@ -31,7 +31,6 @@ export default function DetalleVenta() {
     <div className="page-container">
       <div className="page-header">
         <h1>Detalle de Venta {id}</h1>
-        <p>Información detallada de la venta</p>
       </div>
       
       <div className="form-container">

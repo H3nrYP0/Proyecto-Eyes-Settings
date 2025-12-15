@@ -130,8 +130,7 @@ export default function Agenda() {
 
   return (
     <CrudLayout
-      title="📅 Agenda"
-      description="Gestiona las citas de tus clientes."
+      title="Agenda"
       onAddClick={() => navigate("crear")}
       showSearch={true}
       searchPlaceholder="Buscar por cliente, servicio, empleado..."

@@ -47,7 +47,6 @@ export default function Abonos() {
   return (
     <CrudLayout
       title="Abonos"
-      description="Gestiona los abonos y pagos a crédito de los clientes."
       onAddClick={handleAddAbono}
     >
       <div className="crud-controls">

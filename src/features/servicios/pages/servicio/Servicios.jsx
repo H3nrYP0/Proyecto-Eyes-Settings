@@ -145,8 +145,7 @@ export default function Servicios() {
 
   return (
     <CrudLayout
-      title="🛠️ Servicios"
-      description="Administra los servicios optométricos ofrecidos por la óptica."
+      title="Servicios"
       onAddClick={() => navigate("crear")}
       showSearch={true}
       searchPlaceholder="Buscar por nombre, descripción, empleado..."

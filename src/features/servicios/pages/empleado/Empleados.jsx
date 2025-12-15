@@ -134,8 +134,7 @@ const tableActions = [
 
   return (
     <CrudLayout
-      title="💼 Empleados"
-      description="Administra la información del personal de la óptica."
+      title="Empleados"
       onAddClick={() => navigate("crear")}
       showSearch={true}
       searchPlaceholder="Buscar por nombre, documento, cargo..."

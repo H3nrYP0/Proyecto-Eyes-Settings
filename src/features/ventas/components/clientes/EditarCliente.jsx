@@ -41,14 +41,11 @@ export default function EditarCliente() {
     <div className="crud-form-container">
       <div className="crud-form-header">
         <h1>Editando: {formData.nombre} {formData.apellido}</h1>
-        <p>Modifica la información del cliente</p>
       </div>
       
       <div className="crud-form-content">
         <form onSubmit={handleSubmit}>
           <div className="crud-form-section">
-            <h3>Información Personal</h3>
-            
             <div className="crud-form-row">
               <div className="crud-form-group">
                 <label htmlFor="nombre">Nombre <span className="crud-required">*</span></label>

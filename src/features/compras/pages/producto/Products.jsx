@@ -157,8 +157,7 @@ export default function Productos() {
 
   return (
     <CrudLayout
-      title="📦 Productos"
-      description="Administra el inventario de productos de la óptica."
+      title="Productos"
       onAddClick={() => navigate("/admin/compras/productos/crear")}
       showSearch={true}
       searchPlaceholder="Buscar por nombre, código, categoría..."

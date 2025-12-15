@@ -37,14 +37,11 @@ export default function CrearProveedor() {
     <div className="crud-form-container">
       <div className="crud-form-header">
         <h1>Crear Nuevo Proveedor</h1>
-        <p>Registra un nuevo proveedor en el sistema</p>
       </div>
       
       <div className="crud-form-content">
         <form onSubmit={handleSubmit}>
           <div className="crud-form-section">
-            <h3>Información del Proveedor</h3>
-            
             <div className="crud-form-group">
               <label htmlFor="tipo">Tipo de Persona <span className="crud-required">*</span></label>
               <select

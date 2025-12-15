@@ -145,8 +145,7 @@ export default function Proveedores() {
 
   return (
     <CrudLayout
-      title="🚚 Proveedores"
-      description="Administra los proveedores de productos para la óptica."
+      title="Proveedores"
       onAddClick={() => navigate("crear")}
       showSearch={true}
       searchPlaceholder="Buscar por razón social, NIT, contacto..."

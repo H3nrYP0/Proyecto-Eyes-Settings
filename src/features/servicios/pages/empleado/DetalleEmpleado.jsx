@@ -39,13 +39,10 @@ export default function DetalleRol() {
     <div className="crud-form-container">
       <div className="crud-form-header">
         <h1>Detalle de Rol: {rol.nombre}</h1>
-        <p>Información completa del rol</p>
       </div>
       
       <div className="crud-form-content">
         <div className="crud-form-section">
-          <h3>Información Básica</h3>
-          
           <div className="crud-detail-grid">
             <div className="crud-detail-item">
               <strong>Nombre del Rol:</strong> 

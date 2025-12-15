@@ -191,8 +191,7 @@ export default function Pedidos() {
 
   return (
     <CrudLayout
-      title="📦 Pedidos"
-      description="Gestiona los pedidos especiales y órdenes de trabajo."
+      title="Pedidos"
       onAddClick={() => navigate("crear")}
       showSearch={true}
       searchPlaceholder="Buscar por cliente, producto, estado..."

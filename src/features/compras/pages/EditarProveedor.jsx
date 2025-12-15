@@ -39,21 +39,15 @@ export default function EditarProveedor() {
   }
 
   return (
-    <CrudLayout
-      title="✏️ Editar Proveedor"
-      description={`Modifica la información del proveedor`}
-    >
+    <CrudLayout>
       <div className="crud-form-container">
         <div className="crud-form-header">
           <h1>Editando: {formData.razonSocial}</h1>
-          <p>Modifica la información del proveedor</p>
         </div>
         
         <div className="crud-form-content">
           <form onSubmit={handleSubmit}>
-            <div className="crud-form-section">
-              <h3>Información del Proveedor</h3>
-              
+            <div className="crud-form-section">       
               <div className="crud-form-group">
                 <label htmlFor="tipo">Tipo de Persona <span className="crud-required">*</span></label>
                 <select

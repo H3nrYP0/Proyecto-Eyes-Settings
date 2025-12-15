@@ -23,7 +23,6 @@ export default function DetalleAbono() {
     <div className="page-container">
       <div className="page-header">
         <h1>Detalle del Abono</h1>
-        <p>Información detallada del abono</p>
       </div>
       
       <div className="form-container">

@@ -39,21 +39,15 @@ export default function EditarServicio() {
   }
 
   return (
-    <CrudLayout
-      title="✏️ Editar Servicio"
-      description={`Modifica la información del servicio`}
-    >
+    <CrudLayout>
       <div className="crud-form-container">
         <div className="crud-form-header">
           <h1>Editando: {formData.nombre}</h1>
-          <p>Modifica la información del servicio</p>
         </div>
         
         <div className="crud-form-content">
           <form onSubmit={handleSubmit}>
             <div className="crud-form-section">
-              <h3>Información del Servicio</h3>
-              
               <div className="crud-form-group">
                 <label htmlFor="nombre">Nombre <span className="crud-required">*</span></label>
                 <input

@@ -71,7 +71,6 @@ export default function EditarVenta() {
     <div className="page-container">
       <div className="page-header">
         <h1>Editar Venta {id}</h1>
-        <p>Modificar información de la venta</p>
       </div>
       
       <div className="form-container">

@@ -99,14 +99,11 @@ export default function EditarAgenda() {
     <div className="crud-form-container">
       <div className="crud-form-header">
         <h1>Editar Cita</h1>
-        <p>Modifica la información de la cita</p>
       </div>
       
       <div className="crud-form-content">
         <form onSubmit={handleSubmit}>
           <div className="crud-form-section">
-            <h3>Información de la Cita</h3>
-            
             {/* Cliente - Ocupa toda la fila */}
             <div className="crud-form-group full-width">
               <label htmlFor="cliente">Cliente <span className="crud-required">*</span></label>

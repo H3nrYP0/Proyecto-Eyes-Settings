@@ -68,14 +68,11 @@ export default function CrearAgenda() {
     <div className="crud-form-container">
       <div className="crud-form-header">
         <h1>Crear Nueva Cita</h1>
-        <p>Programa una nueva cita para un cliente</p>
       </div>
       
       <div className="crud-form-content">
         <form onSubmit={handleSubmit}>
           <div className="crud-form-section">
-            <h3>Información de la Cita</h3>
-            
             <div className="crud-form-group full-width">
               <label htmlFor="cliente">Cliente <span className="crud-required">*</span></label>
               <input

@@ -63,7 +63,6 @@ export default function EditarAbono() {
     <div className="page-container">
       <div className="page-header">
         <h1>Editar Abono</h1>
-        <p>Modificar información del abono</p>
       </div>
       
       <div className="form-container">

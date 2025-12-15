@@ -21,13 +21,10 @@ export default function DetalleServicio() {
     <div className="crud-form-container">
       <div className="crud-form-header">
         <h1>Detalle de Servicio: {servicio.nombre}</h1>
-        <p>Información completa del servicio</p>
       </div>
       
       <div className="crud-form-content">
         <div className="crud-form-section">
-          <h3>Información General</h3>
-          
           <div className="crud-detail-grid">
             <div className="crud-detail-item">
               <strong>Nombre:</strong> 

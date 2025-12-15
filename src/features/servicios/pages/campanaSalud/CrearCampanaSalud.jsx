@@ -37,14 +37,11 @@ export default function CrearCampanaSalud() {
     <div className="crud-form-container">
       <div className="crud-form-header">
         <h1>Crear Nueva Campaña de Salud</h1>
-        <p>Registra una nueva campaña de salud visual o promoción especial</p>
       </div>
       
       <div className="crud-form-content">
         <form onSubmit={handleSubmit}>
-          <div className="crud-form-section">
-            <h3>Información de la Campaña</h3>
-            
+          <div className="crud-form-section">        
             <div className="crud-form-group">
               <label htmlFor="nombre">Nombre <span className="crud-required">*</span></label>
               <input

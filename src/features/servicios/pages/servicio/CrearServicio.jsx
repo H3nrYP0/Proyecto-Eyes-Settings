@@ -38,14 +38,11 @@ export default function CrearServicio() {
     <div className="crud-form-container">
       <div className="crud-form-header">
         <h1>Crear Nuevo Servicio</h1>
-        <p>Registra un nuevo servicio optométrico</p>
       </div>
       
       <div className="crud-form-content">
         <form onSubmit={handleSubmit}>
           <div className="crud-form-section">
-            <h3>Información del Servicio</h3>
-            
             <div className="crud-form-group">
               <label htmlFor="nombre">Nombre <span className="crud-required">*</span></label>
               <input
