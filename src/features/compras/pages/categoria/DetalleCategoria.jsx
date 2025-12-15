@@ -21,32 +21,36 @@ export default function DetalleCategoria() {
     <div className="crud-form-container">
       <div className="crud-form-header">
         <h1>Detalle de Categoría: {categoria.nombre}</h1>
-        <p>Información completa de la categoría</p>
       </div>
       
       <div className="crud-form-content">
         <div className="crud-form-section">
-          <h3>Información General</h3>
-          
-          <div className="crud-detail-grid">
-            <div className="crud-detail-item">
-              <strong>Nombre:</strong> 
-              <span>{categoria.nombre}</span>
+          {/* Nombre */}
+          <div className="crud-form-group">
+            <div className="crud-input-view">
+              {categoria.nombre}
             </div>
-            
-            <div className="crud-detail-item">
-              <strong>Estado:</strong> 
+          </div>
+
+          {/* Estado */}
+          <div className="crud-form-group">
+            <div className="crud-input-view">
               <span className={`crud-badge ${categoria.estado === "activa" ? "crud-badge-success" : "crud-badge-error"}`}>
                 {categoria.estado === "activa" ? "Activa" : "Inactiva"}
               </span>
             </div>
+          </div>
 
-            {categoria.descripcion && (
-              <div className="crud-detail-item" style={{gridColumn: '1 / -1'}}>
-                <strong>Descripción:</strong> 
-                <span>{categoria.descripcion}</span>
-              </div>
-            )}
+          {/* Descripción - Ocupa toda la fila */}
+          <div className="crud-form-group" style={{ gridColumn: '1 / -1' }}>
+            <div className="crud-input-view" style={{ 
+              minHeight: '80px',
+              alignItems: 'flex-start',
+              paddingTop: '16px',
+              whiteSpace: 'pre-wrap'
+            }}>
+              {categoria.descripcion || 'Sin descripción'}
+            </div>
           </div>
         </div>
 
@@ -60,9 +64,9 @@ export default function DetalleCategoria() {
           <button
             onClick={() => navigate(`/admin/compras/categorias/editar/${categoria.id}`)}
             className="crud-btn crud-btn-primary"
-        >
+          >
             Editar Categoría
-        </button>
+          </button>
         </div>
       </div>
     </div>

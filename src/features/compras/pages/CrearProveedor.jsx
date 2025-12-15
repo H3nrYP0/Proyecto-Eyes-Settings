@@ -171,6 +171,7 @@ export default function CrearProveedor() {
       <div className="crud-form-content">
         <form onSubmit={handleSubmit}>
           <div className="crud-form-section">
+            {/* Tipo de Proveedor */}
             <div className="crud-form-group">
               <FormControl fullWidth error={!!errors.tipo_proveedor}>
                 <InputLabel style={{ fontWeight: 'normal' }}>
@@ -192,6 +193,7 @@ export default function CrearProveedor() {
               </FormControl>
             </div>
 
+            {/* Razón Social / Nombre */}
             <div className="crud-form-group">
               <TextField
                 fullWidth
@@ -208,80 +210,81 @@ export default function CrearProveedor() {
               />
             </div>
 
-            <div className="crud-form-row">
-              <div className="crud-form-group">
-                <FormControl fullWidth error={!!errors.tipoDocumento}>
-                  <InputLabel style={{ fontWeight: 'normal' }}>
-                    Tipo de Documento
-                  </InputLabel>
-                  <Select
-                    name="tipoDocumento"
-                    value={formData.tipoDocumento}
-                    onChange={handleChange}
-                    label="Tipo de Documento"
-                    required
-                  >
-                    <MenuItem value="NIT">NIT</MenuItem>
-                    <MenuItem value="CC">Cédula de Ciudadanía</MenuItem>
-                    <MenuItem value="CE">Cédula de Extranjería</MenuItem>
-                  </Select>
-                  {errors.tipoDocumento && (
-                    <FormHelperText error>{errors.tipoDocumento}</FormHelperText>
-                  )}
-                </FormControl>
-              </div>
-
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  label="Número de Documento"
-                  name="documento"
-                  value={formData.documento}
+            {/* Tipo de Documento */}
+            <div className="crud-form-group">
+              <FormControl fullWidth error={!!errors.tipoDocumento}>
+                <InputLabel style={{ fontWeight: 'normal' }}>
+                  Tipo de Documento
+                </InputLabel>
+                <Select
+                  name="tipoDocumento"
+                  value={formData.tipoDocumento}
                   onChange={handleChange}
-                  placeholder={formData.tipoDocumento === 'NIT' ? "Ej: 901234567-8" : "Ej: 1234567890"}
+                  label="Tipo de Documento"
                   required
-                  variant="outlined"
-                  error={!!errors.documento}
-                  helperText={errors.documento}
-                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
-                />
-              </div>
+                >
+                  <MenuItem value="NIT">NIT</MenuItem>
+                  <MenuItem value="CC">Cédula de Ciudadanía</MenuItem>
+                  <MenuItem value="CE">Cédula de Extranjería</MenuItem>
+                </Select>
+                {errors.tipoDocumento && (
+                  <FormHelperText error>{errors.tipoDocumento}</FormHelperText>
+                )}
+              </FormControl>
             </div>
 
-            <div className="crud-form-row">
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  label="Persona de Contacto"
-                  name="contacto_nombre"
-                  value={formData.contacto_nombre}
-                  onChange={handleChange}
-                  placeholder="Ej: María González"
-                  required
-                  variant="outlined"
-                  error={!!errors.contacto_nombre}
-                  helperText={errors.contacto_nombre}
-                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
-                />
-              </div>
-
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  label="Teléfono"
-                  name="telefono"
-                  value={formData.telefono}
-                  onChange={handleChange}
-                  placeholder="Ej: 3001234567"
-                  required
-                  variant="outlined"
-                  error={!!errors.telefono}
-                  helperText={errors.telefono}
-                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
-                />
-              </div>
+            {/* Número de Documento */}
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Número de Documento"
+                name="documento"
+                value={formData.documento}
+                onChange={handleChange}
+                placeholder={formData.tipoDocumento === 'NIT' ? "Ej: 901234567-8" : "Ej: 1234567890"}
+                required
+                variant="outlined"
+                error={!!errors.documento}
+                helperText={errors.documento}
+                InputLabelProps={{ style: { fontWeight: 'normal' } }}
+              />
             </div>
 
+            {/* Persona de Contacto */}
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Persona de Contacto"
+                name="contacto_nombre"
+                value={formData.contacto_nombre}
+                onChange={handleChange}
+                placeholder="Ej: María González"
+                required
+                variant="outlined"
+                error={!!errors.contacto_nombre}
+                helperText={errors.contacto_nombre}
+                InputLabelProps={{ style: { fontWeight: 'normal' } }}
+              />
+            </div>
+
+            {/* Teléfono */}
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Teléfono"
+                name="telefono"
+                value={formData.telefono}
+                onChange={handleChange}
+                placeholder="Ej: 3001234567"
+                required
+                variant="outlined"
+                error={!!errors.telefono}
+                helperText={errors.telefono}
+                InputLabelProps={{ style: { fontWeight: 'normal' } }}
+              />
+            </div>
+
+            {/* Correo Electrónico */}
             <div className="crud-form-group">
               <TextField
                 fullWidth
@@ -299,63 +302,64 @@ export default function CrearProveedor() {
               />
             </div>
 
-            <div className="crud-form-row">
-              <div className="crud-form-group">
-                <FormControl fullWidth error={!!errors.departamento}>
-                  <InputLabel style={{ fontWeight: 'normal' }}>
-                    Departamento
-                  </InputLabel>
-                  <Select
-                    name="departamento"
-                    value={formData.departamento}
-                    onChange={handleChange}
-                    label="Departamento"
-                    required
-                  >
-                    <MenuItem value="">Seleccione un departamento</MenuItem>
-                    {departamentos.map((depto) => (
-                      <MenuItem key={depto} value={depto}>
-                        {depto}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {errors.departamento && (
-                    <FormHelperText error>{errors.departamento}</FormHelperText>
-                  )}
-                </FormControl>
-              </div>
-
-              <div className="crud-form-group">
-                <FormControl fullWidth error={!!errors.municipio} disabled={!formData.departamento}>
-                  <InputLabel style={{ fontWeight: 'normal' }}>
-                    Municipio/Ciudad
-                  </InputLabel>
-                  <Select
-                    name="municipio"
-                    value={formData.municipio}
-                    onChange={handleChange}
-                    label="Municipio/Ciudad"
-                    required
-                  >
-                    <MenuItem value="">Seleccione un municipio</MenuItem>
-                    {formData.departamento && municipiosPorDepartamento[formData.departamento]?.map((municipio) => (
-                      <MenuItem key={municipio} value={municipio}>
-                        {municipio}
-                      </MenuItem>
-                    ))}
-                    {formData.departamento && (!municipiosPorDepartamento[formData.departamento] || municipiosPorDepartamento[formData.departamento].length === 0) && (
-                      <MenuItem value={formData.departamento}>
-                        {formData.departamento}
-                      </MenuItem>
-                    )}
-                  </Select>
-                  {errors.municipio && (
-                    <FormHelperText error>{errors.municipio}</FormHelperText>
-                  )}
-                </FormControl>
-              </div>
+            {/* Departamento */}
+            <div className="crud-form-group">
+              <FormControl fullWidth error={!!errors.departamento}>
+                <InputLabel style={{ fontWeight: 'normal' }}>
+                  Departamento
+                </InputLabel>
+                <Select
+                  name="departamento"
+                  value={formData.departamento}
+                  onChange={handleChange}
+                  label="Departamento"
+                  required
+                >
+                  <MenuItem value="">Seleccione un departamento</MenuItem>
+                  {departamentos.map((depto) => (
+                    <MenuItem key={depto} value={depto}>
+                      {depto}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {errors.departamento && (
+                  <FormHelperText error>{errors.departamento}</FormHelperText>
+                )}
+              </FormControl>
             </div>
 
+            {/* Municipio/Ciudad */}
+            <div className="crud-form-group">
+              <FormControl fullWidth error={!!errors.municipio} disabled={!formData.departamento}>
+                <InputLabel style={{ fontWeight: 'normal' }}>
+                  Municipio/Ciudad
+                </InputLabel>
+                <Select
+                  name="municipio"
+                  value={formData.municipio}
+                  onChange={handleChange}
+                  label="Municipio/Ciudad"
+                  required
+                >
+                  <MenuItem value="">Seleccione un municipio</MenuItem>
+                  {formData.departamento && municipiosPorDepartamento[formData.departamento]?.map((municipio) => (
+                    <MenuItem key={municipio} value={municipio}>
+                      {municipio}
+                    </MenuItem>
+                  ))}
+                  {formData.departamento && (!municipiosPorDepartamento[formData.departamento] || municipiosPorDepartamento[formData.departamento].length === 0) && (
+                    <MenuItem value={formData.departamento}>
+                      {formData.departamento}
+                    </MenuItem>
+                  )}
+                </Select>
+                {errors.municipio && (
+                  <FormHelperText error>{errors.municipio}</FormHelperText>
+                )}
+              </FormControl>
+            </div>
+
+            {/* Dirección */}
             <div className="crud-form-group">
               <TextField
                 fullWidth
@@ -367,6 +371,7 @@ export default function CrearProveedor() {
                 required
                 variant="outlined"
                 multiline
+                rows={3}
                 error={!!errors.direccion}
                 helperText={errors.direccion}
                 InputLabelProps={{ style: { fontWeight: 'normal' } }}
