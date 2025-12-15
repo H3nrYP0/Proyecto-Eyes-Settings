@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import FooterCompact from "../components/FooterCompact";
 import "../../../shared/styles/features/home/ProductsPage.css";
 
 const ProductsPage = ({ user, setUser }) => {
@@ -93,7 +94,7 @@ const ProductsPage = ({ user, setUser }) => {
 
   return (
     <div className="products-page">
-      {/* Navigation - ACTUALIZADO CON USER ACTIONS */}
+      {/* Navigation */}
       <nav className="landing-nav">
         <div className="nav-container">
           <div className="nav-brand">
@@ -166,9 +167,6 @@ const ProductsPage = ({ user, setUser }) => {
           <div className="floating-element element-4">✨</div>
           <div className="floating-element element-5">⭐</div>
         </div>
-        
-        {/* Ola animada */}
-        <div className="wave-animation"></div>
       </section>
 
       {/* Products Grid */}
@@ -176,7 +174,7 @@ const ProductsPage = ({ user, setUser }) => {
         <div className="products-container">
           <div className="section-header">
             <h2 className="section-title">
-              Productos <span className="gradient-text">Destacados</span>
+              Productos <span className="blue-gradient-text">Destacados</span>
             </h2>
             <p className="section-description">
               Calidad y estilo en cada producto. Selecciona para ver detalles completos
@@ -294,82 +292,8 @@ const ProductsPage = ({ user, setUser }) => {
         </div>
       </section>
 
-      {/* Footer Integrado */}
-      <footer className="landing-footer">
-        <div className="footer-container">
-          <div className="footer-content">
-            <div className="footer-brand">
-              <div className="footer-logo">
-                <span className="logo-icon">👁️</span>
-                <span className="logo-text">Visual Outlet</span>
-              </div>
-              <p className="footer-description">
-                Tu visión es nuestra prioridad. Productos de calidad para el cuidado de tus ojos.
-              </p>
-            </div>
-
-            <div className="footer-links">
-              <div className="link-group">
-                <h4>Navegación</h4>
-                <div className="link-list">
-                  <button onClick={() => navigate("/")} className="footer-link">
-                    Inicio
-                  </button>
-                  <button onClick={() => navigate("/productos")} className="footer-link">
-                    Productos
-                  </button>
-                  <button onClick={() => navigate("/servicios")} className="footer-link">
-                    Servicios
-                  </button>
-                </div>
-              </div>
-
-              <div className="link-group">
-                <h4>Productos</h4>
-                <div className="link-list">
-                  <span className="footer-link">Lentes de Sol</span>
-                  <span className="footer-link">Monturas</span>
-                  <span className="footer-link">Lentes de Contacto</span>
-                  <span className="footer-link">Lentes Especializados</span>
-                </div>
-              </div>
-
-              <div className="link-group">
-                <h4>Contacto</h4>
-                <div className="contact-info">
-                  <div className="contact-item">
-                    <span className="contact-icon">📞</span>
-                    <span className="contact-text">+1 (555) 123-4567</span>
-                  </div>
-                  <div className="contact-item">
-                    <span className="contact-icon">📧</span>
-                    <span className="contact-text">productos@visualoutlet.com</span>
-                  </div>
-                  <div className="contact-item">
-                    <span className="contact-icon">🕒</span>
-                    <span className="contact-text">Lun-Vie: 9:00 AM - 6:00 PM</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="footer-bottom">
-            <div className="footer-bottom-content">
-              <div className="copyright">
-                <p>&copy; 2024 Visual Outlet. Todos los derechos reservados.</p>
-              </div>
-            </div>
-          </div>
-
-          <button 
-            className="back-to-top"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          >
-            ↑
-          </button>
-        </div>
-      </footer>
+      {/* Footer Compacto */}
+      <FooterCompact />
     </div>
   );
 };
