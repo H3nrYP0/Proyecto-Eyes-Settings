@@ -289,3 +289,179 @@
   grid-row: span 2;
   min-height: 120px;
 }
+/* =============================
+   ESTILOS PARA VISTA DE DETALLE (MODO LECTURA)
+   ============================= */
+
+/* Label para vista de detalle */
+.crud-label {
+  font-weight: 600;
+  color: var(--gray-700);
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* Campo de solo lectura (vista detalle) */
+.crud-input-view {
+  padding: 16.5px 14px;
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+  font-size: 1rem;
+  background: var(--gray-50);
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  color: var(--gray-800);
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  word-break: break-word;
+}
+
+/* Estilo especial para valores importantes */
+.crud-input-view.important {
+  font-weight: 600;
+  color: var(--primary-color);
+  background: var(--primary-light);
+  border-color: var(--primary-color);
+}
+
+/* Badges en vista detalle */
+.crud-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: var(--gray-200);
+  color: var(--gray-700);
+}
+
+.crud-badge.masculino {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.crud-badge.femenino {
+  background: #fce7f3;
+  color: #be185d;
+}
+
+.crud-badge.otro {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* Campos que son enlaces (email, teléfono) */
+.crud-input-view a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.crud-input-view a:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+/* Para campos de fecha con formato especial */
+.crud-input-view.date {
+  font-family: 'Roboto Mono', monospace;
+  font-weight: 500;
+}
+
+/* Responsive para vista detalle */
+@media (max-width: 768px) {
+  .crud-input-view {
+    font-size: 0.95rem;
+    padding: 14px 12px;
+    min-height: 52px;
+  }
+  
+  .crud-badge {
+    font-size: 0.75rem;
+    padding: 3px 10px;
+  }
+}
+
+/* Clase para campos vacíos de emparejamiento */
+.crud-form-group.empty-field {
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+  min-height: 56px;
+}
+
+/* =============================
+   ESTILOS ESPECÍFICOS PARA PEDIDOS
+   ============================= */
+
+/* Badges para tipos de pedido */
+.crud-badge.venta {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.crud-badge.servicio {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* Badges para estados de pedido */
+.crud-badge.estado-proceso {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.crud-badge.estado-pendiente {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.crud-badge.estado-pagado {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.crud-badge.estado-entregado {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.crud-badge.estado-cancelado {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+/* Estilos para saldos */
+.saldo-pendiente {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.saldo-pagado {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+/* Campo de saldo pendiente calculado */
+.crud-input-view.saldo-calculado {
+  font-weight: 600;
+  font-family: 'Roboto Mono', monospace;
+}
+
+/* Ajustes para campos de fecha en vista detalle */
+.crud-input-view.date {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 500;
+}
+
+/* Campos monetarios destacados */
+.crud-input-view.moneda {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}

@@ -19,7 +19,7 @@ export default function Pedidos() {
   const [pedidos, setPedidos] = useState([]);
   const [search, setSearch] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
-  const [filterTipo, setFilterTipo] = useState(""); // Nuevo filtro por tipo
+  const [filterTipo, setFilterTipo] = useState("");
 
   const [modalDelete, setModalDelete] = useState({
     open: false,
@@ -79,7 +79,6 @@ export default function Pedidos() {
       return;
     }
 
-    // Aquí iría la lógica para registrar el abono
     alert(`Abono de $${monto.toLocaleString()} registrado para ${modalAbono.cliente}`);
     
     setModalAbono({ open: false, id: null, cliente: "", saldoPendiente: 0 });
@@ -101,14 +100,22 @@ export default function Pedidos() {
   // =============================
   const filteredPedidos = pedidos.filter((pedido) => {
     const matchesSearch = 
-      pedido.cliente.toLowerCase().includes(search.toLowerCase()) ||
-      pedido.productoServicio.toLowerCase().includes(search.toLowerCase());
+      pedido.cliente.toLowerCase().includes(search.toLowerCase());
     
     const matchesEstado = filterEstado ? pedido.estado === filterEstado : true;
     const matchesTipo = filterTipo ? pedido.tipo === filterTipo : true;
     
     return matchesSearch && matchesEstado && matchesTipo;
   });
+
+  // Función para obtener la cantidad de items
+  const obtenerCantidadItems = (pedido) => {
+    if (pedido.items && Array.isArray(pedido.items) && pedido.items.length > 0) {
+      // Sumar todas las cantidades
+      return pedido.items.reduce((sum, item) => sum + item.cantidad, 0);
+    }
+    return 1; // Para pedidos antiguos
+  };
 
   // FILTROS PARA PEDIDOS
   const searchFilters = [
@@ -126,21 +133,33 @@ export default function Pedidos() {
     { value: 'Servicio', label: 'Servicios' }
   ];
 
-  const formatCurrency = (amount) => {
-    return `$${amount.toLocaleString()}`;
-  };
-
   // =============================
   //          COLUMNAS SIMPLIFICADAS
   // =============================
   const columns = [
-    { field: "cliente", header: "Cliente" },
-    { field: "productoServicio", header: "Producto/Servicio" },
+    { 
+      field: "cliente", 
+      header: "Cliente"
+    },
+    {
+      field: "productoServicio",
+      header: "Producto/Servicio",
+      render: (item) => {
+        const cantidad = obtenerCantidadItems(item);
+        return (
+          <div>
+            <div style={{ fontSize: '0.9rem', fontWeight: '500' }}>
+              {cantidad} {item.tipo === 'Venta' ? 'productos' : 'servicios'}
+            </div>
+          </div>
+        );
+      },
+    },
     {
       field: "estado",
       header: "Estado",
       render: (item) => (
-        <span className={`estado-pedido estado-${item.estado.toLowerCase().replace(' ', '-')}`}>
+        <span className={`estado-pedido`}>
           {item.estado}
         </span>
       ),
@@ -149,7 +168,7 @@ export default function Pedidos() {
       field: "tipo",
       header: "Tipo",
       render: (item) => (
-        <span className={`badge-${item.tipo === "Venta" ? 'venta' : 'servicio'}`}>
+        <span>
           {item.tipo}
         </span>
       ),
@@ -194,7 +213,7 @@ export default function Pedidos() {
       title="Pedidos"
       onAddClick={() => navigate("crear")}
       showSearch={true}
-      searchPlaceholder="Buscar por cliente, producto, estado..."
+      searchPlaceholder="Buscar por cliente..."
       searchValue={search}
       onSearchChange={setSearch}
       searchFilters={searchFilters}
@@ -242,7 +261,7 @@ export default function Pedidos() {
       {filteredPedidos.length === 0 && !search && !filterEstado && !filterTipo && (
         <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
           <button 
-            onClick={() => navigate("nuevo")}
+            onClick={() => navigate("crear")}
             className="btn-primary"
             style={{padding: 'var(--spacing-md) var(--spacing-lg)'}}
           >
@@ -272,7 +291,7 @@ export default function Pedidos() {
         message={
           <div>
             <p>Cliente: <strong>{modalAbono.cliente}</strong></p>
-            <p>Saldo pendiente: <strong>{formatCurrency(modalAbono.saldoPendiente)}</strong></p>
+            <p>Saldo pendiente: <strong>${(modalAbono.saldoPendiente || 0).toLocaleString()}</strong></p>
             <div style={{ marginTop: '1rem' }}>
               <label htmlFor="montoAbono" style={{ display: 'block', marginBottom: '0.5rem' }}>
                 Monto del abono:
