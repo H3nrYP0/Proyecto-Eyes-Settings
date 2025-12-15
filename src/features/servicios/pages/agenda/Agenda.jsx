@@ -84,10 +84,8 @@ export default function Agenda() {
   const columns = [
     { field: "cliente", header: "Cliente" },
     { field: "servicio", header: "Servicio" },
-    { field: "empleado", header: "Empleado" },
     { field: "fecha", header: "Fecha" },
     { field: "hora", header: "Hora" },
-    { field: "metodo_pago", header: "Método Pago" },
     {
       field: "estado",
       header: "Estado",

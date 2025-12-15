@@ -95,18 +95,6 @@ export default function Proveedores() {
       )
     },
     { field: "razonSocial", header: "Razón Social" },
-    { field: "nit", header: "NIT" },
-    { field: "contacto", header: "Contacto" },
-    { field: "telefono", header: "Teléfono" },
-    { 
-      field: "correo", 
-      header: "Correo",
-      render: (item) => (
-        <a href={`mailto:${item.correo}`} className="email-link">
-          {item.correo}
-        </a>
-      )
-    },
     { field: "ciudad", header: "Ciudad" },
     {
       field: "estado",

@@ -83,27 +83,8 @@ export default function CampanasSalud() {
   // =============================
   const columns = [
     { field: "nombre", header: "Nombre" },
-    { 
-      field: "descripcion", 
-      header: "Descripción",
-      render: (item) => (
-        item.descripcion ? (
-          <span title={item.descripcion}>
-            {item.descripcion.length > 50 
-              ? item.descripcion.substring(0, 50) + '...' 
-              : item.descripcion
-            }
-          </span>
-        ) : '-'
-      )
-    },
     { field: "fechaInicio", header: "Fecha Inicio" },
     { field: "fechaFin", header: "Fecha Fin" },
-    { 
-      field: "descuento", 
-      header: "Descuento",
-      render: (item) => `${item.descuento}%`
-    },
     {
       field: "estado",
       header: "Estado",
@@ -112,9 +93,9 @@ export default function CampanasSalud() {
           className={`estado-btn ${item.estado === "activa" ? "activa" : item.estado === "proxima" ? "proxima" : item.estado === "finalizada" ? "finalizada" : "inactiva"}`}
           onClick={() => toggleEstado(item.id)}
         >
-          {item.estado === "activa" ? "🟢 Activa" : 
+          {item.estado === "activa" ? "✅ Activa" : 
            item.estado === "proxima" ? "🟡 Próxima" : 
-           item.estado === "finalizada" ? "🔵 Finalizada" : "⚫ Inactiva"}
+           item.estado === "finalizada" ? "🔵 Finalizada" : "❌ Inactiva"}
         </button>
       ),
     },

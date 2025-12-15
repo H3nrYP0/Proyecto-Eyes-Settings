@@ -91,7 +91,7 @@ export default function DetalleUsuario() {
           >
             Volver
           </button>
-            <button
+          <button
             onClick={() => navigate(`/admin/seguridad/usuarios/editar/${usuario.id}`)}
             className="crud-btn crud-btn-primary"
           >

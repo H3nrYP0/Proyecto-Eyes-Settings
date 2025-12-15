@@ -57,7 +57,12 @@ export default function DetalleCategoria() {
           >
             Volver
           </button>
-
+          <button
+            onClick={() => navigate(`/admin/compras/categorias/editar/${categoria.id}`)}
+            className="crud-btn crud-btn-primary"
+        >
+            Editar Categoría
+        </button>
         </div>
       </div>
     </div>

@@ -111,6 +111,12 @@ export default function DetalleProducto() {
           >
             Volver
           </button>
+            <button
+            onClick={() => navigate(`/admin/compras/productos/editar/${producto.id}`)}
+            className="crud-btn crud-btn-primary"
+          >
+            Editar Producto
+          </button>
         </div>
       </div>
     </div>

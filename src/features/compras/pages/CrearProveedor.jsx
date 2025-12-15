@@ -1,36 +1,165 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { 
+  TextField, 
+  Select, 
+  MenuItem, 
+  InputLabel,
+  FormControl,
+  FormHelperText
+} from '@mui/material';
 import { createProveedor } from '../../../lib/data/proveedoresData';
 import "../../../shared/styles/components/crud-forms.css";
 
 export default function CrearProveedor() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    tipo: "Persona Jurídica",
-    razonSocial: '',
-    nit: '',
-    contacto: '',
+    tipo_proveedor: 'Persona Jurídica',
+    tipoDocumento: 'NIT',
+    documento: '',
+    razon_social: '',
+    contacto_nombre: '',
     telefono: '',
     correo: '',
-    ciudad: '',
+    departamento: '',
+    municipio: '',
     direccion: '',
-    estado: 'Activo'
+    estado: true
   });
+
+  const [errors, setErrors] = useState({});
+
+  const departamentos = [
+    'Antioquia', 'Atlántico', 'Bogotá D.C.', 'Bolívar', 'Boyacá',
+    'Caldas', 'Caquetá', 'Casanare', 'Cauca', 'Cesar', 'Chocó',
+    'Córdoba', 'Cundinamarca', 'Guainía', 'Guaviare', 'Huila',
+    'La Guajira', 'Magdalena', 'Meta', 'Nariño', 'Norte de Santander',
+    'Putumayo', 'Quindío', 'Risaralda', 'San Andrés', 'Santander',
+    'Sucre', 'Tolima', 'Valle del Cauca', 'Vaupés', 'Vichada'
+  ];
+
+  const municipiosPorDepartamento = {
+    'Antioquia': ['Medellín', 'Bello', 'Itagüí', 'Envigado', 'Sabaneta'],
+    'Bogotá D.C.': ['Bogotá D.C.'],
+    'Cundinamarca': ['Soacha', 'Fusagasugá', 'Girardot', 'Facatativá'],
+    'Valle del Cauca': ['Cali', 'Palmira', 'Buga', 'Tuluá'],
+    'Santander': ['Bucaramanga', 'Floridablanca', 'Girón', 'Piedecuesta'],
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Crear el proveedor
-    const nuevoProveedor = createProveedor(formData);
-    console.log('Proveedor creado:', nuevoProveedor);
+    const newErrors = {};
+    
+    if (!formData.razon_social.trim()) {
+      newErrors.razon_social = 'La razón social o nombre es requerido';
+    } else if (formData.razon_social.trim().length < 3) {
+      newErrors.razon_social = 'Mínimo 3 caracteres';
+    }
+    
+    if (!formData.tipoDocumento) {
+      newErrors.tipoDocumento = 'Seleccione un tipo de documento';
+    }
+    
+    if (!formData.documento.trim()) {
+      newErrors.documento = 'El número de documento es requerido';
+    } else {
+      const documento = formData.documento.trim();
+      
+      if (formData.tipoDocumento === 'NIT') {
+        if (!/^[0-9]{9,10}$/.test(documento)) {
+          newErrors.documento = 'NIT inválido (9-10 dígitos)';
+        }
+      } else if (formData.tipoDocumento === 'CC') {
+        if (!/^[0-9]{6,10}$/.test(documento)) {
+          newErrors.documento = 'Cédula inválida (6-10 dígitos)';
+        }
+      } else if (formData.tipoDocumento === 'CE') {
+        if (!/^[0-9]{6,10}$/.test(documento)) {
+          newErrors.documento = 'Cédula extranjería inválida (6-10 dígitos)';
+        }
+      }
+    }
+    
+    if (!formData.contacto_nombre.trim()) {
+      newErrors.contacto_nombre = 'El nombre de contacto es requerido';
+    } else if (formData.contacto_nombre.trim().length < 2) {
+      newErrors.contacto_nombre = 'Mínimo 2 caracteres';
+    }
+    
+    const telefonoRegex = /^[0-9]{7,15}$/;
+    if (!formData.telefono.trim()) {
+      newErrors.telefono = 'El teléfono es requerido';
+    } else if (!telefonoRegex.test(formData.telefono.replace(/\s/g, ''))) {
+      newErrors.telefono = 'Teléfono inválido (7-15 dígitos)';
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.correo.trim()) {
+      newErrors.correo = 'El correo electrónico es requerido';
+    } else if (!emailRegex.test(formData.correo)) {
+      newErrors.correo = 'Formato de email inválido';
+    } else if (!formData.correo.includes('@') || !formData.correo.includes('.')) {
+      newErrors.correo = 'Debe contener "@" y "."';
+    }
+    
+    if (!formData.departamento) {
+      newErrors.departamento = 'Seleccione un departamento';
+    }
+    
+    if (!formData.municipio) {
+      newErrors.municipio = 'Seleccione un municipio';
+    }
+    
+    if (!formData.direccion.trim()) {
+      newErrors.direccion = 'La dirección es requerida';
+    } else if (formData.direccion.trim().length < 5) {
+      newErrors.direccion = 'Dirección muy corta (mínimo 5 caracteres)';
+    }
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      const firstErrorField = Object.keys(newErrors)[0];
+      const errorElement = document.querySelector(`[name="${firstErrorField}"]`);
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+    
+    const proveedorData = {
+      ...formData,
+      razon_social_o_Nombre: formData.razon_social,
+      Contacto: formData.contacto_nombre,
+      estado: true
+    };
+    
+    createProveedor(proveedorData);
     navigate('/admin/compras/proveedores');
   };
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
+    
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
+    
+    if (name === 'departamento') {
+      setFormData(prev => ({
+        ...prev,
+        departamento: value,
+        municipio: ''
+      }));
+    }
+    
+    if (errors[name]) {
+      setErrors({
+        ...errors,
+        [name]: ''
+      });
+    }
   };
 
   return (
@@ -43,129 +172,205 @@ export default function CrearProveedor() {
         <form onSubmit={handleSubmit}>
           <div className="crud-form-section">
             <div className="crud-form-group">
-              <label htmlFor="tipo">Tipo de Persona <span className="crud-required">*</span></label>
-              <select
-                id="tipo"
-                name="tipo"
-                value={formData.tipo}
-                onChange={handleChange}
-                className="crud-input"
-                required
-              >
-                <option value="Persona Jurídica">Persona Jurídica</option>
-                <option value="Persona Natural">Persona Natural</option>
-              </select>
+              <FormControl fullWidth error={!!errors.tipo_proveedor}>
+                <InputLabel style={{ fontWeight: 'normal' }}>
+                  Tipo de Proveedor
+                </InputLabel>
+                <Select
+                  name="tipo_proveedor"
+                  value={formData.tipo_proveedor}
+                  onChange={handleChange}
+                  label="Tipo de Proveedor"
+                  required
+                >
+                  <MenuItem value="Persona Jurídica">Persona Jurídica</MenuItem>
+                  <MenuItem value="Persona Natural">Persona Natural</MenuItem>
+                </Select>
+                {errors.tipo_proveedor && (
+                  <FormHelperText error>{errors.tipo_proveedor}</FormHelperText>
+                )}
+              </FormControl>
             </div>
 
             <div className="crud-form-group">
-              <label htmlFor="razonSocial">Razón Social <span className="crud-required">*</span></label>
-              <input
-                type="text"
-                id="razonSocial"
-                name="razonSocial"
-                value={formData.razonSocial}
+              <TextField
+                fullWidth
+                label={formData.tipo_proveedor === 'Persona Jurídica' ? "Razón Social" : "Nombre Completo"}
+                name="razon_social"
+                value={formData.razon_social}
                 onChange={handleChange}
-                className="crud-input"
-                placeholder="Nombre o razón social del proveedor"
+                placeholder={formData.tipo_proveedor === 'Persona Jurídica' ? "Ej: Empresa S.A.S." : "Ej: Juan Pérez"}
                 required
+                variant="outlined"
+                error={!!errors.razon_social}
+                helperText={errors.razon_social}
+                InputLabelProps={{ style: { fontWeight: 'normal' } }}
               />
             </div>
 
-            <div className="crud-form-group">
-              <label htmlFor="nit">NIT <span className="crud-required">*</span></label>
-              <input
-                type="text"
-                id="nit"
-                name="nit"
-                value={formData.nit}
-                onChange={handleChange}
-                className="crud-input"
-                placeholder="Número de identificación tributaria"
-                required
-              />
+            <div className="crud-form-row">
+              <div className="crud-form-group">
+                <FormControl fullWidth error={!!errors.tipoDocumento}>
+                  <InputLabel style={{ fontWeight: 'normal' }}>
+                    Tipo de Documento
+                  </InputLabel>
+                  <Select
+                    name="tipoDocumento"
+                    value={formData.tipoDocumento}
+                    onChange={handleChange}
+                    label="Tipo de Documento"
+                    required
+                  >
+                    <MenuItem value="NIT">NIT</MenuItem>
+                    <MenuItem value="CC">Cédula de Ciudadanía</MenuItem>
+                    <MenuItem value="CE">Cédula de Extranjería</MenuItem>
+                  </Select>
+                  {errors.tipoDocumento && (
+                    <FormHelperText error>{errors.tipoDocumento}</FormHelperText>
+                  )}
+                </FormControl>
+              </div>
+
+              <div className="crud-form-group">
+                <TextField
+                  fullWidth
+                  label="Número de Documento"
+                  name="documento"
+                  value={formData.documento}
+                  onChange={handleChange}
+                  placeholder={formData.tipoDocumento === 'NIT' ? "Ej: 901234567-8" : "Ej: 1234567890"}
+                  required
+                  variant="outlined"
+                  error={!!errors.documento}
+                  helperText={errors.documento}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                />
+              </div>
+            </div>
+
+            <div className="crud-form-row">
+              <div className="crud-form-group">
+                <TextField
+                  fullWidth
+                  label="Persona de Contacto"
+                  name="contacto_nombre"
+                  value={formData.contacto_nombre}
+                  onChange={handleChange}
+                  placeholder="Ej: María González"
+                  required
+                  variant="outlined"
+                  error={!!errors.contacto_nombre}
+                  helperText={errors.contacto_nombre}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                />
+              </div>
+
+              <div className="crud-form-group">
+                <TextField
+                  fullWidth
+                  label="Teléfono"
+                  name="telefono"
+                  value={formData.telefono}
+                  onChange={handleChange}
+                  placeholder="Ej: 3001234567"
+                  required
+                  variant="outlined"
+                  error={!!errors.telefono}
+                  helperText={errors.telefono}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                />
+              </div>
             </div>
 
             <div className="crud-form-group">
-              <label htmlFor="contacto">Persona de Contacto <span className="crud-required">*</span></label>
-              <input
-                type="text"
-                id="contacto"
-                name="contacto"
-                value={formData.contacto}
-                onChange={handleChange}
-                className="crud-input"
-                placeholder="Nombre del contacto principal"
-                required
-              />
-            </div>
-
-            <div className="crud-form-group">
-              <label htmlFor="telefono">Teléfono <span className="crud-required">*</span></label>
-              <input
-                type="tel"
-                id="telefono"
-                name="telefono"
-                value={formData.telefono}
-                onChange={handleChange}
-                className="crud-input"
-                placeholder="Número de contacto"
-                required
-              />
-            </div>
-
-            <div className="crud-form-group">
-              <label htmlFor="correo">Correo Electrónico <span className="crud-required">*</span></label>
-              <input
-                type="email"
-                id="correo"
+              <TextField
+                fullWidth
+                label="Correo Electrónico"
                 name="correo"
+                type="email"
                 value={formData.correo}
                 onChange={handleChange}
-                className="crud-input"
-                placeholder="correo@ejemplo.com"
+                placeholder="proveedor@ejemplo.com"
                 required
+                variant="outlined"
+                error={!!errors.correo}
+                helperText={errors.correo}
+                InputLabelProps={{ style: { fontWeight: 'normal' } }}
               />
             </div>
 
-            <div className="crud-form-group">
-              <label htmlFor="ciudad">Ciudad <span className="crud-required">*</span></label>
-              <input
-                type="text"
-                id="ciudad"
-                name="ciudad"
-                value={formData.ciudad}
-                onChange={handleChange}
-                className="crud-input"
-                placeholder="Ciudad donde se encuentra"
-                required
-              />
+            <div className="crud-form-row">
+              <div className="crud-form-group">
+                <FormControl fullWidth error={!!errors.departamento}>
+                  <InputLabel style={{ fontWeight: 'normal' }}>
+                    Departamento
+                  </InputLabel>
+                  <Select
+                    name="departamento"
+                    value={formData.departamento}
+                    onChange={handleChange}
+                    label="Departamento"
+                    required
+                  >
+                    <MenuItem value="">Seleccione un departamento</MenuItem>
+                    {departamentos.map((depto) => (
+                      <MenuItem key={depto} value={depto}>
+                        {depto}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {errors.departamento && (
+                    <FormHelperText error>{errors.departamento}</FormHelperText>
+                  )}
+                </FormControl>
+              </div>
+
+              <div className="crud-form-group">
+                <FormControl fullWidth error={!!errors.municipio} disabled={!formData.departamento}>
+                  <InputLabel style={{ fontWeight: 'normal' }}>
+                    Municipio/Ciudad
+                  </InputLabel>
+                  <Select
+                    name="municipio"
+                    value={formData.municipio}
+                    onChange={handleChange}
+                    label="Municipio/Ciudad"
+                    required
+                  >
+                    <MenuItem value="">Seleccione un municipio</MenuItem>
+                    {formData.departamento && municipiosPorDepartamento[formData.departamento]?.map((municipio) => (
+                      <MenuItem key={municipio} value={municipio}>
+                        {municipio}
+                      </MenuItem>
+                    ))}
+                    {formData.departamento && (!municipiosPorDepartamento[formData.departamento] || municipiosPorDepartamento[formData.departamento].length === 0) && (
+                      <MenuItem value={formData.departamento}>
+                        {formData.departamento}
+                      </MenuItem>
+                    )}
+                  </Select>
+                  {errors.municipio && (
+                    <FormHelperText error>{errors.municipio}</FormHelperText>
+                  )}
+                </FormControl>
+              </div>
             </div>
 
             <div className="crud-form-group">
-              <label htmlFor="direccion">Dirección</label>
-              <textarea
-                id="direccion"
+              <TextField
+                fullWidth
+                label="Dirección"
                 name="direccion"
                 value={formData.direccion}
                 onChange={handleChange}
-                rows="3"
-                className="crud-input crud-textarea"
-                placeholder="Dirección completa del proveedor"
+                placeholder="Ej: Calle 123 #45-67, Barrio Centro"
+                required
+                variant="outlined"
+                multiline
+                error={!!errors.direccion}
+                helperText={errors.direccion}
+                InputLabelProps={{ style: { fontWeight: 'normal' } }}
               />
-            </div>
-
-            <div className="crud-form-group">
-              <label htmlFor="estado">Estado</label>
-              <select
-                id="estado"
-                name="estado"
-                value={formData.estado}
-                onChange={handleChange}
-                className="crud-input"
-              >
-                <option value="Activo">Activo</option>
-                <option value="Inactivo">Inactivo</option>
-              </select>
             </div>
           </div>
 
@@ -177,7 +382,10 @@ export default function CrearProveedor() {
             >
               Cancelar
             </button>
-            <button type="submit" className="crud-btn crud-btn-primary">
+            <button 
+              type="submit" 
+              className="crud-btn crud-btn-primary"
+            >
               Crear Proveedor
             </button>
           </div>

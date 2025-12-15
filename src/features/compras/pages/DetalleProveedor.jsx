@@ -92,7 +92,7 @@ export default function DetalleProveedor() {
             onClick={() => navigate(`/admin/compras/proveedores/editar/${proveedor.id}`)}
             className="crud-btn crud-btn-primary"
           >
-            Editar
+            Editar proveedor
           </button>
         </div>
       </div>

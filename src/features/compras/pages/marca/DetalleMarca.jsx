@@ -57,6 +57,12 @@ export default function DetalleMarca() {
           >
             Volver
           </button>
+          <button
+            onClick={() => navigate(`/admin/compras/marcas/editar/${marca.id}`)}
+            className="crud-btn crud-btn-primary"
+        >
+            Editar Marca
+        </button>
         </div>
       </div>
     </div>

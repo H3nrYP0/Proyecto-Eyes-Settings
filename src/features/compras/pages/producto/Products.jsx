@@ -88,18 +88,7 @@ export default function Productos() {
   //          COLUMNAS
   // =============================
   const columns = [
-    { field: "nombre", header: "Nombre" },
-    { field: "codigo", header: "Código" },
-    { 
-      field: "precioVenta", 
-      header: "Precio Venta",
-      render: (item) => formatCurrency(item.precioVenta)
-    },
-    { 
-      field: "precioCompra", 
-      header: "Precio Compra",
-      render: (item) => formatCurrency(item.precioCompra)
-    },
+    { field: "nombre", header: "nombre" },
     { 
       field: "stockActual", 
       header: "Stock",
@@ -109,7 +98,6 @@ export default function Productos() {
         </span>
       )
     },
-    { field: "categoria", header: "Categoría" },
     { field: "marca", header: "Marca" },
     {
       field: "estado",
@@ -142,11 +130,6 @@ export default function Productos() {
       label: "Editar",
       type: "edit",
       onClick: (item) => navigate(`/admin/compras/productos/editar/${item.id}`),
-    },
-    {
-      label: "Imágenes",
-      type: "image",
-      onClick: (item) => navigate(`/admin/compras/productos/imagenes/${item.id}`),
     },
     {
       label: "Eliminar",

@@ -69,6 +69,12 @@ export default function DetalleServicio() {
           >
             Volver
           </button>
+          <button 
+              onClick={() => navigate(`/admin/servicios/editar/${servicio.id}`)}
+              className="crud-btn crud-btn-primary"
+          >
+              Editar Servicio
+          </button>
         </div>
       </div>
     </div>

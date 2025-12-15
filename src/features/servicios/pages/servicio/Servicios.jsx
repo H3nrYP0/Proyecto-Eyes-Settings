@@ -82,27 +82,7 @@ export default function Servicios() {
   // =============================
   const columns = [
     { field: "nombre", header: "Nombre" },
-    { 
-      field: "descripcion", 
-      header: "Descripción",
-      render: (item) => (
-        item.descripcion ? (
-          <span title={item.descripcion}>
-            {item.descripcion.length > 50 
-              ? item.descripcion.substring(0, 50) + '...' 
-              : item.descripcion
-            }
-          </span>
-        ) : '-'
-      )
-    },
     { field: "duracion", header: "Duración (min)" },
-    { 
-      field: "precio", 
-      header: "Precio",
-      render: (item) => `$${item.precio.toLocaleString()}`
-    },
-    { field: "empleado", header: "Empleado" },
     {
       field: "estado",
       header: "Estado",

@@ -77,6 +77,12 @@ export default function DetalleAgenda() {
           >
             Volver
           </button>
+          <button 
+            onClick={() => navigate(`/admin/servicios/agenda/editar/${cita.id}`)}
+            className="crud-btn crud-btn-primary"
+        >
+            Editar Cita
+        </button>
         </div>
       </div>
     </div>
