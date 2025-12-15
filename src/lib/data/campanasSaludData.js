@@ -1,31 +1,38 @@
 // Base de datos temporal de campañas de salud
+// Adaptado a la tabla SQL aprobada, manteniendo los estados como strings
 let campanasSaludDB = [
   {
     id: 1,
-    nombre: "Chequeo Visual Gratuito",
-    descripcion: "Campaña de exámenes visuales sin costo",
-    fechaInicio: "2024-02-01",
-    fechaFin: "2024-02-29",
-    descuento: 100,
+    empleadoId: 1,
+    empresa: "Colegio San José",
+    contacto: "3001234567",
+    fecha: "2025-12-23",
+    hora: "10:00",
+    direccion: "Calle 123 #45-67",
     estado: "proxima",
+    observaciones: "Chequeo visual gratuito para estudiantes"
   },
   {
     id: 2,
-    nombre: "Descuento en Lentes de Sol",
-    descripcion: "Promoción especial en lentes de sol Ray-Ban",
-    fechaInicio: "2024-01-15",
-    fechaFin: "2024-01-31",
-    descuento: 20,
+    empleadoId: 2,
+    empresa: "Empresa ABC Ltda",
+    contacto: "3109876543",
+    fecha: "2026-02-23",
+    hora: "14:30",
+    direccion: "Av. Principal #89-10",
     estado: "activa",
+    observaciones: "Campaña para empleados"
   },
   {
     id: 3,
-    nombre: "Campaña Escolar",
-    descripcion: "Descuentos especiales para estudiantes",
-    fechaInicio: "2024-01-10",
-    fechaFin: "2024-01-25",
-    descuento: 15,
+    empleadoId: 3,
+    empresa: "Universidad Central",
+    contacto: "3204567891",
+    fecha: "2025-03-10",
+    hora: "09:00",
+    direccion: "Carrera 56 #78-90",
     estado: "finalizada",
+    observaciones: "Evento ya realizado"
   },
 ];
 
