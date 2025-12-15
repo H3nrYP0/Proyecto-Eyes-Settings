@@ -241,7 +241,6 @@ export default function EditarPermisos() {
     <div className="crud-form-container crear-rol-container">
       <div className="crud-form-header crear-rol-header">
         <h1>Editar Permisos del Rol</h1>
-        <p>Actualiza los permisos y la información del rol</p>
       </div>
       
       <div className="crud-form-content crear-rol-content">
@@ -301,7 +300,7 @@ export default function EditarPermisos() {
             </div>
           </div>
 
-          {/* Sección de permisos - Actualizada con el diseño de CrearRol */}
+          {/* Sección de permisos */}
           <div className="permisos-section no-scroll">
             <div className="permisos-header-boolean">
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

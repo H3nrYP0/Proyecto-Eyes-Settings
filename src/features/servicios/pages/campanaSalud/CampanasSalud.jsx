@@ -93,9 +93,9 @@ export default function CampanasSalud() {
           className={`estado-btn ${item.estado === "activa" ? "activa" : item.estado === "proxima" ? "proxima" : item.estado === "finalizada" ? "finalizada" : "inactiva"}`}
           onClick={() => toggleEstado(item.id)}
         >
-          {item.estado === "activa" ? "✅ Activa" : 
-           item.estado === "proxima" ? "🟡 Próxima" : 
-           item.estado === "finalizada" ? "🔵 Finalizada" : "❌ Inactiva"}
+          {item.estado === "activa" ? "Activa" : 
+           item.estado === "proxima" ? "Próxima" : 
+           item.estado === "finalizada" ? "Finalizada" : "Inactiva"}
         </button>
       ),
     },

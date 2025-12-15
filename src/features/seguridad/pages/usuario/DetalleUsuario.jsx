@@ -21,7 +21,6 @@ export default function DetalleUsuario() {
     <div className="crud-form-container">
       <div className="crud-form-header">
         <h1>Detalle de Usuario: {usuario.nombre}</h1>
-        <p>Información completa del usuario</p>
       </div>
       
       <div className="crud-form-content">

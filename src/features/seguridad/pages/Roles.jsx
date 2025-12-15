@@ -99,7 +99,7 @@ export default function Roles() {
           className={`estado-btn ${item.estado === "activo" ? "activo" : "inactivo"}`}
           onClick={() => toggleEstado(item.id)}
         >
-          {item.estado === "activo" ? "✅ Activo" : "⛔ Inactivo"}
+          {item.estado === "activo" ? "Activo" : "Inactivo"}
         </button>
       ),
     },
@@ -135,8 +135,7 @@ export default function Roles() {
 
   return (
     <CrudLayout
-      title="👥 Roles"
-      description="Administra los roles del sistema y sus permisos asociados."
+      title="Roles"
       onAddClick={() => navigate("crear")}
       showSearch={true}
       searchPlaceholder="Buscar por nombre, descripción..."

@@ -92,7 +92,7 @@ export default function Empleados() {
           className={`estado-btn ${item.estado === "activo" ? "activo" : "inactivo"}`}
           onClick={() => toggleEstado(item.id)}
         >
-          {item.estado === "activo" ? "✅ Activo" : "⛔ Inactivo"}
+          {item.estado === "activo" ? "Activo" : "Inactivo"}
         </button>
       ),
     },

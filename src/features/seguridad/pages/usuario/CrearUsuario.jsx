@@ -194,7 +194,6 @@ export default function CrearUsuario() {
     <div className="crud-form-container">
       <div className="crud-form-header">
         <h1>Crear Nuevo Usuario</h1>
-        <p>Registra un nuevo usuario en el sistema</p>
       </div>
       
       <div className="crud-form-content">

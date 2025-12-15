@@ -1,113 +1,124 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { getRolById } from '../../../../lib/data/rolesData';
+import { Grid, Typography, Box, Checkbox } from '@mui/material';
 import "../../../../shared/styles/components/crud-forms.css";
+import "../../../../shared/styles/components/crud-especificos-rol.css";
 
-export default function DetalleRol() {
-  const { id } = useParams();
+export default function EditarPermisos() {
   const navigate = useNavigate();
+  const { id } = useParams();
+
+  const permisosDisponibles = [
+    { id: 'dashboard', nombre: 'Gestionar Dashboard' },
+    { id: 'categorias', nombre: 'Gestionar Categorías' },
+    { id: 'compras', nombre: 'Gestionar Compras' },
+    { id: 'empleados', nombre: 'Gestionar Empleados' },
+    { id: 'ventas', nombre: 'Gestionar Ventas' },
+    { id: 'roles', nombre: 'Gestionar Roles' },
+    { id: 'productos', nombre: 'Gestionar Productos' },
+    { id: 'servicios', nombre: 'Gestionar Servicios' },
+    { id: 'clientes', nombre: 'Gestionar Clientes' },
+    { id: 'campanas_salud', nombre: 'Gestionar Campañas de Salud' },
+    { id: 'usuarios', nombre: 'Gestionar Usuarios' },
+    { id: 'proveedores', nombre: 'Gestionar Proveedores' },
+    { id: 'agenda', nombre: 'Gestionar Agenda' },
+    { id: 'pedidos', nombre: 'Gestionar Pedidos' }
+  ];
+
   const [rol, setRol] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const rolData = getRolById(Number(id));
-    setRol(rolData);
+    const data = getRolById(id);
+    setRol(data);
+    setLoading(false);
   }, [id]);
 
-  if (!rol) {
-    return <div>Cargando...</div>;
+  if (loading) {
+    return (
+      <div className="crud-form-container crear-rol-container">
+        <div className="crud-form-content crear-rol-content">
+          Cargando...
+        </div>
+      </div>
+    );
   }
 
-  // Mapeo descriptivo de los permisos
-  const permisosDescriptivos = {
-    'dashboard': 'Gestionar Dashboard',
-    'categorias': 'Gestionar Categorías',
-    'compras': 'Gestionar Compras',
-    'empleados': 'Gestionar Empleados',
-    'ventas': 'Gestionar Ventas',
-    'roles': 'Gestionar Roles',
-    'productos': 'Gestionar Productos',
-    'servicios': 'Gestionar Servicios',
-    'clientes': 'Gestionar Clientes',
-    'campanas_salud': 'Gestionar Campañas de Salud',
-    'usuarios': 'Gestionar Usuarios',
-    'proveedores': 'Gestionar Proveedores',
-    'agenda': 'Gestionar Agenda',
-    'pedidos': 'Gestionar Pedidos'
-  };
+  if (!rol) {
+    return (
+      <div className="crud-form-container crear-rol-container">
+        <div className="crud-form-content crear-rol-content">
+          Rol no encontrado
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="crud-form-container detalle-rol-full-height">
-      <div className="crud-form-header">
-        <h1>Detalle de Rol: {rol.nombre}</h1>
-        <p>Información completa del rol</p>
+    <div className="crud-form-container crear-rol-container">
+      <div className="crud-form-header crear-rol-header">
+        <h1>Detalle del Rol</h1>
       </div>
-      
-      <div className="crud-form-content detalle-rol-content">
-        <div className="detalle-rol-layout">
-          {/* Sección de Información General */}
-          <div className="detalle-info-section">
-            <h3>Información General</h3>
-            
-            <div className="info-grid">
-              <div className="info-item">
-                <label>Nombre:</label>
-                <div className="info-value">{rol.nombre}</div>
-              </div>
-              
-              <div className="info-item">
-                <label>Estado:</label>
-                <div className="info-value">
-                  <span className={`estado-badge ${rol.estado === "activo" ? "activo" : "inactivo"}`}>
-                    {rol.estado === "activo" ? "ACTIVO" : "INACTIVO"}
-                  </span>
-                </div>
-              </div>
 
-              <div className="info-item full-width">
-                <label>Descripción:</label>
-                <div className="info-value descripcion">
-                  {rol.descripcion}
-                </div>
-              </div>
-            </div>
+      <div className="crud-form-content crear-rol-content">
+
+        <div className="crud-form-section crear-rol-section">
+          <div className="crear-rol-form-row">
+            <Typography variant="subtitle2">Nombre del Rol</Typography>
+            <Typography>{rol.nombre}</Typography>
           </div>
 
-          {/* Sección de Permisos */}
-          <div className="detalle-permisos-section">
-            <h3>Permisos Asignados</h3>
-            
-            {rol.permisos && rol.permisos.length > 0 ? (
-              <div className="permisos-grid-full">
-                {rol.permisos.map((permiso, index) => (
-                  <div key={index} className="permiso-item-full">
-                    <span className="permiso-check">✓</span>
-                    <span className="permiso-text">
-                      {permisosDescriptivos[permiso] || `Gestionar ${permiso}`}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="no-permisos">
-                <p>Este rol no tiene permisos asignados</p>
-              </div>
-            )}
+          <div className="crear-rol-form-row">
+            <Typography variant="subtitle2">Descripción</Typography>
+            <Typography>{rol.descripcion}</Typography>
+          </div>
+
+          <div className="crear-rol-form-row">
+            <Typography variant="subtitle2">Estado</Typography>
+            <span className={`crud-badge ${rol.estado === 'activo'
+              ? 'crud-badge-success'
+              : 'crud-badge-error'
+            }`}>
+              {rol.estado}
+            </span>
           </div>
         </div>
 
-        {/* Botones de Acción */}
-        <div className="detalle-actions">
-          <button 
+        {/* PERMISOS (solo visual) */}
+        <div className="permisos-section no-scroll">
+          <div className="permisos-header-boolean">
+            <h3>Permisos</h3>
+          </div>
+
+          <Box className="permisos-grid-boolean">
+            <Grid container spacing={1}>
+              {permisosDisponibles.map(permiso => {
+                const activo = rol.permisos?.includes(permiso.id);
+
+                return (
+                  <Grid item xs={12} sm={6} md={4} key={permiso.id}>
+                    <Box
+                      className={`permiso-item-boolean ${activo ? 'selected' : ''}`}
+                    >
+                      <Checkbox checked={activo} disabled size="small" />
+                      <Typography className="permiso-text">
+                        {permiso.nombre}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                );
+              })}
+            </Grid>
+          </Box>
+        </div>
+
+        <div className="crud-form-actions crear-rol-actions">
+          <button
+            className="crud-btn crud-btn-secondary crear-rol-btn crear-rol-secondary"
             onClick={() => navigate('/admin/seguridad/roles')}
-            className="crud-btn crud-btn-secondary"
           >
             Volver
-          </button>
-          <button 
-            onClick={() => navigate(`/admin/seguridad/roles/editar/${rol.id}`)}
-            className="crud-btn crud-btn-primary"
-          >
-            Editar Rol
           </button>
         </div>
       </div>

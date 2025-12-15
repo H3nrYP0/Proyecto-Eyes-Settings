@@ -94,7 +94,7 @@ export default function Agenda() {
           className={`estado-btn ${item.estado === "pendiente" ? "pendiente" : item.estado === "completada" ? "completada" : "cancelada"}`}
           onClick={() => toggleEstado(item.id)}
         >
-          {item.estado === "pendiente" ? "🟡 Pendiente" : item.estado === "completada" ? "✅ Completada" : "❌ Cancelada"}
+          {item.estado === "pendiente" ? "Pendiente" : item.estado === "completada" ? "Completada" : "Cancelada"}
         </button>
       ),
     },
