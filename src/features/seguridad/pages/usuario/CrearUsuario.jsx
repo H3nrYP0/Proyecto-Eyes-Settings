@@ -190,8 +190,8 @@ export default function CrearUsuario() {
     }
   };
 
-  return (
-    <div className="crud-form-container">
+return (
+    <div className="crud-form-container crud-user-form">
       <div className="crud-form-header">
         <h1>Crear Nuevo Usuario</h1>
       </div>
@@ -199,7 +199,7 @@ export default function CrearUsuario() {
       <div className="crud-form-content">
         <form onSubmit={handleSubmit}>
           <div className="crud-form-section">
-            {/* Nombre Completo */}
+            {/* Fila 1: Nombre Completo (izquierda) */}
             <div className="crud-form-group">
               <TextField
                 fullWidth
@@ -218,46 +218,7 @@ export default function CrearUsuario() {
               />
             </div>
 
-            {/* Correo Electrónico y Teléfono */}
-            <div className="crud-form-row">
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  label="Correo Electrónico"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="ejemplo@visualoutlet.com"
-                  required
-                  variant="outlined"
-                  error={!!errors.email}
-                  helperText={errors.email}
-                  InputLabelProps={{
-                    style: { fontWeight: 'normal' }
-                  }}
-                />
-              </div>
-
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  label="Teléfono"
-                  name="telefono"
-                  value={formData.telefono}
-                  onChange={handleChange}
-                  placeholder="Ej: 3001234567"
-                  variant="outlined"
-                  error={!!errors.telefono}
-                  helperText={errors.telefono}
-                  InputLabelProps={{
-                    style: { fontWeight: 'normal' }
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Fecha de Nacimiento */}
+            {/* Fila 1: Fecha de Nacimiento (derecha) */}
             <div className="crud-form-group">
               <TextField
                 fullWidth
@@ -279,97 +240,131 @@ export default function CrearUsuario() {
                 required
               />
             </div>
-
-            {/* Tipo de Documento y Número de Documento */}
-            <div className="crud-form-row">
-              <div className="crud-form-group">
-                <FormControl fullWidth error={!!errors.tipoDocumento}>
-                  <InputLabel 
-                    id="tipoDocumento-label"
-                    style={{ fontWeight: 'normal' }}
-                  >
-                    Tipo de Documento
-                  </InputLabel>
-                  <Select
-                    labelId="tipoDocumento-label"
-                    id="tipoDocumento"
-                    name="tipoDocumento"
-                    value={formData.tipoDocumento}
-                    onChange={handleChange}
-                    label="Tipo de Documento"
-                    required
-                  >
-                    <MenuItem value="cedula">Cédula de Ciudadanía</MenuItem>
-                    <MenuItem value="cedula_extranjera">Cédula de Extranjería</MenuItem>
-                    <MenuItem value="pasaporte">Pasaporte</MenuItem>
-                    <MenuItem value="ppt">PPT (Permiso de Permanencia)</MenuItem>
-                  </Select>
-                  {errors.tipoDocumento && (
-                    <FormHelperText error>
-                      {errors.tipoDocumento}
-                    </FormHelperText>
-                  )}
-                </FormControl>
-              </div>
-
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  label="Número de Documento"
-                  name="numeroDocumento"
-                  value={formData.numeroDocumento}
+            <div className="crud-form-group">
+              <FormControl fullWidth error={!!errors.tipoDocumento}>
+                <InputLabel 
+                  id="tipoDocumento-label"
+                  style={{ fontWeight: 'normal' }}
+                >
+                  Tipo de Documento *
+                </InputLabel>
+                <Select
+                  labelId="tipoDocumento-label"
+                  id="tipoDocumento"
+                  name="tipoDocumento"
+                  value={formData.tipoDocumento}
                   onChange={handleChange}
-                  placeholder="Ej: 1234567890"
+                  label="Tipo de Documento *"
                   required
-                  variant="outlined"
-                  error={!!errors.numeroDocumento}
-                  helperText={errors.numeroDocumento}
-                  InputLabelProps={{
-                    style: { fontWeight: 'normal' }
-                  }}
-                />
-              </div>
+                >
+                  <MenuItem value="cedula">Cédula de Ciudadanía</MenuItem>
+                  <MenuItem value="cedula_extranjera">Cédula de Extranjería</MenuItem>
+                  <MenuItem value="pasaporte">Pasaporte</MenuItem>
+                  <MenuItem value="ppt">PPT (Permiso de Permanencia)</MenuItem>
+                </Select>
+                {errors.tipoDocumento && (
+                  <FormHelperText error>
+                    {errors.tipoDocumento}
+                  </FormHelperText>
+                )}
+              </FormControl>
             </div>
 
-            {/* Contraseña y Confirmar Contraseña */}
-            <div className="crud-form-row">
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  label="Contraseña"
-                  name="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="Mínimo 6 caracteres, 1 mayúscula, 1 número"
-                  required
-                  variant="outlined"
-                  error={!!errors.password}
-                  helperText={errors.password}
-                  InputLabelProps={{
-                    style: { fontWeight: 'normal' }
-                  }}
-                />
-              </div>
+            {/* Fila 2: Número de Documento (derecha) */}
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Número de Documento"
+                name="numeroDocumento"
+                value={formData.numeroDocumento}
+                onChange={handleChange}
+                placeholder="Ej: 1234567890"
+                required
+                variant="outlined"
+                error={!!errors.numeroDocumento}
+                helperText={errors.numeroDocumento}
+                InputLabelProps={{
+                  style: { fontWeight: 'normal' }
+                }}
+              />
+            </div>
 
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  label="Confirmar Contraseña"
-                  name="confirmPassword"
-                  type="password"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  placeholder="Repite la contraseña"
-                  required
-                  variant="outlined"
-                  error={!!errors.confirmPassword}
-                  helperText={errors.confirmPassword}
-                  InputLabelProps={{
-                    style: { fontWeight: 'normal' }
-                  }}
-                />
-              </div>
+            {/* Fila 3: Correo Electrónico (izquierda) */}
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Correo Electrónico"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="ejemplo@visualoutlet.com"
+                required
+                variant="outlined"
+                error={!!errors.email}
+                helperText={errors.email}
+                InputLabelProps={{
+                  style: { fontWeight: 'normal' }
+                }}
+              />
+            </div>
+
+            {/* Fila 3: Teléfono (derecha) */}
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Teléfono"
+                name="telefono"
+                value={formData.telefono}
+                onChange={handleChange}
+                placeholder="Ej: 3001234567"
+                variant="outlined"
+                error={!!errors.telefono}
+                helperText={errors.telefono}
+                InputLabelProps={{
+                  style: { fontWeight: 'normal' }
+                }}
+              />
+            </div>
+
+            {/* Fila 4: Contraseña (izquierda) */}
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Contraseña"
+                name="password"
+                type="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Mínimo 6 caracteres, 1 mayúscula, 1 número"
+                required
+                variant="outlined"
+                error={!!errors.password}
+                helperText={errors.password}
+                InputLabelProps={{
+                  style: { fontWeight: 'normal' }
+                }}
+              />
+            </div>
+
+            {/* Fila 4: Confirmar Contraseña (derecha) */}
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Confirmar Contraseña"
+                name="confirmPassword"
+                type="password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                placeholder="Repite la contraseña"
+                required
+                variant="outlined"
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword}
+                InputLabelProps={{
+                  style: { fontWeight: 'normal' }
+                }}
+              />
             </div>
           </div>
 

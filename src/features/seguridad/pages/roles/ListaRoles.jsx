@@ -5,7 +5,7 @@ import { Grid, Typography, Box, Checkbox } from '@mui/material';
 import "../../../../shared/styles/components/crud-forms.css";
 import "../../../../shared/styles/components/crud-especificos-rol.css";
 
-export default function EditarPermisos() {
+export default function DetalleRol() {
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -37,8 +37,8 @@ export default function EditarPermisos() {
 
   if (loading) {
     return (
-      <div className="crud-form-container crear-rol-container">
-        <div className="crud-form-content crear-rol-content">
+      <div className="crud-form-container">
+        <div className="crud-form-content">
           Cargando...
         </div>
       </div>
@@ -47,8 +47,8 @@ export default function EditarPermisos() {
 
   if (!rol) {
     return (
-      <div className="crud-form-container crear-rol-container">
-        <div className="crud-form-content crear-rol-content">
+      <div className="crud-form-container">
+        <div className="crud-form-content">
           Rol no encontrado
         </div>
       </div>
@@ -56,41 +56,48 @@ export default function EditarPermisos() {
   }
 
   return (
-    <div className="crud-form-container crear-rol-container">
-      <div className="crud-form-header crear-rol-header">
-        <h1>Detalle del Rol</h1>
+    <div className="crud-form-container">
+      <div className="crud-form-header">
+        <h1>Detalle del Rol: {rol.nombre}</h1>
       </div>
 
-      <div className="crud-form-content crear-rol-content">
-
-        <div className="crud-form-section crear-rol-section">
-          <div className="crear-rol-form-row">
-            <Typography variant="subtitle2">Nombre del Rol</Typography>
-            <Typography>{rol.nombre}</Typography>
+      <div className="crud-form-content">
+        <div className="crud-form-section">
+          <div className="crud-form-group">
+            <div className="crud-input-view">
+              {rol.nombre}
+            </div>
           </div>
 
-          <div className="crear-rol-form-row">
-            <Typography variant="subtitle2">Descripción</Typography>
-            <Typography>{rol.descripcion}</Typography>
+          <div className="crud-form-group">
+            <div className="crud-input-view">
+              {rol.estado === 'activo' ? 'Activo' : 'Inactivo'}
+            </div>
           </div>
 
-          <div className="crear-rol-form-row">
-            <Typography variant="subtitle2">Estado</Typography>
-            <span className={`crud-badge ${rol.estado === 'activo'
-              ? 'crud-badge-success'
-              : 'crud-badge-error'
-            }`}>
-              {rol.estado}
-            </span>
+          <div className="crud-form-group full-width">
+            <div className="crud-input-view">
+              {rol.descripcion}
+            </div>
           </div>
         </div>
 
-        {/* PERMISOS (solo visual) */}
         <div className="permisos-section no-scroll">
           <div className="permisos-header-boolean">
-            <h3>Permisos</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h3 style={{ margin: 0 }}>Permisos</h3>
+              <span style={{ 
+                fontSize: '14px', 
+                backgroundColor: '#f0f0f0',
+                padding: '2px 8px',
+                borderRadius: '12px',
+                fontWeight: '500'
+              }}>
+                ({rol.permisos?.length || 0} de {permisosDisponibles.length})
+              </span>
+            </div>
           </div>
-
+          
           <Box className="permisos-grid-boolean">
             <Grid container spacing={1}>
               {permisosDisponibles.map(permiso => {
@@ -100,9 +107,31 @@ export default function EditarPermisos() {
                   <Grid item xs={12} sm={6} md={4} key={permiso.id}>
                     <Box
                       className={`permiso-item-boolean ${activo ? 'selected' : ''}`}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '8px 10px',
+                        border: '1px solid #ddd',
+                        borderRadius: '4px',
+                        backgroundColor: activo ? '#e3f2fd' : '#fff',
+                        borderColor: activo ? '#1976d2' : '#ddd',
+                        cursor: 'default',
+                        minHeight: '42px'
+                      }}
                     >
-                      <Checkbox checked={activo} disabled size="small" />
-                      <Typography className="permiso-text">
+                      <Checkbox 
+                        checked={activo} 
+                        disabled 
+                        size="small" 
+                        sx={{ mr: 0.5, padding: '4px' }}
+                      />
+                      <Typography 
+                        sx={{ 
+                          fontSize: '0.8rem', 
+                          color: 'text.primary',
+                          lineHeight: 1.2 
+                        }}
+                      >
                         {permiso.nombre}
                       </Typography>
                     </Box>
@@ -113,13 +142,19 @@ export default function EditarPermisos() {
           </Box>
         </div>
 
-        <div className="crud-form-actions crear-rol-actions">
-          <button
-            className="crud-btn crud-btn-secondary crear-rol-btn crear-rol-secondary"
+        <div className="crud-form-actions">
+          <button 
             onClick={() => navigate('/admin/seguridad/roles')}
+            className="crud-btn crud-btn-secondary"
           >
-            Volver
+            Cancelar
           </button>
+          <button
+            onClick={() => navigate(`/admin/seguridad/roles/editar/${rol.id}`)}
+            className="crud-btn crud-btn-primary"
+          >
+            Editar Rol
+          </button>       
         </div>
       </div>
     </div>

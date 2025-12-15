@@ -123,7 +123,7 @@ export default function EditarUsuario() {
     return <div>Cargando...</div>;
   }
 
-  return (
+return (
     <div className="crud-form-container">
       <div className="crud-form-header">
         <h1>Editando: {formData.nombre}</h1>
@@ -132,7 +132,6 @@ export default function EditarUsuario() {
       <div className="crud-form-content">
         <form onSubmit={handleSubmit}>
           <div className="crud-form-section">
-            {/* Nombre Completo */}
             <div className="crud-form-group">
               <TextField
                 fullWidth
@@ -145,52 +144,9 @@ export default function EditarUsuario() {
                 variant="outlined"
                 error={!!errors.nombre}
                 helperText={errors.nombre}
-                InputLabelProps={{
-                  style: { fontWeight: 'normal' }
-                }}
               />
             </div>
 
-            {/* Correo Electrónico y Teléfono */}
-            <div className="crud-form-row">
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  label="Correo Electrónico"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="ejemplo@visualoutlet.com"
-                  required
-                  variant="outlined"
-                  error={!!errors.email}
-                  helperText={errors.email}
-                  InputLabelProps={{
-                    style: { fontWeight: 'normal' }
-                  }}
-                />
-              </div>
-
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  label="Teléfono"
-                  name="telefono"
-                  value={formData.telefono || ''}
-                  onChange={handleChange}
-                  placeholder="Ej: 3001234567"
-                  variant="outlined"
-                  error={!!errors.telefono}
-                  helperText={errors.telefono}
-                  InputLabelProps={{
-                    style: { fontWeight: 'normal' }
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Fecha de Nacimiento */}
             <div className="crud-form-group">
               <TextField
                 fullWidth
@@ -200,10 +156,7 @@ export default function EditarUsuario() {
                 value={formData.fechaNacimiento || ''}
                 onChange={handleChange}
                 variant="outlined"
-                InputLabelProps={{ 
-                  shrink: true,
-                  style: { fontWeight: 'normal' }
-                }}
+                InputLabelProps={{ shrink: true }}
                 InputProps={{
                   inputProps: { 
                     max: new Date().toISOString().split('T')[0]
@@ -212,109 +165,75 @@ export default function EditarUsuario() {
               />
             </div>
 
-            {/* Tipo de Documento y Número de Documento */}
-            <div className="crud-form-row">
-              <div className="crud-form-group">
-                <FormControl fullWidth>
-                  <InputLabel 
-                    id="tipoDocumento-label"
-                    style={{ fontWeight: 'normal' }}
-                  >
-                    Tipo de Documento
-                  </InputLabel>
-                  <Select
-                    labelId="tipoDocumento-label"
-                    id="tipoDocumento"
-                    name="tipoDocumento"
-                    value={formData.tipoDocumento || 'cedula'}
-                    onChange={handleChange}
-                    label="Tipo de Documento"
-                  >
-                    <MenuItem value="cedula">Cédula de Ciudadanía</MenuItem>
-                    <MenuItem value="cedula_extranjera">Cédula de Extranjería</MenuItem>
-                    <MenuItem value="pasaporte">Pasaporte</MenuItem>
-                    <MenuItem value="ppt">PPT (Permiso de Permanencia)</MenuItem>
-                  </Select>
-                </FormControl>
-              </div>
-
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  label="Número de Documento"
-                  name="numeroDocumento"
-                  value={formData.numeroDocumento || ''}
-                  onChange={handleChange}
-                  placeholder="Ej: 1234567890"
-                  variant="outlined"
-                  error={!!errors.numeroDocumento}
-                  helperText={errors.numeroDocumento}
-                  InputLabelProps={{
-                    style: { fontWeight: 'normal' }
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Contraseña y Confirmar Contraseña */}
-            <div className="crud-form-row">
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  label="Nueva Contraseña (opcional)"
-                  name="password"
-                  type="password"
-                  value={formData.password || ''}
-                  onChange={handleChange}
-                  placeholder="Mínimo 6 caracteres, 1 mayúscula, 1 número"
-                  variant="outlined"
-                  error={!!errors.password}
-                  helperText={errors.password}
-                  InputLabelProps={{
-                    style: { fontWeight: 'normal' }
-                  }}
-                />
-              </div>
-
-              <div className="crud-form-group">
-                <FormControl fullWidth>
-                  <InputLabel 
-                    id="estado-label"
-                    style={{ fontWeight: 'normal' }}
-                  >
-                    Estado
-                  </InputLabel>
-                  <Select
-                    labelId="estado-label"
-                    id="estado"
-                    name="estado"
-                    value={formData.estado || 'activo'}
-                    onChange={handleChange}
-                    label="Estado"
-                  >
-                    <MenuItem value="activo">Activo</MenuItem>
-                    <MenuItem value="inactivo">Inactivo</MenuItem>
-                  </Select>
-                </FormControl>
-              </div>
-            </div>
-
-            {/* Rol */}
             <div className="crud-form-group">
               <FormControl fullWidth>
-                <InputLabel 
-                  id="rol-label"
-                  style={{ fontWeight: 'normal' }}
-                >
-                  Rol
-                </InputLabel>
+                <InputLabel>Tipo de Documento</InputLabel>
                 <Select
-                  labelId="rol-label"
-                  id="rol"
+                  name="tipoDocumento"
+                  value={formData.tipoDocumento || 'cedula'}
+                  onChange={handleChange}
+                  label="Tipo de Documento"
+                >
+                  <MenuItem value="cedula">Cédula de Ciudadanía</MenuItem>
+                  <MenuItem value="cedula_extranjera">Cédula de Extranjería</MenuItem>
+                  <MenuItem value="pasaporte">Pasaporte</MenuItem>
+                  <MenuItem value="ppt">PPT (Permiso de Permanencia)</MenuItem>
+                </Select>
+              </FormControl>
+            </div>
+
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Número de Documento"
+                name="numeroDocumento"
+                value={formData.numeroDocumento || ''}
+                onChange={handleChange}
+                placeholder="Ej: 1234567890"
+                variant="outlined"
+                error={!!errors.numeroDocumento}
+                helperText={errors.numeroDocumento}
+              />
+            </div>
+
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Correo Electrónico"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="ejemplo@visualoutlet.com"
+                required
+                variant="outlined"
+                error={!!errors.email}
+                helperText={errors.email}
+              />
+            </div>
+
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Teléfono"
+                name="telefono"
+                value={formData.telefono || ''}
+                onChange={handleChange}
+                placeholder="Ej: 3001234567"
+                variant="outlined"
+                error={!!errors.telefono}
+                helperText={errors.telefono}
+              />
+            </div>
+
+            <div className="crud-form-group">
+              <FormControl fullWidth>
+                <InputLabel>Rol *</InputLabel>
+                <Select
                   name="rol"
                   value={formData.rol || 'vendedor'}
                   onChange={handleChange}
-                  label="Rol"
+                  label="Rol *"
                   required
                 >
                   <MenuItem value="vendedor">Vendedor</MenuItem>
@@ -323,6 +242,41 @@ export default function EditarUsuario() {
                   <MenuItem value="tecnico">Técnico</MenuItem>
                 </Select>
               </FormControl>
+            </div>
+
+            <div className="crud-form-group">
+              <FormControl fullWidth>
+                <InputLabel>Estado</InputLabel>
+                <Select
+                  name="estado"
+                  value={formData.estado || 'activo'}
+                  onChange={handleChange}
+                  label="Estado"
+                >
+                  <MenuItem value="activo">Activo</MenuItem>
+                  <MenuItem value="inactivo">Inactivo</MenuItem>
+                  <MenuItem value="bloqueado">Bloqueado</MenuItem>
+                </Select>
+              </FormControl>
+            </div>
+
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Nueva Contraseña (opcional)"
+                name="password"
+                type="password"
+                value={formData.password || ''}
+                onChange={handleChange}
+                placeholder="Mínimo 6 caracteres, 1 mayúscula, 1 número"
+                variant="outlined"
+                error={!!errors.password}
+                helperText={errors.password}
+              />
+            </div>
+
+            <div className="crud-form-group" style={{ opacity: 0 }}>
+              <div style={{ height: '56px' }}></div>
             </div>
           </div>
 
