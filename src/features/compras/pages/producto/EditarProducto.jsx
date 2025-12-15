@@ -8,10 +8,6 @@ import {
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import DeleteIcon from '@mui/icons-material/Delete';
 import "../../../../shared/styles/components/crud-forms.css";
-import { formatToPesos, parseFromPesos } from '../../../../shared/utils/formatCOP';
-
-// 👇 IMPORTACIÓN DEL COMPONENTE DE NOTIFICACIÓN
-import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
 
 export default function EditarProducto() {
   const navigate = useNavigate();
@@ -77,46 +73,6 @@ export default function EditarProducto() {
     { value: 'Otra', label: 'Otra' }
   ];
 
-  const [marcas, setMarcas] = useState([]);
-  const [categorias, setCategorias] = useState([]);
-
-  const [precioVentaFormatted, setPrecioVentaFormatted] = useState('');
-  const [precioCompraFormatted, setPrecioCompraFormatted] = useState('');
-
-  // 👇 ELIMINAMOS setError y usamos notification
-  const [notification, setNotification] = useState({
-    isVisible: false,
-    message: '',
-    type: 'success'
-  });
-
-  // 👇 NUEVO: Guardamos el estado original para comparar cambios
-  const [originalData, setOriginalData] = useState(null);
-
-  const [formData, setFormData] = useState({
-    nombre: '',
-    descripcion: '',
-    precioVenta: '',
-    precioCompra: '',
-    stockActual: '',
-    stockMinimo: '',
-    categoria: '',
-    marca: '',
-    estado: 'activo',
-  });
-
-  // Cargar marcas y categorías
-  useEffect(() => {
-    const marcasList = getAllMarcas();
-    const marcasActivas = marcasList.filter(marca => marca.estado === 'activa');
-    setMarcas(marcasActivas);
-
-    const categoriasList = getAllCategorias();
-    const categoriasActivas = categoriasList.filter(categoria => categoria.estado === 'activa');
-    setCategorias(categoriasActivas);
-  }, []);
-
-  // Cargar datos del producto
   useEffect(() => {
     if (!id) return;
     const producto = getProductoById(Number(id));
@@ -223,7 +179,6 @@ export default function EditarProducto() {
     try {
       setLoading(true);
       
-      // Calcular estado basado en stock
       const stockActualNum = parseInt(formData.stockActual);
       const stockMinimoNum = parseInt(formData.stockMinimo);
       let estadoFinal = formData.estado;
@@ -246,7 +201,6 @@ export default function EditarProducto() {
         })
       );
       
-      // Conservar imágenes existentes
       const todasLasImagenes = [
         ...imagePreviews.slice(0, imagePreviews.length - imagenes.length).map((url, index) => ({
           url,
@@ -284,7 +238,7 @@ export default function EditarProducto() {
     }
   };
 
-  const handleInputChange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
     
     let processedValue = value;
@@ -354,7 +308,6 @@ export default function EditarProducto() {
 
   const removeImage = (index) => {
     setImagePreviews(prev => prev.filter((_, i) => i !== index));
-    // Si es una imagen nueva, eliminarla también del array de imágenes
     if (index >= imagePreviews.length - imagenes.length) {
       const imageIndex = index - (imagePreviews.length - imagenes.length);
       setImagenes(prev => prev.filter((_, i) => i !== imageIndex));
@@ -363,336 +316,309 @@ export default function EditarProducto() {
 
   if (loadingData) {
     return (
-      <CrudLayout>
-        <div className="crud-form-container">Cargando...</div>
-      </CrudLayout>
+      <div className="crud-form-container">Cargando...</div>
     );
   }
 
   return (
-    <CrudLayout>
-      <div className="crud-form-container">
-        <div className="crud-form-header">
-          <h1>Editar Producto</h1>
-        </div>
+    <div className="crud-form-container">
+      <div className="crud-form-header">
+        <h1>Editar Producto</h1>
+      </div>
 
-        <div className="crud-form-content" style={{ padding: '0px' }}>
-          <form onSubmit={handleSubmit}>
-            <div className="crud-form-section">
-              <div className="crud-form-row">
-                <div className="crud-form-group">
-                  <TextField
-                    fullWidth
-                    label="Nombre del Producto"
-                    name="nombre"
-                    value={formData.nombre}
-                    onChange={handleChange}
-                    required
-                    variant="outlined"
-                    error={!!errors.nombre}
-                    helperText={errors.nombre}
-                    InputLabelProps={{ style: { fontWeight: 'normal' } }}
-                    sx={{ margin: 0 }}
-                  />
-                </div>
-                
-                <div className="crud-form-group">
-                  <TextField
-                    fullWidth
-                    label="Código SKU"
-                    name="codigo"
-                    value={formData.codigo}
-                    onChange={handleChange}
-                    required
-                    variant="outlined"
-                    error={!!errors.codigo}
-                    helperText={errors.codigo}
-                    InputLabelProps={{ style: { fontWeight: 'normal' } }}
-                    sx={{ margin: 0 }}
-                  />
-                </div>
-              </div>
-
-              <div className="crud-form-row">
-                <div className="crud-form-group">
-                  <TextField
-                    select
-                    fullWidth
-                    label="Categoría"
-                    name="categoria"
-                    value={formData.categoria}
-                    onChange={handleChange}
-                    required
-                    variant="outlined"
-                    error={!!errors.categoria}
-                    helperText={errors.categoria}
-                    InputLabelProps={{ style: { fontWeight: 'normal' } }}
-                    sx={{ margin: 0 }}
-                  >
-                    {categorias.map((option) => (
-                      <MenuItem key={option.value} value={option.value}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </div>
-                
-                <div className="crud-form-group">
-                  <TextField
-                    select
-                    fullWidth
-                    label="Marca"
-                    name="marca"
-                    value={formData.marca}
-                    onChange={handleChange}
-                    required
-                    variant="outlined"
-                    error={!!errors.marca}
-                    helperText={errors.marca}
-                    InputLabelProps={{ style: { fontWeight: 'normal' } }}
-                    sx={{ margin: 0 }}
-                  >
-                    {marcas.map((option) => (
-                      <MenuItem key={option.value} value={option.value}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </div>
-              </div>
-
+      <div className="crud-form-content" style={{ padding: '0px' }}>
+        <form onSubmit={handleSubmit}>
+          <div className="crud-form-section">
+            <div className="crud-form-row">
               <div className="crud-form-group">
                 <TextField
                   fullWidth
-                  label="Descripción"
-                  name="descripcion"
-                  value={formData.descripcion}
+                  label="Nombre del Producto"
+                  name="nombre"
+                  value={formData.nombre}
                   onChange={handleChange}
-                  multiline
+                  required
                   variant="outlined"
-                  error={!!errors.descripcion}
-                  helperText={errors.descripcion}
+                  error={!!errors.nombre}
+                  helperText={errors.nombre}
                   InputLabelProps={{ style: { fontWeight: 'normal' } }}
                   sx={{ margin: 0 }}
                 />
               </div>
-
-              <div className="crud-form-row">
-                <div className="crud-form-group">
-                  <TextField
-                    fullWidth
-                    label="Precio de Compra"
-                    name="precioCompra"
-                    type="text"
-                    value={formData.precioCompra}
-                    onChange={handleChange}
-                    required
-                    variant="outlined"
-                    error={!!errors.precioCompra}
-                    helperText={errors.precioCompra}
-                    InputLabelProps={{ style: { fontWeight: 'normal' } }}
-                    inputProps={{ 
-                      inputMode: 'decimal',
-                      pattern: '[0-9]*\.?[0-9]*'
-                    }}
-                    sx={{ margin: 0 }}
-                  />
-                </div>
-                
-                <div className="crud-form-group">
-                  <TextField
-                    fullWidth
-                    label="Precio de Venta"
-                    name="precioVenta"
-                    type="text"
-                    value={formData.precioVenta}
-                    onChange={handleChange}
-                    required
-                    variant="outlined"
-                    error={!!errors.precioVenta}
-                    helperText={errors.precioVenta}
-                    InputLabelProps={{ style: { fontWeight: 'normal' } }}
-                    inputProps={{ 
-                      inputMode: 'decimal',
-                      pattern: '[0-9]*\.?[0-9]*'
-                    }}
-                    sx={{ margin: 0 }}
-                  />
-                </div>
+              
+              <div className="crud-form-group">
+                <TextField
+                  fullWidth
+                  label="Código SKU"
+                  name="codigo"
+                  value={formData.codigo}
+                  onChange={handleChange}
+                  required
+                  variant="outlined"
+                  error={!!errors.codigo}
+                  helperText={errors.codigo}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                  sx={{ margin: 0 }}
+                />
               </div>
+            </div>
 
-              <div className="crud-form-row">
-                <div className="crud-form-group">
-                  <TextField
-                    fullWidth
-                    label="Stock Actual"
-                    name="stockActual"
-                    type="text"
-                    value={formData.stockActual}
-                    onChange={handleChange}
-                    required
-                    variant="outlined"
-                    error={!!errors.stockActual}
-                    helperText={errors.stockActual}
-                    InputLabelProps={{ style: { fontWeight: 'normal' } }}
-                    inputProps={{ 
-                      inputMode: 'numeric',
-                      pattern: '[0-9]*'
-                    }}
-                    sx={{ margin: 0 }}
-                  />
-                </div>
-                
-                <div className="crud-form-group">
-                  <TextField
-                    fullWidth
-                    label="Stock Mínimo"
-                    name="stockMinimo"
-                    type="text"
-                    value={formData.stockMinimo}
-                    onChange={handleChange}
-                    required
-                    variant="outlined"
-                    error={!!errors.stockMinimo}
-                    helperText={errors.stockMinimo}
-                    InputLabelProps={{ style: { fontWeight: 'normal' } }}
-                    inputProps={{ 
-                      inputMode: 'numeric',
-                      pattern: '[0-9]*'
-                    }}
-                    sx={{ margin: 0 }}
-                  />
-                </div>
-              </div>
-
+            <div className="crud-form-row">
               <div className="crud-form-group">
                 <TextField
                   select
                   fullWidth
-                  label="Estado"
-                  name="estado"
-                  value={formData.estado}
+                  label="Categoría"
+                  name="categoria"
+                  value={formData.categoria}
                   onChange={handleChange}
+                  required
                   variant="outlined"
+                  error={!!errors.categoria}
+                  helperText={errors.categoria}
                   InputLabelProps={{ style: { fontWeight: 'normal' } }}
                   sx={{ margin: 0 }}
                 >
-                  <MenuItem value="activo">Activo</MenuItem>
-                  <MenuItem value="inactivo">Inactivo</MenuItem>
-                  <MenuItem value="bajo-stock">Bajo Stock</MenuItem>
+                  {categorias.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
                 </TextField>
               </div>
+              
+              <div className="crud-form-group">
+                <TextField
+                  select
+                  fullWidth
+                  label="Marca"
+                  name="marca"
+                  value={formData.marca}
+                  onChange={handleChange}
+                  required
+                  variant="outlined"
+                  error={!!errors.marca}
+                  helperText={errors.marca}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                  sx={{ margin: 0 }}
+                >
+                  {marcas.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </div>
+            </div>
 
-              <div className="crud-form-group" style={{ marginTop: '16px' }}>
-                <label htmlFor="image-upload" className="upload-image-label">
-                  <div className="upload-image-content">
-                    <AddPhotoAlternateIcon className="upload-image-icon" />
-                    <div className="upload-image-text">
-                      <div className="upload-image-title">Subir imágenes del producto</div>
-                      <div className="upload-image-subtitle">Haz clic o arrastra imágenes aquí</div>
-                      <div className="upload-image-info">
-                        Formatos: JPG, PNG, WebP | Máx: 2MB c/u | Máx: 5 imágenes
-                      </div>
-                    </div>
-                  </div>
-                </label>
-                
-                <input
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  id="image-upload"
-                  type="file"
-                  multiple
-                  onChange={handleImageUpload}
+            <div className="crud-form-group">
+              <TextField
+                fullWidth
+                label="Descripción"
+                name="descripcion"
+                value={formData.descripcion}
+                onChange={handleChange}
+                multiline
+                variant="outlined"
+                error={!!errors.descripcion}
+                helperText={errors.descripcion}
+                InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                sx={{ margin: 0 }}
+              />
+            </div>
+
+            <div className="crud-form-row">
+              <div className="crud-form-group">
+                <TextField
+                  fullWidth
+                  label="Precio de Compra"
+                  name="precioCompra"
+                  type="text"
+                  value={formData.precioCompra}
+                  onChange={handleChange}
+                  required
+                  variant="outlined"
+                  error={!!errors.precioCompra}
+                  helperText={errors.precioCompra}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                  inputProps={{ 
+                    inputMode: 'decimal',
+                    pattern: '[0-9]*\.?[0-9]*'
+                  }}
+                  sx={{ margin: 0 }}
                 />
-                
-                {errors.imagenes && (
-                  <div className="error-text">
-                    {errors.imagenes}
-                  </div>
-                )}
-                
-                {imagePreviews.length > 0 && (
-                  <div className="image-previews-container">
-                    <div className="previews-header">
-                      <span className="previews-title">
-                        Imágenes ({imagePreviews.length}/5)
-                      </span>
+              </div>
+              
+              <div className="crud-form-group">
+                <TextField
+                  fullWidth
+                  label="Precio de Venta"
+                  name="precioVenta"
+                  type="text"
+                  value={formData.precioVenta}
+                  onChange={handleChange}
+                  required
+                  variant="outlined"
+                  error={!!errors.precioVenta}
+                  helperText={errors.precioVenta}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                  inputProps={{ 
+                    inputMode: 'decimal',
+                    pattern: '[0-9]*\.?[0-9]*'
+                  }}
+                  sx={{ margin: 0 }}
+                />
+              </div>
+            </div>
+
+            <div className="crud-form-row">
+              <div className="crud-form-group">
+                <TextField
+                  fullWidth
+                  label="Stock Actual"
+                  name="stockActual"
+                  type="text"
+                  value={formData.stockActual}
+                  onChange={handleChange}
+                  required
+                  variant="outlined"
+                  error={!!errors.stockActual}
+                  helperText={errors.stockActual}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                  inputProps={{ 
+                    inputMode: 'numeric',
+                    pattern: '[0-9]*'
+                  }}
+                  sx={{ margin: 0 }}
+                />
+              </div>
+              
+              <div className="crud-form-group">
+                <TextField
+                  fullWidth
+                  label="Stock Mínimo"
+                  name="stockMinimo"
+                  type="text"
+                  value={formData.stockMinimo}
+                  onChange={handleChange}
+                  required
+                  variant="outlined"
+                  error={!!errors.stockMinimo}
+                  helperText={errors.stockMinimo}
+                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                  inputProps={{ 
+                    inputMode: 'numeric',
+                    pattern: '[0-9]*'
+                  }}
+                  sx={{ margin: 0 }}
+                />
+              </div>
+            </div>
+
+            <div className="crud-form-group">
+              <TextField
+                select
+                fullWidth
+                label="Estado"
+                name="estado"
+                value={formData.estado}
+                onChange={handleChange}
+                variant="outlined"
+                InputLabelProps={{ style: { fontWeight: 'normal' } }}
+                sx={{ margin: 0 }}
+              >
+                <MenuItem value="activo">Activo</MenuItem>
+                <MenuItem value="inactivo">Inactivo</MenuItem>
+                <MenuItem value="bajo-stock">Bajo Stock</MenuItem>
+              </TextField>
+            </div>
+
+            <div className="crud-form-group" style={{ marginTop: '16px' }}>
+              <label htmlFor="image-upload" className="upload-image-label">
+                <div className="upload-image-content">
+                  <AddPhotoAlternateIcon className="upload-image-icon" />
+                  <div className="upload-image-text">
+                    <div className="upload-image-title">Subir imágenes del producto</div>
+                    <div className="upload-image-subtitle">Haz clic o arrastra imágenes aquí</div>
+                    <div className="upload-image-info">
+                      Formatos: JPG, PNG, WebP | Máx: 2MB c/u | Máx: 5 imágenes
                     </div>
-                    <div className="image-previews">
-                      {imagePreviews.map((preview, index) => (
-                        <div key={index} className="image-preview-container">
-                          <div className="image-preview-wrapper">
-                            <img 
-                              src={preview} 
-                              alt={`Preview ${index + 1}`}
-                              className="image-preview"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => removeImage(index)}
-                              className="image-remove-btn"
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </button>
-                          </div>
+                  </div>
+                </div>
+              </label>
+              
+              <input
+                accept="image/*"
+                style={{ display: 'none' }}
+                id="image-upload"
+                type="file"
+                multiple
+                onChange={handleImageUpload}
+              />
+              
+              {errors.imagenes && (
+                <div className="error-text">
+                  {errors.imagenes}
+                </div>
+              )}
+              
+              {imagePreviews.length > 0 && (
+                <div className="image-previews-container">
+                  <div className="previews-header">
+                    <span className="previews-title">
+                      Imágenes ({imagePreviews.length}/5)
+                    </span>
+                  </div>
+                  <div className="image-previews">
+                    {imagePreviews.map((preview, index) => (
+                      <div key={index} className="image-preview-container">
+                        <div className="image-preview-wrapper">
+                          <img 
+                            src={preview} 
+                            alt={`Preview ${index + 1}`}
+                            className="image-preview"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="image-remove-btn"
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </button>
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ))}
                   </div>
-                )}
-              </div>
-
-              <div className="crud-form-group full-width">
-                <label htmlFor="descripcion">Descripción</label>
-                <textarea
-                  id="descripcion"
-                  name="descripcion"
-                  value={formData.descripcion}
-                  onChange={handleInputChange}
-                  rows="2"
-                  className="crud-input crud-textarea"
-                  placeholder="Descripción del producto..."
-                />
-              </div>
-
+                </div>
+              )}
             </div>
+          </div>
 
-            {/* 👇 NO mostramos errores aquí porque usamos notificaciones */}
-            <div className="crud-form-actions">
-              <button 
-                type="button" 
-                className="crud-btn crud-btn-secondary"
-                onClick={() => navigate('/admin/compras/productos')}
-                disabled={loading}
-              >
-                Cancelar
-              </button>
-              <button 
-                type="submit" 
-                className="crud-btn crud-btn-primary"
-                disabled={loading}
-              >
-                {loading ? 'Actualizando...' : 'Actualizar Producto'}
-              </button>
+          <div className="crud-form-actions">
+            <button 
+              type="button" 
+              className="crud-btn crud-btn-secondary"
+              onClick={() => navigate('/admin/compras/productos')}
+              disabled={loading}
+            >
+              Cancelar
+            </button>
+            <button 
+              type="submit" 
+              className="crud-btn crud-btn-primary"
+              disabled={loading}
+            >
+              {loading ? 'Actualizando...' : 'Actualizar Producto'}
+            </button>
+          </div>
+          
+          {errors.general && (
+            <div className="general-error">
+              {errors.general}
             </div>
-            
-            {errors.general && (
-              <div className="general-error">
-                {errors.general}
-              </div>
-            )}
-          </form>
-        </div>
+          )}
+        </form>
       </div>
-
-      {/* 👇 NOTIFICACIÓN REUTILIZABLE */}
-      <CrudNotification
-        message={notification.message}
-        type={notification.type}
-        isVisible={notification.isVisible}
-        onClose={handleCloseNotification}
-      />
-    </>
+    </div>
   );
 }

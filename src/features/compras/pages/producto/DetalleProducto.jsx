@@ -44,9 +44,18 @@ export default function DetalleProducto() {
       <div className="crud-form-content">
         <div className="crud-form-section">
           <div className="crud-detail-grid">
-            <div className="crud-detail-item">
-              <strong>Nombre:</strong> 
-              <span>{producto.nombre}</span>
+            {/* ELIMINADO: div.crud-detail-item duplicado que no se usa */}
+            
+            <div className="crud-form-group">
+              <label htmlFor="nombre">Nombre</label>
+              <input
+                type="text"
+                id="nombre"
+                name="nombre"
+                value={producto.nombre || ''}
+                disabled
+                className="crud-input"
+              />
             </div>
 
             <div className="crud-form-group">
@@ -144,23 +153,24 @@ export default function DetalleProducto() {
                 className="crud-input crud-textarea"
               />
             </div>
-          </div>
+          </div> {/* CIERRE de crud-detail-grid */}
 
-        <div className="crud-form-actions">
-          <button 
-            onClick={() => navigate('/admin/compras/productos')}
-            className="crud-btn crud-btn-secondary"
-          >
-            Volver
-          </button>
+          <div className="crud-form-actions">
+            <button 
+              onClick={() => navigate('/admin/compras/productos')}
+              className="crud-btn crud-btn-secondary"
+            >
+              Volver
+            </button>
             <button
-            onClick={() => navigate(`/admin/compras/productos/editar/${producto.id}`)}
-            className="crud-btn crud-btn-primary"
-          >
-            Editar Producto
-          </button>
+              onClick={() => navigate(`/admin/compras/productos/editar/${producto.id}`)}
+              className="crud-btn crud-btn-primary"
+            >
+              Editar Producto
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </div> 
   );
 }

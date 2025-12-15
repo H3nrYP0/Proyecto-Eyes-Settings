@@ -4,8 +4,6 @@ import { createMarca } from '../../../../lib/data/marcasData';
 import { TextField } from '@mui/material';
 import "../../../../shared/styles/components/crud-forms.css";
 
-import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification"
-
 export default function CrearMarca() {
   const navigate = useNavigate();
 
@@ -20,7 +18,6 @@ export default function CrearMarca() {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Validaciones
     const newErrors = {};
     
     if (!formData.nombre.trim()) {
@@ -38,7 +35,6 @@ export default function CrearMarca() {
       return;
     }
     
-    // Crear la marca con estado por defecto "activa"
     const nuevaMarca = createMarca({
       ...formData,
       estado: 'activa'
@@ -54,7 +50,6 @@ export default function CrearMarca() {
       [name]: value
     });
     
-    // Limpiar errores al cambiar
     if (errors[name]) {
       setErrors({
         ...errors,
@@ -72,7 +67,6 @@ export default function CrearMarca() {
       <div className="crud-form-content">
         <form onSubmit={handleSubmit}>
           <div className="crud-form-section">          
-            {/* Nombre */}
             <div className="crud-form-group">
               <TextField
                 fullWidth
@@ -91,7 +85,6 @@ export default function CrearMarca() {
               />
             </div>
 
-            {/* Descripción */}
             <div className="crud-form-group">
               <TextField
                 fullWidth
@@ -126,13 +119,6 @@ export default function CrearMarca() {
           </div>
         </form>
       </div>
-
-      <CrudNotification
-        message={notification.message}
-        type={notification.type}
-        isVisible={notification.isVisible}
-        onClose={handleCloseNotification}
-      />
-    </>
+    </div>
   );
 }
