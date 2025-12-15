@@ -245,30 +245,31 @@ export default function EditarPermisos() {
       
       <div className="crud-form-content crear-rol-content">
         <form onSubmit={handleSubmit}>
-          {/* Sección de información del rol - Actualizada con el diseño de CrearRol */}
-          <div className="crud-form-section crear-rol-section">
-            {/* Nombre del Rol */}
-            <div className="crear-rol-form-row">
+          {/* Sección de información del rol */}
+          <div className="crud-form-section">
+            {/* Fila 1: Nombre del Rol (izquierda) */}
+            <div className="crud-form-group">
               <TextField
                 fullWidth
-                label="Nombre del Rol"
+                label="Nombre del Rol *"
                 name="nombre"
                 value={formData.nombre}
                 onChange={handleChange}
+                placeholder="Ej: Administrador"
+                required
+                variant="outlined"
                 error={!!errors.nombre}
                 helperText={errors.nombre}
-                required
-                placeholder="Ej: Administrador"
-                variant="outlined"
-                size="small"
-                className="crear-rol-input"
+                InputLabelProps={{
+                  style: { fontWeight: 'normal' }
+                }}
               />
             </div>
 
-            {/* Estado y Descripción en filas separadas */}
-            <div className="crear-rol-form-row">
-              <FormControl fullWidth size="small" className="crear-rol-input">
-                <InputLabel>Estado</InputLabel>
+            {/* Fila 1: Estado (derecha) */}
+            <div className="crud-form-group">
+              <FormControl fullWidth>
+                <InputLabel style={{ fontWeight: 'normal' }}>Estado</InputLabel>
                 <Select
                   label="Estado"
                   name="estado"
@@ -282,20 +283,22 @@ export default function EditarPermisos() {
               </FormControl>
             </div>
 
-            <div className="crear-rol-form-row">
+            {/* Fila 2: Descripción (ocupa 2 columnas) */}
+            <div className="crud-form-group full-width">
               <TextField
                 fullWidth
-                label="Descripción"
+                label="Descripción *"
                 name="descripcion"
                 value={formData.descripcion}
                 onChange={handleChange}
+                placeholder="Descripción del rol..."
+                required
+                variant="outlined"
                 error={!!errors.descripcion}
                 helperText={errors.descripcion}
-                required
-                placeholder="Descripción del rol..."
-                variant="outlined"
-                size="small"
-                className="crear-rol-input"
+                InputLabelProps={{
+                  style: { fontWeight: 'normal' }
+                }}
               />
             </div>
           </div>
@@ -370,17 +373,17 @@ export default function EditarPermisos() {
             </Box>
           </div>
 
-          <div className="crud-form-actions crear-rol-actions">
+          <div className="crud-form-actions">
             <button 
               type="button" 
-              className="crud-btn crud-btn-secondary crear-rol-btn crear-rol-secondary"
+              className="crud-btn crud-btn-secondary"
               onClick={() => navigate('/admin/seguridad/roles')}
             >
               Cancelar
             </button>
             <button 
               type="submit" 
-              className="crud-btn crud-btn-primary crear-rol-btn crear-rol-primary"
+              className="crud-btn crud-btn-primary"
             >
               Actualizar Rol
             </button>

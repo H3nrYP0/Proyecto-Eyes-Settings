@@ -154,39 +154,39 @@ export default function CrearRol() {
       
       <div className="crud-form-content crear-rol-content">
         <form onSubmit={handleSubmit}>
-          <div className="crud-form-section crear-rol-section">
-            {/* Nombre del Rol */}
-            <div className="crear-rol-form-row">
+          <div className="crud-form-section">
+            <div className="crud-form-group">
               <TextField
                 fullWidth
                 label="Nombre del Rol"
                 name="nombre"
                 value={formData.nombre}
                 onChange={handleChange}
+                placeholder="Ej: Administrador"
+                required
+                variant="outlined"
                 error={!!errors.nombre}
                 helperText={errors.nombre}
-                required
-                placeholder="Ej: Administrador"
-                variant="outlined"
-                size="small"
-                className="crear-rol-input"
+                InputLabelProps={{
+                  style: { fontWeight: 'normal' }
+                }}
               />
             </div>
-
-            <div className="crear-rol-form-row">
+            <div className="crud-form-group">
               <TextField
                 fullWidth
                 label="Descripción"
                 name="descripcion"
                 value={formData.descripcion}
                 onChange={handleChange}
+                placeholder="Descripción del rol..."
+                required
+                variant="outlined"
                 error={!!errors.descripcion}
                 helperText={errors.descripcion}
-                required
-                placeholder="Descripción del rol..."
-                variant="outlined"
-                size="small"
-                className="crear-rol-input"
+                InputLabelProps={{
+                  style: { fontWeight: 'normal' }
+                }}
               />
             </div>
           </div>

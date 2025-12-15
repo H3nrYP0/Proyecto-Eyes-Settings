@@ -24,62 +24,69 @@ export default function DetalleUsuario() {
       </div>
       
       <div className="crud-form-content">
-        <div className="crud-form-section">     
-          <div className="crud-detail-grid">
-            <div className="crud-detail-item">
-              <strong>Nombre:</strong> 
-              <span>{usuario.nombre}</span>
+        <div className="crud-form-section">
+          <div className="crud-form-group">
+            <div className="crud-input-view">
+              {usuario.nombre}
             </div>
-            
-            <div className="crud-detail-item">
-              <strong>Email:</strong> 
-              <span>{usuario.email}</span>
-            </div>
+          </div>
 
-            <div className="crud-detail-item">
-              <strong>Teléfono:</strong> 
-              <span>{usuario.telefono || 'No especificado'}</span>
+          <div className="crud-form-group">
+            <div className="crud-input-view">
+              {usuario.fechaNacimiento || 'No especificada'}
             </div>
+          </div>
 
-            <div className="crud-detail-item">
-              <strong>Fecha de Nacimiento:</strong> 
-              <span>{usuario.fechaNacimiento || 'No especificada'}</span>
+          <div className="crud-form-group">
+            <div className="crud-input-view">
+              {usuario.tipoDocumento === 'cedula' ? 'Cédula de Ciudadanía' :
+               usuario.tipoDocumento === 'cedula_extranjera' ? 'Cédula de Extranjería' :
+               usuario.tipoDocumento === 'pasaporte' ? 'Pasaporte' :
+               usuario.tipoDocumento === 'ppt' ? 'PPT (Permiso de Permanencia)' :
+               usuario.tipoDocumento || 'No especificado'}
             </div>
+          </div>
 
-            <div className="crud-detail-item">
-              <strong>Tipo de Documento:</strong> 
-              <span>
-                {usuario.tipoDocumento === 'cedula' ? 'Cédula de Ciudadanía' :
-                 usuario.tipoDocumento === 'cedula_extranjera' ? 'Cédula de Extranjería' :
-                 usuario.tipoDocumento === 'pasaporte' ? 'Pasaporte' :
-                 usuario.tipoDocumento === 'ppt' ? 'PPT (Permiso de Permanencia)' :
-                 usuario.tipoDocumento || 'No especificado'}
-              </span>
+          <div className="crud-form-group">
+            <div className="crud-input-view">
+              {usuario.numeroDocumento || 'No especificado'}
             </div>
+          </div>
 
-            <div className="crud-detail-item">
-              <strong>Número de Documento:</strong> 
-              <span>{usuario.numeroDocumento || 'No especificado'}</span>
+          <div className="crud-form-group">
+            <div className="crud-input-view">
+              {usuario.email}
             </div>
+          </div>
 
-            <div className="crud-detail-item">
-              <strong>Rol:</strong> 
-              <span className={`rol-badge ${usuario.rol.toLowerCase()}`}>
-                {usuario.rol}
-              </span>
+          <div className="crud-form-group">
+            <div className="crud-input-view">
+              {usuario.telefono || 'No especificado'}
             </div>
+          </div>
 
-            <div className="crud-detail-item">
-              <strong>Fecha de Registro:</strong> 
-              <span>{usuario.fechaRegistro}</span>
+          <div className="crud-form-group">
+            <div className="crud-input-view">
+              {usuario.rol}
             </div>
-            
-            <div className="crud-detail-item">
-              <strong>Estado:</strong> 
+          </div>
+
+          <div className="crud-form-group">
+            <div className="crud-input-view">
               <span className={`crud-badge ${usuario.estado === "activo" ? "crud-badge-success" : "crud-badge-error"}`}>
                 {usuario.estado === "activo" ? "Activo" : "Inactivo"}
               </span>
             </div>
+          </div>
+
+          <div className="crud-form-group">
+            <div className="crud-input-view">
+              {usuario.fechaRegistro}
+            </div>
+          </div>
+
+          <div className="crud-form-group empty-field">
+            <div></div>
           </div>
         </div>
 

@@ -1,5 +1,5 @@
 /* =============================
-   ESTILOS SIMPLIFICADOS FORMULARIOS CRUD
+   ESTILOS OPTIMIZADOS FORMULARIOS CRUD
    ============================= */
 
 /* CONTENEDOR PRINCIPAL */
@@ -21,7 +21,7 @@
 }
 
 .crud-form-header h1 {
-  margin: 0 0 8px 0;
+  margin: 0 0 8px;
   font-size: 1.5rem;
   font-weight: 700;
 }
@@ -37,7 +37,7 @@
   padding: 32px;
 }
 
-/* SECCIONES - 2 COLUMNAS */
+/* SECCIONES - SISTEMA DE 2 COLUMNAS POR DEFECTO */
 .crud-form-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -49,66 +49,70 @@
   border: 1px solid var(--gray-200);
 }
 
-.crud-form-section:last-child {
-  margin-bottom: 0;
-}
-
-.crud-form-section h3 {
-  grid-column: 1 / -1;
-  margin: 0 0 24px 0;
-  color: var(--gray-800);
-  font-size: 1.2rem;
-  font-weight: 600;
-  padding-bottom: 12px;
-  border-bottom: 2px solid var(--primary-color);
-}
-
 /* Grupo de formulario que ocupa toda la fila */
 .crud-form-group.full-width {
   grid-column: 1 / -1;
-  margin-bottom: 8px;
 }
 
-.crud-form-group:last-child {
-  margin-bottom: 0;
-}
-
-/* Asegurar que los grupos en filas tengan el mismo espaciado */
-.crud-form-section > .crud-form-group:nth-last-child(2):not(.full-width),
-.crud-form-section > .crud-form-group:last-child:not(.full-width) {
-  margin-bottom: 0;
-}
-
-/* GRUPOS DE FORMULARIO */
+/* GRUPOS DE FORMULARIO - ESTILO UNIFORME */
 .crud-form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.1px;
-  margin-bottom: 1px;
+  gap: 8px;
+  margin-bottom: 0; /* Eliminamos márgenes verticales entre grupos */
 }
 
-.crud-form-group label {
+/* Asegurar que los labels tengan el mismo estilo */
+.crud-form-group label,
+.crud-form-group .MuiFormLabel-root,
+.crud-form-group .MuiInputLabel-root {
   font-weight: 600;
   color: var(--gray-700);
   font-size: 0.9rem;
+  margin-bottom: 4px;
 }
 
 .crud-required {
   color: #dc2626;
 }
 
-/* INPUTS */
-.crud-input {
-  padding: 12px;
-  border: 1px solid var(--gray-300);
-  border-radius: 6px;
-  font-size: 0.9rem;
-  background: white;
+/* ESTILOS PARA MATERIAL-UI DENTRO DE FORMULARIOS CRUD */
+.crud-form-section .MuiFormControl-root,
+.crud-form-section .MuiTextField-root {
   width: 100%;
+  margin: 0; /* Eliminar márgenes */
+}
+
+/* Asegurar altura uniforme para todos los inputs */
+.crud-form-section .MuiOutlinedInput-root,
+.crud-form-section .MuiSelect-select {
+  height: 56px;
   box-sizing: border-box;
 }
 
-.crud-input:focus {
+.crud-form-section .MuiSelect-select {
+  padding-top: 16.5px;
+  padding-bottom: 16.5px;
+}
+
+/* INPUTS ESTÁNDAR (para formularios sin Material-UI) */
+.crud-input,
+.crud-textarea,
+.crud-select {
+  padding: 16.5px 14px;
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+  font-size: 1rem;
+  background: white;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+  min-height: 56px;
+}
+
+.crud-input:focus,
+.crud-textarea:focus,
+.crud-select:focus {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
@@ -116,51 +120,16 @@
 
 .crud-textarea {
   resize: vertical;
-  min-height: 30px;
-   max-height: 100px;
+  min-height: 80px;
   font-family: inherit;
 }
 
-/* ITEMS DE DETALLE - 2 COLUMNAS */
-.crud-detail-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.crud-detail-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 12px;
-  background: white;
-  border-radius: 6px;
-  border: 1px solid var(--gray-200);
-}
-
-.crud-detail-item strong {
-  color: var(--gray-700);
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.crud-detail-item ul {
-  margin: 0;
-  padding-left: 20px;
-}
-
-.crud-detail-item li {
-  margin-bottom: 4px;
-  color: var(--gray-700);
-  font-size: 0.9rem;
-}
-
-/* ACCIONES */
+/* ACCIONES DEL FORMULARIO */
 .crud-form-actions {
   display: flex;
   gap: 12px;
   justify-content: flex-end;
-  padding-top: 6px;
+  padding-top: 24px;
   margin-top: 16px;
   border-top: 1px solid var(--gray-200);
 }
@@ -202,120 +171,7 @@
   background: var(--gray-300);
 }
 
-.crud-btn-delete {
-  background: #fee2e2;
-  color: #dc2626;
-  padding: 8px 16px;
-  min-width: auto;
-  border: 1px solid #fecaca;
-}
-
-.crud-btn-delete:hover {
-  background: #fecaca;
-}
-
-/* BADGES */
-.crud-badge {
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.crud-badge-success {
-  background: #d4ffd8;
-  color: #15803d;
-  border: 1px solid #b8e6cb;
-}
-
-.crud-badge-error {
-  background: #ffe1e1;
-  color: #b91c1c;
-  border: 1px solid #f5c2c2;
-}
-
-/* COMPONENTES ESPECÍFICOS */
-.crud-products-section {
-  grid-column: 1 / -1;
-}
-
-.crud-products-table {
-  width: 100%;
-  background: white;
-  border-radius: 6px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.crud-products-table th {
-  background: var(--gray-100);
-  font-weight: 600;
-  padding: 12px;
-  text-align: left;
-  border-bottom: 1px solid var(--gray-200);
-}
-
-.crud-products-table td {
-  padding: 8px;
-  vertical-align: middle;
-  border-bottom: 1px solid var(--gray-100);
-}
-
-.crud-inline-input {
-  padding: 8px;
-  border: 1px solid var(--gray-300);
-  border-radius: 4px;
-  font-size: 0.9rem;
-  width: 100%;
-  background: white;
-}
-
-.crud-inline-input:focus {
-  outline: none;
-  border-color: var(--primary-color);
-}
-
-.crud-add-product {
-  grid-column: 1 / -1;
-  background: var(--gray-50);
-  padding: 20px;
-  border-radius: 6px;
-  border: 2px dashed var(--gray-300);
-  margin-bottom: 16px;
-}
-
-.crud-totals {
-  grid-column: 1 / -1;
-  display: grid;
-  gap: 8px;
-  max-width: 400px;
-  margin-left: auto;
-  background: white;
-  padding: 20px;
-  border-radius: 6px;
-  border: 1px solid var(--gray-200);
-}
-
-.crud-total-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--gray-200);
-  font-size: 0.9rem;
-}
-
-.crud-total-final {
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: var(--primary-color);
-  border-top: 2px solid var(--gray-300);
-  border-bottom: none;
-  padding-top: 12px;
-  margin-top: 8px;
-}
-
-/* RESPONSIVE */
+/* RESPONSIVE - 1 COLUMNA EN MÓVIL */
 @media (max-width: 768px) {
   .crud-form-container {
     max-width: 95%;
@@ -332,13 +188,8 @@
     padding: 20px;
   }
   
-  .crud-detail-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .crud-totals {
-    max-width: 100%;
-    margin-left: 0;
+  .crud-form-group.full-width {
+    grid-column: 1;
   }
   
   .crud-form-actions {
@@ -348,222 +199,115 @@
   .crud-btn {
     min-width: 100%;
   }
-  
-  .crud-products-section {
-    overflow-x: auto;
-  }
 }
 
-
-/* Estilos para el selector de hora */
-.time-selector-container {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+/* ESTILOS ESPECÍFICOS PARA ERRORES */
+.crud-form-section .MuiFormHelperText-root {
+  margin-top: 4px;
+  font-size: 0.75rem;
 }
 
-.time-selector-btn {
-  padding: 12px;
-  border: 1px solid var(--gray-300);
-  border-radius: 6px;
-  background: white;
-  color: var(--gray-700);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: center;
-  font-size: 0.9rem;
-  font-weight: 500;
-  width: 100%;
-  box-sizing: border-box;
+.crud-error {
+  color: #dc2626;
+  font-size: 0.75rem;
+  margin-top: 4px;
 }
 
-.time-selector-btn:hover {
-  border-color: var(--primary-color);
-  background: var(--background-hover);
+/* Estilo para campos vacíos de emparejamiento */
+.crud-form-group.empty-pair {
+  opacity: 0.3;
+  pointer-events: none;
+  user-select: none;
 }
 
-.time-selector-btn:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+.crud-form-group.empty-pair .MuiOutlinedInput-root {
+  border-color: transparent;
+  background-color: transparent;
 }
 
-.selected-time-display {
-  padding: 8px 12px;
-  background: #f0f9ff;
-  border: 1px solid #0ea5e9;
-  border-radius: 6px;
-  text-align: center;
-  font-size: 0.9rem;
-  color: #0369a1;
+.crud-form-group.empty-pair .MuiInputLabel-root {
+  color: var(--gray-400);
 }
 
-/* Modal de selección de hora */
-.time-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  padding: 20px;
-}
-
-.time-modal {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  width: 100%;
-  max-width: 480px;
-  max-height: 90vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--gray-200);
-}
-
-.time-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--gray-200);
-  background: white;
-}
-
-.time-modal-header h3 {
-  margin: 0;
-  color: var(--gray-800);
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.time-modal-close {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: var(--gray-500);
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-}
-
-.time-modal-close:hover {
-  background: var(--gray-100);
-  color: var(--gray-700);
-}
-
-.time-modal-content {
-  padding: 20px;
-  flex: 1;
-  overflow-y: auto;
-}
-
-.time-modal-subtitle {
-  text-align: center;
-  margin: 0 0 16px 0;
-  color: var(--gray-600);
-  font-size: 0.9rem;
-}
-
-.time-slots-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.time-slots-column {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.time-slot-btn {
+/* ESTILOS PARA VISTA DE DETALLE (SIN SCROLL) */
+.crud-input-view {
   padding: 10px 12px;
   border: 1px solid var(--gray-300);
   border-radius: 6px;
-  background: white;
-  color: var(--gray-700);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: center;
   font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.time-slot-btn:hover {
-  border-color: var(--primary-color);
-  background: #f8fafc;
-  transform: translateY(-1px);
-}
-
-.time-slot-selected {
-  border-color: var(--primary-color);
-  background: var(--primary-color);
-  color: white;
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
-}
-
-.time-slot-selected:hover {
-  background: var(--primary-color);
-  border-color: var(--primary-color);
-  transform: none;
-}
-
-.time-modal-footer {
-  padding: 16px 20px;
-  border-top: 1px solid var(--gray-200);
+  background: #f9fafb;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
   display: flex;
-  justify-content: flex-end;
-  background: #f8fafc;
+  align-items: center;
+  color: var(--gray-800);
 }
 
-.time-modal-cancel {
-  padding: 8px 16px;
+/* Reducir gap entre grupos en vista detalle */
+.crud-form-section .crud-form-group {
+  gap: 6px;
+}
+
+/* Reducir padding de la sección si es necesario */
+.crud-form-section {
+  padding: 20px;
+}
+
+/* Si aún hay scroll, reducir más */
+@media (min-height: 700px) {
+  .crud-input-view {
+    min-height: 40px;
+    padding: 8px 12px;
+  }
+  
+  .crud-form-section .crud-form-group {
+    gap: 4px;
+  }
+  
+  .crud-form-section {
+    padding: 16px;
+    gap: 16px;
+  }
+}
+
+/* Estilos para modo visualización (detalle) - COINCIDEN CON MATERIAL-UI */
+.crud-form-label {
+  font-weight: 600;
+  color: var(--gray-700);
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+  transform-origin: top left;
+  transform: translate(0, -1.5px) scale(0.75);
+}
+
+.crud-input-view {
+  padding: 16.5px 14px;
   border: 1px solid var(--gray-300);
   border-radius: 6px;
+  font-size: 1rem;
   background: white;
-  color: var(--gray-700);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 0.9rem;
-  font-weight: 500;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  color: var(--gray-800);
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  transition: border-color 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
 }
 
-.time-modal-cancel:hover {
-  background: var(--gray-50);
+.crud-input-view:hover {
   border-color: var(--gray-400);
 }
 
-.time-modal-cancel:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+.crud-form-group.empty-field {
+  opacity: 0;
+  pointer-events: none;
+  min-height: 56px;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .time-slots-container {
-    grid-template-columns: 1fr;
-  }
-  
-  .time-modal {
-    margin: 16px;
-    max-width: none;
-  }
-  
-  .time-modal-overlay {
-    padding: 16px;
-  }
+/* Para que los badges se vean bien */
+.crud-input-view .crud-badge {
+  margin: 0;
 }
-
