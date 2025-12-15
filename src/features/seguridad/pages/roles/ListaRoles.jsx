@@ -7,95 +7,155 @@ export default function DetalleRol() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [rol, setRol] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const rolData = getRolById(Number(id));
-    setRol(rolData);
+    if (rolData) {
+      // Adaptar datos si es necesario
+      const rolAdaptado = {
+        ...rolData,
+        estado: rolData.estado || 'activo'
+      };
+      setRol(rolAdaptado);
+    }
+    setLoading(false);
   }, [id]);
-
-  if (!rol) {
-    return <div>Cargando...</div>;
-  }
 
   // Mapeo descriptivo de los permisos
   const permisosDescriptivos = {
-    'dashboard': 'Gestionar Dashboard',
-    'categorias': 'Gestionar Categorías',
-    'compras': 'Gestionar Compras',
-    'empleados': 'Gestionar Empleados',
-    'ventas': 'Gestionar Ventas',
-    'roles': 'Gestionar Roles',
-    'productos': 'Gestionar Productos',
-    'servicios': 'Gestionar Servicios',
-    'clientes': 'Gestionar Clientes',
-    'campanas_salud': 'Gestionar Campañas de Salud',
-    'usuarios': 'Gestionar Usuarios',
-    'proveedores': 'Gestionar Proveedores',
-    'agenda': 'Gestionar Agenda',
-    'pedidos': 'Gestionar Pedidos'
+    'dashboard': 'Ver dashboard principal',
+    'categorias': 'Gestionar categorías de productos',
+    'compras': 'Gestionar compras y proveedores',
+    'empleados': 'Gestionar empleados',
+    'ventas': 'Gestionar ventas',
+    'roles': 'Gestionar roles y permisos',
+    'productos': 'Gestionar inventario de productos',
+    'servicios': 'Gestionar servicios ópticos',
+    'clientes': 'Gestionar clientes',
+    'campanas_salud': 'Gestionar campañas de salud',
+    'usuarios': 'Gestionar usuarios del sistema',
+    'proveedores': 'Gestionar proveedores',
+    'agenda': 'Gestionar agenda y citas',
+    'pedidos': 'Gestionar pedidos'
   };
 
+  if (loading) {
+    return (
+      <div className="crud-form-container">
+        <div className="crud-form-content">
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            Cargando...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!rol) {
+    return (
+      <div className="crud-form-container">
+        <div className="crud-form-content">
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            Rol no encontrado
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="crud-form-container detalle-rol-full-height">
+    <div className="crud-form-container">
       <div className="crud-form-header">
-        <h1>Detalle de Rol: {rol.nombre}</h1>
+        <h1>Detalle de Rol</h1>
+        <p>{rol.nombre}</p>
       </div>
       
-      <div className="crud-form-content detalle-rol-content">
-        <div className="detalle-rol-layout">
-          {/* Sección de Información General */}
-          <div className="detalle-info-section">
-            <h3>Información General</h3>
+      <div className="crud-form-content">
+        <div className="crud-form-section">
+          <div className="crud-detail-grid">
+            <div className="crud-detail-item">
+              <strong>Nombre:</strong> 
+              <span>{rol.nombre || 'No especificado'}</span>
+            </div>
             
-            <div className="info-grid">
-              <div className="info-item">
-                <label>Nombre:</label>
-                <div className="info-value">{rol.nombre}</div>
-              </div>
-              
-              <div className="info-item">
-                <label>Estado:</label>
-                <div className="info-value">
-                  <span className={`estado-badge ${rol.estado === "activo" ? "activo" : "inactivo"}`}>
-                    {rol.estado === "activo" ? "ACTIVO" : "INACTIVO"}
-                  </span>
-                </div>
-              </div>
+            <div className="crud-detail-item">
+              <strong>Estado:</strong> 
+              <span className={`crud-badge ${rol.estado === "activo" ? "crud-badge-success" : "crud-badge-error"}`}>
+                {rol.estado === "activo" ? "Activo" : "Inactivo"}
+              </span>
+            </div>
 
-              <div className="info-item full-width">
-                <label>Descripción:</label>
-                <div className="info-value descripcion">
-                  {rol.descripcion}
-                </div>
+            <div className="crud-detail-item" style={{gridColumn: '1 / -1'}}>
+              <strong>Descripción:</strong> 
+              <div style={{ 
+                marginTop: '8px',
+                padding: '12px',
+                backgroundColor: '#f5f5f5',
+                borderRadius: '4px',
+                border: '1px solid #e0e0e0'
+              }}>
+                {rol.descripcion || 'No hay descripción disponible'}
+              </div>
+            </div>
+
+            <div className="crud-detail-item" style={{gridColumn: '1 / -1'}}>
+              <strong>Permisos Asignados:</strong> 
+              <div style={{ 
+                marginTop: '8px',
+                padding: '16px',
+                backgroundColor: '#f5f5f5',
+                borderRadius: '4px',
+                border: '1px solid #e0e0e0'
+              }}>
+                {rol.permisos && rol.permisos.length > 0 ? (
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px'
+                  }}>
+                    {rol.permisos.map((permiso, index) => (
+                      <div key={index} style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        padding: '8px 12px',
+                        backgroundColor: 'white',
+                        borderRadius: '4px',
+                        border: '1px solid #e0e0e0'
+                      }}>
+                        <span style={{
+                          color: '#10b981',
+                          fontSize: '1rem',
+                          fontWeight: 'bold'
+                        }}>✓</span>
+                        <span style={{
+                          color: '#374151',
+                          fontSize: '0.9rem'
+                        }}>
+                          {permisosDescriptivos[permiso] || `Permiso: ${permiso}`}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{
+                    textAlign: 'center',
+                    color: '#6b7280',
+                    padding: '16px',
+                    backgroundColor: 'white',
+                    borderRadius: '4px',
+                    border: '1px dashed #d1d5db'
+                  }}>
+                    Este rol no tiene permisos asignados
+                  </div>
+                )}
               </div>
             </div>
           </div>
-
-          {/* Sección de Permisos */}
-          <div className="detalle-permisos-section">
-            <h3>Permisos Asignados</h3>
-            
-            {rol.permisos && rol.permisos.length > 0 ? (
-              <div className="permisos-grid-full">
-                {rol.permisos.map((permiso, index) => (
-                  <div key={index} className="permiso-item-full">
-                    <span className="permiso-check">✓</span>
-                    <span className="permiso-text">
-                      {permisosDescriptivos[permiso] || `Gestionar ${permiso}`}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="no-permisos">
-                <p>Este rol no tiene permisos asignados</p>
-              </div>
-            )}
-          </div>
         </div>
 
-        {/* Botones de Acción */}
-        <div className="detalle-actions">
+        <div className="crud-form-actions">
           <button 
             onClick={() => navigate('/admin/seguridad/roles')}
             className="crud-btn crud-btn-secondary"
