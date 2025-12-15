@@ -2,14 +2,20 @@
    ESTILOS OPTIMIZADOS FORMULARIOS CRUD
    ============================= */
 
-/* CONTENEDOR PRINCIPAL */
+/* CONTENEDOR PRINCIPAL - AJUSTADO PARA SIDEBAR */
 .crud-form-container {
   max-width: 1000px;
-  margin: 0 auto;
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   overflow: hidden;
+  
+  /* POSICIÓN RELATIVA EN LUGAR DE ABSOLUTA/FIJA */
+  position: relative;
+  margin: 40px auto;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 /* HEADER */
@@ -37,7 +43,7 @@
   padding: 32px;
 }
 
-/* SECCIONES - SISTEMA DE 2 COLUMNAS POR DEFECTO */
+/* SECCIONES */
 .crud-form-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -54,12 +60,11 @@
   grid-column: 1 / -1;
 }
 
-/* Campos de texto que necesitan más espacio */
 .crud-form-group.textarea-expand {
   grid-column: 1 / -1;
 }
 
-/* GRUPOS DE FORMULARIO - ESTILO UNIFORME */
+/* GRUPOS DE FORMULARIO */
 .crud-form-group {
   display: flex;
   flex-direction: column;
@@ -67,11 +72,10 @@
   margin-bottom: 0;
 }
 
-/* Labels con peso normal */
 .crud-form-group label,
 .crud-form-group .MuiFormLabel-root,
 .crud-form-group .MuiInputLabel-root {
-  font-weight: 400; /* Cambiado de 600 a 400 para normal */
+  font-weight: 400;
   color: var(--gray-700);
   font-size: 0.9rem;
   margin-bottom: 4px;
@@ -81,21 +85,19 @@
   color: #dc2626;
 }
 
-/* ESTILOS PARA MATERIAL-UI DENTRO DE FORMULARIOS CRUD */
+/* MATERIAL-UI */
 .crud-form-section .MuiFormControl-root,
 .crud-form-section .MuiTextField-root {
   width: 100%;
   margin: 0;
 }
 
-/* Asegurar altura uniforme para inputs normales */
 .crud-form-section .MuiOutlinedInput-root:not(.MuiOutlinedInput-multiline),
 .crud-form-section .MuiSelect-select {
   height: 56px;
   box-sizing: border-box;
 }
 
-/* Textareas - permitir expansión */
 .crud-form-section .MuiOutlinedInput-multiline {
   min-height: 56px;
   box-sizing: border-box;
@@ -107,7 +109,7 @@
 .crud-form-section .MuiOutlinedInput-multiline textarea {
   min-height: 40px;
   resize: vertical;
-  max-height: 120px; /* Máximo 3 líneas aprox */
+  max-height: 120px;
 }
 
 .crud-form-section .MuiSelect-select {
@@ -145,7 +147,7 @@
   font-family: inherit;
 }
 
-/* ACCIONES DEL FORMULARIO */
+/* ACCIONES */
 .crud-form-actions {
   display: flex;
   gap: 12px;
@@ -192,11 +194,16 @@
   background: var(--gray-300);
 }
 
-/* RESPONSIVE - 1 COLUMNA EN MÓVIL */
+/* RESPONSIVE - SIN POSICIÓN FIJA/ABSOLUTA */
 @media (max-width: 768px) {
   .crud-form-container {
-    max-width: 95%;
-    margin: 0 auto;
+    width: calc(100% - 20px);
+    max-height: 85vh;
+    margin: 20px auto;
+    position: relative;
+    top: 0;
+    left: 0;
+    transform: none;
   }
   
   .crud-form-content {
@@ -223,6 +230,24 @@
   }
 }
 
+/* PANTALLAS MUY PEQUEÑAS */
+@media (max-width: 480px) {
+  .crud-form-container {
+    width: calc(100% - 16px);
+    border-radius: 8px;
+    max-height: 90vh;
+    margin: 10px auto;
+  }
+  
+  .crud-form-header {
+    padding: 20px 16px;
+  }
+  
+  .crud-form-content {
+    padding: 16px;
+  }
+}
+
 /* ESTILOS PARA ERRORES */
 .crud-form-section .MuiFormHelperText-root {
   margin-top: 4px;
@@ -235,7 +260,7 @@
   margin-top: 4px;
 }
 
-/* Campos vacíos para emparejar */
+/* CAMPOS VACÍOS */
 .crud-form-group.empty-pair {
   opacity: 0.3;
   pointer-events: none;
@@ -273,19 +298,32 @@
   min-height: 56px;
 }
 
-/* Badges en vista detalle */
+/* BADGES */
 .crud-input-view .crud-badge {
   margin: 0;
 }
 
-/* Hacer que el textarea afecte el grid cuando se expande */
+/* TEXTAREA EXPANDIBLE */
 .crud-form-group:has(.MuiOutlinedInput-multiline) {
-  grid-row: span 2; /* Ocupa 2 filas cuando se expande */
+  grid-row: span 2;
 }
 
-/* Estilo cuando está enfocado/expandido */
 .crud-form-group:has(.MuiOutlinedInput-multiline textarea:focus),
 .crud-form-group:has(.MuiOutlinedInput-multiline textarea:not(:placeholder-shown)) {
   grid-row: span 2;
   min-height: 120px;
+}
+
+/* SCROLLBAR */
+.crud-form-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.crud-form-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.crud-form-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
 }
