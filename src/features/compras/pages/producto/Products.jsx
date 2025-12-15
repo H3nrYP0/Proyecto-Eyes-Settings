@@ -89,17 +89,13 @@ export default function Productos() {
   // =============================
   const columns = [
     { field: "nombre", header: "Nombre" },
-    { field: "codigo", header: "Código" },
+    
     { 
       field: "precioVenta", 
       header: "Precio Venta",
       render: (item) => formatCurrency(item.precioVenta)
     },
-    { 
-      field: "precioCompra", 
-      header: "Precio Compra",
-      render: (item) => formatCurrency(item.precioCompra)
-    },
+    
     { 
       field: "stockActual", 
       header: "Stock",
@@ -109,9 +105,8 @@ export default function Productos() {
         </span>
       )
     },
-    { field: "categoria", header: "Categoría" },
-    { field: "marca", header: "Marca" },
-    {
+   
+       {
       field: "estado",
       header: "Estado",
       render: (item) => (
@@ -144,11 +139,6 @@ export default function Productos() {
       onClick: (item) => navigate(`/admin/compras/productos/editar/${item.id}`),
     },
     {
-      label: "Imágenes",
-      type: "image",
-      onClick: (item) => navigate(`/admin/compras/productos/imagenes/${item.id}`),
-    },
-    {
       label: "Eliminar",
       type: "delete",
       onClick: (item) => handleDelete(item.id, item.nombre),
@@ -157,8 +147,8 @@ export default function Productos() {
 
   return (
     <CrudLayout
-      title="📦 Productos"
-      description="Administra el inventario de productos de la óptica."
+      title="Productos"
+   
       onAddClick={() => navigate("/admin/compras/productos/crear")}
       showSearch={true}
       searchPlaceholder="Buscar por nombre, código, categoría..."

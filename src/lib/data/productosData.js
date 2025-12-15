@@ -73,6 +73,7 @@ export function createProducto(data) {
   const newId = productosDB.length ? productosDB.at(-1).id + 1 : 1;
   const nuevoProducto = { 
     id: newId,
+    estado:"activo",
     ...data 
   };
   

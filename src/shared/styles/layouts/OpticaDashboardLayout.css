@@ -16,7 +16,7 @@
 }
 
 .content-area {
-  padding: var(--spacing-xl);
+  padding: var(--spacing-l);
   min-height: calc(100vh - 80px);
 }
 
