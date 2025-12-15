@@ -127,7 +127,6 @@ export default function EditarUsuario() {
     <div className="crud-form-container">
       <div className="crud-form-header">
         <h1>Editando: {formData.nombre}</h1>
-        <p>Modifica la información del usuario</p>
       </div>
       
       <div className="crud-form-content">

@@ -109,7 +109,7 @@ export default function GestionUsuarios() {
           className={`estado-btn ${item.estado === "activo" ? "activo" : "inactivo"}`}
           onClick={() => toggleEstado(item.id)}
         >
-          {item.estado === "activo" ? "✅ Activo" : "⛔ Inactivo"}
+          {item.estado === "activo" ? "Activo" : "Inactivo"}
         </button>
       ),
     },
@@ -148,8 +148,7 @@ export default function GestionUsuarios() {
 
   return (
     <CrudLayout
-      title="👥 Gestión de Usuarios"
-      description="Administra los usuarios del sistema de la óptica."
+      title="Gestión de Usuarios"
       onAddClick={() => navigate("crear")}
       showSearch={true}
       searchPlaceholder="Buscar por nombre, email, rol..."

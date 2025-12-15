@@ -135,7 +135,7 @@ export default function Roles() {
 
   return (
     <CrudLayout
-      title="👥 Roles"
+      title="Roles"
       onAddClick={() => navigate("crear")}
       showSearch={true}
       searchPlaceholder="Buscar por nombre, descripción..."
