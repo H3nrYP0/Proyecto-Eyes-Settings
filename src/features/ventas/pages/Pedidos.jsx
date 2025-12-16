@@ -103,22 +103,46 @@ export default function Pedidos() {
       pedido.cliente.toLowerCase().includes(search.toLowerCase());
     
     const matchesEstado = filterEstado ? pedido.estado === filterEstado : true;
-    const matchesTipo = filterTipo ? pedido.tipo === filterTipo : true;
+    
+    // Filtro especial para "Ventas" - mostrar solo pedidos entregados
+    let matchesTipo = true;
+    if (filterTipo === 'Ventas') {
+      matchesTipo = pedido.estado === 'Entregado';
+    } else if (filterTipo) {
+      // Para filtros de tipo específico
+      matchesTipo = pedido.tipo?.includes(filterTipo) || false;
+    }
     
     return matchesSearch && matchesEstado && matchesTipo;
   });
 
+  // Función para obtener la descripción del tipo de items
+  const obtenerDescripcionItems = (pedido) => {
+    if (pedido.items && Array.isArray(pedido.items) && pedido.items.length > 0) {
+      const tieneProductos = pedido.items.some(item => item.tipo === 'producto');
+      const tieneServicios = pedido.items.some(item => item.tipo === 'servicio');
+      
+      if (tieneProductos && tieneServicios) {
+        return 'Productos y Servicios';
+      } else if (tieneProductos) {
+        return 'Productos';
+      } else {
+        return 'Servicios';
+      }
+    }
+    return pedido.tipo || 'Productos';
+  };
+
   // Función para obtener la cantidad de items
   const obtenerCantidadItems = (pedido) => {
     if (pedido.items && Array.isArray(pedido.items) && pedido.items.length > 0) {
-      // Sumar todas las cantidades
       return pedido.items.reduce((sum, item) => sum + item.cantidad, 0);
     }
-    return 1; // Para pedidos antiguos
+    return 1;
   };
 
-  // FILTROS PARA PEDIDOS
-  const searchFilters = [
+  // FILTROS PARA ESTADO
+  const estadoFilters = [
     { value: '', label: 'Todos los estados' },
     { value: 'En proceso', label: 'En proceso' },
     { value: 'Pendiente pago', label: 'Pendiente pago' },
@@ -126,15 +150,17 @@ export default function Pedidos() {
     { value: 'Entregado', label: 'Entregado' }
   ];
 
-  // FILTROS PARA TIPO
+  // FILTROS PARA TIPO/VENTAS
   const tipoFilters = [
-    { value: '', label: 'Todos los tipos' },
-    { value: 'Venta', label: 'Ventas' },
-    { value: 'Servicio', label: 'Servicios' }
+    { value: '', label: 'Todos los pedidos' },
+    { value: 'Ventas', label: 'Ventas (Entregados)' },
+    { value: 'Productos', label: 'Solo Productos' },
+    { value: 'Servicios', label: 'Solo Servicios' },
+    { value: 'Productos y Servicios', label: 'Productos y Servicios' }
   ];
 
   // =============================
-  //          COLUMNAS SIMPLIFICADAS
+  //          COLUMNAS
   // =============================
   const columns = [
     { 
@@ -146,10 +172,14 @@ export default function Pedidos() {
       header: "Producto/Servicio",
       render: (item) => {
         const cantidad = obtenerCantidadItems(item);
+        const descripcion = obtenerDescripcionItems(item);
         return (
           <div>
-            <div style={{ fontSize: '0.9rem', fontWeight: '500' }}>
-              {cantidad} {item.tipo === 'Venta' ? 'productos' : 'servicios'}
+            <div style={{ fontSize: '0.9rem', fontWeight: '500', marginBottom: '4px' }}>
+              {cantidad} {cantidad === 1 ? 'ítem' : 'ítems'}
+            </div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--gray-600)' }}>
+              {descripcion}
             </div>
           </div>
         );
@@ -159,18 +189,18 @@ export default function Pedidos() {
       field: "estado",
       header: "Estado",
       render: (item) => (
-        <span className={`estado-pedido`}>
+        <span className={`estado-pedido estado-${item.estado.toLowerCase().replace(' ', '-')}`}>
           {item.estado}
         </span>
       ),
     },
     {
-      field: "tipo",
-      header: "Tipo",
+      field: "total",
+      header: "Total",
       render: (item) => (
-        <span>
-          {item.tipo}
-        </span>
+        <div style={{ fontWeight: '600', color: 'var(--primary-color)' }}>
+          ${item.total.toLocaleString()}
+        </div>
       ),
     },
   ];
@@ -216,11 +246,11 @@ export default function Pedidos() {
       searchPlaceholder="Buscar por cliente..."
       searchValue={search}
       onSearchChange={setSearch}
-      searchFilters={searchFilters}
+      searchFilters={estadoFilters}
       filterEstado={filterEstado}
       onFilterChange={setFilterEstado}
       searchPosition="left"
-      // Añadir filtro de tipo al layout
+      // Añadir filtro de tipo/ventas al layout
       additionalFilters={
         <div className="filter-group" style={{ marginLeft: '1rem' }}>
           <select
