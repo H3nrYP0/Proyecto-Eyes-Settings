@@ -174,19 +174,7 @@ return (
         <div className="crud-form-content">
           <form onSubmit={handleSubmit}>
             <div className="crud-form-section">
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  label="Nombre de la Campaña"
-                  name="nombre"
-                  value={formData.nombre}
-                  onChange={handleChange}
-                  required
-                  error={!!errors.nombre}
-                  helperText={errors.nombre}
-                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
-                />
-              </div>
+             
 
               <div className="crud-form-group">
                 <TextField
@@ -274,19 +262,7 @@ return (
                 />
               </div>
 
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  type="time"
-                  label="Hora Fin"
-                  name="hora_fin"
-                  value={formData.hora_fin}
-                  onChange={handleChange}
-                  InputLabelProps={{ shrink: true, style: { fontWeight: 'normal' } }}
-                  error={!!errors.hora_fin}
-                  helperText={errors.hora_fin}
-                />
-              </div>
+           
 
               <div className="crud-form-group">
                 <TextField
@@ -301,34 +277,8 @@ return (
                 />
               </div>
 
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  label="Participantes Estimados"
-                  name="participantes_estimados"
-                  type="number"
-                  value={formData.participantes_estimados}
-                  onChange={handleChange}
-                  inputProps={{ min: 0 }}
-                  error={!!errors.participantes_estimados}
-                  helperText={errors.participantes_estimados}
-                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
-                />
-              </div>
-
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  label="Materiales"
-                  name="materiales"
-                  value={formData.materiales}
-                  onChange={handleChange}
-                  variant="outlined"
-                  multiline
-                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
-                />
-              </div>
-
+             
+              
               <div className="crud-form-group">
                 <TextField
                   fullWidth

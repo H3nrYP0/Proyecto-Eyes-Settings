@@ -2,14 +2,20 @@
    ESTILOS OPTIMIZADOS FORMULARIOS CRUD
    ============================= */
 
-/* CONTENEDOR PRINCIPAL */
+/* CONTENEDOR PRINCIPAL - AJUSTADO PARA SIDEBAR */
 .crud-form-container {
-  max-width: 1000px;
-  margin: 0 auto;
+  max-width: 1400px; /* Aumentado para 3 columnas */
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   overflow: hidden;
+  
+  /* POSICIÓN RELATIVA EN LUGAR DE ABSOLUTA/FIJA */
+  position: relative;
+  margin: 40px auto;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 /* HEADER */
@@ -37,10 +43,10 @@
   padding: 32px;
 }
 
-/* SECCIONES - SISTEMA DE 2 COLUMNAS POR DEFECTO */
+/* SECCIONES - 3 COLUMNAS EN DESKTOP */
 .crud-form-section {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr); /* 3 columnas iguales */
   gap: 24px;
   margin-bottom: 24px;
   padding: 24px;
@@ -51,15 +57,25 @@
 
 /* Grupo de formulario que ocupa toda la fila */
 .crud-form-group.full-width {
-  grid-column: 1 / -1;
+  grid-column: 1 / -1; /* Ocupa todas las columnas */
 }
 
 /* Campos de texto que necesitan más espacio */
 .crud-form-group.textarea-expand {
-  grid-column: 1 / -1;
+  grid-column: 1 / -1; /* Ocupa todas las columnas */
 }
 
-/* GRUPOS DE FORMULARIO - ESTILO UNIFORME */
+/* Para grupos que necesiten ocupar 2 columnas */
+.crud-form-group.double-width {
+  grid-column: span 2;
+}
+
+/* Para grupos que necesiten ocupar 3 columnas */
+.crud-form-group.triple-width {
+  grid-column: span 3;
+}
+
+/* GRUPOS DE FORMULARIO */
 .crud-form-group {
   display: flex;
   flex-direction: column;
@@ -67,11 +83,10 @@
   margin-bottom: 0;
 }
 
-/* Labels con peso normal */
 .crud-form-group label,
 .crud-form-group .MuiFormLabel-root,
 .crud-form-group .MuiInputLabel-root {
-  font-weight: 400; /* Cambiado de 600 a 400 para normal */
+  font-weight: 400;
   color: var(--gray-700);
   font-size: 0.9rem;
   margin-bottom: 4px;
@@ -81,21 +96,19 @@
   color: #dc2626;
 }
 
-/* ESTILOS PARA MATERIAL-UI DENTRO DE FORMULARIOS CRUD */
+/* MATERIAL-UI */
 .crud-form-section .MuiFormControl-root,
 .crud-form-section .MuiTextField-root {
   width: 100%;
   margin: 0;
 }
 
-/* Asegurar altura uniforme para inputs normales */
 .crud-form-section .MuiOutlinedInput-root:not(.MuiOutlinedInput-multiline),
 .crud-form-section .MuiSelect-select {
   height: 56px;
   box-sizing: border-box;
 }
 
-/* Textareas - permitir expansión */
 .crud-form-section .MuiOutlinedInput-multiline {
   min-height: 56px;
   box-sizing: border-box;
@@ -107,7 +120,7 @@
 .crud-form-section .MuiOutlinedInput-multiline textarea {
   min-height: 40px;
   resize: vertical;
-  max-height: 120px; /* Máximo 3 líneas aprox */
+  max-height: 120px;
 }
 
 .crud-form-section .MuiSelect-select {
@@ -145,7 +158,7 @@
   font-family: inherit;
 }
 
-/* ACCIONES DEL FORMULARIO */
+/* ACCIONES */
 .crud-form-actions {
   display: flex;
   gap: 12px;
@@ -192,25 +205,74 @@
   background: var(--gray-300);
 }
 
-/* RESPONSIVE - 1 COLUMNA EN MÓVIL */
-@media (max-width: 768px) {
+/* =============================
+   RESPONSIVE - 3 → 2 → 1 COLUMNAS
+   ============================= */
+
+/* TABLET: 2 COLUMNAS (1024px - 768px) */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .crud-form-section {
+    grid-template-columns: repeat(2, 1fr); /* 2 columnas */
+  }
+  
+  /* Ajustar grupos de ancho completo */
+  .crud-form-group.full-width,
+  .crud-form-group.textarea-expand,
+  .crud-form-group.triple-width {
+    grid-column: 1 / -1;
+  }
+  
+  /* Si había un grupo de 2 columnas, ahora ocupa 1 */
+  .crud-form-group.double-width {
+    grid-column: span 1;
+  }
+}
+
+/* TABLET PEQUEÑA: 2 COLUMNAS CON MÁRGENES AJUSTADOS */
+@media (max-width: 900px) and (min-width: 769px) {
   .crud-form-container {
     max-width: 95%;
-    margin: 0 auto;
+    width: 95%;
+  }
+  
+  .crud-form-content {
+    padding: 28px;
+  }
+  
+  .crud-form-section {
+    gap: 20px;
+    padding: 20px;
+  }
+}
+
+/* MÓVIL GRANDE: 1 COLUMNA (768px y menos) */
+@media (max-width: 768px) {
+  .crud-form-container {
+    width: calc(100% - 20px);
+    max-height: 85vh;
+    margin: 20px auto;
+    position: relative;
+    top: 0;
+    left: 0;
+    transform: none;
   }
   
   .crud-form-content {
     padding: 20px;
   }
   
+  /* 1 COLUMNA EN MÓVIL */
   .crud-form-section {
     grid-template-columns: 1fr;
     gap: 20px;
     padding: 20px;
   }
   
+  /* Todos los grupos ocupan 1 columna */
   .crud-form-group.full-width,
-  .crud-form-group.textarea-expand {
+  .crud-form-group.textarea-expand,
+  .crud-form-group.double-width,
+  .crud-form-group.triple-width {
     grid-column: 1;
   }
   
@@ -220,6 +282,41 @@
   
   .crud-btn {
     min-width: 100%;
+  }
+}
+
+/* PANTALLAS MUY PEQUEÑAS */
+@media (max-width: 480px) {
+  .crud-form-container {
+    width: calc(100% - 16px);
+    border-radius: 8px;
+    max-height: 90vh;
+    margin: 10px auto;
+  }
+  
+  .crud-form-header {
+    padding: 20px 16px;
+  }
+  
+  .crud-form-content {
+    padding: 16px;
+  }
+  
+  .crud-form-section {
+    gap: 16px;
+    padding: 16px;
+  }
+}
+
+/* LANDSCAPE MÓVIL - MANTENER 1 COLUMNA PERO AJUSTAR ALTURA */
+@media (max-height: 600px) and (orientation: landscape) {
+  .crud-form-container {
+    max-height: 85vh;
+  }
+  
+  .crud-form-section {
+    gap: 16px;
+    padding: 16px;
   }
 }
 
@@ -235,7 +332,7 @@
   margin-top: 4px;
 }
 
-/* Campos vacíos para emparejar */
+/* CAMPOS VACÍOS */
 .crud-form-group.empty-pair {
   opacity: 0.3;
   pointer-events: none;
@@ -273,19 +370,174 @@
   min-height: 56px;
 }
 
-/* Badges en vista detalle */
+/* BADGES */
 .crud-input-view .crud-badge {
   margin: 0;
 }
 
-/* Hacer que el textarea afecte el grid cuando se expande */
+/* TEXTAREA EXPANDIBLE */
 .crud-form-group:has(.MuiOutlinedInput-multiline) {
-  grid-row: span 2; /* Ocupa 2 filas cuando se expande */
+  grid-row: span 2;
 }
 
-/* Estilo cuando está enfocado/expandido */
 .crud-form-group:has(.MuiOutlinedInput-multiline textarea:focus),
 .crud-form-group:has(.MuiOutlinedInput-multiline textarea:not(:placeholder-shown)) {
   grid-row: span 2;
   min-height: 120px;
+}
+
+/* SCROLLBAR */
+.crud-form-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.crud-form-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.crud-form-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+
+/* 4 elementos en la misma linea , se agreaga para poder ajustar la vista de las ventas  */
+
+/* =============================
+   FILA HORIZONTAL PRODUCTOS (4 ELEMENTOS)
+   ============================= */
+
+.crud-row-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 columnas iguales */
+  gap: 16px;
+  align-items: center;
+  width: 311%;
+}
+
+/* Forzar mismo alto en inputs y botón */
+.crud-row-4 .MuiFormControl-root,
+.crud-row-4 .MuiTextField-root,
+.crud-row-4 .crud-btn {
+  width: 100%;
+  height: 56px;
+}
+
+/* Botón alineado como input */
+.crud-row-4 .crud-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1;
+}
+
+/* =============================
+   RESPONSIVE
+   ============================= */
+
+/* TABLET → 2 columnas */
+@media (max-width: 1024px) {
+  .crud-row-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* MÓVIL → 1 columna */
+@media (max-width: 768px) {
+  .crud-row-4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+/* Responsive grid para detalle de compra */
+.detalle-compra-responsive-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+/* En tablet y móvil: 1 columna */
+@media (max-width: 768px) {
+  .detalle-compra-responsive-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+/* diseños del pdf de la compra esto es temporal ya que se debe descargar una libreria   */
+
+/* Estilos solo para impresión */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .print-only,
+  .print-only * {
+    visibility: visible;
+  }
+
+  .print-only {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+    background: white;
+    color: black;
+  }
+
+  /* Eliminar fondos grises, sombras, etc. */
+  .crud-form-container,
+  .crud-form-section {
+    border: none !important;
+    box-shadow: none !important;
+    background: white !important;
+  }
+
+  .estado-btn.activo {
+    color: #16a34a !important;
+  }
+  .estado-btn.inactivo {
+    color: #dc2626 !important;
+  }
+
+  /* Tabla más compacta */
+  .crud-products-table {
+    font-size: 12px !important;
+  }
+  .crud-products-table th,
+  .crud-products-table td {
+    padding: 4px 6px !important;
+  }
+
+  /* Ocultar botones al imprimir */
+  .crud-form-actions {
+    display: none !important;
+  }
+
+  /* Asegurar que todo se imprima en una página */
+  .print-only {
+    page-break-inside: avoid;
+  }
+}
+
+/* Botón para Generar PDF - Rojo intenso */
+.unified-btn-pdf {
+  background: #dc2626; /* rojo sólido (igual que el de los estados "Anulada") */
+  color: white;
+  border: 0px solid #b91c1c;
+  font-weight: 500;
+}
+
+.unified-btn-pdf:hover:not(:disabled) {
+  background: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(185, 28, 28, 0.2);
 }

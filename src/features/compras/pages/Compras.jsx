@@ -60,16 +60,23 @@ export default function Compras() {
   //          BUSCADOR
   // =============================
   const filteredCompras = compras.filter(compra => {
-    const matchesSearch = 
-      compra.proveedorNombre.toLowerCase().includes(search.toLowerCase()) ||
-      compra.observaciones?.toLowerCase().includes(search.toLowerCase()) ||
-      compra.numeroCompra.toLowerCase().includes(search.toLowerCase()) ||
-      compra.total.toString().includes(search);
-    
-    const matchesFilter = !filterEstado || compra.estado === filterEstado;
-    
-    return matchesSearch && matchesFilter;
-  });
+  // Aseguramos que todos los campos sean strings (o vacíos si son undefined/null)
+  const proveedor = (compra.proveedorNombre || '').toLowerCase();
+  const observaciones = (compra.observaciones || '').toLowerCase();
+  const numeroCompra = (compra.numeroCompra || '').toLowerCase();
+  const total = (compra.total || 0).toString();
+  const searchTerm = search.toLowerCase();
+
+  const matchesSearch = 
+    proveedor.includes(searchTerm) ||
+    observaciones.includes(searchTerm) ||
+    numeroCompra.includes(searchTerm) ||
+    total.includes(searchTerm);
+  
+  const matchesFilter = !filterEstado || compra.estado === filterEstado;
+  
+  return matchesSearch && matchesFilter;
+});
 
   // FILTROS PARA COMPRAS
   const searchFilters = [
@@ -100,20 +107,7 @@ export default function Compras() {
       header: "Total",
       render: (item) => formatCurrency(item.total) // ✅ QUITADA la clase amount
     },
-    { 
-      field: "observaciones", 
-      header: "Observaciones",
-      render: (item) => (
-        item.observaciones ? (
-          <span title={item.observaciones}>
-            {item.observaciones.length > 30 
-              ? item.observaciones.substring(0, 30) + '...' 
-              : item.observaciones
-            }
-          </span>
-        ) : '-'
-      )
-    },
+  
     {
       field: "estado",
       header: "Estado",
@@ -122,33 +116,28 @@ export default function Compras() {
           className={`estado-btn ${item.estado === "Completada" ? "activo" : "inactivo"}`}
           onClick={() => toggleEstado(item.id)}
         >
-          {item.estado === "Completada" ? "✅ Completada" : "❌ Anulada"}
+          {item.estado === "Completada" ? "Completada" : "Anulada"}
         </button>
       ),
     }
   ];
 
   // =============================
-  //          ACCIONES
-  // =============================
-  const tableActions = [
-    {
-      label: "Ver Detalles",
-      type: "view",
-      onClick: (item) => navigate(`/admin/compras/detalle/${item.id}`),
-    },
-    {
-      label: "Editar",
-      type: "edit",
-      onClick: (item) => navigate(`/admin/compras/editar/${item.id}`),
-      disabled: (item) => item.estado === "Anulada"
-    },
-    {
-      label: "Eliminar",
-      type: "delete",
-      onClick: (item) => handleDelete(item.id, item.numeroCompra),
-    },
-  ];
+//          ACCIONES
+// =============================
+const tableActions = [
+  {
+    label: "Ver Detalles",
+    type: "view",
+    onClick: (item) => navigate(`/admin/compras/detalle/${item.id}`),
+  },
+
+  {
+    label: "Generar PDF",
+    type: "pdf", // ← esto aplicará .unified-btn-pdf
+    onClick: (item) => navigate(`/admin/compras/detalle/${item.id}/pdf`),
+  }
+];
 
   return (
     <CrudLayout
