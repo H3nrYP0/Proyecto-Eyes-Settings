@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getClienteById } from '../../../../lib/data/clientesData';
-import { getFormulasByClienteId } from '../../../../lib/data/formulasData';
+import { getFormulasByClienteId, createFormula } from '../../../../lib/data/formulasData';
 import "../../../../shared/styles/components/crud-forms.css";
 
 export default function HistorialFormula() {
@@ -10,6 +10,18 @@ export default function HistorialFormula() {
   
   const [cliente, setCliente] = useState(null);
   const [formulas, setFormulas] = useState([]);
+  const [showForm, setShowForm] = useState(false);
+  const [newFormula, setNewFormula] = useState({
+    ojoDerechoEsferico: '',
+    ojoDerechoCilindrico: '',
+    ojoDerechoEje: '',
+    ojoIzquierdoEsferico: '',
+    ojoIzquierdoCilindrico: '',
+    ojoIzquierdoEje: '',
+    tipoLente: 'monofocal',
+    observaciones: '',
+    fecha: new Date().toISOString().split('T')[0]
+  });
 
   useEffect(() => {
     const clienteData = getClienteById(Number(id));
@@ -22,27 +34,59 @@ export default function HistorialFormula() {
     }
   }, [id, navigate]);
 
-  const formatearFormula = (formula) => {
+  const formatFormula = (formula) => {
     const formatOjo = (esf, cil, eje) => {
       if (!esf) return '-';
-      let resultado = esf;
-      if (cil && cil !== '0.00') resultado += ` ${cil}`;
-      if (eje && eje !== '0') resultado += ` x ${eje}`;
-      return resultado;
+      let result = esf;
+      if (cil && cil !== '0.00') result += ` ${cil}`;
+      if (eje && eje !== '0') result += ` x ${eje}`;
+      return result;
     };
 
     return {
-      ojoDerecho: formatOjo(formula.ojoDerechoEsferico, formula.ojoDerechoCilindrico, formula.ojoDerechoEje),
-      ojoIzquierdo: formatOjo(formula.ojoIzquierdoEsferico, formula.ojoIzquierdoCilindrico, formula.ojoIzquierdoEje)
+      derecho: formatOjo(formula.ojoDerechoEsferico, formula.ojoDerechoCilindrico, formula.ojoDerechoEje),
+      izquierdo: formatOjo(formula.ojoIzquierdoEsferico, formula.ojoIzquierdoCilindrico, formula.ojoIzquierdoEje)
     };
+  };
+
+  const handleCreateFormula = (e) => {
+    e.preventDefault();
+    const formulaData = {
+      ...newFormula,
+      clienteId: Number(id),
+      fecha: new Date().toISOString()
+    };
+    
+    createFormula(formulaData);
+    const updatedFormulas = getFormulasByClienteId(Number(id));
+    setFormulas(updatedFormulas);
+    setShowForm(false);
+    setNewFormula({
+      ojoDerechoEsferico: '',
+      ojoDerechoCilindrico: '',
+      ojoDerechoEje: '',
+      ojoIzquierdoEsferico: '',
+      ojoIzquierdoCilindrico: '',
+      ojoIzquierdoEje: '',
+      tipoLente: 'monofocal',
+      observaciones: '',
+      fecha: new Date().toISOString().split('T')[0]
+    });
+  };
+
+  const handleInputChange = (e) => {
+    setNewFormula({
+      ...newFormula,
+      [e.target.name]: e.target.value
+    });
   };
 
   if (!cliente) {
     return (
-      <div className="crud-form-container">
+      <div className="crud-form-container minimal">
         <div className="crud-form-content">
-          <div style={{ textAlign: 'center', padding: '40px' }}>
-            Cargando información del cliente...
+          <div className="loading-minimal">
+            Cargando...
           </div>
         </div>
       </div>
@@ -50,211 +94,179 @@ export default function HistorialFormula() {
   }
 
   return (
-    <div className="crud-form-container" style={{ maxWidth: '1000px' }}>
-      <div className="crud-form-header">
-        <h1>Historial de Fórmulas</h1>
+    <div className="crud-form-container minimal">
+      <div className="crud-form-header minimal">
+        <h1>Fórmulas: {cliente.nombre} {cliente.apellido}</h1>
       </div>
       
-      <div className="crud-form-content" style={{ padding: '24px !important' }}>
-        {/* Lista de fórmulas - ESTILOS OVERRIDE */}
-        <div style={{
-          marginBottom: '24px',
-          padding: '0 !important',
-          background: 'transparent !important',
-          border: 'none !important',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-          gap: '20px',
-          width: '100%'
-        }}>
+      <div className="crud-form-content compact">
+        {/* BOTÓN PARA NUEVA FÓRMULA */}
+        <div className="formula-actions-header">
+          <button 
+            onClick={() => setShowForm(!showForm)}
+            className="crud-btn crud-btn-primary"
+          >
+            {showForm ? 'Cancelar' : '+ Nueva Fórmula'}
+          </button>
+        </div>
+
+        {/* FORMULARIO PARA CREAR NUEVA FÓRMULA */}
+        {showForm && (
+          <div className="formula-create-form">
+            <h3>Nueva Fórmula</h3>
+            <form onSubmit={handleCreateFormula}>
+              <div className="formula-inputs-grid">
+                {/* Ojo Derecho */}
+                <div className="formula-eye-section">
+                  <h4>Ojo Derecho</h4>
+                  <div className="formula-input-row">
+                    <input
+                      type="text"
+                      name="ojoDerechoEsferico"
+                      placeholder="Esférico"
+                      value={newFormula.ojoDerechoEsferico}
+                      onChange={handleInputChange}
+                      className="formula-input"
+                    />
+                    <input
+                      type="text"
+                      name="ojoDerechoCilindrico"
+                      placeholder="Cilíndrico"
+                      value={newFormula.ojoDerechoCilindrico}
+                      onChange={handleInputChange}
+                      className="formula-input"
+                    />
+                    <input
+                      type="text"
+                      name="ojoDerechoEje"
+                      placeholder="Eje"
+                      value={newFormula.ojoDerechoEje}
+                      onChange={handleInputChange}
+                      className="formula-input"
+                    />
+                  </div>
+                </div>
+
+                {/* Ojo Izquierdo */}
+                <div className="formula-eye-section">
+                  <h4>Ojo Izquierdo</h4>
+                  <div className="formula-input-row">
+                    <input
+                      type="text"
+                      name="ojoIzquierdoEsferico"
+                      placeholder="Esférico"
+                      value={newFormula.ojoIzquierdoEsferico}
+                      onChange={handleInputChange}
+                      className="formula-input"
+                    />
+                    <input
+                      type="text"
+                      name="ojoIzquierdoCilindrico"
+                      placeholder="Cilíndrico"
+                      value={newFormula.ojoIzquierdoCilindrico}
+                      onChange={handleInputChange}
+                      className="formula-input"
+                    />
+                    <input
+                      type="text"
+                      name="ojoIzquierdoEje"
+                      placeholder="Eje"
+                      value={newFormula.ojoIzquierdoEje}
+                      onChange={handleInputChange}
+                      className="formula-input"
+                    />
+                  </div>
+                </div>
+
+                {/* Información adicional */}
+                <div className="formula-extra-info">
+                  <select
+                    name="tipoLente"
+                    value={newFormula.tipoLente}
+                    onChange={handleInputChange}
+                    className="formula-select"
+                  >
+                    <option value="monofocal">Monofocal</option>
+                    <option value="bifocal">Bifocal</option>
+                    <option value="progresivo">Progresivo</option>
+                    <option value="contacto">Lente de Contacto</option>
+                  </select>
+                  
+                  <textarea
+                    name="observaciones"
+                    placeholder="Observaciones"
+                    value={newFormula.observaciones}
+                    onChange={handleInputChange}
+                    className="formula-textarea"
+                    rows="2"
+                  />
+                </div>
+              </div>
+              
+              <div className="formula-form-actions">
+                <button type="submit" className="crud-btn crud-btn-primary">
+                  Guardar Fórmula
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* LISTA DE FÓRMULAS EXISTENTES */}
+        <div className="formulas-list">
           {formulas.length === 0 ? (
-            <div style={{ 
-              textAlign: 'center', 
-              padding: '60px 20px',
-              color: 'var(--gray-500)',
-              gridColumn: '1 / -1'
-            }}>
-              <p style={{ margin: '0', fontSize: '1rem' }}>
-                No hay fórmulas registradas para este cliente
-              </p>
+            <div className="no-formulas">
+              No hay fórmulas registradas
             </div>
           ) : (
-            formulas.map((formula, index) => {
-              const formulasFormat = formatearFormula(formula);
-              return (
-                <div key={formula.id} style={{
-                  background: index === 0 ? '#f0f9ff' : '#ffffff',
-                  border: '1px solid var(--gray-200)',
-                  borderRadius: '10px',
-                  padding: '18px',
-                  position: 'relative',
-                  minHeight: '180px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-                }}>
-                  {/* Badge de estado */}
-                  <div style={{
-                    position: 'absolute',
-                    top: '12px',
-                    right: '12px',
-                    fontSize: '0.7rem !important',
-                    padding: '3px 8px !important',
-                    borderRadius: '12px',
-                    background: index === 0 ? '#3b82f6' : '#6b7280',
-                    color: 'white',
-                    fontWeight: '600',
-                    letterSpacing: '0.5px',
-                    zIndex: '1'
-                  }}>
-                    {index === 0 ? 'ACTUAL' : 'HISTÓRICO'}
-                  </div>
-
-                  {/* Contenido principal */}
-                  <div style={{ flex: '1' }}>
-                    {/* Fecha */}
-                    <div style={{ 
-                      fontSize: '0.85rem !important',
-                      color: 'var(--gray-600)',
-                      fontWeight: '500',
-                      marginBottom: '14px',
-                      paddingRight: '60px'
-                    }}>
-                      {new Date(formula.fecha).toLocaleDateString('es-ES', {
-                        day: '2-digit',
-                        month: 'long',
-                        year: 'numeric'
-                      })}
-                    </div>
-
-                    {/* Valores ópticos */}
-                    <div style={{ 
-                      display: 'grid',
-                      gridTemplateColumns: '1fr 1fr',
-                      gap: '14px',
-                      marginBottom: '12px'
-                    }}>
-                      <div>
-                        <div style={{
-                          fontSize: '0.75rem !important',
-                          color: 'var(--gray-500)',
-                          marginBottom: '4px',
-                          fontWeight: '500'
-                        }}>
-                          OJO DERECHO
-                        </div>
-                        <div style={{
-                          fontSize: '0.95rem !important',
-                          fontWeight: '600',
-                          color: 'var(--gray-800)',
-                          fontFamily: "'Roboto Mono', monospace",
-                          minHeight: '20px',
-                          lineHeight: '1.3'
-                        }}>
-                          {formulasFormat.ojoDerecho}
-                        </div>
-                      </div>
-                      <div>
-                        <div style={{
-                          fontSize: '0.75rem !important',
-                          color: 'var(--gray-500)',
-                          marginBottom: '4px',
-                          fontWeight: '500'
-                        }}>
-                          OJO IZQUIERDO
-                        </div>
-                        <div style={{
-                          fontSize: '0.95rem !important',
-                          fontWeight: '600',
-                          color: 'var(--gray-800)',
-                          fontFamily: "'Roboto Mono', monospace",
-                          minHeight: '20px',
-                          lineHeight: '1.3'
-                        }}>
-                          {formulasFormat.ojoIzquierdo}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Tipo de lente */}
-                    <div style={{ 
-                      marginBottom: '10px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      flexWrap: 'wrap',
-                      gap: '6px'
-                    }}>
-                      <span style={{
-                        fontSize: '0.75rem !important',
-                        color: 'var(--gray-500)',
-                        whiteSpace: 'nowrap'
-                      }}>
-                        Tipo de lente:
+            <div className="formulas-grid">
+              {formulas.map((formula, index) => {
+                const formatted = formatFormula(formula);
+                return (
+                  <div key={formula.id} className={`formula-card ${index === 0 ? 'current' : ''}`}>
+                    <div className="formula-header">
+                      <span className="formula-date">
+                        {new Date(formula.fecha).toLocaleDateString('es-ES', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric'
+                        })}
                       </span>
-                      <span style={{
-                        fontSize: '0.8rem !important',
-                        fontWeight: '600',
-                        color: '#1e40af',
-                        padding: '3px 10px',
-                        borderRadius: '6px',
-                        background: '#dbeafe',
-                        whiteSpace: 'nowrap'
-                      }}>
-                        {formula.tipoLente}
+                      <span className="formula-status">
+                        {index === 0 ? 'ACTUAL' : 'HISTÓRICO'}
                       </span>
                     </div>
-                  </div>
-
-                  {/* Observaciones (si hay) */}
-                  {formula.observaciones && (
-                    <div style={{
-                      marginTop: '12px',
-                      paddingTop: '12px',
-                      borderTop: '1px solid var(--gray-200)',
-                      flexShrink: '0'
-                    }}>
-                      <div style={{
-                        fontSize: '0.75rem !important',
-                        color: 'var(--gray-500)',
-                        marginBottom: '4px',
-                        fontWeight: '500'
-                      }}>
-                        Observaciones:
+                    
+                    <div className="formula-values">
+                      <div className="formula-eye">
+                        <div className="formula-eye-label">O.D.</div>
+                        <div className="formula-eye-value">{formatted.derecho}</div>
                       </div>
-                      <div style={{
-                        fontSize: '0.8rem !important',
-                        color: 'var(--gray-700)',
-                        lineHeight: '1.3',
-                        fontStyle: 'italic',
-                        maxHeight: '40px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        display: '-webkit-box',
-                        WebkitLineClamp: '2',
-                        WebkitBoxOrient: 'vertical'
-                      }}>
-                        {formula.observaciones}
+                      <div className="formula-eye">
+                        <div className="formula-eye-label">O.I.</div>
+                        <div className="formula-eye-value">{formatted.izquierdo}</div>
                       </div>
                     </div>
-                  )}
-                </div>
-              );
-            })
+                    
+                    <div className="formula-footer">
+                      <span className="formula-lente-type">{formula.tipoLente}</span>
+                      {formula.observaciones && (
+                        <div className="formula-obs">{formula.observaciones}</div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
 
-        <div className="crud-form-actions" style={{ 
-          paddingTop: '20px',
-          marginTop: '16px',
-          borderTop: '1px solid var(--gray-200)'
-        }}>
+        <div className="crud-form-actions compact">
           <button 
             onClick={() => navigate('/admin/ventas/clientes')}
             className="crud-btn crud-btn-secondary"
-            style={{ padding: '10px 24px' }}
           >
-            ← Volver a Clientes
+            ← Volver
           </button>
         </div>
       </div>

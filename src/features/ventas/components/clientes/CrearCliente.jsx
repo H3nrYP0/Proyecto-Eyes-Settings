@@ -20,11 +20,8 @@ export default function CrearCliente() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // Crear el cliente
-    const crearCliente = createCliente(formData);
-    console.log('Cliente creado:', crearCliente);
-    navigate('/admin/clientes');
+    createCliente(formData);
+    navigate('/admin/ventas/clientes');
   };
 
   const handleChange = (e) => {
@@ -35,167 +32,145 @@ export default function CrearCliente() {
   };
 
   return (
-    <div className="crud-form-container">
-      <div className="crud-form-header">
-        <h1>Registrar Nuevo Cliente</h1>
+    <div className="crud-form-container minimal">
+      <div className="crud-form-header minimal">
+        <h1>Nuevo Cliente</h1>
       </div>
       
-      <div className="crud-form-content">
+      <div className="crud-form-content compact">
         <form onSubmit={handleSubmit}>
-          <div className="crud-form-section">
-            <div className="crud-form-row">
-              <div className="crud-form-group">
-                <label htmlFor="nombre">Nombre <span className="crud-required">*</span></label>
-                <input
-                  type="text"
-                  id="nombre"
-                  name="nombre"
-                  value={formData.nombre}
-                  onChange={handleChange}
-                  className="crud-input"
-                  placeholder="Ej: Juan"
-                  required
-                />
-              </div>
-
-              <div className="crud-form-group">
-                <label htmlFor="apellido">Apellido <span className="crud-required">*</span></label>
-                <input
-                  type="text"
-                  id="apellido"
-                  name="apellido"
-                  value={formData.apellido}
-                  onChange={handleChange}
-                  className="crud-input"
-                  placeholder="Ej: Pérez"
-                  required
-                />
-              </div>
+          <div className="crud-form-section compact">
+            {/* Fila 1 */}
+            <div className="crud-form-group">
+              <label>Nombre *</label>
+              <input
+                type="text"
+                name="nombre"
+                value={formData.nombre}
+                onChange={handleChange}
+                className="crud-input"
+                required
+              />
             </div>
 
-            <div className="crud-form-row">
-              <div className="crud-form-group">
-                <label htmlFor="tipoDocumento">Tipo Documento <span className="crud-required">*</span></label>
-                <select
-                  id="tipoDocumento"
-                  name="tipoDocumento"
-                  value={formData.tipoDocumento}
-                  onChange={handleChange}
-                  className="crud-input"
-                  required
-                >
-                  <option value="cedula">Cédula</option>
-                  <option value="pasaporte">Pasaporte</option>
-                  <option value="cedula_extranjeria">Cédula Extranjería</option>
-                </select>
-              </div>
-
-              <div className="crud-form-group">
-                <label htmlFor="documento">Número Documento <span className="crud-required">*</span></label>
-                <input
-                  type="text"
-                  id="documento"
-                  name="documento"
-                  value={formData.documento}
-                  onChange={handleChange}
-                  className="crud-input"
-                  placeholder="123456789"
-                  required
-                />
-              </div>
+            <div className="crud-form-group">
+              <label>Apellido *</label>
+              <input
+                type="text"
+                name="apellido"
+                value={formData.apellido}
+                onChange={handleChange}
+                className="crud-input"
+                required
+              />
             </div>
 
-            <div className="crud-form-row">
-              <div className="crud-form-group">
-                <label htmlFor="telefono">Teléfono <span className="crud-required">*</span></label>
-                <input
-                  type="tel"
-                  id="telefono"
-                  name="telefono"
-                  value={formData.telefono}
-                  onChange={handleChange}
-                  className="crud-input"
-                  placeholder="3001234567"
-                  required
-                />
-              </div>
-
-              <div className="crud-form-group">
-                <label htmlFor="correo">Correo Electrónico</label>
-                <input
-                  type="email"
-                  id="correo"
-                  name="correo"
-                  value={formData.correo}
-                  onChange={handleChange}
-                  className="crud-input"
-                  placeholder="cliente@ejemplo.com"
-                />
-              </div>
+            {/* Fila 2 */}
+            <div className="crud-form-group">
+              <label>Tipo Documento *</label>
+              <select
+                name="tipoDocumento"
+                value={formData.tipoDocumento}
+                onChange={handleChange}
+                className="crud-input"
+                required
+              >
+                <option value="cedula">Cédula</option>
+                <option value="pasaporte">Pasaporte</option>
+                <option value="cedula_extranjeria">Cédula Extranjería</option>
+              </select>
             </div>
 
-            <div className="crud-form-row">
-              <div className="crud-form-group">
-                <label htmlFor="fechaNacimiento">Fecha de Nacimiento <span className="crud-required">*</span></label>
-                <input
-                  type="date"
-                  id="fechaNacimiento"
-                  name="fechaNacimiento"
-                  value={formData.fechaNacimiento}
-                  onChange={handleChange}
-                  className="crud-input"
-                  required
-                />
-              </div>
-
-              <div className="crud-form-group">
-                <label htmlFor="genero">Género <span className="crud-required">*</span></label>
-                <select
-                  id="genero"
-                  name="genero"
-                  value={formData.genero}
-                  onChange={handleChange}
-                  className="crud-input"
-                  required
-                >
-                  <option value="masculino">Masculino</option>
-                  <option value="femenino">Femenino</option>
-                  <option value="otro">Otro</option>
-                </select>
-              </div>
+            <div className="crud-form-group">
+              <label>Documento *</label>
+              <input
+                type="text"
+                name="documento"
+                value={formData.documento}
+                onChange={handleChange}
+                className="crud-input"
+                required
+              />
             </div>
 
-            <div className="crud-form-row">
-              <div className="crud-form-group">
-                <label htmlFor="ciudad">Ciudad <span className="crud-required">*</span></label>
-                <input
-                  type="text"
-                  id="ciudad"
-                  name="ciudad"
-                  value={formData.ciudad}
-                  onChange={handleChange}
-                  className="crud-input"
-                  placeholder="Ej: Bogotá"
-                  required
-                />
-              </div>
+            {/* Fila 3 */}
+            <div className="crud-form-group">
+              <label>Teléfono *</label>
+              <input
+                type="tel"
+                name="telefono"
+                value={formData.telefono}
+                onChange={handleChange}
+                className="crud-input"
+                required
+              />
+            </div>
 
-              <div className="crud-form-group">
-                <label htmlFor="direccion">Dirección</label>
-                <input
-                  type="text"
-                  id="direccion"
-                  name="direccion"
-                  value={formData.direccion}
-                  onChange={handleChange}
-                  className="crud-input"
-                  placeholder="Dirección completa"
-                />
-              </div>
+            <div className="crud-form-group">
+              <label>Correo</label>
+              <input
+                type="email"
+                name="correo"
+                value={formData.correo}
+                onChange={handleChange}
+                className="crud-input"
+              />
+            </div>
+
+            {/* Fila 4 */}
+            <div className="crud-form-group">
+              <label>Fecha Nac. *</label>
+              <input
+                type="date"
+                name="fechaNacimiento"
+                value={formData.fechaNacimiento}
+                onChange={handleChange}
+                className="crud-input"
+                required
+              />
+            </div>
+
+            <div className="crud-form-group">
+              <label>Género *</label>
+              <select
+                name="genero"
+                value={formData.genero}
+                onChange={handleChange}
+                className="crud-input"
+                required
+              >
+                <option value="masculino">Masculino</option>
+                <option value="femenino">Femenino</option>
+                <option value="otro">Otro</option>
+              </select>
+            </div>
+
+            {/* Fila 5 */}
+            <div className="crud-form-group">
+              <label>Ciudad *</label>
+              <input
+                type="text"
+                name="ciudad"
+                value={formData.ciudad}
+                onChange={handleChange}
+                className="crud-input"
+                required
+              />
+            </div>
+
+            <div className="crud-form-group">
+              <label>Dirección</label>
+              <input
+                type="text"
+                name="direccion"
+                value={formData.direccion}
+                onChange={handleChange}
+                className="crud-input"
+              />
             </div>
           </div>
 
-          <div className="crud-form-actions">
+          <div className="crud-form-actions compact">
             <button 
               type="button" 
               className="crud-btn crud-btn-secondary"
@@ -204,7 +179,7 @@ export default function CrearCliente() {
               Cancelar
             </button>
             <button type="submit" className="crud-btn crud-btn-primary">
-              Registrar Cliente
+              Registrar
             </button>
           </div>
         </form>
