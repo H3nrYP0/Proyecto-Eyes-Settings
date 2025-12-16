@@ -465,3 +465,201 @@
   font-weight: 600;
   letter-spacing: 0.5px;
 }
+/* =============================
+   ESTILOS ESPECÍFICOS PARA PEDIDOS MEJORADOS
+   ============================= */
+
+/* Badges para tipos combinados */
+.crud-badge.productos-servicios {
+  background: linear-gradient(135deg, #dbeafe 0%, #dcfce7 100%);
+  color: #1e40af;
+  border: 1px solid #60a5fa;
+}
+
+.crud-badge.productos {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.crud-badge.servicios {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* Badges para estados mejorados */
+.crud-badge.estado-proceso {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fbbf24;
+}
+
+.crud-badge.estado-pendiente {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #f87171;
+}
+
+.crud-badge.estado-pagado {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #4ade80;
+}
+
+.crud-badge.estado-entregado {
+  background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+  color: #3730a3;
+  border: 1px solid #6366f1;
+  font-weight: 600;
+}
+
+.crud-badge.estado-cancelado {
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+}
+
+/* Estados en la tabla */
+.estado-pedido {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.estado-pedido.estado-en-proceso {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.estado-pedido.estado-pendiente-pago {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.estado-pedido.estado-pagado {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.estado-pedido.estado-entregado {
+  background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+  color: #3730a3;
+  font-weight: 700;
+}
+
+/* Mejoras para items en formularios */
+.crud-form-section .item-producto {
+  border-left: 4px solid #3b82f6;
+}
+
+.crud-form-section .item-servicio {
+  border-left: 4px solid #10b981;
+}
+
+/* Estilos para separadores */
+.separador-items {
+  position: relative;
+  text-align: center;
+  margin: 24px 0;
+}
+
+.separador-items::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--gray-300);
+  z-index: 1;
+}
+
+.separador-items span {
+  position: relative;
+  display: inline-block;
+  padding: 0 16px;
+  background: var(--gray-50);
+  color: var(--gray-500);
+  font-size: 0.9rem;
+  z-index: 2;
+}
+
+/* Mejoras responsivas */
+@media (max-width: 768px) {
+  .crud-form-section {
+    grid-template-columns: 1fr;
+  }
+  
+  .crud-form-group.full-width {
+    grid-column: 1;
+  }
+  
+  .crud-badge {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+  }
+}
+
+/* Animaciones suaves */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.crud-form-container {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Mejoras para hover en items */
+.item-selectable {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.item-selectable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Estilos para contadores */
+.item-counter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.item-counter button {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 4px;
+  background: var(--gray-200);
+  color: var(--gray-700);
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.item-counter button:hover {
+  background: var(--gray-300);
+}
+
+.item-counter input {
+  width: 50px;
+  text-align: center;
+  border: 1px solid var(--gray-300);
+  border-radius: 4px;
+  padding: 4px;
+}

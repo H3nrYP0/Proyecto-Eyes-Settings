@@ -15,7 +15,10 @@ export default function DetallePedido() {
 
   if (!pedido) {
     return (
-      <div className="crud-form-container">
+      <div className="crud-form-container" style={{ maxWidth: '850px' }}>
+        <div className="crud-form-header" style={{ padding: '16px 20px' }}>
+          <h1 style={{ fontSize: '1.4rem', margin: '0' }}>Detalle del Pedido</h1>
+        </div>
         <div className="crud-form-content">
           <div style={{ textAlign: 'center', padding: '40px' }}>
             Cargando información del pedido...
@@ -40,266 +43,227 @@ export default function DetallePedido() {
     return estadoMap[estado] || 'proceso';
   };
 
-  const getTipoClass = (tipo) => {
-    return tipo === 'Venta' ? 'venta' : 'servicio';
-  };
-
-  // Verificar si tiene items detallados o solo la descripción antigua
   const tieneItemsDetallados = pedido.items && Array.isArray(pedido.items) && pedido.items.length > 0;
+  const tieneProductos = tieneItemsDetallados ? pedido.items.some(item => item.tipo === 'producto') : 
+                         pedido.tipo?.includes('Producto') || false;
+  const tieneServicios = tieneItemsDetallados ? pedido.items.some(item => item.tipo === 'servicio') : 
+                         pedido.tipo?.includes('Servicio') || false;
 
   return (
-    <div className="crud-form-container" style={{ maxWidth: '1000px' }}>
-      <div className="crud-form-header">
-        <h1>Pedido: {pedido.cliente}</h1>
-        <p>Detalle completo del pedido</p>
+    <div className="crud-form-container" style={{ maxWidth: '850px' }}>
+      {/* HEADER COMPACTO - SIN DESCRIPCIÓN */}
+      <div className="crud-form-header" style={{ padding: '16px 20px', minHeight: 'auto' }}>
+        <h1 style={{ fontSize: '1.4rem', margin: '0' }}>Pedido: {pedido.cliente}</h1>
       </div>
       
       <div className="crud-form-content">
-        <div className="crud-form-section">
-          {/* Cliente */}
+        {/* INFORMACIÓN BÁSICA COMPACTA */}
+        <div className="crud-form-section" style={{ 
+          padding: '16px', 
+          marginBottom: '12px', 
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: '12px'
+        }}>
           <div className="crud-form-group">
-            <label className="crud-label">Cliente</label>
-            <div className="crud-input-view">
+            <label className="crud-label" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Cliente</label>
+            <div className="crud-input-view" style={{ padding: '10px 12px', fontSize: '0.9rem' }}>
               {pedido.cliente}
             </div>
           </div>
 
-          {/* Tipo */}
           <div className="crud-form-group">
-            <label className="crud-label">Tipo</label>
-            <div className="crud-input-view">
-              <span className={`crud-badge ${getTipoClass(pedido.tipo)}`}>
-                {pedido.tipo}
-              </span>
-            </div>
-          </div>
-
-          {/* Estado */}
-          <div className="crud-form-group">
-            <label className="crud-label">Estado</label>
-            <div className="crud-input-view">
-              <span className={`crud-badge estado-${getEstadoClass(pedido.estado)}`}>
+            <label className="crud-label" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Estado</label>
+            <div className="crud-input-view" style={{ padding: '10px 12px' }}>
+              <span className={`crud-badge estado-${getEstadoClass(pedido.estado)}`} style={{ fontSize: '0.8rem' }}>
                 {pedido.estado}
               </span>
             </div>
           </div>
 
-          {/* Fechas */}
           <div className="crud-form-group">
-            <label className="crud-label">Fecha Pedido</label>
-            <div className="crud-input-view date">
+            <label className="crud-label" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Fecha Pedido</label>
+            <div className="crud-input-view date" style={{ padding: '10px 12px', fontSize: '0.9rem' }}>
               {pedido.fechaPedido}
             </div>
           </div>
 
           <div className="crud-form-group">
-            <label className="crud-label">Fecha Entrega</label>
-            <div className="crud-input-view date">
+            <label className="crud-label" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Fecha Entrega</label>
+            <div className="crud-input-view date" style={{ padding: '10px 12px', fontSize: '0.9rem' }}>
               {pedido.fechaEntrega}
             </div>
           </div>
 
-          {/* Montos */}
           <div className="crud-form-group">
-            <label className="crud-label">Total</label>
-            <div className="crud-input-view important">
+            <label className="crud-label" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Tipo</label>
+            <div className="crud-input-view" style={{ padding: '10px 12px' }}>
+              <span className={`crud-badge ${tieneProductos && tieneServicios ? 'productos-servicios' : 
+                               tieneProductos ? 'productos' : 'servicios'}`} style={{ fontSize: '0.8rem' }}>
+                {tieneProductos && tieneServicios ? 'P y S' : 
+                 tieneProductos ? 'Productos' : 'Servicios'}
+              </span>
+            </div>
+          </div>
+
+          <div className="crud-form-group">
+            <label className="crud-label" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Items</label>
+            <div className="crud-input-view" style={{ padding: '10px 12px', fontSize: '0.9rem' }}>
+              {tieneItemsDetallados ? pedido.items.length : '1'}
+            </div>
+          </div>
+        </div>
+
+        {/* MONETOS COMPACTOS */}
+        <div className="crud-form-section" style={{ 
+          padding: '12px', 
+          marginBottom: '16px', 
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '10px'
+        }}>
+          <div className="crud-form-group">
+            <label className="crud-label" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Total</label>
+            <div className="crud-input-view" style={{ 
+              color: 'var(--primary-color)',
+              fontWeight: '600',
+              fontSize: '0.9rem',
+              padding: '10px 12px'
+            }}>
               {formatCurrency(pedido.total)}
             </div>
           </div>
 
           <div className="crud-form-group">
-            <label className="crud-label">Saldo Pendiente</label>
-            <div className="crud-input-view">
-              <span className={pedido.saldoPendiente > 0 ? "saldo-pendiente" : "saldo-pagado"}>
-                {formatCurrency(pedido.saldoPendiente || 0)}
-              </span>
+            <label className="crud-label" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Abono</label>
+            <div className="crud-input-view" style={{ padding: '10px 12px', fontSize: '0.9rem' }}>
+              {formatCurrency(pedido.abono || 0)}
             </div>
           </div>
 
-          {/* Sección de productos/servicios */}
-          <div className="crud-form-group full-width">
-            <label className="crud-label" style={{ 
-              marginBottom: '12px',
-              fontSize: '1rem',
+          <div className="crud-form-group">
+            <label className="crud-label" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Saldo</label>
+            <div className="crud-input-view" style={{ 
+              color: pedido.saldoPendiente > 0 ? '#991b1b' : '#166534',
               fontWeight: '600',
-              color: 'var(--gray-700)'
+              fontSize: '0.9rem',
+              padding: '10px 12px'
             }}>
-              {pedido.tipo === 'Venta' ? 'Productos' : 'Servicios'} 
-              ({tieneItemsDetallados ? pedido.items.length : '1'})
-            </label>
-            
-            <div style={{ 
-              background: 'white',
-              borderRadius: '8px',
-              border: '1px solid var(--gray-200)',
-              overflow: 'hidden',
-              marginTop: '8px'
-            }}>
-              {tieneItemsDetallados ? (
-                // Mostrar items detallados
-                <>
-                  {pedido.items.map((item, index) => (
-                    <div key={index} 
-                         style={{ 
-                           display: 'flex',
-                           alignItems: 'center',
-                           padding: '16px 20px',
-                           borderBottom: index < pedido.items.length - 1 ? '1px solid var(--gray-100)' : 'none',
-                           background: index % 2 === 0 ? 'white' : 'var(--gray-50)'
-                         }}>
-                      <div style={{ flex: '1' }}>
-                        <div style={{ 
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          marginBottom: '8px'
-                        }}>
-                          <div style={{ 
-                            fontSize: '1rem',
-                            fontWeight: '600',
-                            color: 'var(--gray-800)'
-                          }}>
-                            {item.nombre}
-                          </div>
-                          <div style={{ 
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '12px'
-                          }}>
-                            <div style={{ 
-                              fontSize: '0.9rem',
-                              color: 'var(--gray-600)',
-                              fontWeight: '500'
-                            }}>
-                              {item.cantidad}x
-                            </div>
-                            <div style={{ 
-                              fontSize: '1rem',
-                              fontWeight: '600',
-                              color: 'var(--primary-color)'
-                            }}>
-                              ${(item.precio * item.cantidad).toLocaleString()}
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {item.descripcion && (
-                          <div style={{ 
-                            fontSize: '0.9rem',
-                            color: 'var(--gray-600)',
-                            marginBottom: '6px',
-                            lineHeight: '1.4'
-                          }}>
-                            {item.descripcion}
-                          </div>
-                        )}
-                        
-                        <div style={{ 
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center'
-                        }}>
-                          <div style={{ 
-                            fontSize: '0.85rem',
-                            color: 'var(--gray-500)'
-                          }}>
-                            Precio unitario: <strong>${item.precio.toLocaleString()}</strong>
-                          </div>
-                          <div style={{ 
-                            fontSize: '0.8rem',
-                            padding: '2px 8px',
-                            borderRadius: '4px',
-                            background: pedido.tipo === 'Venta' ? '#dbeafe' : '#dcfce7',
-                            color: pedido.tipo === 'Venta' ? '#1d4ed8' : '#166534',
-                            fontWeight: '600'
-                          }}>
-                            {pedido.tipo === 'Venta' ? 'PRODUCTO' : 'SERVICIO'}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {/* Total resumen */}
-                  <div style={{ 
-                    padding: '20px',
-                    background: 'var(--gray-50)',
-                    borderTop: '2px solid var(--gray-300)',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}>
-                    <div style={{ 
-                      fontSize: '1.1rem',
-                      fontWeight: '600',
-                      color: 'var(--gray-700)'
-                    }}>
-                      TOTAL DEL PEDIDO
-                    </div>
-                    <div style={{ 
-                      fontSize: '1.4rem',
-                      fontWeight: '700',
-                      color: 'var(--primary-color)'
-                    }}>
-                      {formatCurrency(pedido.total)}
-                    </div>
-                  </div>
-                </>
-              ) : (
-                // Mostrar descripción antigua (para compatibilidad)
-                <div style={{ 
-                  padding: '20px',
-                  textAlign: 'center',
-                  color: 'var(--gray-600)'
-                }}>
-                  <div style={{ 
-                    fontSize: '1rem',
-                    marginBottom: '8px',
-                    fontWeight: '500'
-                  }}>
-                    {pedido.productoServicio}
-                  </div>
-                  <div style={{ 
-                    fontSize: '0.9rem',
-                    color: 'var(--gray-500)',
-                    fontStyle: 'italic'
-                  }}>
-                    (Descripción general del pedido)
-                  </div>
-                </div>
-              )}
+              {formatCurrency(pedido.saldoPendiente || 0)}
             </div>
           </div>
-
-          {/* Observaciones - Full width */}
-          {pedido.observaciones && (
-            <div className="crud-form-group full-width">
-              <label className="crud-label">Observaciones</label>
-              <div className="crud-input-view" style={{ 
-                minHeight: '56px',
-                alignItems: 'flex-start',
-                paddingTop: '16.5px',
-                lineHeight: '1.5'
-              }}>
-                {pedido.observaciones}
-              </div>
-            </div>
-          )}
         </div>
 
-        <div className="crud-form-actions">
+        {/* ITEMS COMPACTOS */}
+        <div style={{ 
+          background: 'var(--gray-50)',
+          borderRadius: '6px',
+          border: '1px solid var(--gray-200)',
+          padding: '14px',
+          marginBottom: '16px'
+        }}>
+          <div style={{ 
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '10px'
+          }}>
+            <h3 style={{ fontSize: '1rem', color: 'var(--gray-700)', margin: '0' }}>
+              {tieneProductos && tieneServicios ? 'Productos y Servicios' : 
+               tieneProductos ? 'Productos' : 'Servicios'} 
+              ({tieneItemsDetallados ? pedido.items.length : '1'})
+            </h3>
+          </div>
+          
+          <div style={{ 
+            background: 'white',
+            borderRadius: '5px',
+            border: '1px solid var(--gray-200)',
+            maxHeight: '200px',
+            overflowY: 'auto'
+          }}>
+            {tieneItemsDetallados ? (
+              <>
+                {pedido.items.map((item, index) => (
+                  <div key={index} 
+                       style={{ 
+                         padding: '10px 12px',
+                         borderBottom: index < pedido.items.length - 1 ? '1px solid var(--gray-100)' : 'none',
+                         fontSize: '0.85rem'
+                       }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <div style={{ fontWeight: '600', color: 'var(--gray-800)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>{item.nombre}</span>
+                        <span style={{ 
+                          fontSize: '0.65rem',
+                          padding: '1px 4px',
+                          borderRadius: '2px',
+                          background: item.tipo === 'producto' ? '#dbeafe' : '#dcfce7',
+                          color: item.tipo === 'producto' ? '#1d4ed8' : '#166534'
+                        }}>
+                          {item.tipo === 'producto' ? 'P' : 'S'}
+                        </span>
+                      </div>
+                      <div style={{ fontWeight: '600', color: 'var(--primary-color)' }}>
+                        ${(item.precio * item.cantidad).toLocaleString()}
+                      </div>
+                    </div>
+                    
+                    <div style={{ fontSize: '0.8rem', color: 'var(--gray-600)', marginBottom: '3px' }}>
+                      {item.descripcion}
+                    </div>
+                    
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--gray-500)' }}>
+                        ${item.precio.toLocaleString()} × {item.cantidad}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                <div style={{ 
+                  padding: '12px',
+                  background: 'var(--gray-100)',
+                  borderTop: '1px solid var(--gray-300)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <div style={{ fontWeight: '600', color: 'var(--gray-700)', fontSize: '0.95rem' }}>
+                    TOTAL
+                  </div>
+                  <div style={{ fontWeight: '700', color: 'var(--primary-color)', fontSize: '1.1rem' }}>
+                    {formatCurrency(pedido.total)}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div style={{ padding: '16px', textAlign: 'center', color: 'var(--gray-600)' }}>
+                <div style={{ marginBottom: '6px', fontWeight: '500', fontSize: '0.9rem' }}>
+                  {pedido.productoServicio}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="crud-form-actions" style={{ 
+          paddingTop: '12px', 
+          marginTop: '0',
+          borderTop: '1px solid var(--gray-200)'
+        }}>
           <button 
             type="button"
             onClick={() => navigate('/admin/ventas/pedidos')}
             className="crud-btn crud-btn-secondary"
+            style={{ padding: '8px 16px', fontSize: '0.85rem' }}
           >
-            ← Volver a Pedidos
+            ← Volver
           </button>
           <button 
             onClick={() => navigate(`/admin/ventas/pedidos/editar/${pedido.id}`)}
             className="crud-btn crud-btn-primary"
+            style={{ padding: '8px 16px', fontSize: '0.85rem' }}
           >
-            Editar Pedido
+            Editar
           </button>
         </div>
       </div>

@@ -7,34 +7,32 @@ export default function EditarPedido() {
   const navigate = useNavigate();
   const { id } = useParams();
   
-  // Datos de ejemplo (reemplazar con tus datos reales)
   const [productos, setProductos] = useState([]);
   const [servicios, setServicios] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [mostrarProductos, setMostrarProductos] = useState(false);
+  const [mostrarServicios, setMostrarServicios] = useState(false);
 
   const [formData, setFormData] = useState(null);
   const [itemsSeleccionados, setItemsSeleccionados] = useState([]);
 
   useEffect(() => {
-    // Cargar datos del pedido
     const pedido = getPedidoById(Number(id));
     if (pedido) {
       setFormData(pedido);
       
-      // Si el pedido tiene items detallados, usarlos
       if (pedido.items && Array.isArray(pedido.items) && pedido.items.length > 0) {
         setItemsSeleccionados(pedido.items);
       } else {
-        // Si no tiene items detallados, convertir la descripción antigua
-        // Esto es un placeholder - puedes ajustarlo según tus necesidades
         if (pedido.productoServicio) {
+          const esProducto = pedido.tipo?.includes('Producto') || !pedido.tipo?.includes('Servicio');
           setItemsSeleccionados([{
             id: 1,
             nombre: pedido.productoServicio,
             descripcion: 'Producto/Servicio del pedido',
             precio: pedido.total,
             cantidad: 1,
-            tipo: pedido.tipo || 'Venta'
+            tipo: esProducto ? 'producto' : 'servicio'
           }]);
         }
       }
@@ -42,22 +40,19 @@ export default function EditarPedido() {
       navigate('/admin/ventas/pedidos');
     }
 
-    // Cargar datos de productos y servicios (ejemplo)
     try {
-      // Datos de ejemplo de productos
       const productosEjemplo = [
-        { id: 1, nombre: 'Lentes de sol', descripcion: 'Protección UV', precio: 120000, tipo: 'Venta' },
-        { id: 2, nombre: 'Armazón metálico', descripcion: 'Color plateado', precio: 85000, tipo: 'Venta' },
-        { id: 3, nombre: 'Lentes progresivos', descripcion: 'Alta definición', precio: 250000, tipo: 'Venta' },
-        { id: 4, nombre: 'Estuche para lentes', descripcion: 'Cuero sintético', precio: 35000, tipo: 'Venta' },
+        { id: 1, nombre: 'Lentes de sol', descripcion: 'Protección UV', precio: 120000, tipo: 'producto' },
+        { id: 2, nombre: 'Armazón metálico', descripcion: 'Color plateado', precio: 85000, tipo: 'producto' },
+        { id: 3, nombre: 'Lentes progresivos', descripcion: 'Alta definición', precio: 250000, tipo: 'producto' },
+        { id: 4, nombre: 'Estuche para lentes', descripcion: 'Cuero sintético', precio: 35000, tipo: 'producto' },
       ];
       
-      // Datos de ejemplo de servicios
       const serviciosEjemplo = [
-        { id: 1, nombre: 'Consulta oftalmológica', descripcion: 'Examen completo', precio: 50000, tipo: 'Servicio' },
-        { id: 2, nombre: 'Adaptación de lentes de contacto', descripcion: 'Incluye enseñanza', precio: 75000, tipo: 'Servicio' },
-        { id: 3, nombre: 'Reparación de armazón', descripcion: 'Soldadura y ajuste', precio: 30000, tipo: 'Servicio' },
-        { id: 4, nombre: 'Limpieza de lentes', descripcion: 'Limpieza profesional', precio: 15000, tipo: 'Servicio' },
+        { id: 5, nombre: 'Consulta oftalmológica', descripcion: 'Examen completo', precio: 50000, tipo: 'servicio' },
+        { id: 6, nombre: 'Adaptación de lentes de contacto', descripcion: 'Incluye enseñanza', precio: 75000, tipo: 'servicio' },
+        { id: 7, nombre: 'Reparación de armazón', descripcion: 'Soldadura y ajuste', precio: 30000, tipo: 'servicio' },
+        { id: 8, nombre: 'Limpieza de lentes', descripcion: 'Limpieza profesional', precio: 15000, tipo: 'servicio' },
       ];
       
       setProductos(productosEjemplo);
@@ -72,7 +67,6 @@ export default function EditarPedido() {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Validación básica
     if (!formData.cliente.trim()) {
       alert('Por favor ingrese el nombre del cliente');
       return;
@@ -83,30 +77,30 @@ export default function EditarPedido() {
       return;
     }
     
-    if (!formData.fechaPedido) {
-      alert('Por favor seleccione la fecha del pedido');
+    if (!formData.fechaPedido || !formData.fechaEntrega) {
+      alert('Por favor complete ambas fechas');
       return;
     }
     
-    if (!formData.fechaEntrega) {
-      alert('Por favor seleccione la fecha de entrega');
-      return;
-    }
-    
-    // Calcular total del pedido basado en los items
     const total = itemsSeleccionados.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+    const tieneProductos = itemsSeleccionados.some(item => item.tipo === 'producto');
+    const tieneServicios = itemsSeleccionados.some(item => item.tipo === 'servicio');
     
-    // Crear descripción de productos/servicios
-    const descripcionItems = itemsSeleccionados.map(item => 
-      `${item.cantidad}x ${item.nombre}`
-    ).join(', ');
+    let tipo = '';
+    if (tieneProductos && tieneServicios) {
+      tipo = 'Productos y Servicios';
+    } else if (tieneProductos) {
+      tipo = 'Productos';
+    } else {
+      tipo = 'Servicios';
+    }
     
     const abono = Number(formData.abono) || 0;
     const saldoPendiente = total - abono;
     
     const pedidoActualizado = {
       ...formData,
-      productoServicio: descripcionItems,
+      tipo: tipo,
       total: total,
       saldoPendiente: saldoPendiente,
       items: itemsSeleccionados.map(item => ({
@@ -131,13 +125,12 @@ export default function EditarPedido() {
     });
   };
 
-  // Agregar un ítem al pedido
   const agregarItem = (item) => {
-    const itemExistente = itemsSeleccionados.find(i => i.id === item.id && i.tipo === item.tipo);
+    const itemExistente = itemsSeleccionados.find(i => i.id === item.id);
     
     if (itemExistente) {
       setItemsSeleccionados(itemsSeleccionados.map(i => 
-        i.id === item.id && i.tipo === item.tipo 
+        i.id === item.id 
           ? { ...i, cantidad: i.cantidad + 1 }
           : i
       ));
@@ -152,14 +145,12 @@ export default function EditarPedido() {
     }
   };
 
-  // Remover un ítem del pedido
   const removerItem = (index) => {
     const nuevosItems = [...itemsSeleccionados];
     nuevosItems.splice(index, 1);
     setItemsSeleccionados(nuevosItems);
   };
 
-  // Actualizar cantidad de un ítem
   const actualizarCantidad = (index, nuevaCantidad) => {
     if (nuevaCantidad < 1) {
       removerItem(index);
@@ -171,26 +162,24 @@ export default function EditarPedido() {
     setItemsSeleccionados(nuevosItems);
   };
 
-  // Calcular total del pedido
   const calcularTotal = () => {
     return itemsSeleccionados.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
   };
 
-  // Calcular saldo pendiente
   const calcularSaldoPendiente = () => {
     const total = calcularTotal();
     const abono = Number(formData?.abono) || 0;
     return total - abono;
   };
 
-  // Filtrar items según tipo seleccionado
-  const itemsDisponibles = formData?.tipo === 'Venta' ? productos : servicios;
+  const tieneProductos = itemsSeleccionados.some(item => item.tipo === 'producto');
+  const tieneServicios = itemsSeleccionados.some(item => item.tipo === 'servicio');
 
   if (loading || !formData) {
     return (
-      <div className="crud-form-container" style={{ maxWidth: '1000px' }}>
-        <div className="crud-form-header">
-          <h1>Editando Pedido</h1>
+      <div className="crud-form-container" style={{ maxWidth: '850px' }}>
+        <div className="crud-form-header" style={{ padding: '16px 20px' }}>
+          <h1 style={{ fontSize: '1.4rem', margin: '0' }}>Editando Pedido</h1>
         </div>
         <div className="crud-form-content">
           <div style={{ textAlign: 'center', padding: '40px' }}>
@@ -202,20 +191,23 @@ export default function EditarPedido() {
   }
 
   return (
-    <div className="crud-form-container" style={{ maxWidth: '1000px' }}>
-      <div className="crud-form-header">
-        <h1>Editando Pedido: {formData.cliente}</h1>
-        <p>Actualice la información del pedido</p>
+    <div className="crud-form-container" style={{ maxWidth: '850px' }}>
+      {/* HEADER COMPACTO - SIN DESCRIPCIÓN */}
+      <div className="crud-form-header" style={{ padding: '16px 20px', minHeight: 'auto' }}>
+        <h1 style={{ fontSize: '1.4rem', margin: '0' }}>Editando Pedido: {formData.cliente}</h1>
       </div>
       
       <div className="crud-form-content">
         <form onSubmit={handleSubmit}>
-          <div className="crud-form-section">
-            {/* Cliente */}
+          {/* FORMULARIO BÁSICO - SUPER COMPACTO */}
+          <div className="crud-form-section" style={{ 
+            padding: '16px', 
+            marginBottom: '12px', 
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            gap: '12px'
+          }}>
             <div className="crud-form-group">
-              <label htmlFor="cliente">
-                Cliente <span className="crud-required">*</span>
-              </label>
+              <label htmlFor="cliente" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Cliente *</label>
               <input
                 type="text"
                 id="cliente"
@@ -225,33 +217,30 @@ export default function EditarPedido() {
                 className="crud-input"
                 placeholder="Nombre del cliente"
                 required
+                style={{ padding: '10px 12px', fontSize: '0.9rem' }}
               />
             </div>
 
-            {/* Tipo */}
             <div className="crud-form-group">
-              <label htmlFor="tipo">
-                Tipo <span className="crud-required">*</span>
-              </label>
+              <label htmlFor="estado" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Estado *</label>
               <select
-                id="tipo"
-                name="tipo"
-                value={formData.tipo}
+                id="estado"
+                name="estado"
+                value={formData.estado}
                 onChange={handleChange}
                 className="crud-input"
                 required
+                style={{ padding: '10px 12px', fontSize: '0.9rem', height: 'auto' }}
               >
-                <option value="">Seleccione...</option>
-                <option value="Venta">Venta de Productos</option>
-                <option value="Servicio">Servicio</option>
+                <option value="En proceso">En proceso</option>
+                <option value="Pendiente pago">Pendiente pago</option>
+                <option value="Pagado">Pagado</option>
+                <option value="Entregado">Entregado</option>
               </select>
             </div>
 
-            {/* Fechas */}
             <div className="crud-form-group">
-              <label htmlFor="fechaPedido">
-                Fecha Pedido <span className="crud-required">*</span>
-              </label>
+              <label htmlFor="fechaPedido" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Fecha Pedido *</label>
               <input
                 type="date"
                 id="fechaPedido"
@@ -260,13 +249,12 @@ export default function EditarPedido() {
                 onChange={handleChange}
                 className="crud-input"
                 required
+                style={{ padding: '10px 12px', fontSize: '0.9rem' }}
               />
             </div>
 
             <div className="crud-form-group">
-              <label htmlFor="fechaEntrega">
-                Fecha Entrega <span className="crud-required">*</span>
-              </label>
+              <label htmlFor="fechaEntrega" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Fecha Entrega *</label>
               <input
                 type="date"
                 id="fechaEntrega"
@@ -275,45 +263,12 @@ export default function EditarPedido() {
                 onChange={handleChange}
                 className="crud-input"
                 required
+                style={{ padding: '10px 12px', fontSize: '0.9rem' }}
               />
             </div>
 
-            {/* Estado */}
-            <div className="crud-form-group">
-              <label htmlFor="estado">
-                Estado <span className="crud-required">*</span>
-              </label>
-              <select
-                id="estado"
-                name="estado"
-                value={formData.estado}
-                onChange={handleChange}
-                className="crud-input"
-                required
-              >
-                <option value="">Seleccione...</option>
-                <option value="En proceso">En proceso</option>
-                <option value="Pendiente pago">Pendiente pago</option>
-                <option value="Pagado">Pagado</option>
-                <option value="Entregado">Entregado</option>
-              </select>
-            </div>
-
-            {/* Montos calculados automáticamente */}
-            <div className="crud-form-group">
-              <label>Total del Pedido</label>
-              <div className="crud-input-view" style={{ 
-                background: '#f0f9ff',
-                color: '#1d4ed8',
-                fontWeight: '600',
-                fontSize: '1.1rem'
-              }}>
-                ${calcularTotal().toLocaleString()}
-              </div>
-            </div>
-
-            <div className="crud-form-group">
-              <label htmlFor="abono">Abono Inicial</label>
+            <div className="crud-form-group" style={{ gridColumn: 'span 2' }}>
+              <label htmlFor="abono" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Abono Inicial</label>
               <input
                 type="number"
                 id="abono"
@@ -324,302 +279,377 @@ export default function EditarPedido() {
                 placeholder="0"
                 min="0"
                 max={calcularTotal()}
+                style={{ padding: '10px 12px', fontSize: '0.9rem' }}
               />
+            </div>
+          </div>
+
+          {/* SECCIÓN DE ITEMS COMPACTA */}
+          <div style={{ 
+            background: 'var(--gray-50)',
+            borderRadius: '6px',
+            border: '1px solid var(--gray-200)',
+            padding: '14px',
+            marginBottom: '16px'
+          }}>
+            <div style={{ 
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '10px'
+            }}>
+              <h3 style={{ fontSize: '1rem', color: 'var(--gray-700)', margin: '0' }}>
+                Seleccionar Items
+              </h3>
+              <div style={{ fontSize: '0.8rem', color: 'var(--gray-600)' }}>
+                {productos.length}p • {servicios.length}s
+              </div>
+            </div>
+
+            {/* ACORDEÓN DE PRODUCTOS */}
+            <div style={{ marginBottom: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setMostrarProductos(!mostrarProductos)}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  background: 'white',
+                  border: '1px solid var(--gray-300)',
+                  borderRadius: '5px',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: '0.9rem',
+                  fontWeight: '600',
+                  color: 'var(--gray-800)'
+                }}
+              >
+                <span>Productos ({productos.length})</span>
+                <span>{mostrarProductos ? '▲' : '▼'}</span>
+              </button>
+              
+              {mostrarProductos && (
+                <div style={{ 
+                  marginTop: '6px',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))',
+                  gap: '6px',
+                  maxHeight: '180px',
+                  overflowY: 'auto',
+                  padding: '6px',
+                  background: 'white',
+                  borderRadius: '4px',
+                  border: '1px solid var(--gray-200)'
+                }}>
+                  {productos.map((item) => (
+                    <div key={`producto-${item.id}`} 
+                         onClick={() => agregarItem(item)}
+                         style={{ 
+                           padding: '6px',
+                           border: '1px solid var(--gray-200)',
+                           borderRadius: '4px',
+                           cursor: 'pointer',
+                           fontSize: '0.8rem',
+                           transition: 'all 0.2s'
+                         }}
+                         onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary-color)'}
+                         onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--gray-200)'}>
+                      <div style={{ fontWeight: '600', color: 'var(--gray-800)', marginBottom: '2px' }}>
+                        {item.nombre}
+                      </div>
+                      <div style={{ color: 'var(--gray-600)', fontSize: '0.75rem', marginBottom: '2px' }}>
+                        {item.descripcion}
+                      </div>
+                      <div style={{ fontWeight: '600', color: 'var(--primary-color)', fontSize: '0.85rem' }}>
+                        ${item.precio.toLocaleString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* ACORDEÓN DE SERVICIOS */}
+            <div>
+              <button
+                type="button"
+                onClick={() => setMostrarServicios(!mostrarServicios)}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  background: 'white',
+                  border: '1px solid var(--gray-300)',
+                  borderRadius: '5px',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: '0.9rem',
+                  fontWeight: '600',
+                  color: 'var(--gray-800)'
+                }}
+              >
+                <span>Servicios ({servicios.length})</span>
+                <span>{mostrarServicios ? '▲' : '▼'}</span>
+              </button>
+              
+              {mostrarServicios && (
+                <div style={{ 
+                  marginTop: '6px',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))',
+                  gap: '6px',
+                  maxHeight: '180px',
+                  overflowY: 'auto',
+                  padding: '6px',
+                  background: 'white',
+                  borderRadius: '4px',
+                  border: '1px solid var(--gray-200)'
+                }}>
+                  {servicios.map((item) => (
+                    <div key={`servicio-${item.id}`} 
+                         onClick={() => agregarItem(item)}
+                         style={{ 
+                           padding: '6px',
+                           border: '1px solid var(--gray-200)',
+                           borderRadius: '4px',
+                           cursor: 'pointer',
+                           fontSize: '0.8rem',
+                           transition: 'all 0.2s'
+                         }}
+                         onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary-color)'}
+                         onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--gray-200)'}>
+                      <div style={{ fontWeight: '600', color: 'var(--gray-800)', marginBottom: '2px' }}>
+                        {item.nombre}
+                      </div>
+                      <div style={{ color: 'var(--gray-600)', fontSize: '0.75rem', marginBottom: '2px' }}>
+                        {item.descripcion}
+                      </div>
+                      <div style={{ fontWeight: '600', color: 'var(--primary-color)', fontSize: '0.85rem' }}>
+                        ${item.precio.toLocaleString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* RESUMEN COMPACTO DE ITEMS */}
+          {itemsSeleccionados.length > 0 && (
+            <div style={{ 
+              background: 'var(--gray-50)',
+              borderRadius: '6px',
+              border: '1px solid var(--gray-200)',
+              padding: '14px',
+              marginBottom: '16px'
+            }}>
+              <div style={{ 
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '10px'
+              }}>
+                <h3 style={{ fontSize: '1rem', color: 'var(--gray-700)', margin: '0' }}>
+                  Items ({itemsSeleccionados.length})
+                </h3>
+                <div style={{ fontSize: '0.8rem', color: 'var(--gray-600)' }}>
+                  {tieneProductos && tieneServicios ? 'P y S' : 
+                   tieneProductos ? 'Productos' : 'Servicios'}
+                </div>
+              </div>
+              
+              <div style={{ 
+                background: 'white',
+                borderRadius: '5px',
+                border: '1px solid var(--gray-200)',
+                maxHeight: '180px',
+                overflowY: 'auto'
+              }}>
+                {itemsSeleccionados.map((item, index) => (
+                  <div key={index} 
+                       style={{ 
+                         padding: '8px 10px',
+                         borderBottom: index < itemsSeleccionados.length - 1 ? '1px solid var(--gray-100)' : 'none',
+                         fontSize: '0.85rem'
+                       }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <div style={{ fontWeight: '600', color: 'var(--gray-800)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>{item.nombre}</span>
+                        <span style={{ 
+                          fontSize: '0.65rem',
+                          padding: '1px 4px',
+                          borderRadius: '2px',
+                          background: item.tipo === 'producto' ? '#dbeafe' : '#dcfce7',
+                          color: item.tipo === 'producto' ? '#1d4ed8' : '#166534'
+                        }}>
+                          {item.tipo === 'producto' ? 'P' : 'S'}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removerItem(index)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#dc2626',
+                          cursor: 'pointer',
+                          fontSize: '0.75rem',
+                          padding: '2px',
+                          width: '18px',
+                          height: '18px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--gray-600)' }}>
+                        ${item.precio.toLocaleString()} × {item.cantidad} = <strong>${(item.precio * item.cantidad).toLocaleString()}</strong>
+                      </div>
+                      
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                        <button
+                          type="button"
+                          onClick={() => actualizarCantidad(index, item.cantidad - 1)}
+                          style={{
+                            width: '18px',
+                            height: '18px',
+                            background: 'var(--gray-200)',
+                            border: 'none',
+                            borderRadius: '2px',
+                            cursor: 'pointer',
+                            fontSize: '0.7rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          -
+                        </button>
+                        <input
+                          type="number"
+                          value={item.cantidad}
+                          onChange={(e) => actualizarCantidad(index, parseInt(e.target.value) || 1)}
+                          style={{
+                            width: '35px',
+                            textAlign: 'center',
+                            padding: '1px 2px',
+                            border: '1px solid var(--gray-300)',
+                            borderRadius: '2px',
+                            fontSize: '0.75rem'
+                          }}
+                          min="1"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => actualizarCantidad(index, item.cantidad + 1)}
+                          style={{
+                            width: '18px',
+                            height: '18px',
+                            background: 'var(--gray-200)',
+                            border: 'none',
+                            borderRadius: '2px',
+                            cursor: 'pointer',
+                            fontSize: '0.7rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {/* TOTAL PEQUEÑO */}
+                <div style={{ 
+                  padding: '10px',
+                  background: 'var(--gray-100)',
+                  borderTop: '1px solid var(--gray-300)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: '0.9rem'
+                }}>
+                  <div style={{ fontWeight: '600', color: 'var(--gray-700)' }}>
+                    TOTAL
+                  </div>
+                  <div style={{ fontWeight: '700', color: 'var(--primary-color)' }}>
+                    ${calcularTotal().toLocaleString()}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* RESÚMENES FINALES EXTRA COMPACTOS */}
+          <div className="crud-form-section" style={{ 
+            padding: '12px', 
+            marginBottom: '16px', 
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: '10px'
+          }}>
+            <div className="crud-form-group">
+              <label style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Tipo</label>
+              <div className="crud-input-view" style={{ 
+                fontSize: '0.85rem', 
+                padding: '8px 10px',
+                minHeight: 'auto'
+              }}>
+                {tieneProductos && tieneServicios ? 'Productos y Servicios' : 
+                 tieneProductos ? 'Productos' : 
+                 tieneServicios ? 'Servicios' : 'Sin items'}
+              </div>
             </div>
 
             <div className="crud-form-group">
-              <label>Saldo Pendiente</label>
+              <label style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Total</label>
               <div className="crud-input-view" style={{ 
-                background: calcularSaldoPendiente() > 0 ? '#fee2e2' : '#dcfce7',
+                color: 'var(--primary-color)',
+                fontWeight: '600',
+                fontSize: '0.9rem',
+                padding: '8px 10px',
+                minHeight: 'auto'
+              }}>
+                ${calcularTotal().toLocaleString()}
+              </div>
+            </div>
+
+            <div className="crud-form-group">
+              <label style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Saldo</label>
+              <div className="crud-input-view" style={{ 
                 color: calcularSaldoPendiente() > 0 ? '#991b1b' : '#166534',
-                fontWeight: '600'
+                fontWeight: '600',
+                fontSize: '0.9rem',
+                padding: '8px 10px',
+                minHeight: 'auto'
               }}>
                 ${calcularSaldoPendiente().toLocaleString()}
               </div>
             </div>
           </div>
 
-          {/* Sección de selección de productos/servicios */}
-          <div style={{ 
-            background: 'var(--gray-50)',
-            borderRadius: '8px',
-            border: '1px solid var(--gray-200)',
-            padding: '24px',
-            marginBottom: '24px'
+          <div className="crud-form-actions" style={{ 
+            paddingTop: '12px', 
+            marginTop: '0',
+            borderTop: '1px solid var(--gray-200)'
           }}>
-            <div style={{ 
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '20px'
-            }}>
-              <h3 style={{ 
-                fontSize: '1.2rem',
-                color: 'var(--gray-700)',
-                margin: '0'
-              }}>
-                {formData.tipo === 'Venta' ? 'Seleccionar Productos' : 'Seleccionar Servicios'}
-              </h3>
-              <div style={{ fontSize: '0.9rem', color: 'var(--gray-600)' }}>
-                {itemsDisponibles.length} disponibles
-              </div>
-            </div>
-
-            {/* Grid de productos/servicios disponibles */}
-            {itemsDisponibles.length === 0 ? (
-              <div style={{ 
-                textAlign: 'center', 
-                padding: '40px',
-                color: 'var(--gray-500)',
-                background: 'white',
-                borderRadius: '6px',
-                border: '1px dashed var(--gray-300)'
-              }}>
-                <p style={{ margin: '0' }}>
-                  No hay {formData.tipo === 'Venta' ? 'productos' : 'servicios'} disponibles
-                </p>
-              </div>
-            ) : (
-              <div style={{ 
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                gap: '12px',
-                marginBottom: '24px'
-              }}>
-                {itemsDisponibles.map((item) => (
-                  <div key={`${formData.tipo}-${item.id}`} 
-                       style={{ 
-                         background: 'white',
-                         border: '1px solid var(--gray-200)',
-                         borderRadius: '6px',
-                         padding: '12px',
-                         cursor: 'pointer',
-                         transition: 'all 0.2s',
-                         ':hover': {
-                           borderColor: 'var(--primary-color)',
-                           boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                         }
-                       }}
-                       onClick={() => agregarItem({ 
-                         ...item, 
-                         tipo: formData.tipo 
-                       })}>
-                    <div style={{ 
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      marginBottom: '8px'
-                    }}>
-                      <div style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--gray-800)' }}>
-                        {item.nombre}
-                      </div>
-                      <div style={{ 
-                        fontSize: '0.8rem',
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                        background: formData.tipo === 'Venta' ? '#dbeafe' : '#dcfce7',
-                        color: formData.tipo === 'Venta' ? '#1d4ed8' : '#166534'
-                      }}>
-                        {formData.tipo === 'Venta' ? 'PRODUCTO' : 'SERVICIO'}
-                      </div>
-                    </div>
-                    <div style={{ fontSize: '0.85rem', color: 'var(--gray-600)', marginBottom: '4px' }}>
-                      {item.descripcion || 'Sin descripción'}
-                    </div>
-                    <div style={{ 
-                      fontSize: '0.95rem',
-                      fontWeight: '600',
-                      color: 'var(--primary-color)'
-                    }}>
-                      ${item.precio.toLocaleString()}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Lista de items seleccionados */}
-            {itemsSeleccionados.length > 0 && (
-              <div>
-                <h4 style={{ 
-                  fontSize: '1rem',
-                  color: 'var(--gray-700)',
-                  margin: '0 0 12px 0'
-                }}>
-                  Items Seleccionados ({itemsSeleccionados.length})
-                </h4>
-                
-                <div style={{ 
-                  background: 'white',
-                  borderRadius: '6px',
-                  border: '1px solid var(--gray-200)',
-                  overflow: 'hidden'
-                }}>
-                  {itemsSeleccionados.map((item, index) => (
-                    <div key={index} 
-                         style={{ 
-                           display: 'flex',
-                           alignItems: 'center',
-                           padding: '12px 16px',
-                           borderBottom: index < itemsSeleccionados.length - 1 ? '1px solid var(--gray-100)' : 'none',
-                           background: index % 2 === 0 ? 'white' : 'var(--gray-50)'
-                         }}>
-                      <div style={{ flex: '1' }}>
-                        <div style={{ 
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          marginBottom: '4px'
-                        }}>
-                          <div style={{ 
-                            fontSize: '0.95rem',
-                            fontWeight: '600',
-                            color: 'var(--gray-800)'
-                          }}>
-                            {item.nombre}
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => removerItem(index)}
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              color: '#dc2626',
-                              cursor: 'pointer',
-                              fontSize: '0.8rem',
-                              padding: '2px 6px'
-                            }}
-                          >
-                            ✕
-                          </button>
-                        </div>
-                        
-                        <div style={{ 
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center'
-                        }}>
-                          <div style={{ fontSize: '0.85rem', color: 'var(--gray-600)' }}>
-                            <span style={{ marginRight: '12px' }}>
-                              Precio: <strong>${item.precio.toLocaleString()}</strong>
-                            </span>
-                            <span>
-                              Subtotal: <strong>${(item.precio * item.cantidad).toLocaleString()}</strong>
-                            </span>
-                          </div>
-                          
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <button
-                              type="button"
-                              onClick={() => actualizarCantidad(index, item.cantidad - 1)}
-                              style={{
-                                width: '24px',
-                                height: '24px',
-                                background: 'var(--gray-200)',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '0.8rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                              }}
-                            >
-                              -
-                            </button>
-                            <input
-                              type="number"
-                              value={item.cantidad}
-                              onChange={(e) => actualizarCantidad(index, parseInt(e.target.value) || 1)}
-                              style={{
-                                width: '50px',
-                                textAlign: 'center',
-                                padding: '4px',
-                                border: '1px solid var(--gray-300)',
-                                borderRadius: '4px',
-                                fontSize: '0.9rem'
-                              }}
-                              min="1"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => actualizarCantidad(index, item.cantidad + 1)}
-                              style={{
-                                width: '24px',
-                                height: '24px',
-                                background: 'var(--gray-200)',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '0.8rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                              }}
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {/* Total */}
-                  <div style={{ 
-                    padding: '16px',
-                    background: 'var(--gray-50)',
-                    borderTop: '2px solid var(--gray-300)',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}>
-                    <div style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--gray-700)' }}>
-                      TOTAL DEL PEDIDO
-                    </div>
-                    <div style={{ fontSize: '1.3rem', fontWeight: '700', color: 'var(--primary-color)' }}>
-                      ${calcularTotal().toLocaleString()}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Observaciones */}
-          <div style={{ 
-            background: 'var(--gray-50)',
-            borderRadius: '8px',
-            border: '1px solid var(--gray-200)',
-            padding: '24px',
-            marginBottom: '24px'
-          }}>
-            <div className="crud-form-group" style={{ marginBottom: '0' }}>
-              <label htmlFor="observaciones" style={{ 
-                fontSize: '1rem',
-                fontWeight: '600',
-                color: 'var(--gray-700)',
-                marginBottom: '12px'
-              }}>
-                Observaciones
-              </label>
-              <textarea
-                id="observaciones"
-                name="observaciones"
-                value={formData.observaciones || ''}
-                onChange={handleChange}
-                className="crud-textarea"
-                placeholder="Observaciones adicionales del pedido..."
-                rows="4"
-              />
-            </div>
-          </div>
-
-          <div className="crud-form-actions">
             <button 
               type="button" 
               className="crud-btn crud-btn-secondary"
               onClick={() => navigate('/admin/ventas/pedidos')}
+              style={{ padding: '8px 16px', fontSize: '0.85rem' }}
             >
               Cancelar
             </button>
@@ -627,8 +657,9 @@ export default function EditarPedido() {
               type="submit" 
               className="crud-btn crud-btn-primary"
               disabled={itemsSeleccionados.length === 0}
+              style={{ padding: '8px 16px', fontSize: '0.85rem' }}
             >
-              Actualizar Pedido
+              Actualizar
             </button>
           </div>
         </form>
