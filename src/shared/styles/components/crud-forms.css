@@ -663,3 +663,480 @@
   border-radius: 4px;
   padding: 4px;
 }
+/* =============================
+   ESTILOS MINIMALISTAS OPTIMIZADOS
+   ============================= */
+
+/* VERSION MINIMAL DE CONTENEDORES */
+.crud-form-container.minimal {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  min-height: auto;
+}
+
+.crud-form-header.minimal {
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px 8px 0 0;
+}
+
+.crud-form-header.minimal h1 {
+  font-size: 1.25rem;
+  margin: 0;
+  color: white;
+  font-weight: 600;
+}
+
+.crud-form-content.compact {
+  padding: 20px;
+}
+
+.crud-form-section.compact {
+  padding: 16px;
+  gap: 16px;
+  margin-bottom: 16px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+/* GRUPOS COMPACTOS */
+.crud-form-group {
+  margin-bottom: 0;
+}
+
+.crud-form-group label {
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+  color: #4b5563;
+  font-weight: 500;
+}
+
+.crud-input {
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  min-height: 42px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+}
+
+.crud-input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+}
+
+/* ACCIONES COMPACTAS */
+.crud-form-actions.compact {
+  padding: 16px 0 0 0;
+  margin-top: 16px;
+  border-top: 1px solid #e5e7eb;
+  gap: 8px;
+}
+
+.crud-btn {
+  padding: 8px 20px;
+  font-size: 0.85rem;
+  min-width: 90px;
+}
+
+/* LOADING MINIMAL */
+.loading-minimal {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+/* VISTA DETALLE COMPACTA */
+.crud-input-view {
+  padding: 10px 12px;
+  min-height: 42px;
+  font-size: 0.9rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+}
+
+.email-small, .address-small {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.crud-badge.gender {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+}
+
+.birthdate {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+/* FÓRMULAS - ESTILOS */
+.formula-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.formula-text {
+  flex: 1;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.85rem;
+  color: #374151;
+  padding: 8px 12px;
+  background: #f3f4f6;
+  border-radius: 4px;
+  border-left: 3px solid #6366f1;
+}
+
+.view-formulas-btn {
+  padding: 6px 16px;
+  background: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.view-formulas-btn:hover {
+  background: #4338ca;
+}
+
+/* HISTORIAL DE FÓRMULAS */
+.formula-actions-header {
+  margin-bottom: 16px;
+  text-align: right;
+}
+
+.formula-create-form {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.formula-create-form h3 {
+  margin: 0 0 16px 0;
+  font-size: 1rem;
+  color: #374151;
+}
+
+.formula-inputs-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.formula-eye-section h4 {
+  margin: 0 0 8px 0;
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+.formula-input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.formula-input {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  width: 100%;
+}
+
+.formula-extra-info {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.formula-select, .formula-textarea {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  width: 100%;
+}
+
+.formula-textarea {
+  resize: vertical;
+  min-height: 60px;
+  max-height: 100px;
+}
+
+.formula-form-actions {
+  margin-top: 16px;
+  text-align: right;
+}
+
+/* LISTA DE FÓRMULAS */
+.formulas-list {
+  margin-top: 20px;
+}
+
+.no-formulas {
+  text-align: center;
+  padding: 40px 20px;
+  color: #9ca3af;
+  font-style: italic;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.formulas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.formula-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 12px;
+  position: relative;
+}
+
+.formula-card.current {
+  border-left: 4px solid #10b981;
+  background: #f0fdf4;
+}
+
+.formula-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.formula-date {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.formula-status {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.formula-card.current .formula-status {
+  background: #10b981;
+  color: white;
+}
+
+.formula-values {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.formula-eye {
+  display: flex;
+  flex-direction: column;
+}
+
+.formula-eye-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 2px;
+}
+
+.formula-eye-value {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.formula-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formula-lente-type {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #e0e7ff;
+  color: #3730a3;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.formula-obs {
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-style: italic;
+  line-height: 1.3;
+}
+
+/* RESPONSIVE MINIMAL */
+@media (max-width: 768px) {
+  .crud-form-container.minimal {
+    margin: 10px;
+    max-width: 100%;
+  }
+  
+  .crud-form-content.compact {
+    padding: 16px;
+  }
+  
+  .crud-form-section.compact {
+    grid-template-columns: 1fr;
+    padding: 12px;
+    gap: 12px;
+  }
+  
+  .formula-input-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .formula-extra-info {
+    grid-template-columns: 1fr;
+  }
+  
+  .formulas-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .formula-preview {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .formula-text {
+    margin-bottom: 8px;
+  }
+}
+
+/* ANIMACIONES SUAVES */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.crud-form-container.minimal {
+  animation: fadeInUp 0.2s ease-out;
+}
+
+/* ESTILOS PARA BADGES DE GÉNERO */
+.crud-badge.gender.masculino {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.crud-badge.gender.femenino {
+  background: #fce7f3;
+  color: #be185d;
+}
+
+.crud-badge.gender.otro {
+  background: #f3f4f6;
+  color: #374151;
+}
+/* =============================
+   CORRECCIONES PARA DETALLE CLIENTE
+   ============================= */
+
+/* Mantener color azul oscuro original del header */
+.crud-form-header.minimal {
+  background: var(--primary-color) !important; /* Usa el color original */
+}
+
+/* Separar teléfono y correo */
+.crud-form-section.compact .crud-form-group:nth-child(2) {
+  /* Teléfono */
+}
+
+.crud-form-section.compact .crud-form-group:nth-child(3) {
+  /* Correo */
+}
+
+/* Estilo para display de fórmula sin botón */
+.formula-display {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formula-text {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.9rem;
+  color: #374151;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-radius: 4px;
+  border-left: 3px solid #6366f1;
+}
+
+.formula-type {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.lente-badge {
+  padding: 4px 12px;
+  background: #e0e7ff;
+  color: #3730a3;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* Badges de género específicos */
+.crud-badge.gender.masculino {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.crud-badge.gender.femenino {
+  background: #fce7f3;
+  color: #be185d;
+}
+
+.crud-badge.gender.otro {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+/* Responsive para fórmula */
+@media (max-width: 768px) {
+  .formula-display {
+    gap: 6px;
+  }
+  
+  .formula-text {
+    font-size: 0.85rem;
+  }
+}

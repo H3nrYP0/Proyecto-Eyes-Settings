@@ -1,152 +1,140 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getClienteById } from '../../../../lib/data/clientesData';
+import { getFormulasByClienteId } from '../../../../lib/data/formulasData';
 import "../../../../shared/styles/components/crud-forms.css";
 
 export default function DetalleCliente() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [cliente, setCliente] = useState(null);
+  const [latestFormula, setLatestFormula] = useState(null);
 
   useEffect(() => {
     const clienteData = getClienteById(Number(id));
     setCliente(clienteData);
+    
+    if (clienteData) {
+      const formulas = getFormulasByClienteId(Number(id));
+      if (formulas.length > 0) {
+        setLatestFormula(formulas[0]);
+      }
+    }
   }, [id]);
 
   if (!cliente) {
     return (
-      <div className="crud-form-container">
+      <div className="crud-form-container minimal">
         <div className="crud-form-content">
-          <div style={{ 
-            textAlign: 'center', 
-            padding: '40px',
-            color: 'var(--gray-600)'
-          }}>
-            Cargando información del cliente...
+          <div className="loading-minimal">
+            Cargando...
           </div>
         </div>
       </div>
     );
   }
 
+  const formatFormula = (formula) => {
+    if (!formula) return 'No hay fórmulas registradas';
+    const formatOjo = (esf, cil, eje) => {
+      if (!esf) return '-';
+      let result = esf;
+      if (cil && cil !== '0.00') result += ` ${cil}`;
+      if (eje && eje !== '0') result += ` x ${eje}`;
+      return result;
+    };
+    
+    return `OD: ${formatOjo(formula.ojoDerechoEsferico, formula.ojoDerechoCilindrico, formula.ojoDerechoEje)} / OI: ${formatOjo(formula.ojoIzquierdoEsferico, formula.ojoIzquierdoCilindrico, formula.ojoIzquierdoEje)}`;
+  };
+
   return (
-    <div className="crud-form-container" style={{ maxWidth: '1000px' }}>
-      <div className="crud-form-header">
+    <div className="crud-form-container minimal">
+      <div className="crud-form-header minimal">
         <h1>{cliente.nombre} {cliente.apellido}</h1>
       </div>
       
-      <div className="crud-form-content">
-        <div className="crud-form-section">
-          {/* Nombre */}
+      <div className="crud-form-content compact">
+        <div className="crud-form-section compact">
+          {/* Información básica */}
           <div className="crud-form-group">
-            <label className="crud-label">Nombre</label>
+            <label>Documento</label>
             <div className="crud-input-view">
-              {cliente.nombre}
+              {cliente.tipoDocumento}: {cliente.documento}
             </div>
           </div>
 
-          {/* Apellido */}
           <div className="crud-form-group">
-            <label className="crud-label">Apellido</label>
-            <div className="crud-input-view">
-              {cliente.apellido}
-            </div>
-          </div>
-
-          {/* Tipo Documento */}
-          <div className="crud-form-group">
-            <label className="crud-label">Tipo Documento</label>
-            <div className="crud-input-view">
-              {cliente.tipoDocumento}
-            </div>
-          </div>
-
-          {/* Número Documento */}
-          <div className="crud-form-group">
-            <label className="crud-label">Número Documento</label>
-            <div className="crud-input-view" style={{ 
-              fontWeight: '600',
-              color: 'var(--primary-color)'
-            }}>
-              {cliente.documento}
-            </div>
-          </div>
-
-          {/* Teléfono */}
-          <div className="crud-form-group">
-            <label className="crud-label">Teléfono</label>
+            <label>Teléfono</label>
             <div className="crud-input-view">
               {cliente.telefono}
             </div>
           </div>
 
-          {/* Correo Electrónico (si existe) */}
-          {cliente.correo && (
-            <div className="crud-form-group">
-              <label className="crud-label">Correo Electrónico</label>
-              <div className="crud-input-view">
-                {cliente.correo}
-              </div>
-            </div>
-          )}
-
-          {/* Campo vacío para emparejar */}
-          {!cliente.correo && (
-            <div className="crud-form-group empty-field"></div>
-          )}
-
-          {/* Fecha de Nacimiento */}
           <div className="crud-form-group">
-            <label className="crud-label">Fecha de Nacimiento</label>
+            <label>Correo Electrónico</label>
             <div className="crud-input-view">
-              {new Date(cliente.fechaNacimiento).toLocaleDateString('es-ES', {
-                day: '2-digit',
-                month: 'long',
-                year: 'numeric'
-              })}
+              {cliente.correo || 'No registrado'}
             </div>
           </div>
 
-          {/* Género */}
           <div className="crud-form-group">
-            <label className="crud-label">Género</label>
-            <div className="crud-input-view">
-              <span className={`crud-badge ${cliente.genero.toLowerCase()}`}>
-                {cliente.genero}
-              </span>
-            </div>
-          </div>
-
-          {/* Ciudad */}
-          <div className="crud-form-group">
-            <label className="crud-label">Ciudad</label>
+            <label>Ciudad</label>
             <div className="crud-input-view">
               {cliente.ciudad}
             </div>
           </div>
 
-          {/* Dirección (si existe) - full width */}
-          {cliente.direccion && (
-            <div className="crud-form-group full-width">
-              <label className="crud-label">Dirección</label>
-              <div className="crud-input-view" style={{ 
-                minHeight: '56px',
-                alignItems: 'flex-start',
-                paddingTop: '16.5px'
-              }}>
-                {cliente.direccion}
-              </div>
+          <div className="crud-form-group">
+            <label>Dirección</label>
+            <div className="crud-input-view">
+              {cliente.direccion || 'No registrada'}
             </div>
-          )}
+          </div>
+
+          <div className="crud-form-group">
+            <label>Género</label>
+            <div className="crud-input-view">
+              <span className={`crud-badge gender ${cliente.genero.toLowerCase()}`}>
+                {cliente.genero}
+              </span>
+            </div>
+          </div>
+
+          <div className="crud-form-group">
+            <label>Fecha Nacimiento</label>
+            <div className="crud-input-view">
+              {new Date(cliente.fechaNacimiento).toLocaleDateString('es-ES')}
+            </div>
+          </div>
+
+          {/* Última fórmula - full width */}
+          <div className="crud-form-group full-width">
+            <label>Última Fórmula</label>
+            <div className="crud-input-view formula-display">
+              <div className="formula-text">
+                {formatFormula(latestFormula)}
+              </div>
+              {latestFormula && (
+                <div className="formula-type">
+                  <span className="lente-badge">{latestFormula.tipoLente}</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        <div className="crud-form-actions">
+        <div className="crud-form-actions compact">
           <button 
-            type="button"
             onClick={() => navigate('/admin/ventas/clientes')}
             className="crud-btn crud-btn-secondary"
           >
-            ← Volver a Lista de Clientes
+            ← Volver
+          </button>
+          <button 
+            onClick={() => navigate(`/admin/ventas/clientes/${id}/editar`)}
+            className="crud-btn crud-btn-primary"
+          >
+            Editar
           </button>
         </div>
       </div>
