@@ -80,16 +80,7 @@ return (
     <div className="crud-form-content">
       <form onSubmit={(e) => e.preventDefault()}>
         <div className="crud-form-section">
-          <div className="crud-form-group">
-            <input
-              type="text"
-              className="crud-input-view uniform-size"
-              value={campana.nombre || ''}
-              readOnly
-              disabled
-              placeholder="Nombre de la Campaña"
-            />
-          </div>
+          
 
           <div className="crud-form-group">
             <input
@@ -155,15 +146,7 @@ return (
             />
           </div>
 
-          <div className="crud-form-group">
-            <input
-              type="time"
-              className="crud-input-view uniform-size"
-              value={campana.hora_fin || ''}
-              readOnly
-              disabled
-            />
-          </div>
+          
 
           <div className="crud-form-group">
             <textarea
@@ -176,17 +159,7 @@ return (
             />
           </div>
 
-          <div className="crud-form-group">
-            <input
-              type="number"
-              className="crud-input-view uniform-size"
-              value={campana.participantes_estimados || ''}
-              readOnly
-              disabled
-              placeholder="Participantes Estimados"
-            />
-          </div>
-
+          
           <div className="crud-form-group">
             <div className="crud-input-view uniform-size" style={{ display: 'flex', alignItems: 'center' }}>
               <span className={`crud-badge ${
@@ -199,16 +172,7 @@ return (
             </div>
           </div>
 
-          <div className="crud-form-group">
-            <textarea
-              className="crud-input-view uniform-size"
-              value={campana.materiales || ''}
-              readOnly
-              disabled
-              placeholder="Materiales"
-              style={{ resize: 'none', height: '56px' }}
-            />
-          </div>
+          
 
           <div className="crud-form-group">
             <textarea

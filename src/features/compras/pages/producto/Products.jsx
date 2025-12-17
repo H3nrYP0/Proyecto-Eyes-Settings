@@ -110,8 +110,8 @@ export default function Productos() {
           }`}
           onClick={() => toggleEstado(item.id)}
         >
-          {item.estado === "activo" ? "✅ Activo" : 
-           item.estado === "bajo-stock" ? "⚠️ Bajo Stock" : "❌ Inactivo"}
+          {item.estado === "activo" ? "Activo" : 
+           item.estado === "bajo-stock" ? " Bajo Stock" : "Inactivo"}
         </button>
       ),
     },

@@ -86,11 +86,7 @@ export default function CampanasSalud() {
   //          COLUMNAS
   // =============================
   const columns = [
-    { 
-      field: "nombre", 
-      header: "Nombre de la Campaña",
-      render: (item) => item.nombre || "Sin nombre"
-    },
+    
     { 
       field: "empresa", 
       header: "Empresa",

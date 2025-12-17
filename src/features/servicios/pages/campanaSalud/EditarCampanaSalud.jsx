@@ -202,21 +202,7 @@ export default function EditarCampanaSalud() {
         <div className="crud-form-content">
           <form onSubmit={handleSubmit}>
             <div className="crud-form-section">
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  label="Nombre de la Campaña"
-                  name="nombre"
-                  value={formData.nombre}
-                  onChange={handleChange}
-                  placeholder="Ej: Chequeo Visual Gratuito, Descuento en Lentes de Sol"
-                  required
-                  variant="outlined"
-                  error={!!errors.nombre}
-                  helperText={errors.nombre}
-                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
-                />
-              </div>
+             
 
               <div className="crud-form-group">
                 <TextField
@@ -323,25 +309,7 @@ export default function EditarCampanaSalud() {
                 />
               </div>
 
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  label="Hora Fin"
-                  name="hora_fin"
-                  type="time"
-                  value={formData.hora_fin}
-                  onChange={handleChange}
-                  required
-                  variant="outlined"
-                  InputLabelProps={{ 
-                    shrink: true,
-                    style: { fontWeight: 'normal' }
-                  }}
-                  error={!!errors.hora_fin}
-                  helperText={errors.hora_fin}
-                />
-              </div>
-
+             
               <div className="crud-form-group">
                 <TextField
                   fullWidth
@@ -356,36 +324,9 @@ export default function EditarCampanaSalud() {
                 />
               </div>
 
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  label="Participantes Estimados"
-                  name="participantes_estimados"
-                  type="number"
-                  value={formData.participantes_estimados}
-                  onChange={handleChange}
-                  placeholder="Número estimado de participantes"
-                  variant="outlined"
-                  inputProps={{ min: 1 }}
-                  error={!!errors.participantes_estimados}
-                  helperText={errors.participantes_estimados}
-                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
-                />
-              </div>
-
-              <div className="crud-form-group">
-                <TextField
-                  fullWidth
-                  label="Materiales"
-                  name="materiales"
-                  value={formData.materiales}
-                  onChange={handleChange}
-                  placeholder="Materiales necesarios para la campaña"
-                  variant="outlined"
-                  multiline
-                  InputLabelProps={{ style: { fontWeight: 'normal' } }}
-                />
-              </div>
+              
+              
+             
 
               <div className="crud-form-group">
                 <FormControl fullWidth>
