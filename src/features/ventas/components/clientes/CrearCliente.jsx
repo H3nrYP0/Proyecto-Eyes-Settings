@@ -3,6 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { createCliente } from '../../../../lib/data/clientesData';
 import "../../../../shared/styles/components/crud-forms.css";
 
+import { 
+  TextField, 
+  FormControl, 
+  InputLabel, 
+  Select, 
+  MenuItem 
+} from '@mui/material';
+
+
 export default function CrearCliente() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -34,7 +43,7 @@ export default function CrearCliente() {
   return (
     <div className="crud-form-container minimal">
       <div className="crud-form-header minimal">
-        <h1>Nuevo Cliente</h1>
+        <h1>Crear Cliente</h1>
       </div>
       
       <div className="crud-form-content compact">
@@ -42,130 +51,178 @@ export default function CrearCliente() {
           <div className="crud-form-section compact">
             {/* Fila 1 */}
             <div className="crud-form-group">
-              <label>Nombre *</label>
-              <input
-                type="text"
+              <TextField
+                fullWidth
+                label="Nombre"
                 name="nombre"
                 value={formData.nombre}
                 onChange={handleChange}
-                className="crud-input"
+                placeholder="Ingrese el nombre"
                 required
+                variant="outlined"
+                InputLabelProps={{
+                  style: { fontWeight: 'normal' }
+                }}
               />
             </div>
 
             <div className="crud-form-group">
-              <label>Apellido *</label>
-              <input
-                type="text"
+              <TextField
+                fullWidth
+                label="Apellido"
                 name="apellido"
                 value={formData.apellido}
                 onChange={handleChange}
-                className="crud-input"
+                placeholder="Ingrese el apellido"
                 required
+                variant="outlined"
+                InputLabelProps={{
+                  style: { fontWeight: 'normal' }
+                }}
               />
             </div>
 
             {/* Fila 2 */}
             <div className="crud-form-group">
-              <label>Tipo Documento *</label>
-              <select
-                name="tipoDocumento"
-                value={formData.tipoDocumento}
-                onChange={handleChange}
-                className="crud-input"
-                required
-              >
-                <option value="cedula">Cédula</option>
-                <option value="pasaporte">Pasaporte</option>
-                <option value="cedula_extranjeria">Cédula Extranjería</option>
-              </select>
+              <FormControl fullWidth>
+                <InputLabel 
+                  style={{ fontWeight: 'normal' }}
+                >
+                  Tipo Documento
+                </InputLabel>
+                <Select
+                  name="tipoDocumento"
+                  value={formData.tipoDocumento}
+                  onChange={handleChange}
+                  label="Tipo Documento"
+                  required
+                >
+                  <MenuItem value="">Seleccione tipo</MenuItem>
+                  <MenuItem value="cedula">Cédula</MenuItem>
+                  <MenuItem value="pasaporte">Pasaporte</MenuItem>
+                  <MenuItem value="cedula_extranjeria">Cédula Extranjería</MenuItem>
+                </Select>
+              </FormControl>
             </div>
 
             <div className="crud-form-group">
-              <label>Documento *</label>
-              <input
-                type="text"
+              <TextField
+                fullWidth
+                label="Número de Documento"
                 name="documento"
                 value={formData.documento}
                 onChange={handleChange}
-                className="crud-input"
+                placeholder="Ingrese el número de documento"
                 required
+                variant="outlined"
+                InputLabelProps={{
+                  style: { fontWeight: 'normal' }
+                }}
               />
             </div>
 
             {/* Fila 3 */}
             <div className="crud-form-group">
-              <label>Teléfono *</label>
-              <input
-                type="tel"
+              <TextField
+                fullWidth
+                label="Teléfono"
                 name="telefono"
                 value={formData.telefono}
                 onChange={handleChange}
-                className="crud-input"
+                placeholder="Ingrese el teléfono"
                 required
+                variant="outlined"
+                InputLabelProps={{
+                  style: { fontWeight: 'normal' }
+                }}
               />
             </div>
 
             <div className="crud-form-group">
-              <label>Correo</label>
-              <input
-                type="email"
+              <TextField
+                fullWidth
+                label="Correo Electrónico"
                 name="correo"
+                type="email"
                 value={formData.correo}
                 onChange={handleChange}
-                className="crud-input"
+                placeholder="ejemplo@correo.com"
+                variant="outlined"
+                InputLabelProps={{
+                  style: { fontWeight: 'normal' }
+                }}
               />
             </div>
 
             {/* Fila 4 */}
             <div className="crud-form-group">
-              <label>Fecha Nac. *</label>
-              <input
-                type="date"
+              <TextField
+                fullWidth
+                label="Fecha de Nacimiento"
                 name="fechaNacimiento"
+                type="date"
                 value={formData.fechaNacimiento}
                 onChange={handleChange}
-                className="crud-input"
+                variant="outlined"
+                InputLabelProps={{ 
+                  shrink: true,
+                  style: { fontWeight: 'normal' }
+                }}
                 required
               />
             </div>
 
             <div className="crud-form-group">
-              <label>Género *</label>
-              <select
-                name="genero"
-                value={formData.genero}
-                onChange={handleChange}
-                className="crud-input"
-                required
-              >
-                <option value="masculino">Masculino</option>
-                <option value="femenino">Femenino</option>
-                <option value="otro">Otro</option>
-              </select>
+              <FormControl fullWidth>
+                <InputLabel 
+                  style={{ fontWeight: 'normal' }}
+                >
+                  Género
+                </InputLabel>
+                <Select
+                  name="genero"
+                  value={formData.genero}
+                  onChange={handleChange}
+                  label="Género"
+                  required
+                >
+                  <MenuItem value="">Seleccione género</MenuItem>
+                  <MenuItem value="masculino">Masculino</MenuItem>
+                  <MenuItem value="femenino">Femenino</MenuItem>
+                  <MenuItem value="otro">Otro</MenuItem>
+                </Select>
+              </FormControl>
             </div>
 
             {/* Fila 5 */}
             <div className="crud-form-group">
-              <label>Ciudad *</label>
-              <input
-                type="text"
+              <TextField
+                fullWidth
+                label="Ciudad"
                 name="ciudad"
                 value={formData.ciudad}
                 onChange={handleChange}
-                className="crud-input"
+                placeholder="Ingrese la ciudad"
                 required
+                variant="outlined"
+                InputLabelProps={{
+                  style: { fontWeight: 'normal' }
+                }}
               />
             </div>
 
             <div className="crud-form-group">
-              <label>Dirección</label>
-              <input
-                type="text"
+              <TextField
+                fullWidth
+                label="Dirección"
                 name="direccion"
                 value={formData.direccion}
                 onChange={handleChange}
-                className="crud-input"
+                placeholder="Ingrese la dirección"
+                variant="outlined"
+                InputLabelProps={{
+                  style: { fontWeight: 'normal' }
+                }}
               />
             </div>
           </div>
@@ -178,8 +235,11 @@ export default function CrearCliente() {
             >
               Cancelar
             </button>
-            <button type="submit" className="crud-btn crud-btn-primary">
-              Registrar
+            <button 
+              type="submit" 
+              className="crud-btn crud-btn-primary"
+            >
+              Registrar Cliente
             </button>
           </div>
         </form>
