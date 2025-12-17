@@ -195,7 +195,7 @@ export default function Login({ setUser }) {
             )}
 
             {/* Información para probar usuarios especiales */}
-            <Alert severity="info" sx={{ mb: 3, fontSize: '0.8rem', borderRadius: 2 }}>
+            {/* <Alert severity="info" sx={{ mb: 3, fontSize: '0.8rem', borderRadius: 2 }}>
               <Typography variant="body2" fontWeight="600" gutterBottom>
                 Usuarios de prueba:
               </Typography>
@@ -211,7 +211,7 @@ export default function Login({ setUser }) {
               <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
                 <strong>Cualquier otro correo/contraseña:</strong> Irá a la Landing Page
               </Typography>
-            </Alert>
+            </Alert> */}
 
             {/* Login Form */}
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
