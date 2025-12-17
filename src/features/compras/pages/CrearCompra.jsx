@@ -255,13 +255,30 @@ export default function CrearCompra() {
               </div>
 
               {/* Fila 1: Producto, Cantidad, Precio Unitario */}
-              <div className="crud-form-group">
+              <div className="crud-form-group full">
+                   {formData.productos.length === 0 && (
+    <button
+      type="button"
+      onClick={() => navigate('/admin/compras')}
+       className="crud-btn crud-btn-secondary"
+      style={{
+         width: '200px',
+         height: '50px',
+         fontSize: '14px',
+         marginRight: '90px',
+         marginLeft: 'auto', 
+      }}
+    >
+      Volver atrás
+    </button>
+  )}
 
               </div>
               {/*aca inica los tres campos y el boton que debo de poner en la misma linea   */}
+                  {/* Botón "Volver atrás" temporal: solo visible si no hay productos */}
 
               <div className="crud-row-4">
-
+                  
                 <FormControl fullWidth error={!!errors.producto}>
                   <InputLabel style={{ fontWeight: 'normal' }}>
                     Seleccionar Producto
@@ -283,6 +300,7 @@ export default function CrearCompra() {
                     <FormHelperText error>{errors.producto}</FormHelperText>
                   )}
                 </FormControl>
+                
 
                 <TextField
                   fullWidth
@@ -314,6 +332,8 @@ export default function CrearCompra() {
               
             </div>
 
+  {/* Volver atrás - SOLO si no hay productos */}
+ 
             {/* Lista de productos y Totales - En una fila */}
             {formData.productos.length > 0 && (
               <div className="crud-form-section" style={{

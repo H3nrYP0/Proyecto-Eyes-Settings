@@ -1,0 +1,33 @@
+/* CrearCompra.css - Reset de estilos problemáticos */
+.leonxiii-reset * {
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.leonxiii-fila-fija {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr auto auto !important;
+  gap: 16px !important;
+  align-items: flex-end !important;
+  margin-top: 24px !important;
+  width: 100% !important;
+}
+
+/* Forzar estilos específicos para los campos */
+.leonxiii-campo-fijo .MuiFormControl-root {
+  height: 56px !important;
+  min-height: 56px !important;
+  max-height: 56px !important;
+}
+
+.leonxiii-campo-fijo .MuiInputBase-root {
+  height: 56px !important;
+}
+
+.leonxiii-campo-fijo .MuiSelect-select {
+  padding: 16.5px 14px !important;
+  height: 56px !important;
+  display: flex !important;
+  align-items: center !important;
+}
