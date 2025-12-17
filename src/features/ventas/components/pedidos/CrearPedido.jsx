@@ -3,6 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { createPedido } from '../../../../lib/data/pedidosData';
 import "../../../../shared/styles/components/crud-forms.css";
 
+  import { 
+  TextField, 
+  FormControl, 
+  InputLabel, 
+  Select, 
+  MenuItem 
+} from '@mui/material';
+
+
 export default function CrearPedido() {
   const navigate = useNavigate();
   
@@ -163,109 +172,119 @@ export default function CrearPedido() {
   const tieneProductos = itemsSeleccionados.some(item => item.tipo === 'producto');
   const tieneServicios = itemsSeleccionados.some(item => item.tipo === 'servicio');
 
-  return (
-    <div className="crud-form-container" style={{ maxWidth: '850px' }}>
-      {/* HEADER COMPACTO - SIN DESCRIPCIÓN */}
-      <div className="crud-form-header" style={{ padding: '16px 20px', minHeight: 'auto' }}>
-        <h1 style={{ fontSize: '1.4rem', margin: '0' }}>Crear Nuevo Pedido</h1>
+return (
+    <div className="crud-form-container minimal">
+      <div className="crud-form-header minimal">
+        <h1>Crear Nuevo Pedido</h1>
       </div>
       
-      <div className="crud-form-content">
+      <div className="crud-form-content compact">
         <form onSubmit={handleSubmit}>
-          {/* FORMULARIO BÁSICO - COMPACTO */}
-          <div className="crud-form-section" style={{ padding: '16px', marginBottom: '12px', gap: '12px' }}>
+          <div className="crud-form-section compact">
+            {/* Fila 1 */}
             <div className="crud-form-group">
-              <label htmlFor="cliente" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Cliente *</label>
-              <input
-                type="text"
-                id="cliente"
+              <TextField
+                fullWidth
+                label="Cliente"
                 name="cliente"
                 value={formData.cliente}
                 onChange={handleChange}
-                className="crud-input"
                 placeholder="Nombre del cliente"
                 required
-                style={{ padding: '10px 12px', fontSize: '0.9rem' }}
+                variant="outlined"
+                InputLabelProps={{
+                  style: { fontWeight: 'normal' }
+                }}
               />
             </div>
 
             <div className="crud-form-group">
-              <label htmlFor="fechaPedido" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Fecha Pedido *</label>
-              <input
-                type="date"
-                id="fechaPedido"
+              <TextField
+                fullWidth
+                label="Fecha Pedido"
                 name="fechaPedido"
+                type="date"
                 value={formData.fechaPedido}
                 onChange={handleChange}
-                className="crud-input"
+                variant="outlined"
+                InputLabelProps={{ 
+                  shrink: true,
+                  style: { fontWeight: 'normal' }
+                }}
                 required
-                style={{ padding: '10px 12px', fontSize: '0.9rem' }}
               />
             </div>
 
             <div className="crud-form-group">
-              <label htmlFor="fechaEntrega" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Fecha Entrega *</label>
-              <input
-                type="date"
-                id="fechaEntrega"
+              <TextField
+                fullWidth
+                label="Fecha Entrega"
                 name="fechaEntrega"
+                type="date"
                 value={formData.fechaEntrega}
                 onChange={handleChange}
-                className="crud-input"
+                variant="outlined"
+                InputLabelProps={{ 
+                  shrink: true,
+                  style: { fontWeight: 'normal' }
+                }}
                 required
-                style={{ padding: '10px 12px', fontSize: '0.9rem' }}
               />
             </div>
 
             <div className="crud-form-group">
-              <label htmlFor="estado" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Estado *</label>
-              <select
-                id="estado"
-                name="estado"
-                value={formData.estado}
-                onChange={handleChange}
-                className="crud-input"
-                required
-                style={{ padding: '10px 12px', fontSize: '0.9rem', height: 'auto' }}
-              >
-                <option value="En proceso">En proceso</option>
-                <option value="Pendiente pago">Pendiente pago</option>
-                <option value="Pagado">Pagado</option>
-                <option value="Entregado">Entregado</option>
-              </select>
+              <FormControl fullWidth>
+                <InputLabel 
+                  style={{ fontWeight: 'normal' }}
+                >
+                  Estado
+                </InputLabel>
+                <Select
+                  name="estado"
+                  value={formData.estado}
+                  onChange={handleChange}
+                  label="Estado"
+                  required
+                >
+                  <MenuItem value="En proceso">En proceso</MenuItem>
+                  <MenuItem value="Pendiente pago">Pendiente pago</MenuItem>
+                  <MenuItem value="Pagado">Pagado</MenuItem>
+                  <MenuItem value="Entregado">Entregado</MenuItem>
+                </Select>
+              </FormControl>
             </div>
           </div>
 
-          {/* SECCIÓN DE ITEMS COMPACTA */}
+          {/* Sección de items (acordeones) */}
           <div style={{ 
             background: 'var(--gray-50)',
             borderRadius: '6px',
             border: '1px solid var(--gray-200)',
-            padding: '14px',
+            padding: '16px',
             marginBottom: '16px'
           }}>
             <div style={{ 
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: '10px'
+              marginBottom: '12px'
             }}>
-              <h3 style={{ fontSize: '1rem', color: 'var(--gray-700)', margin: '0' }}>
+              <h2 style={{ fontSize: '1rem', color: 'var(--gray-700)', margin: '0' }}>
                 Seleccionar Items
-              </h3>
+              </h2>
               <div style={{ fontSize: '0.8rem', color: 'var(--gray-600)' }}>
                 {productos.length}p • {servicios.length}s
               </div>
             </div>
 
-            {/* ACORDEÓN DE PRODUCTOS */}
-            <div style={{ marginBottom: '10px' }}>
+            {/* Acordeón de productos */}
+            <div style={{ marginBottom: '12px' }}>
               <button
                 type="button"
                 onClick={() => setMostrarProductos(!mostrarProductos)}
                 style={{
                   width: '100%',
-                  padding: '10px',
+                  padding: '12px',
                   background: 'white',
                   border: '1px solid var(--gray-300)',
                   borderRadius: '5px',
@@ -285,13 +304,13 @@ export default function CrearPedido() {
               
               {mostrarProductos && (
                 <div style={{ 
-                  marginTop: '6px',
+                  marginTop: '8px',
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))',
-                  gap: '6px',
-                  maxHeight: '180px',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                  gap: '8px',
+                  maxHeight: '200px',
                   overflowY: 'auto',
-                  padding: '6px',
+                  padding: '8px',
                   background: 'white',
                   borderRadius: '4px',
                   border: '1px solid var(--gray-200)'
@@ -300,22 +319,22 @@ export default function CrearPedido() {
                     <div key={`producto-${item.id}`} 
                          onClick={() => agregarItem(item)}
                          style={{ 
-                           padding: '6px',
+                           padding: '8px',
                            border: '1px solid var(--gray-200)',
                            borderRadius: '4px',
                            cursor: 'pointer',
-                           fontSize: '0.8rem',
+                           fontSize: '0.85rem',
                            transition: 'all 0.2s'
                          }}
                          onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary-color)'}
                          onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--gray-200)'}>
-                      <div style={{ fontWeight: '600', color: 'var(--gray-800)', marginBottom: '2px' }}>
+                      <div style={{ fontWeight: '600', color: 'var(--gray-800)', marginBottom: '4px' }}>
                         {item.nombre}
                       </div>
-                      <div style={{ color: 'var(--gray-600)', fontSize: '0.75rem', marginBottom: '2px' }}>
+                      <div style={{ color: 'var(--gray-600)', fontSize: '0.75rem', marginBottom: '4px' }}>
                         {item.descripcion}
                       </div>
-                      <div style={{ fontWeight: '600', color: 'var(--primary-color)', fontSize: '0.85rem' }}>
+                      <div style={{ fontWeight: '600', color: 'var(--primary-color)', fontSize: '0.9rem' }}>
                         ${item.precio.toLocaleString()}
                       </div>
                     </div>
@@ -324,14 +343,14 @@ export default function CrearPedido() {
               )}
             </div>
 
-            {/* ACORDEÓN DE SERVICIOS */}
+            {/* Acordeón de servicios */}
             <div>
               <button
                 type="button"
                 onClick={() => setMostrarServicios(!mostrarServicios)}
                 style={{
                   width: '100%',
-                  padding: '10px',
+                  padding: '12px',
                   background: 'white',
                   border: '1px solid var(--gray-300)',
                   borderRadius: '5px',
@@ -351,13 +370,13 @@ export default function CrearPedido() {
               
               {mostrarServicios && (
                 <div style={{ 
-                  marginTop: '6px',
+                  marginTop: '8px',
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))',
-                  gap: '6px',
-                  maxHeight: '180px',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                  gap: '8px',
+                  maxHeight: '200px',
                   overflowY: 'auto',
-                  padding: '6px',
+                  padding: '8px',
                   background: 'white',
                   borderRadius: '4px',
                   border: '1px solid var(--gray-200)'
@@ -366,22 +385,22 @@ export default function CrearPedido() {
                     <div key={`servicio-${item.id}`} 
                          onClick={() => agregarItem(item)}
                          style={{ 
-                           padding: '6px',
+                           padding: '8px',
                            border: '1px solid var(--gray-200)',
                            borderRadius: '4px',
                            cursor: 'pointer',
-                           fontSize: '0.8rem',
+                           fontSize: '0.85rem',
                            transition: 'all 0.2s'
                          }}
                          onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary-color)'}
                          onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--gray-200)'}>
-                      <div style={{ fontWeight: '600', color: 'var(--gray-800)', marginBottom: '2px' }}>
+                      <div style={{ fontWeight: '600', color: 'var(--gray-800)', marginBottom: '4px' }}>
                         {item.nombre}
                       </div>
-                      <div style={{ color: 'var(--gray-600)', fontSize: '0.75rem', marginBottom: '2px' }}>
+                      <div style={{ color: 'var(--gray-600)', fontSize: '0.75rem', marginBottom: '4px' }}>
                         {item.descripcion}
                       </div>
-                      <div style={{ fontWeight: '600', color: 'var(--primary-color)', fontSize: '0.85rem' }}>
+                      <div style={{ fontWeight: '600', color: 'var(--primary-color)', fontSize: '0.9rem' }}>
                         ${item.precio.toLocaleString()}
                       </div>
                     </div>
@@ -391,174 +410,140 @@ export default function CrearPedido() {
             </div>
           </div>
 
-          {/* RESUMEN COMPACTO DE ITEMS */}
+          {/* Resumen de items seleccionados */}
           {itemsSeleccionados.length > 0 && (
-            <div style={{ 
-              background: 'var(--gray-50)',
-              borderRadius: '6px',
-              border: '1px solid var(--gray-200)',
-              padding: '14px',
-              marginBottom: '16px'
-            }}>
-              <div style={{ 
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '10px'
-              }}>
-                <h3 style={{ fontSize: '1rem', color: 'var(--gray-700)', margin: '0' }}>
-                  Items ({itemsSeleccionados.length})
-                </h3>
-                <div style={{ fontSize: '0.8rem', color: 'var(--gray-600)' }}>
-                  {tieneProductos && tieneServicios ? 'P y S' : 
-                   tieneProductos ? 'Productos' : 'Servicios'}
-                </div>
-              </div>
-              
-              <div style={{ 
-                background: 'white',
-                borderRadius: '5px',
-                border: '1px solid var(--gray-200)',
-                maxHeight: '180px',
-                overflowY: 'auto'
-              }}>
-                {itemsSeleccionados.map((item, index) => (
-                  <div key={index} 
-                       style={{ 
-                         padding: '8px 10px',
-                         borderBottom: index < itemsSeleccionados.length - 1 ? '1px solid var(--gray-100)' : 'none',
-                         fontSize: '0.85rem'
-                       }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <div style={{ fontWeight: '600', color: 'var(--gray-800)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>{item.nombre}</span>
-                        <span style={{ 
-                          fontSize: '0.65rem',
-                          padding: '1px 4px',
-                          borderRadius: '2px',
-                          background: item.tipo === 'producto' ? '#dbeafe' : '#dcfce7',
-                          color: item.tipo === 'producto' ? '#1d4ed8' : '#166534'
-                        }}>
-                          {item.tipo === 'producto' ? 'P' : 'S'}
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removerItem(index)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#dc2626',
-                          cursor: 'pointer',
-                          fontSize: '0.75rem',
-                          padding: '2px',
-                          width: '18px',
-                          height: '18px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                    
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--gray-600)' }}>
-                        ${item.precio.toLocaleString()} × {item.cantidad} = <strong>${(item.precio * item.cantidad).toLocaleString()}</strong>
+            <div className="crud-form-section compact">
+              <div className="crud-form-group full-width">
+                <label>Items Seleccionados ({itemsSeleccionados.length})</label>
+                <div style={{ 
+                  background: 'white',
+                  borderRadius: '5px',
+                  border: '1px solid var(--gray-200)',
+                  maxHeight: '200px',
+                  overflowY: 'auto'
+                }}>
+                  {itemsSeleccionados.map((item, index) => (
+                    <div key={index} 
+                         style={{ 
+                           padding: '10px 12px',
+                           borderBottom: index < itemsSeleccionados.length - 1 ? '1px solid var(--gray-100)' : 'none',
+                           fontSize: '0.85rem'
+                         }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <div style={{ fontWeight: '600', color: 'var(--gray-800)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span>{item.nombre}</span>
+                          <span style={{ 
+                            fontSize: '0.7rem',
+                            padding: '2px 6px',
+                            borderRadius: '3px',
+                            background: item.tipo === 'producto' ? '#dbeafe' : '#dcfce7',
+                            color: item.tipo === 'producto' ? '#1d4ed8' : '#166534'
+                          }}>
+                            {item.tipo === 'producto' ? 'P' : 'S'}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removerItem(index)}
+                          className="crud-btn crud-btn-secondary"
+                          style={{
+                            padding: '2px 8px',
+                            fontSize: '0.75rem',
+                            minWidth: 'auto'
+                          }}
+                        >
+                          Eliminar
+                        </button>
                       </div>
                       
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                        <button
-                          type="button"
-                          onClick={() => actualizarCantidad(index, item.cantidad - 1)}
-                          style={{
-                            width: '18px',
-                            height: '18px',
-                            background: 'var(--gray-200)',
-                            border: 'none',
-                            borderRadius: '2px',
-                            cursor: 'pointer',
-                            fontSize: '0.7rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}
-                        >
-                          -
-                        </button>
-                        <input
-                          type="number"
-                          value={item.cantidad}
-                          onChange={(e) => actualizarCantidad(index, parseInt(e.target.value) || 1)}
-                          style={{
-                            width: '35px',
-                            textAlign: 'center',
-                            padding: '1px 2px',
-                            border: '1px solid var(--gray-300)',
-                            borderRadius: '2px',
-                            fontSize: '0.75rem'
-                          }}
-                          min="1"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => actualizarCantidad(index, item.cantidad + 1)}
-                          style={{
-                            width: '18px',
-                            height: '18px',
-                            background: 'var(--gray-200)',
-                            border: 'none',
-                            borderRadius: '2px',
-                            cursor: 'pointer',
-                            fontSize: '0.7rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}
-                        >
-                          +
-                        </button>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--gray-600)' }}>
+                          ${item.precio.toLocaleString()} × {item.cantidad} = <strong>${(item.precio * item.cantidad).toLocaleString()}</strong>
+                        </div>
+                        
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <button
+                            type="button"
+                            onClick={() => actualizarCantidad(index, item.cantidad - 1)}
+                            style={{
+                              width: '20px',
+                              height: '20px',
+                              background: 'var(--gray-200)',
+                              border: 'none',
+                              borderRadius: '3px',
+                              cursor: 'pointer',
+                              fontSize: '0.8rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            -
+                          </button>
+                          <input
+                            type="number"
+                            value={item.cantidad}
+                            onChange={(e) => actualizarCantidad(index, parseInt(e.target.value) || 1)}
+                            style={{
+                              width: '40px',
+                              textAlign: 'center',
+                              padding: '2px 4px',
+                              border: '1px solid var(--gray-300)',
+                              borderRadius: '3px',
+                              fontSize: '0.8rem'
+                            }}
+                            min="1"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => actualizarCantidad(index, item.cantidad + 1)}
+                            style={{
+                              width: '20px',
+                              height: '20px',
+                              background: 'var(--gray-200)',
+                              border: 'none',
+                              borderRadius: '3px',
+                              cursor: 'pointer',
+                              fontSize: '0.8rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            +
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-                
-                {/* TOTAL PEQUEÑO */}
-                <div style={{ 
-                  padding: '10px',
-                  background: 'var(--gray-100)',
-                  borderTop: '1px solid var(--gray-300)',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  fontSize: '0.9rem'
-                }}>
-                  <div style={{ fontWeight: '600', color: 'var(--gray-700)' }}>
-                    TOTAL
-                  </div>
-                  <div style={{ fontWeight: '700', color: 'var(--primary-color)' }}>
-                    ${calcularTotal().toLocaleString()}
+                  ))}
+                  
+                  {/* Total */}
+                  <div style={{ 
+                    padding: '12px',
+                    background: 'var(--gray-100)',
+                    borderTop: '1px solid var(--gray-300)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    fontSize: '0.95rem'
+                  }}>
+                    <div style={{ fontWeight: '600', color: 'var(--gray-700)' }}>
+                      TOTAL
+                    </div>
+                    <div style={{ fontWeight: '700', color: 'var(--primary-color)' }}>
+                      ${calcularTotal().toLocaleString()}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* RESÚMENES FINALES EXTRA COMPACTOS */}
-          <div className="crud-form-section" style={{ 
-            padding: '12px', 
-            marginBottom: '16px', 
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: '10px'
-          }}>
+          {/* Resumen final */}
+          <div className="crud-form-section compact">
             <div className="crud-form-group">
-              <label style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Tipo</label>
-              <div className="crud-input-view" style={{ 
-                fontSize: '0.85rem', 
-                padding: '8px 10px',
-                minHeight: 'auto'
-              }}>
+              <label>Tipo de Pedido</label>
+              <div className="crud-input-view">
                 {tieneProductos && tieneServicios ? 'Productos y Servicios' : 
                  tieneProductos ? 'Productos' : 
                  tieneServicios ? 'Servicios' : 'Sin items'}
@@ -566,29 +551,21 @@ export default function CrearPedido() {
             </div>
 
             <div className="crud-form-group">
-              <label style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Total</label>
+              <label>Total</label>
               <div className="crud-input-view" style={{ 
                 color: 'var(--primary-color)',
-                fontWeight: '600',
-                fontSize: '0.9rem',
-                padding: '8px 10px',
-                minHeight: 'auto'
+                fontWeight: '600'
               }}>
                 ${calcularTotal().toLocaleString()}
               </div>
             </div>
           </div>
 
-          <div className="crud-form-actions" style={{ 
-            paddingTop: '12px', 
-            marginTop: '0',
-            borderTop: '1px solid var(--gray-200)'
-          }}>
+          <div className="crud-form-actions compact">
             <button 
               type="button" 
               className="crud-btn crud-btn-secondary"
               onClick={() => navigate('/admin/ventas/pedidos')}
-              style={{ padding: '8px 16px', fontSize: '0.85rem' }}
             >
               Cancelar
             </button>
@@ -596,7 +573,6 @@ export default function CrearPedido() {
               type="submit" 
               className="crud-btn crud-btn-primary"
               disabled={itemsSeleccionados.length === 0}
-              style={{ padding: '8px 16px', fontSize: '0.85rem' }}
             >
               Crear Pedido
             </button>

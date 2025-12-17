@@ -57,42 +57,36 @@ export default function DetalleCliente() {
         <div className="crud-form-section compact">
           {/* Información básica */}
           <div className="crud-form-group">
-            <label>Documento</label>
             <div className="crud-input-view">
               {cliente.tipoDocumento}: {cliente.documento}
             </div>
           </div>
 
           <div className="crud-form-group">
-            <label>Teléfono</label>
             <div className="crud-input-view">
               {cliente.telefono}
             </div>
           </div>
 
           <div className="crud-form-group">
-            <label>Correo Electrónico</label>
             <div className="crud-input-view">
               {cliente.correo || 'No registrado'}
             </div>
           </div>
 
           <div className="crud-form-group">
-            <label>Ciudad</label>
             <div className="crud-input-view">
               {cliente.ciudad}
             </div>
           </div>
 
           <div className="crud-form-group">
-            <label>Dirección</label>
             <div className="crud-input-view">
               {cliente.direccion || 'No registrada'}
             </div>
           </div>
 
           <div className="crud-form-group">
-            <label>Género</label>
             <div className="crud-input-view">
               <span className={`crud-badge gender ${cliente.genero.toLowerCase()}`}>
                 {cliente.genero}
@@ -101,7 +95,6 @@ export default function DetalleCliente() {
           </div>
 
           <div className="crud-form-group">
-            <label>Fecha Nacimiento</label>
             <div className="crud-input-view">
               {new Date(cliente.fechaNacimiento).toLocaleDateString('es-ES')}
             </div>
@@ -109,7 +102,6 @@ export default function DetalleCliente() {
 
           {/* Última fórmula - full width */}
           <div className="crud-form-group full-width">
-            <label>Última Fórmula</label>
             <div className="crud-input-view formula-display">
               <div className="formula-text">
                 {formatFormula(latestFormula)}
@@ -128,7 +120,7 @@ export default function DetalleCliente() {
             onClick={() => navigate('/admin/ventas/clientes')}
             className="crud-btn crud-btn-secondary"
           >
-            ← Volver
+            Volver
           </button>
           <button 
             onClick={() => navigate(`/admin/ventas/clientes/${id}/editar`)}

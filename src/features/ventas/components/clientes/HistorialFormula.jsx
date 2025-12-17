@@ -266,7 +266,7 @@ export default function HistorialFormula() {
             onClick={() => navigate('/admin/ventas/clientes')}
             className="crud-btn crud-btn-secondary"
           >
-            ← Volver
+            Volver
           </button>
         </div>
       </div>

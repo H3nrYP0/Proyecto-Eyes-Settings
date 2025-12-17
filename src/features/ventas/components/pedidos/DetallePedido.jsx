@@ -65,14 +65,12 @@ export default function DetallePedido() {
           gap: '12px'
         }}>
           <div className="crud-form-group">
-            <label className="crud-label" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Cliente</label>
             <div className="crud-input-view" style={{ padding: '10px 12px', fontSize: '0.9rem' }}>
               {pedido.cliente}
             </div>
           </div>
 
           <div className="crud-form-group">
-            <label className="crud-label" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Estado</label>
             <div className="crud-input-view" style={{ padding: '10px 12px' }}>
               <span className={`crud-badge estado-${getEstadoClass(pedido.estado)}`} style={{ fontSize: '0.8rem' }}>
                 {pedido.estado}
@@ -81,21 +79,18 @@ export default function DetallePedido() {
           </div>
 
           <div className="crud-form-group">
-            <label className="crud-label" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Fecha Pedido</label>
             <div className="crud-input-view date" style={{ padding: '10px 12px', fontSize: '0.9rem' }}>
               {pedido.fechaPedido}
             </div>
           </div>
 
           <div className="crud-form-group">
-            <label className="crud-label" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Fecha Entrega</label>
             <div className="crud-input-view date" style={{ padding: '10px 12px', fontSize: '0.9rem' }}>
               {pedido.fechaEntrega}
             </div>
           </div>
 
           <div className="crud-form-group">
-            <label className="crud-label" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Tipo</label>
             <div className="crud-input-view" style={{ padding: '10px 12px' }}>
               <span className={`crud-badge ${tieneProductos && tieneServicios ? 'productos-servicios' : 
                                tieneProductos ? 'productos' : 'servicios'}`} style={{ fontSize: '0.8rem' }}>
@@ -106,7 +101,6 @@ export default function DetallePedido() {
           </div>
 
           <div className="crud-form-group">
-            <label className="crud-label" style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Items</label>
             <div className="crud-input-view" style={{ padding: '10px 12px', fontSize: '0.9rem' }}>
               {tieneItemsDetallados ? pedido.items.length : '1'}
             </div>
@@ -256,7 +250,7 @@ export default function DetallePedido() {
             className="crud-btn crud-btn-secondary"
             style={{ padding: '8px 16px', fontSize: '0.85rem' }}
           >
-            ← Volver
+            Volver
           </button>
           <button 
             onClick={() => navigate(`/admin/ventas/pedidos/editar/${pedido.id}`)}
