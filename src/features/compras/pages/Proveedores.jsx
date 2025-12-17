@@ -89,7 +89,7 @@ export default function Proveedores() {
       field: "tipo", 
       header: "Tipo",
       render: (item) => (
-        <span className={`badge-${item.tipo === "Persona Jurídica" ? 'juridica' : 'natural'}`}>
+        <span className={`${item.tipo === "Persona Jurídica" ? 'juridica' : 'natural'}`}>
           {item.tipo}
         </span>
       )
@@ -104,7 +104,7 @@ export default function Proveedores() {
           className={`estado-btn ${item.estado === "Activo" ? "activo" : "inactivo"}`}
           onClick={() => toggleEstado(item.id)}
         >
-          {item.estado === "Activo" ? "✅ Activo" : "❌ Inactivo"}
+          {item.estado === "Activo" ? "Activo" : "Inactivo"}
         </button>
       ),
     },

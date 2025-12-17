@@ -159,20 +159,32 @@ export function updateProveedor(id, updatedData) {
   return proveedoresDB[index];
 }
 
-// Eliminar proveedor
+// =================================================
+// FUNCIONES CORREGIDAS - ESTAS SON LAS QUE FALLABAN
+// =================================================
+
+// Eliminar proveedor - CORREGIDA
 export function deleteProveedor(id) {
   proveedoresDB = proveedoresDB.filter((p) => p.id !== Number(id));
-  return proveedoresDB;
+  // CORRECCIÓN: Devuelve el array completo formateado, no solo el objeto eliminado
+  return getAllProveedores();
 }
 
-// Cambiar estado (mantener compatibilidad)
+// Cambiar estado - CORREGIDA
 export function updateEstadoProveedor(id) {
   const index = proveedoresDB.findIndex((p) => p.id === Number(id));
-  if (index === -1) return null;
+  if (index === -1) return getAllProveedores(); // CORRECCIÓN: Devuelve array
   
+  // Cambiar el estado
   proveedoresDB[index].estado = !proveedoresDB[index].estado;
-  return proveedoresDB[index];
+  
+  // CORRECCIÓN: Devuelve el array completo formateado, no solo el objeto actualizado
+  return getAllProveedores();
 }
+
+// =================================================
+// FUNCIONES ADICIONALES (sin cambios necesarios)
+// =================================================
 
 // Función para búsqueda de proveedores
 export function searchProveedores(query) {
@@ -184,7 +196,12 @@ export function searchProveedores(query) {
     proveedor.correo.toLowerCase().includes(searchTerm)
   ).map(proveedor => ({
     ...proveedor,
-    estado: proveedor.estado ? "Activo" : "Inactivo"
+    estado: proveedor.estado ? "Activo" : "Inactivo",
+    tipo: proveedor.tipo_proveedor,
+    razonSocial: proveedor.razon_social_o_Nombre,
+    contacto: proveedor.Contacto,
+    nit: proveedor.documento,
+    ciudad: proveedor.municipio
   }));
 }
 
@@ -194,7 +211,12 @@ export function getProveedoresActivos() {
     .filter(p => p.estado)
     .map(proveedor => ({
       ...proveedor,
-      estado: "Activo"
+      estado: "Activo",
+      tipo: proveedor.tipo_proveedor,
+      razonSocial: proveedor.razon_social_o_Nombre,
+      contacto: proveedor.Contacto,
+      nit: proveedor.documento,
+      ciudad: proveedor.municipio
     }));
 }
 

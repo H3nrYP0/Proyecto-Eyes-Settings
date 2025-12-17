@@ -21,25 +21,29 @@ export const TEST_USERS = {
     email: "superadmin@visualoutlet.com",
     password: "SuperAdmin123!",
     role: ROLES.SUPER_ADMIN,
-    name: "Super Administrador"
+    name: "Super Administrador",
+    permissions: PERMISSIONS[ROLES.SUPER_ADMIN] // Agregar permisos aquí
   },
   ADMIN: {
     email: "admin@visualoutlet.com",
     password: "Admin123!",
     role: ROLES.ADMIN,
-    name: "Administrador"
+    name: "Administrador",
+    permissions: PERMISSIONS[ROLES.ADMIN] // Agregar permisos aquí
   },
   VENDEDOR: {
     email: "vendedor@visualoutlet.com",
     password: "Vendedor123!",
     role: ROLES.VENDEDOR,
-    name: "Vendedor Demo"
+    name: "Vendedor Demo",
+    permissions: PERMISSIONS[ROLES.VENDEDOR] // Agregar permisos aquí
   },
   OPTICO: {
     email: "optico@visualoutlet.com",
     password: "Optico123!",
     role: ROLES.OPTICO,
-    name: "Óptico Demo"
+    name: "Óptico Demo",
+    permissions: PERMISSIONS[ROLES.OPTICO] // Agregar permisos aquí
   }
 };
 

@@ -137,7 +137,7 @@ return (
             <div className="crud-form-group">
               <TextField
                 fullWidth
-                label="Nombre del Servicio *"
+                label="Nombre del Servicio"
                 name="nombre"
                 value={formData.nombre}
                 onChange={handleChange}
@@ -174,7 +174,7 @@ return (
             <div className="crud-form-group">
               <TextField
                 fullWidth
-                label="Duración (minutos) *"
+                label="Duración (minutos)"
                 name="duracion_min"
                 type="number"
                 value={formData.duracion_min}

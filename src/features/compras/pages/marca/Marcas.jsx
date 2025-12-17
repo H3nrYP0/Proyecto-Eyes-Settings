@@ -89,7 +89,7 @@ export default function Marcas() {
           className={`estado-btn ${item.estado === "activa" ? "activo" : "inactivo"}`}
           onClick={() => toggleEstado(item.id)}
         >
-          {item.estado === "activa" ? "✅ Activa" : "⛔ Inactiva"}
+          {item.estado === "activa" ? "Activa" : "Inactiva"}
         </button>
       ),
     },

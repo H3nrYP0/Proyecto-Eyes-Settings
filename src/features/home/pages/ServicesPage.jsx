@@ -1,10 +1,24 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import FooterCompact from "../components/FooterCompact";
 import "../../../shared/styles/features/home/ServicesPage.css";
 
 const ServicesPage = ({ user, setUser }) => {
   const navigate = useNavigate();
-  const [expandedService, setExpandedService] = useState(null);
+  const [activeCards, setActiveCards] = useState({
+    consulta: false,
+    campanas: false
+  });
+
+  const [appointmentData, setAppointmentData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    service: "",
+    date: "",
+    time: "",
+    notes: ""
+  });
 
   const handleLogin = () => navigate("/login");
   const handleDashboard = () => user ? navigate("/admin/dashboard") : navigate("/login");
@@ -12,66 +26,123 @@ const ServicesPage = ({ user, setUser }) => {
 
   const services = [
     {
-      id: 1,
-      name: "Examen de la Vista Completo",
-      duration: "30-45 min",
-      price: 50000,
-      description: "Evaluación exhaustiva de tu salud visual incluyendo agudeza visual, presión ocular y examen de fondo de ojo.",
-      fullDescription: "Nuestro examen visual completo es realizado por optómetras certificados utilizando tecnología de última generación. Incluye evaluación de agudeza visual, presión intraocular, fondo de ojo, refracción y salud ocular general. Perfecto para detectar condiciones como miopía, astigmatismo, hipermetropía y enfermedades oculares.",
-      features: ["Agudeza visual", "Presión ocular", "Fondo de ojo", "Prescripción personalizada", "Consejería visual", "Salud ocular completa"],
-      benefits: ["Detección temprana de problemas", "Prescripción precisa", "Evaluación de salud ocular", "Recomendaciones personalizadas"],
+      id: "consulta",
+      title: "Consulta Optometra",
       icon: "👁️",
-      recommendedFor: ["Primera vez usando lentes", "Cambio de graduación", "Chequeo anual", "Personas con diabetes", "Mayores de 40 años"]
+      color: "blue",
+      frontContent: {
+        description: "Evaluación visual profesional",
+        highlight: "Tecnología avanzada"
+      },
+      backContent: {
+        description: "Evaluación completa con equipos modernos",
+        features: [
+          "Refracción digital",
+          "Examen de agudeza visual",
+        ]
+      },
+      price: 50000,
+      duration: "30-45 min"
     },
     {
-      id: 2,
-      name: "Ajuste y Reparación de Lentes",
-      duration: "15-20 min",
-      price: 15000,
-      description: "Servicio profesional de ajuste de monturas, cambio de plaquetas y reparación de varillas.",
-      fullDescription: "Nuestros técnicos especializados realizan ajustes precisos para garantizar la comodidad y funcionalidad de tus lentes. Servicio rápido y eficiente que incluye ajuste de patillas, puente, cambio de plaquetas, soldadura de varillas y limpieza profesional. Trabajamos con todo tipo de monturas y materiales.",
-      features: ["Ajuste de montura", "Cambio de plaquetas", "Reparación de varillas", "Limpieza profesional", "Ajuste de patillas", "Soldadura especializada"],
-      benefits: ["Comodidad mejorada", "Prolongación de vida útil", "Ajuste personalizado", "Servicio inmediato"],
-      icon: "🔧",
-      recommendedFor: ["Monturas desajustadas", "Pérdida de plaquetas", "Varillas rotas", "Incomodidad al usar lentes"]
-    },
-    {
-      id: 3,
-      name: "Adaptación de Lentes de Contacto",
-      duration: "45-60 min",
+      id: "campanas", 
+      title: "Campañas de SALUD",
+      icon: "🩺",
+      color: "green",
+      frontContent: {
+        description: "Programas preventivos para grupos",
+        highlight: "Impacto social"
+      },
+      backContent: {
+        description: "Programas de prevención visual organizacional",
+        features: [
+          "Tamizaje grupal",
+          "Charlas educativas",
+        ]
+      },
       price: 80000,
-      description: "Evaluación, adaptación y entrenamiento completo para el uso de lentes de contacto.",
-      fullDescription: "Servicio especializado para nuevos usuarios de lentes de contacto. Incluye evaluación de compatibilidad, medición de curvatura corneal, selección del tipo adecuado de lentes, entrenamiento práctico de inserción y remoción, y educación sobre cuidado y mantenimiento. Seguimiento incluido durante el primer mes.",
-      features: ["Evaluación inicial", "Medición corneal", "Selección de lentes", "Entrenamiento práctico", "Educación de cuidado", "Seguimiento mensual"],
-      benefits: ["Transición sin problemas", "Uso seguro y cómodo", "Instrucción profesional", "Soporte continuo"],
-      icon: "🔍",
-      recommendedFor: ["Primera vez con lentes de contacto", "Cambio de tipo de lentes", "Problemas de adaptación", "Usuarios deportivos"]
-    },
-    {
-      id: 4,
-      name: "Lentes para Deporte y Protección",
-      duration: "30 min",
-      price: 75000,
-      description: "Asesoría especializada en lentes deportivos y protección visual para actividades físicas.",
-      fullDescription: "Servicio especializado para atletas y personas activas. Evaluamos tus necesidades específicas según el deporte que practiques y recomendamos lentes con características especiales como protección contra impacto, lentes polarizados, monturas flexibles y tecnología anti-empañamiento. Incluye pruebas de campo y ajustes deportivos.",
-      features: ["Evaluación deportiva", "Lentes especializados", "Protección UV avanzada", "Resistencia al impacto", "Tecnología anti-empañamiento", "Ajuste deportivo"],
-      benefits: ["Rendimiento visual óptimo", "Protección ocular completa", "Comodidad durante actividad", "Durabilidad mejorada"],
-      icon: "⚽",
-      recommendedFor: ["Deportistas profesionales", "Aficionados al aire libre", "Ciclismo", "Natación", "Deportes de contacto"]
+      duration: "Por proyecto"
     }
   ];
+
+  // Horarios disponibles
+  const availableTimes = [
+    "8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM",
+    "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM"
+  ];
+
+  // Próximos 30 días para el calendario
+  const getNextDays = () => {
+    const days = [];
+    const today = new Date();
+    
+    for (let i = 1; i <= 30; i++) {
+      const date = new Date();
+      date.setDate(today.getDate() + i);
+      
+      // Solo días laborables (lunes a viernes)
+      if (date.getDay() !== 0 && date.getDay() !== 6) {
+        days.push({
+          date: date.toISOString().split('T')[0],
+          formatted: date.toLocaleDateString('es-ES', { 
+            weekday: 'short', 
+            day: 'numeric', 
+            month: 'short' 
+          }),
+          available: true
+        });
+      }
+    }
+    
+    return days.slice(0, 15); // Mostrar solo 15 días
+  };
+
+  const nextDays = getNextDays();
+
+  const handleCardMouseEnter = (serviceId) => {
+    setActiveCards(prev => ({
+      ...prev,
+      [serviceId]: true
+    }));
+  };
+
+  const handleCardMouseLeave = (serviceId) => {
+    setActiveCards(prev => ({
+      ...prev,
+      [serviceId]: false
+    }));
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setAppointmentData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleAppointmentSubmit = (e) => {
+    e.preventDefault();
+    alert(`Cita agendada para ${appointmentData.date} a las ${appointmentData.time} para ${appointmentData.service}`);
+    // Reset form
+    setAppointmentData({
+      name: "",
+      email: "",
+      phone: "",
+      service: "",
+      date: "",
+      time: "",
+      notes: ""
+    });
+  };
 
   const formatCurrency = (amount) => {
     return `$${amount.toLocaleString()}`;
   };
 
-  const toggleService = (serviceId) => {
-    setExpandedService(expandedService === serviceId ? null : serviceId);
-  };
-
   return (
     <div className="services-page">
-      {/* Navigation - ACTUALIZADO CON USER ACTIONS */}
+      {/* Navigation */}
       <nav className="landing-nav">
         <div className="nav-container">
           <div className="nav-brand">
@@ -123,7 +194,7 @@ const ServicesPage = ({ user, setUser }) => {
         </div>
       </nav>
 
-      {/* Hero Section Mejorado */}
+      {/* Hero Section */}
       <section className="services-hero">
         <div className="services-container">
           <div className="hero-content">
@@ -155,9 +226,6 @@ const ServicesPage = ({ user, setUser }) => {
             }}></div>
           ))}
         </div>
-        
-        {/* Ola animada */}
-        <div className="wave-animation"></div>
       </section>
 
       {/* Services Grid */}
@@ -165,189 +233,256 @@ const ServicesPage = ({ user, setUser }) => {
         <div className="services-container">
           <div className="section-header">
             <h2 className="section-title">
-              Servicios <span className="gradient-text">Especializados</span>
+              Servicios <span className="blue-gradient-text">Especializados</span>
             </h2>
             <p className="section-description">
               Atención personalizada y tecnología de vanguardia para el cuidado de tu visión
             </p>
           </div>
 
-          <div className="services-grid">
+          <div className="services-grid-custom">
             {services.map((service) => (
               <div 
-                key={service.id} 
-                className={`service-card ${expandedService === service.id ? 'expanded' : ''}`}
-                onClick={() => toggleService(service.id)}
+                key={service.id}
+                className={`service-card-custom ${service.color}`}
+                onMouseEnter={() => handleCardMouseEnter(service.id)}
+                onMouseLeave={() => handleCardMouseLeave(service.id)}
               >
-                <div className="service-header">
-                  <div className="service-icon">
-                    <span>{service.icon}</span>
-                  </div>
-                  
-                  <div className="service-basic-info">
-                    <h3 className="service-name">{service.name}</h3>
-                    <div className="service-meta">
-                      <span className="service-duration">{service.duration}</span>
-                      <span className="service-price">{formatCurrency(service.price)}</span>
+                {/* Capa frontal */}
+                <div className="card-layer front-layer">
+                  <div className="front-content">
+                    <div className="icon-circle">{service.icon}</div>
+                    <h3>{service.title}</h3>
+                    <p className="description">{service.frontContent.description}</p>
+                    <div className="highlight">{service.frontContent.highlight}</div>
+                    
+                    <div className="service-meta-custom">
+                      <span className="service-duration-custom">
+                        {service.duration}
+                      </span>
+                      <span className="service-price-custom">
+                        {formatCurrency(service.price)}
+                      </span>
                     </div>
-                    <p className="service-description">{service.description}</p>
                   </div>
                 </div>
 
-                {/* Expanded Content */}
-                {expandedService === service.id && (
-                  <div className="service-expanded-content">
-                    <div className="expanded-section">
-                      <h4>Descripción Detallada</h4>
-                      <p>{service.fullDescription}</p>
-                    </div>
+                {/* Capa trasera */}
+                <div className={`card-layer back-layer ${activeCards[service.id] ? 'active' : ''}`}>
+                  <div className="back-content">
+                    <div className="back-icon">{service.icon}</div>
+                    <h3 className="back-title">{service.title}</h3>
                     
-                    <div className="features-benefits-grid">
-                      <div className="features-section">
-                        <h4>📋 Lo que incluye</h4>
-                        <div className="features-list">
-                          {service.features.map((feature, index) => (
-                            <div key={index} className="feature-item">
-                              <span className="feature-icon">✓</span>
-                              {feature}
-                            </div>
-                          ))}
+                    <p className="back-description">
+                      {service.backContent.description}
+                    </p>
+                    
+                    <div className="features-grid">
+                      {service.backContent.features.map((feature, index) => (
+                        <div key={index} className="feature-item">
+                          <span className="feature-icon">✓</span>
+                          <span className="feature-text">{feature}</span>
                         </div>
-                      </div>
-                      
-                      <div className="benefits-section">
-                        <h4>🎯 Beneficios</h4>
-                        <div className="benefits-list">
-                          {service.benefits.map((benefit, index) => (
-                            <div key={index} className="benefit-item">
-                              <span className="benefit-icon">⭐</span>
-                              {benefit}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                      ))}
                     </div>
                     
-                    <div className="recommended-section">
-                      <h4>👥 Recomendado para</h4>
-                      <div className="recommended-tags">
-                        {service.recommendedFor.map((item, index) => (
-                          <span key={index} className="recommended-tag">{item}</span>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div className="service-actions">
-                      <button className="btn btn-primary btn-large">
-                        📅 Agendar Cita
-                      </button>
-                      <button className="btn btn-outline">
-                        💬 Consultar Disponibilidad
-                      </button>
-                    </div>
+                    <button 
+                      className="action-btn"
+                      onClick={() => {
+                        setAppointmentData(prev => ({
+                          ...prev,
+                          service: service.title
+                        }));
+                        document.getElementById('appointment-form')?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                    >
+                      <span className="btn-icon">📅</span>
+                      <span>Agendar este servicio</span>
+                    </button>
                   </div>
-                )}
+                </div>
               </div>
             ))}
           </div>
+        </div>
+      </section>
 
-          {/* Call to Action */}
-          <div className="services-cta">
-            <div className="cta-content">
-              <h3>¿Listo para cuidar tu visión?</h3>
-              <p>Nuestros especialistas están listos para brindarte la mejor atención y asesoría personalizada</p>
-              <div className="cta-actions">
-                <button className="btn btn-primary btn-large">
-                  📞 Agendar Consulta Ahora
+      {/* Appointment Form Section */}
+      <section id="appointment-form" className="appointment-section">
+        <div className="services-container">
+          <div className="section-header">
+            <h2 className="section-title">
+              <span className="blue-gradient-text">Agenda tu Cita</span>
+            </h2>
+            <p className="section-description">
+              Selecciona fecha y hora para tu consulta. Te confirmaremos por WhatsApp.
+            </p>
+          </div>
+
+          <div className="appointment-container">
+            <div className="appointment-form-container">
+              <form className="appointment-form" onSubmit={handleAppointmentSubmit}>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="name">Nombre Completo *</label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={appointmentData.name}
+                      onChange={handleInputChange}
+                      placeholder="Tu nombre completo"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label htmlFor="email">Email *</label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={appointmentData.email}
+                      onChange={handleInputChange}
+                      placeholder="tu@email.com"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="phone">Teléfono / WhatsApp *</label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      value={appointmentData.phone}
+                      onChange={handleInputChange}
+                      placeholder="Ej: 300 613 9449"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label htmlFor="service">Servicio *</label>
+                    <select
+                      id="service"
+                      name="service"
+                      value={appointmentData.service}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Selecciona un servicio</option>
+                      <option value="Consulta Optometra">Consulta Optometra</option>
+                      <option value="Campañas de SALUD">Campañas de SALUD</option>
+                      <option value="Otro servicio">Otro servicio</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Calendario */}
+                <div className="calendar-section">
+                  <h3>Selecciona una fecha *</h3>
+                  <div className="calendar-grid">
+                    {nextDays.map((day, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        className={`calendar-day ${appointmentData.date === day.date ? 'selected' : ''}`}
+                        onClick={() => setAppointmentData(prev => ({ ...prev, date: day.date }))}
+                      >
+                        <span className="day-week">{day.formatted.split(' ')[0]}</span>
+                        <span className="day-date">{day.formatted.split(' ')[1]}</span>
+                        <span className="day-month">{day.formatted.split(' ')[2]}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Horarios */}
+                <div className="time-section">
+                  <h3>Selecciona un horario *</h3>
+                  <div className="time-grid">
+                    {availableTimes.map((time, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        className={`time-slot ${appointmentData.time === time ? 'selected' : ''}`}
+                        onClick={() => setAppointmentData(prev => ({ ...prev, time }))}
+                      >
+                        {time}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="notes">Notas adicionales</label>
+                  <textarea
+                    id="notes"
+                    name="notes"
+                    value={appointmentData.notes}
+                    onChange={handleInputChange}
+                    placeholder="Información adicional o preguntas"
+                    rows="3"
+                  />
+                </div>
+
+                <button type="submit" className="submit-appointment-btn">
+                  <span className="btn-icon">✅</span>
+                  Confirmar Cita
                 </button>
-                <button 
-                  className="btn btn-outline"
-                  onClick={() => navigate("/productos")}
-                >
-                  Explorar Productos
-                </button>
+              </form>
+            </div>
+
+            <div className="appointment-info">
+              <div className="info-card">
+                <h3>📅 Información de la Cita</h3>
+                <div className="info-list">
+                  <div className="info-item">
+                    <span className="info-icon">⏰</span>
+                    <div className="info-text">
+                      <strong>Horarios de Atención</strong>
+                      <p>Lunes a Viernes: 8:00 AM - 6:00 PM</p>
+                      <p>Sábados: 9:00 AM - 2:00 PM</p>
+                    </div>
+                  </div>
+                  
+                  <div className="info-item">
+                    <span className="info-icon">📍</span>
+                    <div className="info-text">
+                      <strong>Ubicación</strong>
+                      <p>Cra 45 # 50-48 Local 102</p>
+                      <p>El Palo con la Playa, Medellín</p>
+                    </div>
+                  </div>
+                  
+                  <div className="info-item">
+                    <span className="info-icon">📞</span>
+                    <div className="info-text">
+                      <strong>Contacto</strong>
+                      <p>300 613 9449 (WhatsApp)</p>
+                      <p>(+57) 604 579 9276 (Fijo)</p>
+                    </div>
+                  </div>
+                  
+                  <div className="info-item">
+                    <span className="info-icon">✅</span>
+                    <div className="info-text">
+                      <strong>Confirmación</strong>
+                      <p>Recibirás confirmación por WhatsApp en menos de 24 horas</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Footer Integrado */}
-      <footer className="landing-footer">
-        <div className="footer-container">
-          <div className="footer-content">
-            <div className="footer-brand">
-              <div className="footer-logo">
-                <span className="logo-icon">👁️</span>
-                <span className="logo-text">Visual Outlet</span>
-              </div>
-              <p className="footer-description">
-                Expertos en salud visual. Servicios profesionales para el cuidado de tus ojos.
-              </p>
-            </div>
-
-            <div className="footer-links">
-              <div className="link-group">
-                <h4>Navegación</h4>
-                <div className="link-list">
-                  <button onClick={() => navigate("/")} className="footer-link">
-                    Inicio
-                  </button>
-                  <button onClick={() => navigate("/productos")} className="footer-link">
-                    Productos
-                  </button>
-                  <button onClick={() => navigate("/servicios")} className="footer-link">
-                    Servicios
-                  </button>
-                </div>
-              </div>
-
-              <div className="link-group">
-                <h4>Servicios</h4>
-                <div className="link-list">
-                  <span className="footer-link">Exámenes Visuales</span>
-                  <span className="footer-link">Lentes de Contacto</span>
-                  <span className="footer-link">Ajuste de Monturas</span>
-                  <span className="footer-link">Servicios Deportivos</span>
-                </div>
-              </div>
-
-              <div className="link-group">
-                <h4>Contacto</h4>
-                <div className="contact-info">
-                  <div className="contact-item">
-                    <span className="contact-icon">📞</span>
-                    <span className="contact-text">+1 (555) 123-4567</span>
-                  </div>
-                  <div className="contact-item">
-                    <span className="contact-icon">📧</span>
-                    <span className="contact-text">servicios@visualoutlet.com</span>
-                  </div>
-                  <div className="contact-item">
-                    <span className="contact-icon">🕒</span>
-                    <span className="contact-text">Lun-Vie: 9:00 AM - 6:00 PM</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="footer-bottom">
-            <div className="footer-bottom-content">
-              <div className="copyright">
-                <p>&copy; 2024 Visual Outlet. Servicios profesionales de optometría.</p>
-              </div>
-            </div>
-          </div>
-
-          <button 
-            className="back-to-top"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          >
-            ↑
-          </button>
-        </div>
-      </footer>
+      {/* Footer Compacto */}
+      <FooterCompact />
     </div>
   );
 };
