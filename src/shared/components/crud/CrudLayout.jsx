@@ -1,13 +1,27 @@
-import React, { useState } from 'react';
-import "../../styles/components/CrudLayout.css";
+import { useState } from "react";
+import {
+  Box,
+  Typography,
+  Stack,
+  TextField,
+  IconButton,
+  Button,
+  Select,
+  MenuItem,
+  InputAdornment,
+  Paper,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import ClearIcon from "@mui/icons-material/Clear";
+import AddIcon from "@mui/icons-material/Add";
 
-export default function CrudLayout({ 
-  title, 
-  description, 
-  onAddClick, 
+export default function CrudLayout({
+  title,
+  description,
+  onAddClick,
   children,
-  
-  // Props para búsqueda y filtrado
+
+  // búsqueda y filtros
   showSearch = false,
   searchPlaceholder = "Buscar...",
   searchValue = "",
@@ -15,98 +29,106 @@ export default function CrudLayout({
   searchFilters = null,
   filterEstado = "",
   onFilterChange = null,
-  searchPosition = "left"
+  searchPosition = "left",
 }) {
-  // Estados internos para búsqueda si no se proveen manejadores externos
-  const [internalSearch, setInternalSearch] = useState('');
-  const [internalFilter, setInternalFilter] = useState('');
+  const [internalSearch, setInternalSearch] = useState("");
+  const [internalFilter, setInternalFilter] = useState("");
 
-  // Determinar si usamos estados internos o externos
   const useInternalState = !onSearchChange && !onFilterChange;
-  const searchTerm = useInternalState ? internalSearch : (searchValue || '');
-  const filterValue = useInternalState ? internalFilter : (filterEstado || '');
+  const searchTerm = useInternalState ? internalSearch : searchValue;
+  const filterValue = useInternalState ? internalFilter : filterEstado;
 
-  // Función para manejar cambios en búsqueda
   const handleSearchChange = (value) => {
-    if (onSearchChange) {
-      onSearchChange(value);
-    } else {
-      setInternalSearch(value);
-    }
+    onSearchChange ? onSearchChange(value) : setInternalSearch(value);
   };
 
-  // Función para manejar cambios en filtro
   const handleFilterChange = (value) => {
-    if (onFilterChange) {
-      onFilterChange(value);
-    } else {
-      setInternalFilter(value);
-    }
+    onFilterChange ? onFilterChange(value) : setInternalFilter(value);
   };
 
   return (
-    <div className="crud-layout">
-      {/* Header Principal */}
-      <div className="crud-header">
-        <div className="crud-title">
-          <h1>{title}</h1>
-          <p>{description}</p>
-        </div>
-      </div>
-      
-      {/* BARRA DE BÚSQUEDA Y BOTÓN AGREGAR EN MISMA FILA */}
+    <Box sx={{ p: 3 }}>
+      {/* HEADER */}
+      <Stack spacing={1} mb={3}>
+        <Typography variant="h4">{title}</Typography>
+        {description && (
+          <Typography color="text.secondary">
+            {description}
+          </Typography>
+        )}
+      </Stack>
+
+      {/* SEARCH + ACTIONS */}
       {showSearch && (
-        <div className="search-and-actions-row">
-          <div className={`search-container search-${searchPosition}`}>
-            <div className="search-box">
-              <span className="search-icon">🔍</span>
-              <input
-                type="text"
+        <Paper sx={{ p: 2, mb: 3 }}>
+          <Stack
+            direction={{ xs: "column", md: "row" }}
+            spacing={2}
+            alignItems="center"
+            justifyContent="space-between"
+          >
+            {/* SEARCH + FILTER */}
+            <Stack
+              direction="row"
+              spacing={2}
+              alignItems="center"
+              flex={1}
+            >
+              <TextField
+                fullWidth
                 placeholder={searchPlaceholder}
                 value={searchTerm}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                className="search-input"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                  endAdornment: searchTerm && (
+                    <InputAdornment position="end">
+                      <IconButton
+                        size="small"
+                        onClick={() => handleSearchChange("")}
+                      >
+                        <ClearIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
               />
-              {searchTerm && (
-                <button 
-                  className="clear-search"
-                  onClick={() => handleSearchChange('')}
-                  type="button"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-            
-            {/* FILTROS ADICIONALES */}
-            {searchFilters && (
-              <div className="search-filters">
-                <select 
+
+              {searchFilters && (
+                <Select
                   value={filterValue}
                   onChange={(e) => handleFilterChange(e.target.value)}
-                  className="filter-select"
+                  displayEmpty
+                  size="small"
                 >
-                  <option value="">Todos los estados</option>
-                  {searchFilters.map(filter => (
-                    <option key={filter.value} value={filter.value}>
+                  <MenuItem value="">Todos los estados</MenuItem>
+                  {searchFilters.map((filter) => (
+                    <MenuItem key={filter.value} value={filter.value}>
                       {filter.label}
-                    </option>
+                    </MenuItem>
                   ))}
-                </select>
-              </div>
-            )}
-          </div>
-          
-          {/* BOTÓN AGREGAR EN LA MISMA FILA */}
-          <div className="actions-container">
-            <button onClick={onAddClick} className="btn-primary add-button">
-              ➕ Agregar 
-            </button>
-          </div>
-        </div>
+                </Select>
+              )}
+            </Stack>
+
+            {/* ADD BUTTON */}
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={onAddClick}
+            >
+              Agregar
+            </Button>
+          </Stack>
+        </Paper>
       )}
-      
+
+      {/* CONTENT */}
       {children}
-    </div>
+    </Box>
   );
 }
