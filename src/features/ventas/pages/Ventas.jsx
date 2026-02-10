@@ -1,4 +1,4 @@
-import CrudLayout from "../../../shared/components/layouts/CrudLayout";
+import CrudLayout from "../../../shared/components/crud/CrudLayout";
 import "../../../shared/styles/components/CrudLayout.css";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
