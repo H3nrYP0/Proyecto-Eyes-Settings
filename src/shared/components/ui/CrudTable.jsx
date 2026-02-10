@@ -1,84 +1,126 @@
 import React from "react";
-import "../../../shared/styles/components/crud-table.css";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Button,
+  Stack,
+  Typography,
+  CircularProgress,
+} from "@mui/material";
 
-export default function UnifiedCrudTable({ 
-  columns = [], 
-  data = [], 
+export default function UnifiedCrudTable({
+  columns = [],
+  data = [],
   actions = [],
   emptyMessage = "No hay registros.",
-  loading = false 
+  loading = false,
 }) {
+  // =============================
+  //        LOADING
+  // =============================
   if (loading) {
     return (
-      <div className="unified-crud-container">
-        <div className="unified-no-data">
+      <Paper sx={{ padding: 4, textAlign: "center" }}>
+        <CircularProgress size={24} />
+        <Typography variant="body2" sx={{ mt: 2 }}>
           Cargando...
-        </div>
-      </div>
+        </Typography>
+      </Paper>
     );
   }
 
+  const visibleColumns = columns.filter(col => col.field !== "id");
+  const hasActions = actions && actions.length > 0;
+
   return (
-    <div className="unified-crud-container">
-      <table className="unified-table" aria-label="Tabla de datos">
-        <thead>
-          <tr>
-            {columns.map(col => (
-              col.field === "id" ? null : (
-                <th key={col.field}>{col.header}</th>
-              )
+    <TableContainer component={Paper}>
+      <Table size="small" aria-label="Tabla de datos">
+        {/* =============================
+            HEADER
+        ============================= */}
+        <TableHead>
+          <TableRow>
+            {visibleColumns.map(col => (
+              <TableCell key={col.field}>
+                {col.header}
+              </TableCell>
             ))}
-            {actions && actions.length > 0 && <th>Acciones</th>}
-          </tr>
-        </thead>
-        <tbody>
+            {hasActions && (
+              <TableCell align="right">
+                Acciones
+              </TableCell>
+            )}
+          </TableRow>
+        </TableHead>
+
+        {/* =============================
+            BODY
+        ============================= */}
+        <TableBody>
           {(!data || data.length === 0) ? (
-            <tr>
-              <td 
-                colSpan={
-                  columns.filter(col => col.field !== "id").length + 
-                  (actions && actions.length > 0 ? 1 : 0)
-                } 
-                style={{ textAlign: "center", padding: "40px" }}
+            <TableRow>
+              <TableCell
+                colSpan={visibleColumns.length + (hasActions ? 1 : 0)}
+                align="center"
+                sx={{ py: 6 }}
               >
-                {emptyMessage}
-              </td>
-            </tr>
+                <Typography variant="body2" color="text.secondary">
+                  {emptyMessage}
+                </Typography>
+              </TableCell>
+            </TableRow>
           ) : (
-            data.map((row) => (
-              <tr key={row.id}>
-                {columns.map((col) => (
-                  col.field === "id" ? null : (
-                    <td key={col.field}>
-                      {typeof col.render === "function" 
-                        ? col.render(row) 
-                        : row[col.field]
-                      }
-                    </td>
-                  )
+            data.map(row => (
+              <TableRow key={row.id} hover>
+                {visibleColumns.map(col => (
+                  <TableCell key={col.field}>
+                    {typeof col.render === "function"
+                      ? col.render(row)
+                      : row[col.field]
+                    }
+                  </TableCell>
                 ))}
-                {actions && actions.length > 0 && (
-                  <td className="unified-actions">
-                    {actions.map((action, idx) => (
-                      <button
-                        key={idx}
-                        className={`unified-action-btn unified-btn-${action.type}`}
-                        onClick={() => action.onClick?.(row)}
-                        disabled={action.disabled?.(row)}
-                        title={action.title}
-                        type="button"
-                      >
-                        {action.icon && <span>{action.icon}</span>}
-                        {action.label}
-                      </button>
-                    ))}
-                  </td>
+
+                {hasActions && (
+                  <TableCell align="right">
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      justifyContent="flex-end"
+                    >
+                      {actions.map((action, idx) => (
+                        <Button
+                          key={idx}
+                          size="small"
+                          variant="outlined"
+                          sx={{ textTransform: "none" }}
+                          color={
+                            action.type === "delete"
+                              ? "error"
+                              : action.type === "edit"
+                              ? "primary"
+                              : "inherit"
+                          }
+                          onClick={() => action.onClick?.(row)}
+                          disabled={action.disabled?.(row)}
+                          title={action.title}
+                        >
+                          {action.label}
+                        </Button>
+                      ))}
+                    </Stack>
+                  </TableCell>
                 )}
-              </tr>
+              </TableRow>
             ))
           )}
-        </tbody>
-      </table>
-    </div>
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 }
