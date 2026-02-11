@@ -3,10 +3,8 @@ import { useNavigate } from "react-router-dom";
 import CrudLayout from "../../../shared/components/crud/CrudLayout";
 import CrudTable from "../../../shared/components/crud/CrudTable";
 import Modal from "../../../shared/components/ui/Modal";
-import "../../../shared/styles/components/crud-table.css";
-import "../../../shared/styles/components/modal.css";
 
-// Importamos las funciones del backend
+// Backend
 import {
   getAllUsuarios,
   deleteUsuario,
@@ -27,14 +25,15 @@ export default function GestionUsuarios() {
     nombre: "",
   });
 
-  // Cargar datos
+  // =============================
+  //    CARGA DE DATOS
+  // =============================
   useEffect(() => {
-    const usuariosData = getAllUsuarios();
-    setUsuarios(usuariosData);
+    setUsuarios(getAllUsuarios());
   }, []);
 
   // =============================
-  //    MODAL DE ELIMINACIÓN
+  //    ELIMINAR USUARIO
   // =============================
   const handleDelete = (id, nombre) => {
     setModalDelete({
@@ -51,7 +50,7 @@ export default function GestionUsuarios() {
   };
 
   // =============================
-  //       CAMBIAR ESTADO
+  //    CAMBIAR ESTADO
   // =============================
   const toggleEstado = (id) => {
     const updated = updateEstadoUsuario(id);
@@ -59,54 +58,50 @@ export default function GestionUsuarios() {
   };
 
   // =============================
-  //      BUSCADOR Y FILTRO
+  //    FILTROS
   // =============================
   const filteredUsuarios = usuarios.filter((usuario) => {
-    const matchesSearch = 
+    const matchesSearch =
       usuario.nombre.toLowerCase().includes(search.toLowerCase()) ||
       usuario.email.toLowerCase().includes(search.toLowerCase()) ||
       usuario.rol.toLowerCase().includes(search.toLowerCase());
-    
-    const matchesFilterEstado = !filterEstado || usuario.estado === filterEstado;
-    const matchesFilterRol = !filterRol || usuario.rol === filterRol;
-    
-    return matchesSearch && matchesFilterEstado && matchesFilterRol;
+
+    const matchesEstado =
+      !filterEstado || usuario.estado === filterEstado;
+
+    const matchesRol = !filterRol || usuario.rol === filterRol;
+
+    return matchesSearch && matchesEstado && matchesRol;
   });
 
-  // FILTROS PARA USUARIOS
   const searchFilters = [
-    { value: 'activo', label: 'Activos' },
-    { value: 'inactivo', label: 'Inactivos' }
+    { value: "activo", label: "Activos" },
+    { value: "inactivo", label: "Inactivos" },
   ];
 
   const rolFilters = [
-    { value: '', label: 'Todos los roles' },
-    { value: 'administrador', label: 'Administrador' },
-    { value: 'vendedor', label: 'Vendedor' },
-    { value: 'optometra', label: 'Optómetra' },
-    { value: 'tecnico', label: 'Técnico' }
+    { value: "", label: "Todos los roles" },
+    { value: "administrador", label: "Administrador" },
+    { value: "vendedor", label: "Vendedor" },
+    { value: "optometra", label: "Optómetra" },
+    { value: "tecnico", label: "Técnico" },
   ];
 
   // =============================
-  //          COLUMNAS
+  //    COLUMNAS
   // =============================
   const columns = [
     { field: "nombre", header: "Nombre" },
-    { 
-      field: "rol", 
+    {
+      field: "rol",
       header: "Rol",
-      render: (item) => (
-        <span className={`rol-badge ${item.rol.toLowerCase()}`}>
-          {item.rol}
-        </span>
-      )
+      render: (item) => item.rol,
     },
     {
       field: "estado",
       header: "Estado",
       render: (item) => (
         <button
-          className={`estado-btn ${item.estado === "activo" ? "activo" : "inactivo"}`}
           onClick={() => toggleEstado(item.id)}
         >
           {item.estado === "activo" ? "Activo" : "Inactivo"}
@@ -115,84 +110,41 @@ export default function GestionUsuarios() {
     },
   ];
 
-  // =============================
-  //          ACCIONES
-  // =============================
-  const tableActions = [
-    {
-      label: "Ver Detalles",
-      type: "view",
-      onClick: (item) => navigate(`detalle/${item.id}`),
-    },
-    {
-      label: "Editar",
-      type: "edit",
-      onClick: (item) => navigate(`editar/${item.id}`),
-    },
-    {
-      label: "Eliminar",
-      type: "delete",
-      onClick: (item) => handleDelete(item.id, item.nombre),
-    },
-  ];
-
-  // Función para manejar cambio de filtro de estado
-  const handleFilterEstadoChange = (value) => {
-    setFilterEstado(value);
-  };
-
-  // Función para manejar cambio de filtro de rol
-  const handleFilterRolChange = (value) => {
-    setFilterRol(value);
-  };
-
   return (
     <CrudLayout
       title="Gestión de Usuarios"
       onAddClick={() => navigate("crear")}
-      showSearch={true}
+      showSearch
       searchPlaceholder="Buscar por nombre, email, rol..."
       searchValue={search}
       onSearchChange={setSearch}
       searchFilters={searchFilters}
       filterEstado={filterEstado}
-      onFilterChange={handleFilterEstadoChange}
-      searchPosition="left"
+      onFilterChange={setFilterEstado}
       additionalFilters={[
         {
           label: "Filtrar por rol",
           value: filterRol,
-          onChange: handleFilterRolChange,
-          options: rolFilters
-        }
+          onChange: setFilterRol,
+          options: rolFilters,
+        },
       ]}
     >
-      {/* Tabla */}
-      <CrudTable 
-        columns={columns} 
-        data={filteredUsuarios} 
-        actions={tableActions}
+      {/* TABLA */}
+      <CrudTable
+        columns={columns}
+        data={filteredUsuarios}
+        onView={(row) => navigate(`detalle/${row.id}`)}
+        onEdit={(row) => navigate(`editar/${row.id}`)}
+        onDelete={(row) => handleDelete(row.id, row.nombre)}
         emptyMessage={
-          search || filterEstado || filterRol ? 
-            'No se encontraron usuarios para los filtros aplicados' : 
-            'No hay usuarios registrados'
+          search || filterEstado || filterRol
+            ? "No se encontraron usuarios para los filtros aplicados"
+            : "No hay usuarios registrados"
         }
       />
 
-      {/* Botón para primer usuario */}
-      {filteredUsuarios.length === 0 && !search && !filterEstado && !filterRol && (
-        <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
-          <button 
-            onClick={() => navigate("crear")}
-            className="btn-primary"
-            style={{padding: 'var(--spacing-md) var(--spacing-lg)'}}
-          >
-            Registrar Primer Usuario
-          </button>
-        </div>
-      )}
-
-      {/* Modal de Confirmación */}
+      {/* MODAL */}
       <Modal
         open={modalDelete.open}
         type="warning"
@@ -200,9 +152,11 @@ export default function GestionUsuarios() {
         message={`Esta acción eliminará al usuario "${modalDelete.nombre}" y no se puede deshacer.`}
         confirmText="Eliminar"
         cancelText="Cancelar"
-        showCancel={true}
+        showCancel
         onConfirm={confirmDelete}
-        onCancel={() => setModalDelete({ open: false, id: null, nombre: "" })}
+        onCancel={() =>
+          setModalDelete({ open: false, id: null, nombre: "" })
+        }
       />
     </CrudLayout>
   );

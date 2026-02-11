@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Table,
   TableBody,
@@ -7,25 +6,21 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Button,
-  Stack,
   Typography,
   CircularProgress,
 } from "@mui/material";
+import CrudActions from "../ui/CrudActions";
 
 export default function UnifiedCrudTable({
   columns = [],
   data = [],
   actions = [],
-  emptyMessage = "No hay registros.",
   loading = false,
+  emptyMessage = "No hay registros.",
 }) {
-  // =============================
-  //        LOADING
-  // =============================
   if (loading) {
     return (
-      <Paper sx={{ padding: 4, textAlign: "center" }}>
+      <Paper sx={{ p: 4, textAlign: "center" }}>
         <CircularProgress size={24} />
         <Typography variant="body2" sx={{ mt: 2 }}>
           Cargando...
@@ -39,10 +34,7 @@ export default function UnifiedCrudTable({
 
   return (
     <TableContainer component={Paper}>
-      <Table size="small" aria-label="Tabla de datos">
-        {/* =============================
-            HEADER
-        ============================= */}
+      <Table size="small">
         <TableHead>
           <TableRow>
             {visibleColumns.map(col => (
@@ -51,16 +43,11 @@ export default function UnifiedCrudTable({
               </TableCell>
             ))}
             {hasActions && (
-              <TableCell align="right">
-                Acciones
-              </TableCell>
+              <TableCell align="center">Acciones</TableCell>
             )}
           </TableRow>
         </TableHead>
 
-        {/* =============================
-            BODY
-        ============================= */}
         <TableBody>
           {(!data || data.length === 0) ? (
             <TableRow>
@@ -87,33 +74,11 @@ export default function UnifiedCrudTable({
                 ))}
 
                 {hasActions && (
-                  <TableCell align="right">
-                    <Stack
-                      direction="row"
-                      spacing={1}
-                      justifyContent="flex-end"
-                    >
-                      {actions.map((action, idx) => (
-                        <Button
-                          key={idx}
-                          size="small"
-                          variant="outlined"
-                          sx={{ textTransform: "none" }}
-                          color={
-                            action.type === "delete"
-                              ? "error"
-                              : action.type === "edit"
-                              ? "primary"
-                              : "inherit"
-                          }
-                          onClick={() => action.onClick?.(row)}
-                          disabled={action.disabled?.(row)}
-                          title={action.title}
-                        >
-                          {action.label}
-                        </Button>
-                      ))}
-                    </Stack>
+                  <TableCell align="center">
+                    <CrudActions
+                      actions={actions}
+                      item={row}
+                    />
                   </TableCell>
                 )}
               </TableRow>
@@ -124,3 +89,4 @@ export default function UnifiedCrudTable({
     </TableContainer>
   );
 }
+
