@@ -62,12 +62,10 @@ export default function Roles() {
   };
 
   // =============================
-  // CAMBIAR ESTADO (CON ALERTA)
+  // CAMBIAR ESTADO
   // =============================
   const handleToggleEstado = (row) => {
-    // Calculamos el nuevo estado automáticamente (2 estados)
-    const nuevoEstado =
-      row.estado === "activo" ? "inactivo" : "activo";
+    const nuevoEstado = row.estado === "activo" ? "inactivo" : "activo";
 
     setModalEstado({
       open: true,
@@ -97,7 +95,6 @@ export default function Roles() {
     }
   };
 
-
   // =============================
   // FILTROS
   // =============================
@@ -107,8 +104,7 @@ export default function Roles() {
       (rol.descripcion &&
         rol.descripcion.toLowerCase().includes(search.toLowerCase()));
 
-    const matchesEstado =
-      !filterEstado || rol.estado === filterEstado;
+    const matchesEstado = !filterEstado || rol.estado === filterEstado;
 
     return matchesSearch && matchesEstado;
   });
@@ -155,8 +151,7 @@ export default function Roles() {
     {
       label: "Eliminar",
       type: "delete",
-      onClick: (row) =>
-        handleDelete(row.id, row.nombre),
+      onClick: (row) => handleDelete(row.id, row.nombre),
     },
   ];
 
@@ -177,15 +172,9 @@ export default function Roles() {
       searchPlaceholder="Buscar por nombre, descripción..."
       searchValue={search}
       onSearchChange={setSearch}
-      showFilters
-      filters={[
-        {
-          label: "Estado",
-          value: filterEstado,
-          onChange: setFilterEstado,
-          options: estadoFilters,
-        },
-      ]}
+      searchFilters={estadoFilters}       // <- aquí pasamos los filtros
+      filterEstado={filterEstado}         // <- valor actual del filtro
+      onFilterChange={setFilterEstado}    // <- función para actualizar filtro
     >
       {/* TABLA */}
       <CrudTable

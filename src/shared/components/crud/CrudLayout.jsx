@@ -52,9 +52,7 @@ export default function CrudLayout({
       <Stack spacing={1} mb={3}>
         <Typography variant="h4">{title}</Typography>
         {description && (
-          <Typography color="text.secondary">
-            {description}
-          </Typography>
+          <Typography color="text.secondary">{description}</Typography>
         )}
       </Stack>
 
@@ -67,62 +65,59 @@ export default function CrudLayout({
             alignItems="center"
             justifyContent="space-between"
           >
-            {/* SEARCH + FILTER */}
-            <Stack
-              direction="row"
-              spacing={2}
-              alignItems="center"
-              flex={1}
-            >
-              <TextField
-                fullWidth
-                placeholder={searchPlaceholder}
-                value={searchTerm}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  ),
-                  endAdornment: searchTerm && (
-                    <InputAdornment position="end">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleSearchChange("")}
-                      >
-                        <ClearIcon />
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-              />
+            {/* SEARCH */}
+            <TextField
+              sx={{ flex: 1 }}
+              placeholder={searchPlaceholder}
+              value={searchTerm}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+                endAdornment: searchTerm && (
+                  <InputAdornment position="end">
+                    <IconButton
+                      size="small"
+                      onClick={() => handleSearchChange("")}
+                    >
+                      <ClearIcon />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
 
-              {searchFilters && (
-                <Select
-                  value={filterValue}
-                  onChange={(e) => handleFilterChange(e.target.value)}
-                  displayEmpty
-                  size="small"
-                >
-                  <MenuItem value="">Todos los estados</MenuItem>
-                  {searchFilters.map((filter) => (
-                    <MenuItem key={filter.value} value={filter.value}>
-                      {filter.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              )}
-            </Stack>
+            {/* FILTRO AL LADO DEL BOTÓN */}
+            {searchFilters && (
+              <Select
+                value={filterValue}
+                onChange={(e) => handleFilterChange(e.target.value)}
+                displayEmpty
+                size="small"
+                sx={{ minWidth: 180 }}
+              >
+                {searchFilters.map((filter) => (
+                  <MenuItem key={filter.value} value={filter.value}>
+                    {filter.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            )}
+
 
             {/* ADD BUTTON */}
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={onAddClick}
-            >
-              Agregar
-            </Button>
+            {onAddClick && (
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={onAddClick}
+              >
+                Agregar
+              </Button>
+            )}
           </Stack>
         </Paper>
       )}

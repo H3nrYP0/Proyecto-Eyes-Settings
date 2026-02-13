@@ -19,6 +19,9 @@ export default function GestionUsuarios() {
   const [filterEstado, setFilterEstado] = useState("");
   const [filterRol, setFilterRol] = useState("");
 
+  // =============================
+  // MODAL ELIMINAR
+  // =============================
   const [modalDelete, setModalDelete] = useState({
     open: false,
     id: null,
@@ -26,21 +29,27 @@ export default function GestionUsuarios() {
   });
 
   // =============================
-  //    CARGA DE DATOS
+  // MODAL CAMBIAR ESTADO
+  // =============================
+  const [modalEstado, setModalEstado] = useState({
+    open: false,
+    id: null,
+    nombre: "",
+    nuevoEstado: "",
+  });
+
+  // =============================
+  // CARGA DE DATOS
   // =============================
   useEffect(() => {
     setUsuarios(getAllUsuarios());
   }, []);
 
   // =============================
-  //    ELIMINAR USUARIO
+  // ELIMINAR
   // =============================
   const handleDelete = (id, nombre) => {
-    setModalDelete({
-      open: true,
-      id,
-      nombre,
-    });
+    setModalDelete({ open: true, id, nombre });
   };
 
   const confirmDelete = () => {
@@ -50,15 +59,26 @@ export default function GestionUsuarios() {
   };
 
   // =============================
-  //    CAMBIAR ESTADO
+  // CAMBIAR ESTADO
   // =============================
-  const toggleEstado = (id) => {
-    const updated = updateEstadoUsuario(id);
+  const handleToggleEstado = (row) => {
+    const nuevoEstado = row.estado === "activo" ? "inactivo" : "activo";
+    setModalEstado({
+      open: true,
+      id: row.id,
+      nombre: row.nombre,
+      nuevoEstado,
+    });
+  };
+
+  const confirmChangeStatus = () => {
+    const updated = updateEstadoUsuario(modalEstado.id);
     setUsuarios([...updated]);
+    setModalEstado({ open: false, id: null, nombre: "", nuevoEstado: "" });
   };
 
   // =============================
-  //    FILTROS
+  // FILTROS
   // =============================
   const filteredUsuarios = usuarios.filter((usuario) => {
     const matchesSearch =
@@ -66,15 +86,14 @@ export default function GestionUsuarios() {
       usuario.email.toLowerCase().includes(search.toLowerCase()) ||
       usuario.rol.toLowerCase().includes(search.toLowerCase());
 
-    const matchesEstado =
-      !filterEstado || usuario.estado === filterEstado;
-
+    const matchesEstado = !filterEstado || usuario.estado === filterEstado;
     const matchesRol = !filterRol || usuario.rol === filterRol;
 
     return matchesSearch && matchesEstado && matchesRol;
   });
 
-  const searchFilters = [
+  const estadoFilters = [
+    { value: "", label: "Todos los estados" },
     { value: "activo", label: "Activos" },
     { value: "inactivo", label: "Inactivos" },
   ];
@@ -88,25 +107,45 @@ export default function GestionUsuarios() {
   ];
 
   // =============================
-  //    COLUMNAS
+  // COLUMNAS
   // =============================
   const columns = [
     { field: "nombre", header: "Nombre" },
-    {
-      field: "rol",
-      header: "Rol",
-      render: (item) => item.rol,
-    },
+    { field: "rol", header: "Rol", render: (item) => item.rol },
     {
       field: "estado",
       header: "Estado",
       render: (item) => (
-        <button
-          onClick={() => toggleEstado(item.id)}
-        >
+        <button onClick={() => handleToggleEstado(item)}>
           {item.estado === "activo" ? "Activo" : "Inactivo"}
         </button>
       ),
+    },
+  ];
+
+  // =============================
+  // ACCIONES
+  // =============================
+  const tableActions = [
+    {
+      label: "Cambiar estado",
+      type: "toggle-status",
+      onClick: (row) => handleToggleEstado(row),
+    },
+    {
+      label: "Ver detalles",
+      type: "view",
+      onClick: (row) => navigate(`detalle/${row.id}`),
+    },
+    {
+      label: "Editar",
+      type: "edit",
+      onClick: (row) => navigate(`editar/${row.id}`),
+    },
+    {
+      label: "Eliminar",
+      type: "delete",
+      onClick: (row) => handleDelete(row.id, row.nombre),
     },
   ];
 
@@ -118,25 +157,26 @@ export default function GestionUsuarios() {
       searchPlaceholder="Buscar por nombre, email, rol..."
       searchValue={search}
       onSearchChange={setSearch}
-      searchFilters={searchFilters}
-      filterEstado={filterEstado}
-      onFilterChange={setFilterEstado}
-      additionalFilters={[
+      showFilters
+      filters={[
         {
-          label: "Filtrar por rol",
+          label: "Estado",
+          value: filterEstado,
+          onChange: setFilterEstado,
+          options: estadoFilters,
+        },
+        {
+          label: "Rol",
           value: filterRol,
           onChange: setFilterRol,
           options: rolFilters,
         },
       ]}
     >
-      {/* TABLA */}
       <CrudTable
         columns={columns}
         data={filteredUsuarios}
-        onView={(row) => navigate(`detalle/${row.id}`)}
-        onEdit={(row) => navigate(`editar/${row.id}`)}
-        onDelete={(row) => handleDelete(row.id, row.nombre)}
+        actions={tableActions}
         emptyMessage={
           search || filterEstado || filterRol
             ? "No se encontraron usuarios para los filtros aplicados"
@@ -144,7 +184,7 @@ export default function GestionUsuarios() {
         }
       />
 
-      {/* MODAL */}
+      {/* MODAL ELIMINAR */}
       <Modal
         open={modalDelete.open}
         type="warning"
@@ -156,6 +196,21 @@ export default function GestionUsuarios() {
         onConfirm={confirmDelete}
         onCancel={() =>
           setModalDelete({ open: false, id: null, nombre: "" })
+        }
+      />
+
+      {/* MODAL CAMBIAR ESTADO */}
+      <Modal
+        open={modalEstado.open}
+        type="info"
+        title="¿Cambiar estado?"
+        message={`El usuario "${modalEstado.nombre}" cambiará a estado "${modalEstado.nuevoEstado}".`}
+        confirmText="Confirmar"
+        cancelText="Cancelar"
+        showCancel
+        onConfirm={confirmChangeStatus}
+        onCancel={() =>
+          setModalEstado({ open: false, id: null, nombre: "", nuevoEstado: "" })
         }
       />
     </CrudLayout>
