@@ -19,18 +19,14 @@ export default function GestionUsuarios() {
   const [filterEstado, setFilterEstado] = useState("");
   const [filterRol, setFilterRol] = useState("");
 
-  // =============================
   // MODAL ELIMINAR
-  // =============================
   const [modalDelete, setModalDelete] = useState({
     open: false,
     id: null,
     nombre: "",
   });
 
-  // =============================
   // MODAL CAMBIAR ESTADO
-  // =============================
   const [modalEstado, setModalEstado] = useState({
     open: false,
     id: null,
@@ -38,19 +34,13 @@ export default function GestionUsuarios() {
     nuevoEstado: "",
   });
 
-  // =============================
   // CARGA DE DATOS
-  // =============================
   useEffect(() => {
     setUsuarios(getAllUsuarios());
   }, []);
 
-  // =============================
   // ELIMINAR
-  // =============================
-  const handleDelete = (id, nombre) => {
-    setModalDelete({ open: true, id, nombre });
-  };
+  const handleDelete = (id, nombre) => setModalDelete({ open: true, id, nombre });
 
   const confirmDelete = () => {
     const updated = deleteUsuario(modalDelete.id);
@@ -58,9 +48,7 @@ export default function GestionUsuarios() {
     setModalDelete({ open: false, id: null, nombre: "" });
   };
 
-  // =============================
   // CAMBIAR ESTADO
-  // =============================
   const handleToggleEstado = (row) => {
     const nuevoEstado = row.estado === "activo" ? "inactivo" : "activo";
     setModalEstado({
@@ -77,9 +65,7 @@ export default function GestionUsuarios() {
     setModalEstado({ open: false, id: null, nombre: "", nuevoEstado: "" });
   };
 
-  // =============================
   // FILTROS
-  // =============================
   const filteredUsuarios = usuarios.filter((usuario) => {
     const matchesSearch =
       usuario.nombre.toLowerCase().includes(search.toLowerCase()) ||
@@ -106,9 +92,7 @@ export default function GestionUsuarios() {
     { value: "tecnico", label: "Técnico" },
   ];
 
-  // =============================
   // COLUMNAS
-  // =============================
   const columns = [
     { field: "nombre", header: "Nombre" },
     { field: "rol", header: "Rol", render: (item) => item.rol },
@@ -123,30 +107,12 @@ export default function GestionUsuarios() {
     },
   ];
 
-  // =============================
   // ACCIONES
-  // =============================
   const tableActions = [
-    {
-      label: "Cambiar estado",
-      type: "toggle-status",
-      onClick: (row) => handleToggleEstado(row),
-    },
-    {
-      label: "Ver detalles",
-      type: "view",
-      onClick: (row) => navigate(`detalle/${row.id}`),
-    },
-    {
-      label: "Editar",
-      type: "edit",
-      onClick: (row) => navigate(`editar/${row.id}`),
-    },
-    {
-      label: "Eliminar",
-      type: "delete",
-      onClick: (row) => handleDelete(row.id, row.nombre),
-    },
+    { label: "Cambiar estado", type: "toggle-status", onClick: handleToggleEstado },
+    { label: "Ver detalles", type: "view", onClick: (row) => navigate(`detalle/${row.id}`) },
+    { label: "Editar", type: "edit", onClick: (row) => navigate(`editar/${row.id}`) },
+    { label: "Eliminar", type: "delete", onClick: (row) => handleDelete(row.id, row.nombre) },
   ];
 
   return (
@@ -157,21 +123,13 @@ export default function GestionUsuarios() {
       searchPlaceholder="Buscar por nombre, email, rol..."
       searchValue={search}
       onSearchChange={setSearch}
-      showFilters
-      filters={[
-        {
-          label: "Estado",
-          value: filterEstado,
-          onChange: setFilterEstado,
-          options: estadoFilters,
-        },
-        {
-          label: "Rol",
-          value: filterRol,
-          onChange: setFilterRol,
-          options: rolFilters,
-        },
-      ]}
+      // FILTROS AL LADO DEL BOTÓN AGREGAR
+      searchFilters={estadoFilters}       // filtro de estados
+      filterEstado={filterEstado}
+      onFilterChange={setFilterEstado}
+      searchFiltersRol={rolFilters}       // filtro de roles
+      filterRol={filterRol}
+      onFilterChangeRol={setFilterRol}
     >
       <CrudTable
         columns={columns}
@@ -194,9 +152,7 @@ export default function GestionUsuarios() {
         cancelText="Cancelar"
         showCancel
         onConfirm={confirmDelete}
-        onCancel={() =>
-          setModalDelete({ open: false, id: null, nombre: "" })
-        }
+        onCancel={() => setModalDelete({ open: false, id: null, nombre: "" })}
       />
 
       {/* MODAL CAMBIAR ESTADO */}
