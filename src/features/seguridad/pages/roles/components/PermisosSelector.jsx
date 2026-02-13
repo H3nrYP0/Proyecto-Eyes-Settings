@@ -7,14 +7,16 @@ import {
   FormControlLabel,
   FormHelperText,
   Chip,
-  Button
+  Button,
+  Paper
 } from "@mui/material";
 
 export default function PermisosSelector({
   permisosDisponibles = [],
   value = [],
   onChange,
-  error
+  error,
+  disabled = false
 }) {
 
   const [todosSeleccionados, setTodosSeleccionados] = useState(false);
@@ -27,6 +29,8 @@ export default function PermisosSelector({
   }, [value, permisosDisponibles]);
 
   const handlePermisoChange = (permisoId) => {
+    if (disabled) return;
+
     const existe = value.includes(permisoId);
 
     const nuevosPermisos = existe
@@ -37,6 +41,8 @@ export default function PermisosSelector({
   };
 
   const toggleSeleccionarTodos = () => {
+    if (disabled) return;
+
     if (todosSeleccionados) {
       onChange([]);
     } else {
@@ -48,6 +54,7 @@ export default function PermisosSelector({
   return (
     <Box>
 
+      {/* Header */}
       <Box
         sx={{
           display: "flex",
@@ -64,45 +71,62 @@ export default function PermisosSelector({
           <Chip
             label={`${value.length} de ${permisosDisponibles.length}`}
             size="small"
+            color="primary"
+            variant="outlined"
           />
         </Box>
 
-        <Button
-          variant="text"
-          size="small"
-          onClick={toggleSeleccionarTodos}
-        >
-          {todosSeleccionados ? "Deseleccionar todos" : "Seleccionar todos"}
-        </Button>
+        {!disabled && (
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={toggleSeleccionarTodos}
+          >
+            {todosSeleccionados
+              ? "Deseleccionar todos"
+              : "Seleccionar todos"}
+          </Button>
+        )}
       </Box>
 
-      <Grid container spacing={2}>
-        {permisosDisponibles.map((permiso) => (
-          <Grid item xs={12} sm={6} md={4} key={permiso.id}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={value.includes(permiso.id)}
-                  onChange={() => handlePermisoChange(permiso.id)}
-                  size="small"
-                />
-              }
-              label={
-                <Typography variant="body2">
-                  {permiso.nombre}
-                </Typography>
-              }
-            />
-          </Grid>
-        ))}
-      </Grid>
+      {/* Lista con scroll */}
+      <Paper
+        variant="outlined"
+        sx={{
+          p: .5,
+          maxHeight: 280,
+          overflowY: "auto",
+          borderColor: error ? "error.main" : "divider"
+        }}
+      >
+        <Grid container spacing={2}>
+          {permisosDisponibles.map((permiso) => (
+            <Grid item xs={12} sm={6} md={4} key={permiso.id}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={value.includes(permiso.id)}
+                    onChange={() => handlePermisoChange(permiso.id)}
+                    size="small"
+                    disabled={disabled}
+                  />
+                }
+                label={
+                  <Typography variant="body2">
+                    {permiso.nombre}
+                  </Typography>
+                }
+              />
+            </Grid>
+          ))}
+        </Grid>
+      </Paper>
 
       {error && (
         <FormHelperText error sx={{ mt: 1 }}>
           {error}
         </FormHelperText>
       )}
-
     </Box>
   );
 }

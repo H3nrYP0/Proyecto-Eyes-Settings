@@ -1,41 +1,87 @@
-import "./../../../shared/styles/components/modal.css";
+import React from "react";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Typography,
+  IconButton,
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import InfoIcon from "@mui/icons-material/Info";
+import WarningIcon from "@mui/icons-material/Warning";
 
 export default function Modal({
   open,
-  type = "info",
+  type = "info", // "info" | "warning"
   title,
   message,
-  onConfirm,
-  onCancel,
   confirmText = "Aceptar",
   cancelText = "Cancelar",
-  showCancel = false,
+  showCancel = true,
+  onConfirm,
+  onCancel,
 }) {
-  if (!open) return null;
+  const getIconColor = () => {
+    switch (type) {
+      case "warning":
+        return "error";
+      case "info":
+      default:
+        return "primary";
+    }
+  };
+
+  const IconComponent = type === "warning" ? WarningIcon : InfoIcon;
 
   return (
-    <div className="modal-light-overlay">
-      <div className="modal-light-box">
+    <Dialog
+      open={open}
+      onClose={onCancel}
+      PaperProps={{
+        sx: { borderRadius: 3, p: 2, minWidth: 350 },
+      }}
+    >
+      {/* Header con título e ícono de cerrar */}
+      <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <IconComponent color={getIconColor()} />
+        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          {title}
+        </Typography>
+        <IconButton onClick={onCancel} size="small">
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
 
-        {/* Ícono según tipo */}
-        <div className={`modal-icon icon-${type}`}></div>
+      {/* Contenido del mensaje */}
+      <DialogContent>
+        <Typography variant="body1" color="text.secondary">
+          {message}
+        </Typography>
+      </DialogContent>
 
-        <h2 className="modal-title">{title}</h2>
-        <p className="modal-message">{message}</p>
-
-        <div className="modal-actions">
-          {showCancel && (
-            <button className="modal-btn-cancel" onClick={onCancel}>
-              {cancelText}
-            </button>
-          )}
-
-          <button className="modal-btn-confirm" onClick={onConfirm}>
-            {confirmText}
-          </button>
-        </div>
-      </div>
-    </div>
+      {/* Botones de acción */}
+      <DialogActions sx={{ px: 3, pb: 2 }}>
+        {showCancel && (
+          <Button
+            onClick={onCancel}
+            variant="outlined"
+            color="inherit"
+            sx={{ borderRadius: 2 }}
+          >
+            {cancelText}
+          </Button>
+        )}
+        <Button
+          onClick={onConfirm}
+          variant="contained"
+          color={getIconColor()}
+          sx={{ borderRadius: 2 }}
+        >
+          {confirmText}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }
-

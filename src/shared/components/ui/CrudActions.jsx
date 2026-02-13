@@ -1,42 +1,17 @@
 import { Stack, IconButton, Tooltip } from "@mui/material";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import ToggleOnIcon from "@mui/icons-material/ToggleOn";
-import ToggleOffIcon from "@mui/icons-material/ToggleOff";
+import RemoveRedEyeOutlinedIcon from "@mui/icons-material/RemoveRedEyeOutlined";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 
 export default function CrudActions({ actions = [], item }) {
   return (
     <Stack direction="row" spacing={0.5} justifyContent="center">
       {actions.map((action, index) => {
-        if (action.type === "toggle-status") {
-          const isActive = item.estado === "activo";
-          const Icon = isActive ? ToggleOnIcon : ToggleOffIcon;
-
-          return (
-            <Tooltip
-              key={index}
-              title={isActive ? "Desactivar" : "Activar"}
-            >
-              <IconButton
-                size="small"
-                color={isActive ? "success" : "default"}
-                onClick={() => action.onClick(item)}
-              >
-                <Icon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          );
-        }
-
         if (action.type === "view") {
           return (
-            <Tooltip key={index} title={action.label}>
-              <IconButton
-                size="small"
-                onClick={() => action.onClick(item)}
-              >
-                <VisibilityIcon fontSize="small" />
+            <Tooltip key={index} title={action.label || "Ver"}>
+              <IconButton size="small" onClick={() => action.onClick(item)}>
+                <RemoveRedEyeOutlinedIcon fontSize="small" />
               </IconButton>
             </Tooltip>
           );
@@ -44,12 +19,9 @@ export default function CrudActions({ actions = [], item }) {
 
         if (action.type === "edit") {
           return (
-            <Tooltip key={index} title={action.label}>
-              <IconButton
-                size="small"
-                onClick={() => action.onClick(item)}
-              >
-                <EditIcon fontSize="small" />
+            <Tooltip key={index} title={action.label || "Editar"}>
+              <IconButton size="small" onClick={() => action.onClick(item)}>
+                <EditOutlinedIcon fontSize="small" />
               </IconButton>
             </Tooltip>
           );
@@ -57,13 +29,13 @@ export default function CrudActions({ actions = [], item }) {
 
         if (action.type === "delete") {
           return (
-            <Tooltip key={index} title={action.label}>
+            <Tooltip key={index} title={action.label || "Eliminar"}>
               <IconButton
                 size="small"
                 color="error"
                 onClick={() => action.onClick(item)}
               >
-                <DeleteIcon fontSize="small" />
+                <DeleteOutlineOutlinedIcon fontSize="small" />
               </IconButton>
             </Tooltip>
           );

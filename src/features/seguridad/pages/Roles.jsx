@@ -18,6 +18,9 @@ export default function Roles() {
   const [search, setSearch] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
 
+  // =============================
+  // MODAL ELIMINAR
+  // =============================
   const [modalDelete, setModalDelete] = useState({
     open: false,
     id: null,
@@ -25,14 +28,24 @@ export default function Roles() {
   });
 
   // =============================
-  //    CARGA DE DATOS
+  // MODAL CAMBIAR ESTADO
+  // =============================
+  const [modalEstado, setModalEstado] = useState({
+    open: false,
+    id: null,
+    nombre: "",
+    nuevoEstado: "",
+  });
+
+  // =============================
+  // CARGA DE DATOS
   // =============================
   useEffect(() => {
     setRoles(getAllRoles());
   }, []);
 
   // =============================
-  //    ELIMINAR ROL
+  // ELIMINAR
   // =============================
   const handleDelete = (id, nombre) => {
     setModalDelete({
@@ -49,15 +62,44 @@ export default function Roles() {
   };
 
   // =============================
-  //    CAMBIAR ESTADO
+  // CAMBIAR ESTADO (CON ALERTA)
   // =============================
-  const toggleEstado = (id) => {
-    const updated = updateEstadoRol(id);
-    setRoles([...updated]);
+  const handleToggleEstado = (row) => {
+    // Calculamos el nuevo estado automáticamente (2 estados)
+    const nuevoEstado =
+      row.estado === "activo" ? "inactivo" : "activo";
+
+    setModalEstado({
+      open: true,
+      id: row.id,
+      nombre: row.nombre,
+      nuevoEstado,
+    });
   };
 
+  const confirmChangeStatus = async () => {
+    try {
+      const updated = await updateEstadoRol(
+        modalEstado.id,
+        modalEstado.nuevoEstado
+      );
+
+      setRoles(updated);
+
+      setModalEstado({
+        open: false,
+        id: null,
+        nombre: "",
+        nuevoEstado: "",
+      });
+    } catch (error) {
+      console.error("Error al cambiar estado:", error);
+    }
+  };
+
+
   // =============================
-  //    FILTROS
+  // FILTROS
   // =============================
   const filteredRoles = roles.filter((rol) => {
     const matchesSearch =
@@ -72,7 +114,7 @@ export default function Roles() {
   });
 
   // =============================
-  //    COLUMNAS
+  // COLUMNAS
   // =============================
   const columns = [
     {
@@ -92,34 +134,34 @@ export default function Roles() {
   ];
 
   // =============================
-  //    ACCIONES (iconos + tooltips)
+  // ACCIONES
   // =============================
   const tableActions = [
-  {
-    label: "Cambiar estado",
-    type: "toggle-status",
-    onClick: (row) => toggleEstado(row.id),
-  },
-  {
-    label: "Ver detalles",
-    type: "view",
-    onClick: (row) => navigate(`detalle/${row.id}`),
-  },
-  {
-    label: "Editar",
-    type: "edit",
-    onClick: (row) => navigate(`editar/${row.id}`),
-  },
-  {
-    label: "Eliminar",
-    type: "delete",
-    onClick: (row) =>
-      handleDelete(row.id, row.nombre),
-  },
-];
+    {
+      label: "Cambiar estado",
+      type: "toggle-status",
+      onClick: (row) => handleToggleEstado(row),
+    },
+    {
+      label: "Ver detalles",
+      type: "view",
+      onClick: (row) => navigate(`detalle/${row.id}`),
+    },
+    {
+      label: "Editar",
+      type: "edit",
+      onClick: (row) => navigate(`editar/${row.id}`),
+    },
+    {
+      label: "Eliminar",
+      type: "delete",
+      onClick: (row) =>
+        handleDelete(row.id, row.nombre),
+    },
+  ];
 
   // =============================
-  //    FILTROS DE ESTADO
+  // FILTROS DE ESTADO
   // =============================
   const estadoFilters = [
     { value: "", label: "Todos los estados" },
@@ -157,7 +199,7 @@ export default function Roles() {
         }
       />
 
-      {/* MODAL */}
+      {/* MODAL ELIMINAR */}
       <Modal
         open={modalDelete.open}
         type="warning"
@@ -169,6 +211,26 @@ export default function Roles() {
         onConfirm={confirmDelete}
         onCancel={() =>
           setModalDelete({ open: false, id: null, nombre: "" })
+        }
+      />
+
+      {/* MODAL CAMBIAR ESTADO */}
+      <Modal
+        open={modalEstado.open}
+        type="info"
+        title="¿Cambiar estado?"
+        message={`El rol "${modalEstado.nombre}" cambiará a estado "${modalEstado.nuevoEstado}".`}
+        confirmText="Confirmar"
+        cancelText="Cancelar"
+        showCancel
+        onConfirm={confirmChangeStatus}
+        onCancel={() =>
+          setModalEstado({
+            open: false,
+            id: null,
+            nombre: "",
+            nuevoEstado: "",
+          })
         }
       />
     </CrudLayout>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FormHelperText } from "@mui/material";
 
 import BaseFormLayout from "../../../../../shared/components/base/BaseFormLayout";
@@ -15,21 +15,31 @@ export default function RolForm({
   initialData,
   permisosDisponibles = [],
   onSubmit,
-  onCancel
+  onCancel,
+  onEdit
 }) {
+  const isView = mode === "view";
 
-  const [formData, setFormData] = useState(
-    initialData || {
-      nombre: "",
-      descripcion: "",
-      estado: "activo",
-      permisos: []
-    }
-  );
+  const [formData, setFormData] = useState({
+    nombre: "",
+    descripcion: "",
+    estado: "activo",
+    permisos: []
+  });
 
   const [errors, setErrors] = useState({});
 
-  const isView = mode === "view";
+  // 🔹 Cuando cambia initialData (detalle / editar), actualizar estado
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        nombre: initialData.nombre || "",
+        descripcion: initialData.descripcion || "",
+        estado: initialData.estado || "activo",
+        permisos: initialData.permisos || []
+      });
+    }
+  }, [initialData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -69,14 +79,12 @@ export default function RolForm({
       return;
     }
 
-    onSubmit(formData);
+    onSubmit?.(formData);
   };
 
   return (
     <BaseFormLayout title={title}>
-
-      <BaseFormSection>
-
+      <BaseFormSection title="Información del Rol">
         <BaseFormField>
           <BaseInputField
             label="Nombre del Rol"
@@ -102,27 +110,27 @@ export default function RolForm({
             <FormHelperText error>{errors.descripcion}</FormHelperText>
           )}
         </BaseFormField>
-
       </BaseFormSection>
 
-      <PermisosSelector
-        permisosDisponibles={permisosDisponibles}
-        value={formData.permisos}
-        onChange={(permisos) =>
-          setFormData((prev) => ({ ...prev, permisos }))
-        }
-        error={errors.permisos}
-        disabled={isView}
-      />
-
-      {!isView && (
-        <BaseFormActions
-          onCancel={onCancel}
-          onSave={handleSubmit}
-          showSave
+      <BaseFormSection title="Permisos">
+        <PermisosSelector
+          permisosDisponibles={permisosDisponibles}
+          value={formData.permisos}
+          onChange={(permisos) =>
+            setFormData((prev) => ({ ...prev, permisos }))
+          }
+          error={errors.permisos}
+          disabled={isView}
         />
-      )}
+      </BaseFormSection>
 
+      <BaseFormActions
+        onCancel={onCancel}
+        onSave={handleSubmit}
+        onEdit={onEdit}
+        showSave={!isView}
+        showEdit={isView}
+      />
     </BaseFormLayout>
   );
 }
