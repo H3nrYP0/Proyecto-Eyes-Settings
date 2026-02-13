@@ -1,16 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import CrudLayout from "../../../shared/components/layouts/CrudLayout";
-import CrudTable from "../../../shared/components/ui/CrudTable";
+import CrudLayout from "../../../shared/components/crud/CrudLayout";
+import CrudTable from "../../../shared/components/crud/CrudTable";
 import Modal from "../../../shared/components/ui/Modal";
-import "../../../shared/styles/components/crud-table.css";
-import "../../../shared/styles/components/modal.css";
 
-// Importamos las funciones CORRECTAS para roles
+// Backend
 import {
   getAllRoles,
   deleteRol,
-  updateEstadoRol
+  updateEstadoRol,
 } from "../../../lib/data/rolesData";
 
 export default function Roles() {
@@ -20,20 +18,34 @@ export default function Roles() {
   const [search, setSearch] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
 
+  // =============================
+  // MODAL ELIMINAR
+  // =============================
   const [modalDelete, setModalDelete] = useState({
     open: false,
     id: null,
     nombre: "",
   });
 
-  // Cargar datos
+  // =============================
+  // MODAL CAMBIAR ESTADO
+  // =============================
+  const [modalEstado, setModalEstado] = useState({
+    open: false,
+    id: null,
+    nombre: "",
+    nuevoEstado: "",
+  });
+
+  // =============================
+  // CARGA DE DATOS
+  // =============================
   useEffect(() => {
-    const rolesData = getAllRoles();
-    setRoles(rolesData);
+    setRoles(getAllRoles());
   }, []);
 
   // =============================
-  //    MODAL DE ELIMINACIÓN
+  // ELIMINAR
   // =============================
   const handleDelete = (id, nombre) => {
     setModalDelete({
@@ -50,121 +62,133 @@ export default function Roles() {
   };
 
   // =============================
-  //       CAMBIAR ESTADO
+  // CAMBIAR ESTADO
   // =============================
-  const toggleEstado = (id) => {
-    const updated = updateEstadoRol(id);
-    setRoles(updated); 
+  const handleToggleEstado = (row) => {
+    const nuevoEstado = row.estado === "activo" ? "inactivo" : "activo";
+
+    setModalEstado({
+      open: true,
+      id: row.id,
+      nombre: row.nombre,
+      nuevoEstado,
+    });
+  };
+
+  const confirmChangeStatus = async () => {
+    try {
+      const updated = await updateEstadoRol(
+        modalEstado.id,
+        modalEstado.nuevoEstado
+      );
+
+      setRoles(updated);
+
+      setModalEstado({
+        open: false,
+        id: null,
+        nombre: "",
+        nuevoEstado: "",
+      });
+    } catch (error) {
+      console.error("Error al cambiar estado:", error);
+    }
   };
 
   // =============================
-  //          BUSCADOR
+  // FILTROS
   // =============================
   const filteredRoles = roles.filter((rol) => {
-    const matchesSearch = 
+    const matchesSearch =
       rol.nombre.toLowerCase().includes(search.toLowerCase()) ||
-      (rol.descripcion && rol.descripcion.toLowerCase().includes(search.toLowerCase()));
-    
-    const matchesFilterEstado = !filterEstado || rol.estado === filterEstado;
-    
-    return matchesSearch && matchesFilterEstado;
+      (rol.descripcion &&
+        rol.descripcion.toLowerCase().includes(search.toLowerCase()));
+
+    const matchesEstado = !filterEstado || rol.estado === filterEstado;
+
+    return matchesSearch && matchesEstado;
   });
 
   // =============================
-  //          COLUMNAS
+  // COLUMNAS
   // =============================
   const columns = [
-    { 
-      field: "nombre", 
+    {
+      field: "nombre",
       header: "Nombre",
-      render: (item) => (
-        <div className="rol-info-cell">
-          <span className="rol-nombre">{item.nombre}</span>
-        </div>
-      )
-    },
-    { 
-      field: "permisos", 
-      header: "Permisos",
-      render: (item) => {
-        const totalPermisos = item.permisosCount || item.permisos?.length || 0;
-        return <span>{totalPermisos} permisos</span>;
-      }
+      render: (item) => item.nombre,
     },
     {
-      field: "estado",
-      header: "Estado",
-      render: (item) => (
-        <button
-          className={`estado-btn ${item.estado === "activo" ? "activo" : "inactivo"}`}
-          onClick={() => toggleEstado(item.id)}
-        >
-          {item.estado === "activo" ? "Activo" : "Inactivo"}
-        </button>
-      ),
+      field: "permisos",
+      header: "Permisos",
+      render: (item) => {
+        const totalPermisos =
+          item.permisosCount || item.permisos?.length || 0;
+        return `${totalPermisos} permisos`;
+      },
     },
   ];
 
   // =============================
-  //          ACCIONES
+  // ACCIONES
   // =============================
   const tableActions = [
     {
-      label: "Editar",
-      type: "edit",
-      onClick: (item) => navigate(`editar/${item.id}`),
+      label: "Cambiar estado",
+      type: "toggle-status",
+      onClick: (row) => handleToggleEstado(row),
     },
     {
-      label: "Ver Detalles",
+      label: "Ver detalles",
       type: "view",
-      onClick: (item) => navigate(`detalle/${item.id}`),
+      onClick: (row) => navigate(`detalle/${row.id}`),
+    },
+    {
+      label: "Editar",
+      type: "edit",
+      onClick: (row) => navigate(`editar/${row.id}`),
     },
     {
       label: "Eliminar",
       type: "delete",
-      onClick: (item) => handleDelete(item.id, item.nombre),
+      onClick: (row) => handleDelete(row.id, row.nombre),
     },
   ];
 
-  // Filtros para roles
+  // =============================
+  // FILTROS DE ESTADO
+  // =============================
   const estadoFilters = [
-    { value: '', label: 'Todos los estados' },
-    { value: 'activo', label: 'Activos' },
-    { value: 'inactivo', label: 'Inactivos' }
+    { value: "", label: "Todos los estados" },
+    { value: "activo", label: "Activos" },
+    { value: "inactivo", label: "Inactivos" },
   ];
 
   return (
     <CrudLayout
       title="Roles"
       onAddClick={() => navigate("crear")}
-      showSearch={true}
+      showSearch
       searchPlaceholder="Buscar por nombre, descripción..."
       searchValue={search}
       onSearchChange={setSearch}
-      searchPosition="left"
-      showFilters={true}
-      filters={[
-        {
-          label: "Estado",
-          value: filterEstado,
-          onChange: setFilterEstado,
-          options: estadoFilters
-        }
-      ]}
+      searchFilters={estadoFilters}       // <- aquí pasamos los filtros
+      filterEstado={filterEstado}         // <- valor actual del filtro
+      onFilterChange={setFilterEstado}    // <- función para actualizar filtro
     >
-      {/* Tabla */}
-      <CrudTable 
-        columns={columns} 
-        data={filteredRoles} 
+      {/* TABLA */}
+      <CrudTable
+        columns={columns}
+        data={filteredRoles}
         actions={tableActions}
         emptyMessage={
-          search || filterEstado ? 
-            'No se encontraron roles para los filtros aplicados' : 
-            'No hay roles configurados'
+          search || filterEstado
+            ? "No se encontraron roles para los filtros aplicados"
+            : "No hay roles configurados"
         }
       />
 
-      {/* Modal de Confirmación */}
+      {/* MODAL ELIMINAR */}
       <Modal
         open={modalDelete.open}
         type="warning"
@@ -172,9 +196,31 @@ export default function Roles() {
         message={`Esta acción eliminará el rol "${modalDelete.nombre}" y no se puede deshacer.`}
         confirmText="Eliminar"
         cancelText="Cancelar"
-        showCancel={true}
+        showCancel
         onConfirm={confirmDelete}
-        onCancel={() => setModalDelete({ open: false, id: null, nombre: "" })}
+        onCancel={() =>
+          setModalDelete({ open: false, id: null, nombre: "" })
+        }
+      />
+
+      {/* MODAL CAMBIAR ESTADO */}
+      <Modal
+        open={modalEstado.open}
+        type="info"
+        title="¿Cambiar estado?"
+        message={`El rol "${modalEstado.nombre}" cambiará a estado "${modalEstado.nuevoEstado}".`}
+        confirmText="Confirmar"
+        cancelText="Cancelar"
+        showCancel
+        onConfirm={confirmChangeStatus}
+        onCancel={() =>
+          setModalEstado({
+            open: false,
+            id: null,
+            nombre: "",
+            nuevoEstado: "",
+          })
+        }
       />
     </CrudLayout>
   );

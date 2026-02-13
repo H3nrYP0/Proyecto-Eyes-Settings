@@ -1,3 +1,5 @@
+// src/lib/data/rolesData.js
+
 // Base de datos temporal de roles
 let rolesDB = [
   {
@@ -59,13 +61,11 @@ export function getRolById(id) {
 
 // Crear rol
 export function createRol(data) {
-  // Encontrar el ID máximo actual
   const maxId = rolesDB.length > 0 
     ? Math.max(...rolesDB.map(r => r.id)) 
     : 0;
   const newId = maxId + 1;
   
-  // Calcular contador de permisos
   const permisosCount = data.permisos ? data.permisos.length : 0;
   
   const nuevoRol = { 
@@ -81,26 +81,51 @@ export function createRol(data) {
   return { ...nuevoRol };
 }
 
-// Actualizar rol
+// =============================
+// Actualizar estado (async simulado)
+// =============================
+export async function updateEstadoRol(id, nuevoEstado) {
+  const idNum = typeof id === "string" ? parseInt(id) : id;
+
+  const index = rolesDB.findIndex((r) => r.id === idNum);
+
+  if (index === -1) {
+    throw new Error("Rol no encontrado");
+  }
+
+  // 🔹 Actualizamos el estado
+  rolesDB[index] = {
+    ...rolesDB[index],
+    estado: nuevoEstado,
+  };
+
+  // 🔹 Simulamos backend real
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve([...rolesDB]); // devolvemos copia nueva
+    }, 200);
+  });
+}
+
+// Actualizar rol completo
 export function updateRol(id, updated) {
   const idNum = typeof id === 'string' ? parseInt(id) : id;
   const index = rolesDB.findIndex((r) => r.id === idNum);
-  
+
   if (index === -1) return null;
-  
-  // Calcular nuevo contador de permisos si se modifican
-  const permisosCount = updated.permisos 
-    ? updated.permisos.length 
-    : rolesDB[index].permisosCount;
-  
+
+  // Recalcular permisosCount si se cambian los permisos
+  const permisosCount = updated.permisos ? updated.permisos.length : rolesDB[index].permisosCount;
+
   const rolActualizado = {
     ...rolesDB[index],
     ...updated,
     permisosCount,
-    id: rolesDB[index].id // Mantener el ID original
+    id: rolesDB[index].id // mantener ID
   };
-  
+
   rolesDB[index] = rolActualizado;
+
   return { ...rolActualizado };
 }
 
@@ -108,23 +133,6 @@ export function updateRol(id, updated) {
 export function deleteRol(id) {
   const idNum = typeof id === 'string' ? parseInt(id) : id;
   rolesDB = rolesDB.filter((r) => r.id !== idNum);
-  return [...rolesDB];
-}
-
-// Cambiar estado del rol (activo/inactivo)
-export function updateEstadoRol(id) {
-  const idNum = typeof id === 'string' ? parseInt(id) : id;
-  const index = rolesDB.findIndex((r) => r.id === idNum);
-  
-  if (index === -1) return [...rolesDB];
-  
-  const nuevoEstado = rolesDB[index].estado === "activo" ? "inactivo" : "activo";
-  
-  rolesDB[index] = { 
-    ...rolesDB[index], 
-    estado: nuevoEstado 
-  };
-  
   return [...rolesDB];
 }
 
@@ -145,14 +153,12 @@ export function rolTienePermiso(rolId, permisoId) {
 // Obtener todos los permisos disponibles
 export function getPermisosDisponibles() {
   const todosPermisos = rolesDB.flatMap(rol => rol.permisos || []);
-  return [...new Set(todosPermisos)]; // Eliminar duplicados
+  return [...new Set(todosPermisos)];
 }
 
 // =============================
-//      FUNCIONES DE VALIDACIÓN
+// FUNCIONES DE VALIDACIÓN
 // =============================
-
-// Validar datos del rol antes de crear/actualizar
 export function validarDatosRol(data) {
   const errors = [];
   
@@ -174,7 +180,6 @@ export function validarDatosRol(data) {
   };
 }
 
-// Verificar si un nombre de rol ya existe (excepto para un ID específico)
 export function nombreRolExiste(nombre, excludeId = null) {
   return rolesDB.some(rol => {
     if (excludeId && rol.id === excludeId) return false;
@@ -183,31 +188,25 @@ export function nombreRolExiste(nombre, excludeId = null) {
 }
 
 // =============================
-//      FUNCIONES DE UTILIDAD
+// FUNCIONES DE UTILIDAD
 // =============================
-
-// Obtener roles activos
 export function getRolesActivos() {
   return rolesDB.filter(rol => rol.estado === "activo");
 }
 
-// Obtener roles inactivos
 export function getRolesInactivos() {
   return rolesDB.filter(rol => rol.estado === "inactivo");
 }
 
-// Contar total de roles
 export function getTotalRoles() {
   return rolesDB.length;
 }
 
-// Obtener estadísticas de roles
 export function getEstadisticasRoles() {
   const total = rolesDB.length;
   const activos = rolesDB.filter(r => r.estado === "activo").length;
   const inactivos = total - activos;
   
-  // Calcular promedio de permisos por rol
   const totalPermisos = rolesDB.reduce((sum, rol) => sum + (rol.permisosCount || 0), 0);
   const promedioPermisos = total > 0 ? (totalPermisos / total).toFixed(1) : 0;
   
@@ -220,7 +219,7 @@ export function getEstadisticasRoles() {
   };
 }
 
-// Reiniciar base de datos (solo para desarrollo/testing)
+// Reiniciar base de datos (solo testing)
 export function reiniciarBaseDeDatos() {
   rolesDB = [
     {

@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import CrudLayout from "../../../shared/components/layouts/CrudLayout";
-import CrudTable from "../../../shared/components/ui/CrudTable";
+import CrudLayout from "../../../shared/components/crud/CrudLayout";
+import CrudTable from "../../../shared/components/crud/CrudTable";
 import Modal from "../../../shared/components/ui/Modal";
-import "../../../shared/styles/components/crud-table.css";
-import "../../../shared/styles/components/modal.css";
 
-// Importamos las funciones del backend
+// Backend
 import {
   getAllUsuarios,
   deleteUsuario,
@@ -21,28 +19,28 @@ export default function GestionUsuarios() {
   const [filterEstado, setFilterEstado] = useState("");
   const [filterRol, setFilterRol] = useState("");
 
+  // MODAL ELIMINAR
   const [modalDelete, setModalDelete] = useState({
     open: false,
     id: null,
     nombre: "",
   });
 
-  // Cargar datos
+  // MODAL CAMBIAR ESTADO
+  const [modalEstado, setModalEstado] = useState({
+    open: false,
+    id: null,
+    nombre: "",
+    nuevoEstado: "",
+  });
+
+  // CARGA DE DATOS
   useEffect(() => {
-    const usuariosData = getAllUsuarios();
-    setUsuarios(usuariosData);
+    setUsuarios(getAllUsuarios());
   }, []);
 
-  // =============================
-  //    MODAL DE ELIMINACIÓN
-  // =============================
-  const handleDelete = (id, nombre) => {
-    setModalDelete({
-      open: true,
-      id,
-      nombre,
-    });
-  };
+  // ELIMINAR
+  const handleDelete = (id, nombre) => setModalDelete({ open: true, id, nombre });
 
   const confirmDelete = () => {
     const updated = deleteUsuario(modalDelete.id);
@@ -50,149 +48,101 @@ export default function GestionUsuarios() {
     setModalDelete({ open: false, id: null, nombre: "" });
   };
 
-  // =============================
-  //       CAMBIAR ESTADO
-  // =============================
-  const toggleEstado = (id) => {
-    const updated = updateEstadoUsuario(id);
-    setUsuarios([...updated]);
+  // CAMBIAR ESTADO
+  const handleToggleEstado = (row) => {
+    const nuevoEstado = row.estado === "activo" ? "inactivo" : "activo";
+    setModalEstado({
+      open: true,
+      id: row.id,
+      nombre: row.nombre,
+      nuevoEstado,
+    });
   };
 
-  // =============================
-  //      BUSCADOR Y FILTRO
-  // =============================
+  const confirmChangeStatus = () => {
+    const updated = updateEstadoUsuario(modalEstado.id);
+    setUsuarios([...updated]);
+    setModalEstado({ open: false, id: null, nombre: "", nuevoEstado: "" });
+  };
+
+  // FILTROS
   const filteredUsuarios = usuarios.filter((usuario) => {
-    const matchesSearch = 
+    const matchesSearch =
       usuario.nombre.toLowerCase().includes(search.toLowerCase()) ||
       usuario.email.toLowerCase().includes(search.toLowerCase()) ||
       usuario.rol.toLowerCase().includes(search.toLowerCase());
-    
-    const matchesFilterEstado = !filterEstado || usuario.estado === filterEstado;
-    const matchesFilterRol = !filterRol || usuario.rol === filterRol;
-    
-    return matchesSearch && matchesFilterEstado && matchesFilterRol;
+
+    const matchesEstado = !filterEstado || usuario.estado === filterEstado;
+    const matchesRol = !filterRol || usuario.rol === filterRol;
+
+    return matchesSearch && matchesEstado && matchesRol;
   });
 
-  // FILTROS PARA USUARIOS
-  const searchFilters = [
-    { value: 'activo', label: 'Activos' },
-    { value: 'inactivo', label: 'Inactivos' }
+  const estadoFilters = [
+    { value: "", label: "Todos los estados" },
+    { value: "activo", label: "Activos" },
+    { value: "inactivo", label: "Inactivos" },
   ];
 
   const rolFilters = [
-    { value: '', label: 'Todos los roles' },
-    { value: 'administrador', label: 'Administrador' },
-    { value: 'vendedor', label: 'Vendedor' },
-    { value: 'optometra', label: 'Optómetra' },
-    { value: 'tecnico', label: 'Técnico' }
+    { value: "", label: "Todos los roles" },
+    { value: "administrador", label: "Administrador" },
+    { value: "vendedor", label: "Vendedor" },
+    { value: "optometra", label: "Optómetra" },
+    { value: "tecnico", label: "Técnico" },
   ];
 
-  // =============================
-  //          COLUMNAS
-  // =============================
+  // COLUMNAS
   const columns = [
     { field: "nombre", header: "Nombre" },
-    { 
-      field: "rol", 
-      header: "Rol",
-      render: (item) => (
-        <span className={`rol-badge ${item.rol.toLowerCase()}`}>
-          {item.rol}
-        </span>
-      )
-    },
+    { field: "rol", header: "Rol", render: (item) => item.rol },
     {
       field: "estado",
       header: "Estado",
       render: (item) => (
-        <button
-          className={`estado-btn ${item.estado === "activo" ? "activo" : "inactivo"}`}
-          onClick={() => toggleEstado(item.id)}
-        >
+        <button onClick={() => handleToggleEstado(item)}>
           {item.estado === "activo" ? "Activo" : "Inactivo"}
         </button>
       ),
     },
   ];
 
-  // =============================
-  //          ACCIONES
-  // =============================
+  // ACCIONES
   const tableActions = [
-    {
-      label: "Ver Detalles",
-      type: "view",
-      onClick: (item) => navigate(`detalle/${item.id}`),
-    },
-    {
-      label: "Editar",
-      type: "edit",
-      onClick: (item) => navigate(`editar/${item.id}`),
-    },
-    {
-      label: "Eliminar",
-      type: "delete",
-      onClick: (item) => handleDelete(item.id, item.nombre),
-    },
+    { label: "Cambiar estado", type: "toggle-status", onClick: handleToggleEstado },
+    { label: "Ver detalles", type: "view", onClick: (row) => navigate(`detalle/${row.id}`) },
+    { label: "Editar", type: "edit", onClick: (row) => navigate(`editar/${row.id}`) },
+    { label: "Eliminar", type: "delete", onClick: (row) => handleDelete(row.id, row.nombre) },
   ];
-
-  // Función para manejar cambio de filtro de estado
-  const handleFilterEstadoChange = (value) => {
-    setFilterEstado(value);
-  };
-
-  // Función para manejar cambio de filtro de rol
-  const handleFilterRolChange = (value) => {
-    setFilterRol(value);
-  };
 
   return (
     <CrudLayout
       title="Gestión de Usuarios"
       onAddClick={() => navigate("crear")}
-      showSearch={true}
+      showSearch
       searchPlaceholder="Buscar por nombre, email, rol..."
       searchValue={search}
       onSearchChange={setSearch}
-      searchFilters={searchFilters}
+      // FILTROS AL LADO DEL BOTÓN AGREGAR
+      searchFilters={estadoFilters}       // filtro de estados
       filterEstado={filterEstado}
-      onFilterChange={handleFilterEstadoChange}
-      searchPosition="left"
-      additionalFilters={[
-        {
-          label: "Filtrar por rol",
-          value: filterRol,
-          onChange: handleFilterRolChange,
-          options: rolFilters
-        }
-      ]}
+      onFilterChange={setFilterEstado}
+      searchFiltersRol={rolFilters}       // filtro de roles
+      filterRol={filterRol}
+      onFilterChangeRol={setFilterRol}
     >
-      {/* Tabla */}
-      <CrudTable 
-        columns={columns} 
-        data={filteredUsuarios} 
+      <CrudTable
+        columns={columns}
+        data={filteredUsuarios}
         actions={tableActions}
         emptyMessage={
-          search || filterEstado || filterRol ? 
-            'No se encontraron usuarios para los filtros aplicados' : 
-            'No hay usuarios registrados'
+          search || filterEstado || filterRol
+            ? "No se encontraron usuarios para los filtros aplicados"
+            : "No hay usuarios registrados"
         }
       />
 
-      {/* Botón para primer usuario */}
-      {filteredUsuarios.length === 0 && !search && !filterEstado && !filterRol && (
-        <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
-          <button 
-            onClick={() => navigate("crear")}
-            className="btn-primary"
-            style={{padding: 'var(--spacing-md) var(--spacing-lg)'}}
-          >
-            Registrar Primer Usuario
-          </button>
-        </div>
-      )}
-
-      {/* Modal de Confirmación */}
+      {/* MODAL ELIMINAR */}
       <Modal
         open={modalDelete.open}
         type="warning"
@@ -200,9 +150,24 @@ export default function GestionUsuarios() {
         message={`Esta acción eliminará al usuario "${modalDelete.nombre}" y no se puede deshacer.`}
         confirmText="Eliminar"
         cancelText="Cancelar"
-        showCancel={true}
+        showCancel
         onConfirm={confirmDelete}
         onCancel={() => setModalDelete({ open: false, id: null, nombre: "" })}
+      />
+
+      {/* MODAL CAMBIAR ESTADO */}
+      <Modal
+        open={modalEstado.open}
+        type="info"
+        title="¿Cambiar estado?"
+        message={`El usuario "${modalEstado.nombre}" cambiará a estado "${modalEstado.nuevoEstado}".`}
+        confirmText="Confirmar"
+        cancelText="Cancelar"
+        showCancel
+        onConfirm={confirmChangeStatus}
+        onCancel={() =>
+          setModalEstado({ open: false, id: null, nombre: "", nuevoEstado: "" })
+        }
       />
     </CrudLayout>
   );
