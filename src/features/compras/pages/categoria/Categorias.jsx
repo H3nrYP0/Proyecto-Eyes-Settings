@@ -6,7 +6,7 @@ import Modal from "../../../../shared/components/ui/Modal";
 import "../../../../shared/styles/components/crud-table.css";
 import "../../../../shared/styles/components/modal.css";
 
-// Importamos las funciones del backend
+// Backend (API real)
 import {
   getAllCategorias,
   deleteCategoria,
@@ -26,81 +26,103 @@ export default function Categorias() {
     nombre: "",
   });
 
-  // Cargar datos
-  useEffect(() => {
-    const categoriasData = getAllCategorias();
-    setCategorias(categoriasData);
-  }, []);
+  const [modalEstado, setModalEstado] = useState({
+    open: false,
+    id: null,
+    nombre: "",
+    nuevoEstado: "",
+  });
 
-  // =============================
-  //    MODAL DE ELIMINACIÓN
-  // =============================
-  const handleDelete = (id, nombre) => {
-    setModalDelete({
-      open: true,
-      id,
-      nombre,
-    });
+  // ============================
+  // CARGA DE DATOS (API)
+  // ============================
+  const cargarCategorias = async () => {
+    try {
+      const data = await getAllCategorias();
+
+      // Normalizar estado: true/false -> "activa"/"inactiva"
+      const normalizadas = (Array.isArray(data) ? data : []).map((c) => ({
+        ...c,
+        estado: c.estado === true ? "activa" : "inactiva",
+      }));
+
+      setCategorias(normalizadas);
+    } catch (error) {
+      console.error("Error cargando categorías:", error);
+      setCategorias([]);
+    }
   };
 
-  const confirmDelete = () => {
-    const updated = deleteCategoria(modalDelete.id);
-    setCategorias([...updated]);
+  useEffect(() => {
+    cargarCategorias();
+  }, []);
+
+  // ============================
+  // ELIMINAR
+  // ============================
+  const handleDelete = (id, nombre) =>
+    setModalDelete({ open: true, id, nombre });
+
+  const confirmDelete = async () => {
+    await deleteCategoria(modalDelete.id);
+    await cargarCategorias();
     setModalDelete({ open: false, id: null, nombre: "" });
   };
 
-  // =============================
-  //    CAMBIAR ESTADO
-  // =============================
-  const toggleEstado = (id) => {
-    const updated = updateEstadoCategoria(id);
-    setCategorias([...updated]);
+  // ============================
+  // CAMBIAR ESTADO
+  // ============================
+  const handleToggleEstado = (row) => {
+    const nuevoEstado = row.estado === "activa" ? "inactiva" : "activa";
+    setModalEstado({
+      open: true,
+      id: row.id,
+      nombre: row.nombre,
+      nuevoEstado,
+    });
   };
 
-  // =============================
-  //          BUSCADOR Y FILTRO - CORREGIDO
-  // =============================
+  const confirmChangeStatus = async () => {
+    await updateEstadoCategoria(modalEstado.id, modalEstado.nuevoEstado);
+    await cargarCategorias();
+    setModalEstado({ open: false, id: null, nombre: "", nuevoEstado: "" });
+  };
+
+  // ============================
+  // FILTROS
+  // ============================
   const filteredCategorias = categorias.filter((categoria) => {
-    const matchesSearch = 
+    const matchesSearch =
       categoria.nombre.toLowerCase().includes(search.toLowerCase()) ||
       categoria.descripcion.toLowerCase().includes(search.toLowerCase());
-    
-    const matchesFilter = !filterEstado || categoria.estado === filterEstado;
-    
-    return matchesSearch && matchesFilter;
+
+    const matchesEstado = !filterEstado || categoria.estado === filterEstado;
+
+    return matchesSearch && matchesEstado;
   });
 
-  // FILTROS PARA CATEGORÍAS
-  const searchFilters = [
-    { value: 'activa', label: 'Activas' },
-    { value: 'inactiva', label: 'Inactivas' }
+  const estadoFilters = [
+    { value: "", label: "Todos los estados" },
+    { value: "activa", label: "Activas" },
+    { value: "inactiva", label: "Inactivas" },
   ];
 
-  // =============================
-  //          COLUMNAS
-  // =============================
-  const columns = [
-    { field: "nombre", header: "Nombre" },
-    {
-      field: "estado",
-      header: "Estado",
-      render: (item) => (
-        <button
-          className={`estado-btn ${item.estado === "activa" ? "activo" : "inactivo"}`}
-          onClick={() => toggleEstado(item.id)}
-        >
-          {item.estado === "activa" ? "Activa" : "Inactiva"}
-        </button>
-      ),
-    },
-  ];
+  // ============================
+  // COLUMNAS
+  // ============================
+  const columns = [{ field: "nombre", header: "Nombre" }];
 
-  // =============================
-  //          ACCIONES
-  // =============================
+  // ============================
+  // ACCIONES
+  // ============================
   const tableActions = [
     {
-      label: "Ver Detalles",
+      label: "Cambiar estado",
+      type: "toggle-status",
+      onClick: handleToggleEstado,
+    },
+    {
+      label: "Ver detalles",
       type: "view",
       onClick: (item) => navigate(`detalle/${item.id}`),
     },
@@ -116,51 +138,41 @@ export default function Categorias() {
     },
   ];
 
-  // Función para manejar cambio de filtro
-  const handleFilterChange = (value) => {
-    setFilterEstado(value);
-  };
-
   return (
     <CrudLayout
       title="Categorías de Productos"
       onAddClick={() => navigate("crear")}
-      showSearch={true}
+      showSearch
       searchPlaceholder="Buscar por nombre, descripción..."
       searchValue={search}
       onSearchChange={setSearch}
-      searchFilters={searchFilters}
+      searchFilters={estadoFilters}
       filterEstado={filterEstado}
-      onFilterChange={handleFilterChange}
-      searchPosition="left"
+      onFilterChange={setFilterEstado}
     >
-      {/* Tabla */}
-      <CrudTable 
-        columns={columns} 
-        data={filteredCategorias} 
+      <CrudTable
+        columns={columns}
+        data={filteredCategorias}
         actions={tableActions}
         emptyMessage={
-          search || filterEstado ? 
-            'No se encontraron categorías para los filtros aplicados' : 
-            'No hay categorías registradas'
+          search || filterEstado
+            ? "No se encontraron categorías para los filtros aplicados"
+            : "No hay categorías registradas"
         }
       />
 
-      {/* Botón para primera categoría */}
       {filteredCategorias.length === 0 && !search && !filterEstado && (
-        <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
-          <button 
+        <div style={{ textAlign: "center", marginTop: "var(--spacing-lg)" }}>
+          <button
             onClick={() => navigate("crear")}
             className="btn-primary"
-            style={{padding: 'var(--spacing-md) var(--spacing-lg)'}}
+            style={{ padding: "var(--spacing-md) var(--spacing-lg)" }}
           >
             Crear Primera Categoría
           </button>
         </div>
       )}
-      
 
-      {/* Modal de Confirmación */}
       <Modal
         open={modalDelete.open}
         type="warning"
@@ -168,9 +180,23 @@ export default function Categorias() {
         message={`Esta acción eliminará la categoría "${modalDelete.nombre}" y no se puede deshacer.`}
         confirmText="Eliminar"
         cancelText="Cancelar"
-        showCancel={true}
+        showCancel
         onConfirm={confirmDelete}
         onCancel={() => setModalDelete({ open: false, id: null, nombre: "" })}
+      />
+
+      <Modal
+        open={modalEstado.open}
+        type="info"
+        title="¿Cambiar estado?"
+        message={`La categoría "${modalEstado.nombre}" cambiará a estado "${modalEstado.nuevoEstado}".`}
+        confirmText="Confirmar"
+        cancelText="Cancelar"
+        showCancel
+        onConfirm={confirmChangeStatus}
+        onCancel={() =>
+          setModalEstado({ open: false, id: null, nombre: "", nuevoEstado: "" })
+        }
       />
     </CrudLayout>
   );
