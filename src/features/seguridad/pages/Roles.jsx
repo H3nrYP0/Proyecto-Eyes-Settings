@@ -48,15 +48,15 @@ export default function Roles() {
     try {
       const data = await getAllRoles();
 
-      const normalizados = (Array.isArray(data) ? data : []).map((r) => ({
+      const normalizados = data.map((r) => ({
         ...r,
-        estado: r.estado === true ? "activo" : "inactivo",
+        estado: r.estado ? "activo" : "inactivo",
+        permisosCount: r.permisos?.length || 0,
       }));
 
       setRoles(normalizados);
     } catch (error) {
       console.error("Error cargando roles:", error);
-      setRoles([]);
     }
   };
 
