@@ -94,24 +94,21 @@ export default function Roles() {
   };
 
   const confirmChangeStatus = async () => {
-    try {
-      const updated = await updateEstadoRol(
-        modalEstado.id,
-        modalEstado.nuevoEstado
-      );
+  await updateEstadoRol(
+    modalEstado.id,
+    modalEstado.nuevoEstado
+  );
 
-      setRoles(updated);
+  await cargarRoles();
 
-      setModalEstado({
-        open: false,
-        id: null,
-        nombre: "",
-        nuevoEstado: "",
-      });
-    } catch (error) {
-      console.error("Error al cambiar estado:", error);
-    }
-  };
+  setModalEstado({
+    open: false,
+    id: null,
+    nombre: "",
+    nuevoEstado: "",
+  });
+};
+
 
   // =============================
   // FILTROS
