@@ -41,8 +41,25 @@ export default function Roles() {
   // CARGA DE DATOS
   // =============================
   useEffect(() => {
-    setRoles(getAllRoles());
+    cargarRoles();
   }, []);
+
+  const cargarRoles = async () => {
+    try {
+      const data = await getAllRoles();
+
+      const normalizados = (Array.isArray(data) ? data : []).map((r) => ({
+        ...r,
+        estado: r.estado === true ? "activo" : "inactivo",
+      }));
+
+      setRoles(normalizados);
+    } catch (error) {
+      console.error("Error cargando roles:", error);
+      setRoles([]);
+    }
+  };
+
 
   // =============================
   // ELIMINAR
