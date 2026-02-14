@@ -37,3 +37,9 @@ export async function updateEstadoRol(id, nuevoEstado) {
   });
   return res.data;
 }
+
+// Permisos
+export async function getAllPermisos() {
+  const res = await api.get("/permiso");
+  return res.data;
+}

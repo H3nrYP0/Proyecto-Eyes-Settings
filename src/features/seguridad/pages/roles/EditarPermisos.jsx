@@ -4,7 +4,8 @@ import RolForm from "./components/RolForm";
 
 import {
   getRolById,
-  updateRol
+  updateRol,
+  getAllPermisos
 } from "../../../../lib/data/rolesData";
 
 export default function EditarPermisos() {
@@ -13,51 +14,29 @@ export default function EditarPermisos() {
   const navigate = useNavigate();
 
   const [rol, setRol] = useState(null);
+  const [permisosDisponibles, setPermisosDisponibles] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const permisosDisponibles = [
-    { id: "dashboard", nombre: "Gestionar Dashboard" },
-    { id: "categorias", nombre: "Gestionar Categorías" },
-    { id: "compras", nombre: "Gestionar Compras" },
-    { id: "empleados", nombre: "Gestionar Empleados" },
-    { id: "ventas", nombre: "Gestionar Ventas" },
-    { id: "roles", nombre: "Gestionar Roles" },
-    { id: "productos", nombre: "Gestionar Productos" },
-    { id: "servicios", nombre: "Gestionar Servicios" },
-    { id: "clientes", nombre: "Gestionar Clientes" },
-    { id: "campanas_salud", nombre: "Gestionar Campañas de Salud" },
-    { id: "usuarios", nombre: "Gestionar Usuarios" },
-    { id: "proveedores", nombre: "Gestionar Proveedores" },
-    { id: "agenda", nombre: "Gestionar Agenda" },
-    { id: "pedidos", nombre: "Gestionar Pedidos" }
-  ];
-
-  // ============================
-  // Cargar rol
-  // ============================
-
   useEffect(() => {
-    const cargarRol = () => {
-      const data = getRolById(id);
+    const cargarDatos = async () => {
+      const rolData = await getRolById(id);
+      const permisosData = await getAllPermisos();
 
-      if (!data) {
+      if (!rolData) {
         navigate("/admin/seguridad/roles");
         return;
       }
 
-      setRol(data);
+      setRol(rolData);
+      setPermisosDisponibles(permisosData || []);
       setLoading(false);
     };
 
-    cargarRol();
+    cargarDatos();
   }, [id, navigate]);
 
-  // ============================
-  // Guardar cambios
-  // ============================
-
-  const handleUpdate = (data) => {
-    updateRol(id, data);
+  const handleUpdate = async (data) => {
+    await updateRol(id, data);
     navigate("/admin/seguridad/roles");
   };
 
