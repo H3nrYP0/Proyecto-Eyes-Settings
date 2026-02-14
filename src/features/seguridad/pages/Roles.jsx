@@ -72,11 +72,12 @@ export default function Roles() {
     });
   };
 
-  const confirmDelete = () => {
-    const updated = deleteRol(modalDelete.id);
-    setRoles([...updated]);
+  const confirmDelete = async () => {
+    await deleteRol(modalDelete.id);
+    await cargarRoles();
     setModalDelete({ open: false, id: null, nombre: "" });
   };
+
 
   // =============================
   // CAMBIAR ESTADO
