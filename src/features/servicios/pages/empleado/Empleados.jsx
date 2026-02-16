@@ -6,7 +6,7 @@ import Modal from "../../../../shared/components/ui/Modal";
 import "../../../../shared/styles/components/crud-table.css";
 import "../../../../shared/styles/components/modal.css";
 
-// Importamos las funciones del backend
+// Backend (API real)
 import {
   getAllEmpleados,
   deleteEmpleado,
@@ -26,91 +26,114 @@ export default function Empleados() {
     nombre: "",
   });
 
-  // Cargar datos
-  useEffect(() => {
-    const empleadosData = getAllEmpleados();
-    setEmpleados(empleadosData);
-  }, []);
+  const [modalEstado, setModalEstado] = useState({
+    open: false,
+    id: null,
+    nombre: "",
+    nuevoEstado: "",
+  });
 
-  // =============================
-  //    MODAL DE ELIMINACIÓN
-  // =============================
-  const handleDelete = (id, nombre) => {
-    setModalDelete({
-      open: true,
-      id,
-      nombre,
-    });
+  // ============================
+  // CARGA DE DATOS (API)
+  // ============================
+  const cargarEmpleados = async () => {
+    try {
+      const data = await getAllEmpleados();
+
+      // Normalizar estado: true/false -> "activo"/"inactivo"
+      const normalizados = (Array.isArray(data) ? data : []).map((e) => ({
+        ...e,
+        estado: e.estado === true ? "activo" : "inactivo",
+      }));
+
+      setEmpleados(normalizados);
+    } catch (error) {
+      console.error("Error cargando empleados:", error);
+      setEmpleados([]);
+    }
   };
 
-  const confirmDelete = () => {
-    const updated = deleteEmpleado(modalDelete.id);
-    setEmpleados([...updated]);
+  useEffect(() => {
+    cargarEmpleados();
+  }, []);
+
+  // ============================
+  // ELIMINAR
+  // ============================
+  const handleDelete = (id, nombre) =>
+    setModalDelete({ open: true, id, nombre });
+
+  const confirmDelete = async () => {
+    await deleteEmpleado(modalDelete.id);
+    await cargarEmpleados();
     setModalDelete({ open: false, id: null, nombre: "" });
   };
 
-  // =============================
-  //    CAMBIAR ESTADO
-  // =============================
-  const toggleEstado = (id) => {
-    const updated = updateEstadoEmpleado(id);
-    setEmpleados([...updated]);
+  // ============================
+  // CAMBIAR ESTADO
+  // ============================
+  const handleToggleEstado = (row) => {
+    const nuevoEstado = row.estado === "activo" ? "inactivo" : "activo";
+    setModalEstado({
+      open: true,
+      id: row.id,
+      nombre: row.nombre,
+      nuevoEstado,
+    });
   };
 
-  // =============================
-  //          BUSCADOR Y FILTRO
-  // =============================
+  const confirmChangeStatus = async () => {
+    await updateEstadoEmpleado(modalEstado.id, modalEstado.nuevoEstado);
+    await cargarEmpleados();
+    setModalEstado({ open: false, id: null, nombre: "", nuevoEstado: "" });
+  };
+
+  // ============================
+  // FILTROS
+  // ============================
   const filteredEmpleados = empleados.filter((empleado) => {
-    const matchesSearch = 
+    const matchesSearch =
       empleado.nombre.toLowerCase().includes(search.toLowerCase()) ||
-      empleado.numero_documento.toLowerCase().includes(search.toLowerCase()) ||
-      empleado.cargo.toLowerCase().includes(search.toLowerCase());
-    
-    const matchesFilter = !filterEstado || empleado.estado === filterEstado;
-    
-    return matchesSearch && matchesFilter;
+      (empleado.numero_documento?.toLowerCase() || "").includes(search.toLowerCase()) ||
+      (empleado.cargo?.toLowerCase() || "").includes(search.toLowerCase());
+
+    const matchesEstado = !filterEstado || empleado.estado === filterEstado;
+
+    return matchesSearch && matchesEstado;
   });
 
-  // FILTROS PARA EMPLEADOS
-  const searchFilters = [
-    { value: '', label: 'Todos' },
-    { value: 'activo', label: 'Activos' },
-    { value: 'inactivo', label: 'Inactivos' }
+  const estadoFilters = [
+    { value: "", label: "Todos los estados" },
+    { value: "activo", label: "Activos" },
+    { value: "inactivo", label: "Inactivos" },
   ];
 
-  // =============================
-  //          COLUMNAS
-  // =============================
+  // ============================
+  // COLUMNAS
+  // ============================
   const columns = [
     { field: "nombre", header: "Nombre" },
     { field: "cargo", header: "Cargo" },
-    {
-      field: "estado",
-      header: "Estado",
-      render: (item) => (
-        <button
-          className={`estado-btn ${item.estado === "activo" ? "activo" : "inactivo"}`}
-          onClick={() => toggleEstado(item.id)}
-        >
-          {item.estado === "activo" ? "Activo" : "Inactivo"}
-        </button>
-      ),
-    },
   ];
 
-  // =============================
-  //          ACCIONES - CORREGIDAS
-  // =============================
+  // ============================
+  // ACCIONES
+  // ============================
   const tableActions = [
     {
-      label: "Ver Detalles",
+      label: "Cambiar estado",
+      type: "toggle-status",
+      onClick: handleToggleEstado,
+    },
+    {
+      label: "Ver detalles",
       type: "view",
-      onClick: (item) => navigate(`/admin/servicios/empleados/detalle/${item.id}`),
+      onClick: (item) => navigate(`detalle/${item.id}`),
     },
     {
       label: "Editar",
       type: "edit",
-      onClick: (item) => navigate(`/admin/servicios/empleados/editar/${item.id}`),
+      onClick: (item) => navigate(`editar/${item.id}`),
     },
     {
       label: "Eliminar",
@@ -119,50 +142,41 @@ export default function Empleados() {
     },
   ];
 
-  // Función para manejar cambio de filtro
-  const handleFilterChange = (value) => {
-    setFilterEstado(value);
-  };
-
   return (
     <CrudLayout
       title="Empleados"
-      onAddClick={() => navigate("/admin/servicios/empleados/crear")}
-      showSearch={true}
+      onAddClick={() => navigate("crear")}
+      showSearch
       searchPlaceholder="Buscar por nombre, documento, cargo..."
       searchValue={search}
       onSearchChange={setSearch}
-      searchFilters={searchFilters}
+      searchFilters={estadoFilters}
       filterEstado={filterEstado}
-      onFilterChange={handleFilterChange}
-      searchPosition="left"
+      onFilterChange={setFilterEstado}
     >
-      {/* Tabla */}
-      <CrudTable 
-        columns={columns} 
-        data={filteredEmpleados} 
+      <CrudTable
+        columns={columns}
+        data={filteredEmpleados}
         actions={tableActions}
         emptyMessage={
-          search || filterEstado ? 
-            'No se encontraron empleados para los filtros aplicados' : 
-            'No hay empleados registrados'
+          search || filterEstado
+            ? "No se encontraron empleados para los filtros aplicados"
+            : "No hay empleados registrados"
         }
       />
 
-      {/* Botón para primer empleado */}
       {filteredEmpleados.length === 0 && !search && !filterEstado && (
-        <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
-          <button 
-            onClick={() => navigate("/admin/servicios/empleados/crear")}
+        <div style={{ textAlign: "center", marginTop: "var(--spacing-lg)" }}>
+          <button
+            onClick={() => navigate("crear")}
             className="btn-primary"
-            style={{padding: 'var(--spacing-md) var(--spacing-lg)'}}
+            style={{ padding: "var(--spacing-md) var(--spacing-lg)" }}
           >
             Registrar Primer Empleado
           </button>
         </div>
       )}
 
-      {/* Modal de Confirmación */}
       <Modal
         open={modalDelete.open}
         type="warning"
@@ -170,9 +184,23 @@ export default function Empleados() {
         message={`Esta acción eliminará al empleado "${modalDelete.nombre}" y no se puede deshacer.`}
         confirmText="Eliminar"
         cancelText="Cancelar"
-        showCancel={true}
+        showCancel
         onConfirm={confirmDelete}
         onCancel={() => setModalDelete({ open: false, id: null, nombre: "" })}
+      />
+
+      <Modal
+        open={modalEstado.open}
+        type="info"
+        title="¿Cambiar estado?"
+        message={`El empleado "${modalEstado.nombre}" cambiará a estado "${modalEstado.nuevoEstado}".`}
+        confirmText="Confirmar"
+        cancelText="Cancelar"
+        showCancel
+        onConfirm={confirmChangeStatus}
+        onCancel={() =>
+          setModalEstado({ open: false, id: null, nombre: "", nuevoEstado: "" })
+        }
       />
     </CrudLayout>
   );

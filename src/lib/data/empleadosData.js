@@ -1,89 +1,79 @@
-// Base de datos temporal de empleados
-let empleadosDB = [
-  {
-    id: 1,
-    nombre: "Dr. Carlos Méndez",
-    tipo_documento: "cedula",
-    numero_documento: "123456789",
-    telefono: "3001234567",
-    email: "carlos.mendez@optica.com",
-    cargo: "Optómetra",
-    fecha_ingreso: "2023-01-15",
-    direccion: "Calle 123 #45-67, Bogotá",
-    estado: "activo",
-  },
-  {
-    id: 2,
-    nombre: "Dra. Ana Rodríguez",
-    tipo_documento: "cedula",
-    numero_documento: "987654321",
-    telefono: "3109876543",
-    email: "ana.rodriguez@optica.com",
-    cargo: "Optómetra",
-    fecha_ingreso: "2023-03-20",
-    direccion: "Av. Principal #89-10, Bogotá",
-    estado: "activo",
-  },
-  {
-    id: 3,
-    nombre: "Técnico Javier López",
-    tipo_documento: "cedula",
-    numero_documento: "456789123",
-    telefono: "3204567891",
-    email: "javier.lopez@optica.com",
-    cargo: "Técnico",
-    fecha_ingreso: "2023-02-10",
-    direccion: "Carrera 56 #78-90, Bogotá",
-    estado: "activo",
-  },
-];
+import api from "../axios";
 
+// ============================
 // Obtener todos los empleados
-export function getAllEmpleados() {
-  return [...empleadosDB];
+// ============================
+export async function getAllEmpleados() {
+  const res = await api.get("/empleados");
+  return res.data;
 }
 
-// Obtener por ID
-export function getEmpleadoById(id) {
-  return empleadosDB.find((e) => e.id === id);
+// ============================
+// Obtener empleado por ID
+// ============================
+export async function getEmpleadoById(id) {
+  const res = await api.get("/empleados");
+  const empleados = res.data || [];
+  return empleados.find((e) => e.id === id);
 }
 
+// ============================
 // Crear empleado
-export function createEmpleado(data) {
-  const newId = empleadosDB.length ? empleadosDB.at(-1).id + 1 : 1;
-  const nuevoEmpleado = { 
-    id: newId, 
-    ...data 
+// ============================
+export async function createEmpleado(data) {
+  // Adaptar de camelCase a snake_case para el backend
+  const payload = {
+    nombre: data.nombre,
+    tipo_documento: data.tipoDocumento,
+    numero_documento: data.numero_documento,
+    telefono: data.telefono,
+    correo: data.correo, // Si el backend tiene campo correo
+    direccion: data.direccion,
+    fecha_ingreso: data.fecha_ingreso,
+    cargo: data.cargo,
+    estado: data.estado === "activo" // Convertir a boolean
   };
-  
-  empleadosDB.push(nuevoEmpleado);
-  return nuevoEmpleado;
+
+  const res = await api.post("/empleados", payload);
+  return res.data;
 }
 
+// ============================
 // Actualizar empleado
-export function updateEmpleado(id, updated) {
-  const index = empleadosDB.findIndex((e) => e.id === id);
-  if (index !== -1) {
-    empleadosDB[index] = { ...empleadosDB[index], ...updated };
-  }
-  return empleadosDB;
+// ============================
+export async function updateEmpleado(id, data) {
+  const payload = {
+    nombre: data.nombre,
+    tipo_documento: data.tipoDocumento,
+    numero_documento: data.numero_documento,
+    telefono: data.telefono,
+    correo: data.correo,
+    direccion: data.direccion,
+    fecha_ingreso: data.fecha_ingreso,
+    cargo: data.cargo,
+    estado: data.estado === "activo"
+  };
+
+  const res = await api.put(`/empleados/${id}`, payload);
+  return res.data;
 }
 
+// ============================
 // Eliminar empleado
-export function deleteEmpleado(id) {
-  empleadosDB = empleadosDB.filter((e) => e.id !== id);
-  return empleadosDB;
+// ============================
+export async function deleteEmpleado(id) {
+  const res = await api.delete(`/empleados/${id}`);
+  return res.data;
 }
 
-// Cambiar estado
-export function updateEstadoEmpleado(id) {
-  empleadosDB = empleadosDB.map((e) =>
-    e.id === id
-      ? { 
-          ...e, 
-          estado: e.estado === "activo" ? "inactivo" : "activo" 
-        }
-      : e
-  );
-  return empleadosDB;
+// ============================
+// Cambiar estado empleado
+// ============================
+export async function updateEstadoEmpleado(id, nuevoEstado) {
+  const payload = {
+    estado: nuevoEstado === "activo" // true / false
+  };
+
+  const res = await api.put(`/empleados/${id}`, payload);
+  return res.data;
 }
