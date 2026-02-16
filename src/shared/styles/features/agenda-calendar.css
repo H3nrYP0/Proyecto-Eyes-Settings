@@ -1,0 +1,88 @@
+/* ===== CONTENEDOR GENERAL ===== */
+
+.agenda-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 120px); /* Ajusta si tu layout tiene header */
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+/* ===== HEADER ===== */
+
+.agenda-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.agenda-header h1 {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.agenda-btn {
+  background-color: var(--color-primary, #1976d2);
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.2s ease;
+}
+
+.agenda-btn:hover {
+  opacity: 0.9;
+}
+
+/* ===== WRAPPER DEL CALENDARIO ===== */
+
+.agenda-calendar-wrapper {
+  flex: 1;
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.05);
+  overflow: hidden; /* 👈 CLAVE para evitar scroll */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Hace que FullCalendar ocupe todo el espacio */
+.agenda-calendar-wrapper .fc {
+  flex: 1;
+}
+
+/* ===== FULLCALENDAR PERSONALIZACIÓN ===== */
+
+.fc .fc-toolbar-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.fc .fc-button {
+  border-radius: 8px !important;
+  padding: 6px 12px !important;
+}
+
+.fc .fc-button-primary {
+  background-color: var(--color-primary, #1976d2) !important;
+  border: none !important;
+}
+
+.fc .fc-button-primary:not(:disabled):hover {
+  opacity: 0.9;
+}
+
+.fc-theme-standard td,
+.fc-theme-standard th {
+  border-color: #f1f1f1;
+}
+
+.fc-timegrid-slot {
+  height: 42px !important;
+}

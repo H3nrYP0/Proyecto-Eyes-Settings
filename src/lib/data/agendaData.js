@@ -1,75 +1,67 @@
-// Base de datos temporal de agenda
-let agendaDB = [
-  {
-    id: 1,
-    cliente: "María González",
-    servicio: "Cita general",
-    empleado: "Dr. Carlos Méndez",
-    fecha: "2024-01-15",
-    hora: "09:00",
-    metodo_pago: "Efectivo",
-    estado: "completada",
-  },
-  {
-    id: 2,
-    cliente: "Juan Pérez",
-    servicio: "Campaña de salud",
-    empleado: "Dra. Ana Rodríguez",
-    fecha: "2024-01-16",
-    hora: "10:30",
-    metodo_pago: "Tarjeta",
-    estado: "pendiente",
-  },
-];
+import api from "../axios";
 
-// Obtener todas las citas
-export function getAllAgenda() {
-  return [...agendaDB];
+/* =========================================
+   OBTENER TODOS LOS HORARIOS
+========================================= */
+export async function getAllAgenda() {
+  const res = await api.get("/horario");
+  return res.data;
 }
 
-// Obtener por ID
-export function getAgendaById(id) {
-  return agendaDB.find((a) => a.id === id);
+/* =========================================
+   OBTENER HORARIO POR ID
+========================================= */
+export async function getAgendaById(id) {
+  const res = await api.get(`/horario/${id}`);
+  return res.data;
 }
 
-// Crear cita
-export function createAgenda(data) {
-  const newId = agendaDB.length ? agendaDB.at(-1).id + 1 : 1;
-  const nuevaCita = { 
-    id: newId, 
-    estado: "pendiente", // Siempre se crea como pendiente
-    ...data 
+/* =========================================
+   CREAR HORARIO
+========================================= */
+export async function createAgenda(data) {
+  const payload = {
+    empleado_id: Number(data.empleado_id),
+    dia: Number(data.dia),
+    hora_inicio: data.hora_inicio,
+    hora_final: data.hora_final,
   };
-  
-  agendaDB.push(nuevaCita);
-  return nuevaCita;
+
+  const res = await api.post("/horario", payload);
+  return res.data;
 }
 
-// Actualizar cita
-export function updateAgenda(id, updated) {
-  const index = agendaDB.findIndex((a) => a.id === id);
-  if (index !== -1) {
-    agendaDB[index] = { ...agendaDB[index], ...updated };
-  }
-  return agendaDB;
+/* =========================================
+   ACTUALIZAR HORARIO
+========================================= */
+export async function updateAgenda(id, updated) {
+  const payload = {
+    empleado_id: Number(updated.empleado_id),
+    dia: Number(updated.dia),
+    hora_inicio: updated.hora_inicio,
+    hora_final: updated.hora_final,
+  };
+
+  const res = await api.put(`/horario/${id}`, payload);
+  return res.data;
 }
 
-// Eliminar cita
-export function deleteAgenda(id) {
-  agendaDB = agendaDB.filter((a) => a.id !== id);
-  return agendaDB;
+/* =========================================
+   ELIMINAR HORARIO
+========================================= */
+export async function deleteAgenda(id) {
+  const res = await api.delete(`/horario/${id}`);
+  return res.data;
 }
 
-// Cambiar estado
-export function updateEstadoAgenda(id) {
-  agendaDB = agendaDB.map((a) =>
-    a.id === id
-      ? { 
-          ...a, 
-          estado: a.estado === "pendiente" ? "completada" : 
-                 a.estado === "completada" ? "cancelada" : "pendiente"
-        }
-      : a
-  );
-  return agendaDB;
+/* =========================================
+   OBTENER EMPLEADOS
+========================================= */
+export async function getEmpleados() {
+  const res = await api.get("/empleados");
+  return res.data;
+}
+
+export function updateEstadoAgenda() {
+  return [];
 }

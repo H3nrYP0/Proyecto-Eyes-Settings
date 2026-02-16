@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FormHelperText, MenuItem, TextField } from "@mui/material";
+import { FormHelperText, MenuItem, TextField, Grid } from "@mui/material";
 
 import BaseFormLayout from "../../../../../shared/components/base/BaseFormLayout";
 import BaseFormSection from "../../../../../shared/components/base/BaseFormSection";
@@ -25,7 +25,6 @@ export default function CategoriaForm({
 
   const [errors, setErrors] = useState({});
 
-  // 🔹 Cuando cambia initialData (detalle / editar), actualizar estado
   useEffect(() => {
     if (initialData) {
       setFormData({
@@ -36,7 +35,6 @@ export default function CategoriaForm({
     }
   }, [initialData]);
 
-  // 🔹 Cambios en los campos
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -46,35 +44,28 @@ export default function CategoriaForm({
     }));
 
     if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
-  // 🔹 Validaciones y submit (igual estilo que UsuarioForm)
   const handleSubmit = () => {
     const newErrors = {};
 
-    // Nombre
     if (!formData.nombre.trim()) {
       newErrors.nombre = "El nombre de la categoría es requerido";
     } else if (formData.nombre.trim().length < 3) {
       newErrors.nombre = "El nombre debe tener al menos 3 caracteres";
     }
 
-    // Descripción
     if (!formData.descripcion.trim()) {
       newErrors.descripcion = "La descripción es requerida";
     }
 
-    // Estado
     if (!formData.estado) {
       newErrors.estado = "Debe seleccionar un estado";
     }
 
-    if (Object.keys(newErrors).length > 0) {
+    if (Object.keys(newErrors).length) {
       setErrors(newErrors);
       return;
     }
@@ -84,63 +75,70 @@ export default function CategoriaForm({
 
   return (
     <BaseFormLayout title={title}>
-      {/* Información de la Categoría */}
       <BaseFormSection title="Información de la Categoría">
-        <BaseFormField>
-          <BaseInputField
-            label="Nombre de la Categoría*"
-            name="nombre"
-            value={formData.nombre}
-            onChange={handleChange}
-            disabled={isView}
-            required
-            asterisk
-          />
-          {errors.nombre && (
-            <FormHelperText error>{errors.nombre}</FormHelperText>
-          )}
-        </BaseFormField>
+        <Grid container spacing={3}>
+          {/* Nombre */}
+          <Grid item xs={12} md={6}>
+            <BaseFormField>
+              <BaseInputField
+                label="Nombre de la Categoría*"
+                name="nombre"
+                value={formData.nombre}
+                onChange={handleChange}
+                disabled={isView}
+                required
+                asterisk
+              />
+              <FormHelperText error>
+                {errors.nombre || " "}
+              </FormHelperText>
+            </BaseFormField>
+          </Grid>
 
-        <BaseFormField>
-          <BaseInputField
-            label="Descripción*"
-            name="descripcion"
-            value={formData.descripcion}
-            onChange={handleChange}
-            disabled={isView}
-            required
-            asterisk
-            multiline
-          />
-          {errors.descripcion && (
-            <FormHelperText error>{errors.descripcion}</FormHelperText>
-          )}
-        </BaseFormField>
+          {/* Estado */}
+          <Grid item xs={12} md={6}>
+            <BaseFormField>
+              <TextField
+                select
+                fullWidth
+                label="Estado*"
+                name="estado"
+                value={formData.estado}
+                onChange={handleChange}
+                disabled={isView}
+                size="small"
+                required
+                error={!!errors.estado}
+              >
+                <MenuItem value="activa">Activa</MenuItem>
+                <MenuItem value="inactiva">Inactiva</MenuItem>
+              </TextField>
+              <FormHelperText error>
+                {errors.estado || " "}
+              </FormHelperText>
+            </BaseFormField>
+          </Grid>
 
-        <BaseFormField>
-          <TextField
-            select
-            fullWidth
-            label="Estado*"
-            name="estado"
-            value={formData.estado}
-            onChange={handleChange}
-            disabled={isView}
-            size="small"
-            variant="outlined"
-            required
-            error={!!errors.estado}
-            InputLabelProps={{
-              required: true,
-            }}
-          >
-            <MenuItem value="activa">Activa</MenuItem>
-            <MenuItem value="inactiva">Inactiva</MenuItem>
-          </TextField>
-          {errors.estado && (
-            <FormHelperText error>{errors.estado}</FormHelperText>
-          )}
-        </BaseFormField>
+          {/* Descripción */}
+          <Grid item xs={12}>
+            <BaseFormField>
+              <BaseInputField
+                label="Descripción*"
+                name="descripcion"
+                value={formData.descripcion}
+                onChange={handleChange}
+                disabled={isView}
+                required
+                asterisk
+                multiline
+                rows={4}
+              />
+              <FormHelperText error>
+                {errors.descripcion || " "}
+              </FormHelperText>
+            </BaseFormField>
+          </Grid>
+        </Grid>
       </BaseFormSection>
 
       <BaseFormActions
