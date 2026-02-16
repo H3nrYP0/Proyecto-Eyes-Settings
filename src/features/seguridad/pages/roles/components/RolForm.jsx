@@ -36,7 +36,9 @@ export default function RolForm({
         nombre: initialData.nombre || "",
         descripcion: initialData.descripcion || "",
         estado: initialData.estado || "activo",
-        permisos: initialData.permisos || []
+        permisos: Array.isArray(initialData.permisos)
+          ? initialData.permisos.map(p => p.id)
+          : []
       });
     }
   }, [initialData]);

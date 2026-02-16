@@ -41,8 +41,25 @@ export default function Roles() {
   // CARGA DE DATOS
   // =============================
   useEffect(() => {
-    setRoles(getAllRoles());
+    cargarRoles();
   }, []);
+
+  const cargarRoles = async () => {
+    try {
+      const data = await getAllRoles();
+
+      const normalizados = data.map((r) => ({
+        ...r,
+        estado: r.estado ? "activo" : "inactivo",
+        permisosCount: r.permisos?.length || 0,
+      }));
+
+      setRoles(normalizados);
+    } catch (error) {
+      console.error("Error cargando roles:", error);
+    }
+  };
+
 
   // =============================
   // ELIMINAR
@@ -55,11 +72,12 @@ export default function Roles() {
     });
   };
 
-  const confirmDelete = () => {
-    const updated = deleteRol(modalDelete.id);
-    setRoles([...updated]);
+  const confirmDelete = async () => {
+    await deleteRol(modalDelete.id);
+    await cargarRoles();
     setModalDelete({ open: false, id: null, nombre: "" });
   };
+
 
   // =============================
   // CAMBIAR ESTADO
@@ -76,24 +94,21 @@ export default function Roles() {
   };
 
   const confirmChangeStatus = async () => {
-    try {
-      const updated = await updateEstadoRol(
-        modalEstado.id,
-        modalEstado.nuevoEstado
-      );
+  await updateEstadoRol(
+    modalEstado.id,
+    modalEstado.nuevoEstado
+  );
 
-      setRoles(updated);
+  await cargarRoles();
 
-      setModalEstado({
-        open: false,
-        id: null,
-        nombre: "",
-        nuevoEstado: "",
-      });
-    } catch (error) {
-      console.error("Error al cambiar estado:", error);
-    }
-  };
+  setModalEstado({
+    open: false,
+    id: null,
+    nombre: "",
+    nuevoEstado: "",
+  });
+};
+
 
   // =============================
   // FILTROS
