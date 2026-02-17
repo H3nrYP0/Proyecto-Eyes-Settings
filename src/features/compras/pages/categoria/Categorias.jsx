@@ -3,10 +3,8 @@ import { useNavigate } from "react-router-dom";
 import CrudLayout from "../../../../shared/components/crud/CrudLayout";
 import CrudTable from "../../../../shared/components/crud/CrudTable";
 import Modal from "../../../../shared/components/ui/Modal";
-import "../../../../shared/styles/components/crud-table.css";
-import "../../../../shared/styles/components/modal.css";
 
-// Backend (API real)
+// Backend
 import {
   getAllCategorias,
   deleteCategoria,
@@ -20,12 +18,18 @@ export default function Categorias() {
   const [search, setSearch] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
 
+  // =============================
+  // MODAL ELIMINAR
+  // =============================
   const [modalDelete, setModalDelete] = useState({
     open: false,
     id: null,
     nombre: "",
   });
 
+  // =============================
+  // MODAL CAMBIAR ESTADO
+  // =============================
   const [modalEstado, setModalEstado] = useState({
     open: false,
     id: null,
@@ -33,35 +37,38 @@ export default function Categorias() {
     nuevoEstado: "",
   });
 
-  // ============================
-  // CARGA DE DATOS (API)
-  // ============================
+  // =============================
+  // CARGA DE DATOS
+  // =============================
+  useEffect(() => {
+    cargarCategorias();
+  }, []);
+
   const cargarCategorias = async () => {
     try {
       const data = await getAllCategorias();
 
-      // Normalizar estado: true/false -> "activa"/"inactiva"
-      const normalizadas = (Array.isArray(data) ? data : []).map((c) => ({
+      const normalizadas = data.map((c) => ({
         ...c,
-        estado: c.estado === true ? "activa" : "inactiva",
+        estado: c.estado ? "activo" : "inactivo", // 👈 igual que Roles
       }));
 
       setCategorias(normalizadas);
     } catch (error) {
       console.error("Error cargando categorías:", error);
-      setCategorias([]);
     }
   };
 
-  useEffect(() => {
-    cargarCategorias();
-  }, []);
-
-  // ============================
+  // =============================
   // ELIMINAR
-  // ============================
-  const handleDelete = (id, nombre) =>
-    setModalDelete({ open: true, id, nombre });
+  // =============================
+  const handleDelete = (id, nombre) => {
+    setModalDelete({
+      open: true,
+      id,
+      nombre,
+    });
+  };
 
   const confirmDelete = async () => {
     await deleteCategoria(modalDelete.id);
@@ -69,11 +76,13 @@ export default function Categorias() {
     setModalDelete({ open: false, id: null, nombre: "" });
   };
 
-  // ============================
+  // =============================
   // CAMBIAR ESTADO
-  // ============================
+  // =============================
   const handleToggleEstado = (row) => {
-    const nuevoEstado = row.estado === "activa" ? "inactiva" : "activa";
+    const nuevoEstado =
+      row.estado === "activo" ? "inactivo" : "activo";
+
     setModalEstado({
       open: true,
       id: row.id,
@@ -83,59 +92,80 @@ export default function Categorias() {
   };
 
   const confirmChangeStatus = async () => {
-    await updateEstadoCategoria(modalEstado.id, modalEstado.nuevoEstado);
+    await updateEstadoCategoria(
+      modalEstado.id,
+      modalEstado.nuevoEstado
+    );
+
     await cargarCategorias();
-    setModalEstado({ open: false, id: null, nombre: "", nuevoEstado: "" });
+
+    setModalEstado({
+      open: false,
+      id: null,
+      nombre: "",
+      nuevoEstado: "",
+    });
   };
 
-  // ============================
+  // =============================
   // FILTROS
-  // ============================
+  // =============================
   const filteredCategorias = categorias.filter((categoria) => {
     const matchesSearch =
       categoria.nombre.toLowerCase().includes(search.toLowerCase()) ||
-      categoria.descripcion.toLowerCase().includes(search.toLowerCase());
+      (categoria.descripcion &&
+        categoria.descripcion.toLowerCase().includes(search.toLowerCase()));
 
-    const matchesEstado = !filterEstado || categoria.estado === filterEstado;
+    const matchesEstado =
+      !filterEstado || categoria.estado === filterEstado;
 
     return matchesSearch && matchesEstado;
   });
 
-  const estadoFilters = [
-    { value: "", label: "Todos los estados" },
-    { value: "activa", label: "Activas" },
-    { value: "inactiva", label: "Inactivas" },
+  // =============================
+  // COLUMNAS
+  // =============================
+  const columns = [
+    {
+      field: "nombre",
+      header: "Nombre",
+      render: (item) => item.nombre,
+    },
   ];
 
-  // ============================
-  // COLUMNAS
-  // ============================
-  const columns = [{ field: "nombre", header: "Nombre" }];
-
-  // ============================
+  // =============================
   // ACCIONES
-  // ============================
+  // =============================
   const tableActions = [
     {
       label: "Cambiar estado",
       type: "toggle-status",
-      onClick: handleToggleEstado,
+      onClick: (row) => handleToggleEstado(row),
     },
     {
       label: "Ver detalles",
       type: "view",
-      onClick: (item) => navigate(`detalle/${item.id}`),
+      onClick: (row) => navigate(`detalle/${row.id}`),
     },
     {
       label: "Editar",
       type: "edit",
-      onClick: (item) => navigate(`editar/${item.id}`),
+      onClick: (row) => navigate(`editar/${row.id}`),
     },
     {
       label: "Eliminar",
       type: "delete",
-      onClick: (item) => handleDelete(item.id, item.nombre),
+      onClick: (row) => handleDelete(row.id, row.nombre),
     },
+  ];
+
+  // =============================
+  // FILTROS DE ESTADO
+  // =============================
+  const estadoFilters = [
+    { value: "", label: "Todos los estados" },
+    { value: "activo", label: "Activos" },
+    { value: "inactivo", label: "Inactivos" },
   ];
 
   return (
@@ -161,18 +191,6 @@ export default function Categorias() {
         }
       />
 
-      {filteredCategorias.length === 0 && !search && !filterEstado && (
-        <div style={{ textAlign: "center", marginTop: "var(--spacing-lg)" }}>
-          <button
-            onClick={() => navigate("crear")}
-            className="btn-primary"
-            style={{ padding: "var(--spacing-md) var(--spacing-lg)" }}
-          >
-            Crear Primera Categoría
-          </button>
-        </div>
-      )}
-
       <Modal
         open={modalDelete.open}
         type="warning"
@@ -182,7 +200,9 @@ export default function Categorias() {
         cancelText="Cancelar"
         showCancel
         onConfirm={confirmDelete}
-        onCancel={() => setModalDelete({ open: false, id: null, nombre: "" })}
+        onCancel={() =>
+          setModalDelete({ open: false, id: null, nombre: "" })
+        }
       />
 
       <Modal
@@ -195,7 +215,12 @@ export default function Categorias() {
         showCancel
         onConfirm={confirmChangeStatus}
         onCancel={() =>
-          setModalEstado({ open: false, id: null, nombre: "", nuevoEstado: "" })
+          setModalEstado({
+            open: false,
+            id: null,
+            nombre: "",
+            nuevoEstado: "",
+          })
         }
       />
     </CrudLayout>
