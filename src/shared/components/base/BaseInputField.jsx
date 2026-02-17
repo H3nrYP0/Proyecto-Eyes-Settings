@@ -10,20 +10,34 @@ export default function BaseInputField({
   rows = 3,
   select = false,
   options = [],
-  disabled = false
+  disabled = false,
+  error = false,
+  helperText = "",
+  required = false
 }) {
   return (
     <TextField
       fullWidth
+      variant="outlined"
+      size="medium"
+      margin="none"   // 👈 quitamos el margen automático
       label={label}
       name={name}
-      value={value || ""}
+      value={value ?? ""}
       onChange={onChange}
       type={type}
       multiline={multiline}
       rows={multiline ? rows : undefined}
       select={select}
       disabled={disabled}
+      error={error}
+      helperText={helperText}
+      required={required}
+      InputLabelProps={
+        type === "date"
+          ? { shrink: true }
+          : undefined
+      }
     >
       {select &&
         options.map((option) => (
