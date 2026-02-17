@@ -19,14 +19,18 @@ export default function GestionUsuarios() {
   const [filterEstado, setFilterEstado] = useState("");
   const [filterRol, setFilterRol] = useState("");
 
+  // =============================
   // MODAL ELIMINAR
+  // =============================
   const [modalDelete, setModalDelete] = useState({
     open: false,
     id: null,
     nombre: "",
   });
 
+  // =============================
   // MODAL CAMBIAR ESTADO
+  // =============================
   const [modalEstado, setModalEstado] = useState({
     open: false,
     id: null,
@@ -34,23 +38,49 @@ export default function GestionUsuarios() {
     nuevoEstado: "",
   });
 
+  // =============================
   // CARGA DE DATOS
+  // =============================
   useEffect(() => {
-    setUsuarios(getAllUsuarios());
+    cargarUsuarios();
   }, []);
 
+  const cargarUsuarios = () => {
+    const data = getAllUsuarios();
+
+    const normalizados = data.map((u) => ({
+      ...u,
+      estado: u.estado ? "activo" : "inactivo", // 👈 misma convención que Roles
+    }));
+
+    setUsuarios(normalizados);
+  };
+
+  // =============================
   // ELIMINAR
-  const handleDelete = (id, nombre) => setModalDelete({ open: true, id, nombre });
+  // =============================
+  const handleDelete = (id, nombre) => {
+    setModalDelete({ open: true, id, nombre });
+  };
 
   const confirmDelete = () => {
     const updated = deleteUsuario(modalDelete.id);
-    setUsuarios([...updated]);
+    setUsuarios(
+      updated.map((u) => ({
+        ...u,
+        estado: u.estado ? "activo" : "inactivo",
+      }))
+    );
     setModalDelete({ open: false, id: null, nombre: "" });
   };
 
+  // =============================
   // CAMBIAR ESTADO
+  // =============================
   const handleToggleEstado = (row) => {
-    const nuevoEstado = row.estado === "activo" ? "inactivo" : "activo";
+    const nuevoEstado =
+      row.estado === "activo" ? "inactivo" : "activo";
+
     setModalEstado({
       open: true,
       id: row.id,
@@ -61,23 +91,84 @@ export default function GestionUsuarios() {
 
   const confirmChangeStatus = () => {
     const updated = updateEstadoUsuario(modalEstado.id);
-    setUsuarios([...updated]);
-    setModalEstado({ open: false, id: null, nombre: "", nuevoEstado: "" });
+
+    setUsuarios(
+      updated.map((u) => ({
+        ...u,
+        estado: u.estado ? "activo" : "inactivo",
+      }))
+    );
+
+    setModalEstado({
+      open: false,
+      id: null,
+      nombre: "",
+      nuevoEstado: "",
+    });
   };
 
+  // =============================
   // FILTROS
+  // =============================
   const filteredUsuarios = usuarios.filter((usuario) => {
     const matchesSearch =
       usuario.nombre.toLowerCase().includes(search.toLowerCase()) ||
       usuario.email.toLowerCase().includes(search.toLowerCase()) ||
       usuario.rol.toLowerCase().includes(search.toLowerCase());
 
-    const matchesEstado = !filterEstado || usuario.estado === filterEstado;
-    const matchesRol = !filterRol || usuario.rol === filterRol;
+    const matchesEstado =
+      !filterEstado || usuario.estado === filterEstado;
+
+    const matchesRol =
+      !filterRol || usuario.rol === filterRol;
 
     return matchesSearch && matchesEstado && matchesRol;
   });
 
+  // =============================
+  // COLUMNAS (SIN ESTADO MANUAL)
+  // =============================
+  const columns = [
+    {
+      field: "nombre",
+      header: "Nombre",
+    },
+    {
+      field: "rol",
+      header: "Rol",
+      render: (item) => item.rol,
+    },
+  ];
+
+  // =============================
+  // ACCIONES (MISMA ESTRUCTURA QUE ROLES)
+  // =============================
+  const tableActions = [
+    {
+      label: "Cambiar estado",
+      type: "toggle-status",
+      onClick: (row) => handleToggleEstado(row),
+    },
+    {
+      label: "Ver detalles",
+      type: "view",
+      onClick: (row) => navigate(`detalle/${row.id}`),
+    },
+    {
+      label: "Editar",
+      type: "edit",
+      onClick: (row) => navigate(`editar/${row.id}`),
+    },
+    {
+      label: "Eliminar",
+      type: "delete",
+      onClick: (row) => handleDelete(row.id, row.nombre),
+    },
+  ];
+
+  // =============================
+  // FILTROS
+  // =============================
   const estadoFilters = [
     { value: "", label: "Todos los estados" },
     { value: "activo", label: "Activos" },
@@ -92,29 +183,6 @@ export default function GestionUsuarios() {
     { value: "tecnico", label: "Técnico" },
   ];
 
-  // COLUMNAS
-  const columns = [
-    { field: "nombre", header: "Nombre" },
-    { field: "rol", header: "Rol", render: (item) => item.rol },
-    {
-      field: "estado",
-      header: "Estado",
-      render: (item) => (
-        <button onClick={() => handleToggleEstado(item)}>
-          {item.estado === "activo" ? "Activo" : "Inactivo"}
-        </button>
-      ),
-    },
-  ];
-
-  // ACCIONES
-  const tableActions = [
-    { label: "Cambiar estado", type: "toggle-status", onClick: handleToggleEstado },
-    { label: "Ver detalles", type: "view", onClick: (row) => navigate(`detalle/${row.id}`) },
-    { label: "Editar", type: "edit", onClick: (row) => navigate(`editar/${row.id}`) },
-    { label: "Eliminar", type: "delete", onClick: (row) => handleDelete(row.id, row.nombre) },
-  ];
-
   return (
     <CrudLayout
       title="Gestión de Usuarios"
@@ -123,11 +191,10 @@ export default function GestionUsuarios() {
       searchPlaceholder="Buscar por nombre, email, rol..."
       searchValue={search}
       onSearchChange={setSearch}
-      // FILTROS AL LADO DEL BOTÓN AGREGAR
-      searchFilters={estadoFilters}       // filtro de estados
+      searchFilters={estadoFilters}
       filterEstado={filterEstado}
       onFilterChange={setFilterEstado}
-      searchFiltersRol={rolFilters}       // filtro de roles
+      searchFiltersRol={rolFilters}
       filterRol={filterRol}
       onFilterChangeRol={setFilterRol}
     >
@@ -152,7 +219,9 @@ export default function GestionUsuarios() {
         cancelText="Cancelar"
         showCancel
         onConfirm={confirmDelete}
-        onCancel={() => setModalDelete({ open: false, id: null, nombre: "" })}
+        onCancel={() =>
+          setModalDelete({ open: false, id: null, nombre: "" })
+        }
       />
 
       {/* MODAL CAMBIAR ESTADO */}
@@ -166,7 +235,12 @@ export default function GestionUsuarios() {
         showCancel
         onConfirm={confirmChangeStatus}
         onCancel={() =>
-          setModalEstado({ open: false, id: null, nombre: "", nuevoEstado: "" })
+          setModalEstado({
+            open: false,
+            id: null,
+            nombre: "",
+            nuevoEstado: "",
+          })
         }
       />
     </CrudLayout>
