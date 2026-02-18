@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { FormHelperText, MenuItem, TextField, Grid } from "@mui/material";
 
 import BaseFormLayout from "../../../../../shared/components/base/BaseFormLayout";
 import BaseFormSection from "../../../../../shared/components/base/BaseFormSection";
@@ -16,11 +15,12 @@ export default function CategoriaForm({
   onEdit,
 }) {
   const isView = mode === "view";
+  const isCreate = mode === "create";
 
   const [formData, setFormData] = useState({
     nombre: "",
     descripcion: "",
-    estado: "activa",
+    estado: "activa", // Siempre activa al crear
   });
 
   const [errors, setErrors] = useState({});
@@ -61,7 +61,7 @@ export default function CategoriaForm({
       newErrors.descripcion = "La descripción es requerida";
     }
 
-    if (!formData.estado) {
+    if (!isCreate && !formData.estado) {
       newErrors.estado = "Debe seleccionar un estado";
     }
 
@@ -75,78 +75,65 @@ export default function CategoriaForm({
 
   return (
     <BaseFormLayout title={title}>
-      <BaseFormSection title="Información de la Categoría">
-        <Grid container spacing={3}>
-          {/* Nombre */}
-          <Grid item xs={12} md={6}>
-            <BaseFormField>
-              <BaseInputField
-                label="Nombre de la Categoría*"
-                name="nombre"
-                value={formData.nombre}
-                onChange={handleChange}
-                disabled={isView}
-                required
-                asterisk
-              />
-              <FormHelperText error>
-                {errors.nombre || " "}
-              </FormHelperText>
-            </BaseFormField>
-          </Grid>
+      <BaseFormSection>
 
-          {/* Estado */}
-          <Grid item xs={12} md={6}>
-            <BaseFormField>
-              <TextField
-                select
-                fullWidth
-                label="Estado*"
-                name="estado"
-                value={formData.estado}
-                onChange={handleChange}
-                disabled={isView}
-                size="small"
-                required
-                error={!!errors.estado}
-              >
-                <MenuItem value="activa">Activa</MenuItem>
-                <MenuItem value="inactiva">Inactiva</MenuItem>
-              </TextField>
-              <FormHelperText error>
-                {errors.estado || " "}
-              </FormHelperText>
-            </BaseFormField>
-          </Grid>
+        {/* Nombre */}
+        <BaseFormField>
+          <BaseInputField
+            label="Nombre de la Categoría"
+            name="nombre"
+            value={formData.nombre}
+            onChange={handleChange}
+            disabled={isView}
+            required
+            error={!!errors.nombre}
+            helperText={errors.nombre}
+          />
+        </BaseFormField>
 
-          {/* Descripción */}
-          <Grid item xs={12}>
-            <BaseFormField>
-              <BaseInputField
-                label="Descripción*"
-                name="descripcion"
-                value={formData.descripcion}
-                onChange={handleChange}
-                disabled={isView}
-                required
-                asterisk
-                multiline
-                rows={4}
-              />
-              <FormHelperText error>
-                {errors.descripcion || " "}
-              </FormHelperText>
-            </BaseFormField>
-          </Grid>
-        </Grid>
+        {/* Descripción */}
+        <BaseFormField>
+          <BaseInputField
+            label="Descripción"
+            name="descripcion"
+            value={formData.descripcion}
+            onChange={handleChange}
+            disabled={isView}
+            required
+            error={!!errors.descripcion}
+            helperText={errors.descripcion}
+          />
+        </BaseFormField>
+
+        {/* Estado SOLO si NO es create */}
+        {!isCreate && (
+          <BaseFormField>
+            <BaseInputField
+              label="Estado"
+              name="estado"
+              value={formData.estado}
+              onChange={handleChange}
+              select
+              options={[
+                { value: "activa", label: "Activa" },
+                { value: "inactiva", label: "Inactiva" },
+              ]}
+              disabled={isView}
+              required
+              error={!!errors.estado}
+              helperText={errors.estado}
+            />
+          </BaseFormField>
+        )}
+
       </BaseFormSection>
 
       <BaseFormActions
         onCancel={onCancel}
         onSave={handleSubmit}
         onEdit={onEdit}
-        showSave={mode !== "view"}
-        showEdit={mode === "view"}
+        showSave={!isView}
+        showEdit={isView}
       />
     </BaseFormLayout>
   );

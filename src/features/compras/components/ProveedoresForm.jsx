@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { TextField, MenuItem, FormHelperText } from "@mui/material";
 
 import BaseFormLayout from "../../../shared/components/base/BaseFormLayout";
 import BaseFormSection from "../../../shared/components/base/BaseFormSection";
 import BaseFormField from "../../../shared/components/base/BaseFormField";
 import BaseFormActions from "../../../shared/components/base/BaseFormActions";
+import BaseInputField from "../../../shared/components/base/BaseInputField";
 
 export default function ProveedorForm({
   mode = "create",
@@ -12,7 +12,7 @@ export default function ProveedorForm({
   initialData,
   onSubmit,
   onCancel,
-  onEdit,
+  onEdit
 }) {
   const isView = mode === "view";
 
@@ -27,22 +27,22 @@ export default function ProveedorForm({
     departamento: "",
     municipio: "",
     direccion: "",
-    estado: true,
+    estado: true
   });
 
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    if (initialData) setFormData({ ...initialData });
+    if (initialData) {
+      setFormData({ ...initialData });
+    }
   }, [initialData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
 
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: "" }));
   };
 
   const handleSubmit = () => {
@@ -53,13 +53,13 @@ export default function ProveedorForm({
     if (!formData.razonSocial.trim()) newErrors.razonSocial = "Requerido";
     if (!formData.documento.trim()) newErrors.documento = "Requerido";
     if (!formData.contactoNombre.trim()) newErrors.contactoNombre = "Requerido";
-    if (!phoneRegex.test(formData.telefono)) newErrors.telefono = "Inválido";
-    if (!emailRegex.test(formData.correo)) newErrors.correo = "Inválido";
-    if (!formData.departamento) newErrors.departamento = "Requerido";
-    if (!formData.municipio) newErrors.municipio = "Requerido";
+    if (!phoneRegex.test(formData.telefono)) newErrors.telefono = "Teléfono inválido";
+    if (!emailRegex.test(formData.correo)) newErrors.correo = "Correo inválido";
+    if (!formData.departamento.trim()) newErrors.departamento = "Requerido";
+    if (!formData.municipio.trim()) newErrors.municipio = "Requerido";
     if (!formData.direccion.trim()) newErrors.direccion = "Requerido";
 
-    if (Object.keys(newErrors).length) {
+    if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
@@ -70,157 +70,158 @@ export default function ProveedorForm({
   return (
     <BaseFormLayout title={title}>
       <BaseFormSection title="Información del Proveedor">
-        {/* 1 - 2 */}
+
+        {/* Tipo de Proveedor */}
         <BaseFormField>
-          <TextField
-            select
-            fullWidth
-            size="small"
+          <BaseInputField
             label="Tipo de Proveedor"
             name="tipoProveedor"
             value={formData.tipoProveedor}
             onChange={handleChange}
+            select
+            options={[
+              { value: "Persona Jurídica", label: "Persona Jurídica" },
+              { value: "Persona Natural", label: "Persona Natural" }
+            ]}
             disabled={isView}
-          >
-            <MenuItem value="Persona Jurídica">Persona Jurídica</MenuItem>
-            <MenuItem value="Persona Natural">Persona Natural</MenuItem>
-          </TextField>
+          />
         </BaseFormField>
 
+        {/* Razón Social / Nombre Completo */}
         <BaseFormField>
-          <TextField
-            fullWidth
-            size="small"
-            label={
-              formData.tipoProveedor === "Persona Jurídica"
-                ? "Razón Social"
-                : "Nombre Completo"
-            }
+          <BaseInputField
+            label={formData.tipoProveedor === "Persona Jurídica" ? "Razón Social" : "Nombre Completo"}
             name="razonSocial"
             value={formData.razonSocial}
             onChange={handleChange}
             disabled={isView}
+            required
             error={!!errors.razonSocial}
+            helperText={errors.razonSocial}
           />
-          {errors.razonSocial && (
-            <FormHelperText error>{errors.razonSocial}</FormHelperText>
-          )}
         </BaseFormField>
 
-        {/* 3 - 4 */}
+        {/* Tipo de Documento */}
         <BaseFormField>
-          <TextField
-            select
-            fullWidth
-            size="small"
+          <BaseInputField
             label="Tipo de Documento"
             name="tipoDocumento"
             value={formData.tipoDocumento}
             onChange={handleChange}
+            select
+            options={[
+              { value: "NIT", label: "NIT" },
+              { value: "CC", label: "Cédula" },
+              { value: "CE", label: "Cédula Extranjería" }
+            ]}
             disabled={isView}
-          >
-            <MenuItem value="NIT">NIT</MenuItem>
-            <MenuItem value="CC">Cédula</MenuItem>
-            <MenuItem value="CE">Cédula Extranjería</MenuItem>
-          </TextField>
+          />
         </BaseFormField>
 
+        {/* Número de Documento */}
         <BaseFormField>
-          <TextField
-            fullWidth
-            size="small"
+          <BaseInputField
             label="Número de Documento"
             name="documento"
             value={formData.documento}
-            onChange={handleChange}
+            onChange={(e) => {
+              const soloNumeros = e.target.value.replace(/\D/g, "");
+              handleChange({ target: { name: "documento", value: soloNumeros } });
+            }}
             disabled={isView}
+            required
             error={!!errors.documento}
+            helperText={errors.documento}
           />
-          {errors.documento && (
-            <FormHelperText error>{errors.documento}</FormHelperText>
-          )}
         </BaseFormField>
 
-        {/* 5 - 6 */}
+        {/* Persona de Contacto */}
         <BaseFormField>
-          <TextField
-            fullWidth
-            size="small"
+          <BaseInputField
             label="Persona de Contacto"
             name="contactoNombre"
             value={formData.contactoNombre}
             onChange={handleChange}
             disabled={isView}
+            required
             error={!!errors.contactoNombre}
+            helperText={errors.contactoNombre}
           />
         </BaseFormField>
 
+        {/* Teléfono */}
         <BaseFormField>
-          <TextField
-            fullWidth
-            size="small"
+          <BaseInputField
             label="Teléfono"
             name="telefono"
             value={formData.telefono}
-            onChange={handleChange}
+            onChange={(e) => {
+              const soloNumeros = e.target.value.replace(/\D/g, "");
+              handleChange({ target: { name: "telefono", value: soloNumeros } });
+            }}
             disabled={isView}
+            required
             error={!!errors.telefono}
+            helperText={errors.telefono}
           />
         </BaseFormField>
 
-        {/* 7 - 8 */}
+        {/* Correo Electrónico */}
         <BaseFormField>
-          <TextField
-            fullWidth
-            size="small"
+          <BaseInputField
             label="Correo Electrónico"
             name="correo"
             value={formData.correo}
             onChange={handleChange}
             disabled={isView}
+            required
             error={!!errors.correo}
+            helperText={errors.correo}
           />
         </BaseFormField>
 
+        {/* Departamento */}
         <BaseFormField>
-          <TextField
-            fullWidth
-            size="small"
+          <BaseInputField
             label="Departamento"
             name="departamento"
             value={formData.departamento}
             onChange={handleChange}
             disabled={isView}
+            required
             error={!!errors.departamento}
+            helperText={errors.departamento}
           />
         </BaseFormField>
 
-        {/* 9 - 10 */}
+        {/* Municipio */}
         <BaseFormField>
-          <TextField
-            fullWidth
-            size="small"
+          <BaseInputField
             label="Municipio"
             name="municipio"
             value={formData.municipio}
             onChange={handleChange}
             disabled={isView}
+            required
             error={!!errors.municipio}
+            helperText={errors.municipio}
           />
         </BaseFormField>
 
+        {/* Dirección */}
         <BaseFormField>
-          <TextField
-            fullWidth
-            size="small"
+          <BaseInputField
             label="Dirección"
             name="direccion"
             value={formData.direccion}
             onChange={handleChange}
             disabled={isView}
+            required
             error={!!errors.direccion}
+            helperText={errors.direccion}
           />
         </BaseFormField>
+
       </BaseFormSection>
 
       <BaseFormActions
