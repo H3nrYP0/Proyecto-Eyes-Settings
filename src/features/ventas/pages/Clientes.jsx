@@ -1,16 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+
 import CrudLayout from "../../../shared/components/crud/CrudLayout";
 import CrudTable from "../../../shared/components/crud/CrudTable";
 import Modal from "../../../shared/components/ui/Modal";
-import "../../../shared/styles/components/crud-table.css";
-import "../../../shared/styles/components/modal.css";
-import "../../../shared/styles/components/formulasCliente.css";
 
-// Importamos las funciones del backend
 import {
   getAllClientes,
   deleteCliente,
+  updateEstadoCliente,
 } from "../../../lib/data/clientesData";
 
 export default function Clientes() {
@@ -18,63 +16,122 @@ export default function Clientes() {
 
   const [clientes, setClientes] = useState([]);
   const [search, setSearch] = useState("");
+  const [filterEstado, setFilterEstado] = useState("");
   const [filterGenero, setFilterGenero] = useState("");
 
+  // =============================
+  // MODAL ELIMINAR
+  // =============================
   const [modalDelete, setModalDelete] = useState({
     open: false,
     id: null,
     nombre: "",
   });
 
-  // Cargar datos
+  // =============================
+  // MODAL CAMBIAR ESTADO
+  // =============================
+  const [modalEstado, setModalEstado] = useState({
+    open: false,
+    id: null,
+    nombre: "",
+    nuevoEstado: "",
+  });
+
+  // =============================
+  // CARGA DE DATOS
+  // =============================
   useEffect(() => {
-    const clientesData = getAllClientes();
-    setClientes(clientesData);
+    cargarClientes();
   }, []);
 
-  // =============================
-  //    MODAL DE ELIMINACIÓN
-  // =============================
-  const handleDelete = (id, nombre) => {
-    setModalDelete({
-      open: true,
-      id,
-      nombre,
-    });
+  const cargarClientes = async () => {
+    try {
+      const res = await getAllClientes();
+      const clientesArray = Array.isArray(res) ? res : res?.data || [];
+
+      const normalizados = clientesArray.map((c) => ({
+        ...c,
+        estado: c.estado ? "activo" : "inactivo",
+      }));
+
+      setClientes(normalizados);
+    } catch (error) {
+      console.error("Error cargando clientes:", error);
+      setClientes([]);
+    }
   };
 
-  const confirmDelete = () => {
-    const updated = deleteCliente(modalDelete.id);
-    setClientes([...updated]);
+  // =============================
+  // ELIMINAR
+  // =============================
+  const handleDelete = (id, nombre) => {
+    setModalDelete({ open: true, id, nombre });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await deleteCliente(modalDelete.id);
+      await cargarClientes();
+    } catch (err) {
+      console.error("Error eliminando cliente", err);
+    }
+
     setModalDelete({ open: false, id: null, nombre: "" });
   };
 
   // =============================
-  //          BUSCADOR Y FILTRO
+  // CAMBIAR ESTADO
   // =============================
-  const filteredClientes = clientes.filter((cliente) => {
-    const matchesSearch = 
-      cliente.nombre.toLowerCase().includes(search.toLowerCase()) ||
-      cliente.apellido.toLowerCase().includes(search.toLowerCase()) ||
-      cliente.documento.toLowerCase().includes(search.toLowerCase()) ||
-      cliente.ciudad.toLowerCase().includes(search.toLowerCase()) ||
-      cliente.correo.toLowerCase().includes(search.toLowerCase());
-    
-    const matchesFilter = !filterGenero || cliente.genero === filterGenero;
-    
-    return matchesSearch && matchesFilter;
+  const handleToggleEstado = (row) => {
+    const nuevoEstado = row.estado === "activo" ? "inactivo" : "activo";
+
+    setModalEstado({
+      open: true,
+      id: row.id,
+      nombre: `${row.nombre} ${row.apellido}`,
+      nuevoEstado,
+    });
+  };
+
+  const confirmChangeStatus = async () => {
+    try {
+      await updateEstadoCliente(
+        modalEstado.id,
+        modalEstado.nuevoEstado === "activo"
+      );
+
+      await cargarClientes();
+    } catch (err) {
+      console.error("Error cambiando estado", err);
+    }
+
+    setModalEstado({
+      open: false,
+      id: null,
+      nombre: "",
+      nuevoEstado: "",
+    });
+  };
+
+  // =============================
+  // FILTROS
+  // =============================
+  const filteredClientes = clientes.filter((c) => {
+    const matchesSearch =
+      c.nombre?.toLowerCase().includes(search.toLowerCase()) ||
+      c.apellido?.toLowerCase().includes(search.toLowerCase()) ||
+      c.documento?.toLowerCase().includes(search.toLowerCase()) ||
+      c.ciudad?.toLowerCase().includes(search.toLowerCase());
+
+    const matchesEstado = !filterEstado || c.estado === filterEstado;
+    const matchesGenero = !filterGenero || c.genero === filterGenero;
+
+    return matchesSearch && matchesEstado && matchesGenero;
   });
 
-  // FILTROS PARA CLIENTES
-  const searchFilters = [
-    { value: '', label: 'Todos los géneros' },
-    { value: 'masculino', label: 'Masculino' },
-    { value: 'femenino', label: 'Femenino' },
-    { value: 'otro', label: 'Otro' }
-  ];
-
   // =============================
-  //          COLUMNAS
+  // COLUMNAS
   // =============================
   const columns = [
     { field: "nombre", header: "Nombre" },
@@ -84,75 +141,71 @@ export default function Clientes() {
   ];
 
   // =============================
-  //          ACCIONES
+  // ACCIONES
   // =============================
   const tableActions = [
     {
-      label: "Ver Detalles",
+      label: "Cambiar estado",
+      type: "toggle-status",
+      onClick: (row) => handleToggleEstado(row),
+    },
+    {
+      label: "Ver detalles",
       type: "view",
-      onClick: (item) => navigate(`detalle/${item.id}`),
+      onClick: (row) => navigate(`detalle/${row.id}`),
     },
     {
       label: "Editar",
       type: "edit",
-      onClick: (item) => navigate(`editar/${item.id}`),
-    },
-    {
-      label: "Historial Fórmula",
-      type: "info",
-      onClick: (item) => navigate(`historial-formula/${item.id}`),
+      onClick: (row) => navigate(`editar/${row.id}`),
     },
     {
       label: "Eliminar",
       type: "delete",
-      onClick: (item) => handleDelete(item.id, `${item.nombre} ${item.apellido}`),
+      onClick: (row) =>
+        handleDelete(row.id, `${row.nombre} ${row.apellido}`),
     },
   ];
 
-  // Función para manejar cambio de filtro
-  const handleFilterChange = (value) => {
-    setFilterGenero(value);
-  };
+  const estadoFilters = [
+    { value: "", label: "Todos los estados" },
+    { value: "activo", label: "Activos" },
+    { value: "inactivo", label: "Inactivos" },
+  ];
+
+  const generoFilters = [
+    { value: "", label: "Todos los géneros" },
+    { value: "masculino", label: "Masculino" },
+    { value: "femenino", label: "Femenino" },
+    { value: "otro", label: "Otro" },
+  ];
 
   return (
     <CrudLayout
       title="Clientes"
       onAddClick={() => navigate("crear")}
-      showSearch={true}
-      searchPlaceholder="Buscar por nombre, apellido, documento, ciudad..."
+      showSearch
+      searchPlaceholder="Buscar por nombre, documento, ciudad..."
       searchValue={search}
       onSearchChange={setSearch}
-      searchFilters={searchFilters}
-      filterEstado={filterGenero}
-      onFilterChange={handleFilterChange}
-      searchPosition="left"
+      searchFilters={estadoFilters}
+      filterEstado={filterEstado}
+      onFilterChange={setFilterEstado}
+      searchFiltersRol={generoFilters}
+      filterRol={filterGenero}
+      onFilterChangeRol={setFilterGenero}
     >
-      {/* Tabla */}
-      <CrudTable 
-        columns={columns} 
-        data={filteredClientes} 
+      <CrudTable
+        columns={columns}
+        data={filteredClientes}
         actions={tableActions}
         emptyMessage={
-          search || filterGenero ? 
-            'No se encontraron clientes para los filtros aplicados' : 
-            'No hay clientes registrados'
+          search || filterEstado || filterGenero
+            ? "No se encontraron clientes para los filtros aplicados"
+            : "No hay clientes registrados"
         }
       />
 
-      {/* Botón para primer cliente */}
-      {filteredClientes.length === 0 && !search && !filterGenero && (
-        <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
-          <button 
-            onClick={() => navigate("crear")}
-            className="btn-primary"
-            style={{padding: 'var(--spacing-md) var(--spacing-lg)'}}
-          >
-            Registrar Primer Cliente
-          </button>
-        </div>
-      )}
-
-      {/* Modal de Confirmación */}
       <Modal
         open={modalDelete.open}
         type="warning"
@@ -160,9 +213,30 @@ export default function Clientes() {
         message={`Esta acción eliminará al cliente "${modalDelete.nombre}" y no se puede deshacer.`}
         confirmText="Eliminar"
         cancelText="Cancelar"
-        showCancel={true}
+        showCancel
         onConfirm={confirmDelete}
-        onCancel={() => setModalDelete({ open: false, id: null, nombre: "" })}
+        onCancel={() =>
+          setModalDelete({ open: false, id: null, nombre: "" })
+        }
+      />
+
+      <Modal
+        open={modalEstado.open}
+        type="info"
+        title="¿Cambiar estado?"
+        message={`El cliente "${modalEstado.nombre}" cambiará a estado "${modalEstado.nuevoEstado}".`}
+        confirmText="Confirmar"
+        cancelText="Cancelar"
+        showCancel
+        onConfirm={confirmChangeStatus}
+        onCancel={() =>
+          setModalEstado({
+            open: false,
+            id: null,
+            nombre: "",
+            nuevoEstado: "",
+          })
+        }
       />
     </CrudLayout>
   );
