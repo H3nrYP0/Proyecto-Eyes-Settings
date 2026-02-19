@@ -3,10 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import CrudLayout from "../../../shared/components/crud/CrudLayout";
 import CrudTable from "../../../shared/components/crud/CrudTable";
 import Modal from "../../../shared/components/ui/Modal";
-import "../../../shared/styles/components/crud-table.css";
-import "../../../shared/styles/components/modal.css";
 
-// Importamos las funciones del backend
+// Backend
 import {
   getAllProveedores,
   deleteProveedor,
@@ -26,21 +24,14 @@ export default function Proveedores() {
     razonSocial: "",
   });
 
-  // Cargar datos
+  // CARGA DE DATOS
   useEffect(() => {
-    const proveedoresData = getAllProveedores();
-    setProveedores(proveedoresData);
+    setProveedores(getAllProveedores());
   }, []);
 
-  // =============================
-  //    MODAL DE ELIMINACIÓN
-  // =============================
+  // ELIMINAR
   const handleDelete = (id, razonSocial) => {
-    setModalDelete({
-      open: true,
-      id,
-      razonSocial,
-    });
+    setModalDelete({ open: true, id, razonSocial });
   };
 
   const confirmDelete = () => {
@@ -49,85 +40,66 @@ export default function Proveedores() {
     setModalDelete({ open: false, id: null, razonSocial: "" });
   };
 
-  // =============================
-  //    CAMBIAR ESTADO
-  // =============================
-  const toggleEstado = (id) => {
-    const updated = updateEstadoProveedor(id);
+  // CAMBIAR ESTADO (lo usa CrudTable)
+  const toggleEstado = (row) => {
+    const updated = updateEstadoProveedor(row.id);
     setProveedores([...updated]);
   };
 
-  // =============================
-  //          BUSCADOR
-  // =============================
-  const filteredProveedores = proveedores.filter(proveedor => {
-    const matchesSearch = 
-      proveedor.razonSocial.toLowerCase().includes(search.toLowerCase()) ||
-      proveedor.nit.toLowerCase().includes(search.toLowerCase()) ||
-      proveedor.contacto.toLowerCase().includes(search.toLowerCase()) ||
-      proveedor.ciudad.toLowerCase().includes(search.toLowerCase()) ||
-      proveedor.correo.toLowerCase().includes(search.toLowerCase()) ||
-      proveedor.tipo.toLowerCase().includes(search.toLowerCase()) ||
-      proveedor.telefono.includes(search);
-    
-    const matchesFilter = !filterEstado || proveedor.estado === filterEstado;
-    
-    return matchesSearch && matchesFilter;
+  // FILTROS
+  const filteredProveedores = proveedores.filter((p) => {
+    const matchesSearch =
+      p.razonSocial.toLowerCase().includes(search.toLowerCase()) ||
+      p.nit.toLowerCase().includes(search.toLowerCase()) ||
+      p.ciudad.toLowerCase().includes(search.toLowerCase());
+
+    const matchesEstado = !filterEstado || p.estado === filterEstado;
+
+    return matchesSearch && matchesEstado;
   });
 
-  // FILTROS PARA PROVEEDORES
-  const searchFilters = [
-    { value: 'Activo', label: 'Activos' },
-    { value: 'Inactivo', label: 'Inactivos' }
+  const estadoFilters = [
+    { value: "", label: "Todos" },
+    { value: "Activo", label: "Activos" },
+    { value: "Inactivo", label: "Inactivos" },
   ];
 
-  // =============================
-  //          COLUMNAS
-  // =============================
+  // COLUMNAS (🚨 SIN ESTADO)
   const columns = [
-    { 
-      field: "tipo", 
+    {
+      field: "tipo",
       header: "Tipo",
       render: (item) => (
-        <span className={`${item.tipo === "Persona Jurídica" ? 'juridica' : 'natural'}`}>
+        <span className={item.tipo === "Persona Jurídica" ? "juridica" : "natural"}>
           {item.tipo}
         </span>
-      )
+      ),
     },
     { field: "razonSocial", header: "Razón Social" },
     { field: "ciudad", header: "Ciudad" },
-    {
-      field: "estado",
-      header: "Estado",
-      render: (item) => (
-        <button
-          className={`estado-btn ${item.estado === "Activo" ? "activo" : "inactivo"}`}
-          onClick={() => toggleEstado(item.id)}
-        >
-          {item.estado === "Activo" ? "Activo" : "Inactivo"}
-        </button>
-      ),
-    },
   ];
 
-  // =============================
-  //          ACCIONES
-  // =============================
+  // ACCIONES (CrudTable pinta el estado aquí)
   const tableActions = [
     {
-      label: "Ver Detalles",
+      label: "Cambiar estado",
+      type: "toggle-status",
+      onClick: toggleEstado,
+    },
+    {
+      label: "Ver",
       type: "view",
-      onClick: (item) => navigate(`detalle/${item.id}`),
+      onClick: (row) => navigate(`detalle/${row.id}`),
     },
     {
       label: "Editar",
       type: "edit",
-      onClick: (item) => navigate(`editar/${item.id}`),
+      onClick: (row) => navigate(`editar/${row.id}`),
     },
     {
       label: "Eliminar",
       type: "delete",
-      onClick: (item) => handleDelete(item.id, item.razonSocial),
+      onClick: (row) => handleDelete(row.id, row.razonSocial),
     },
   ];
 
@@ -135,41 +107,26 @@ export default function Proveedores() {
     <CrudLayout
       title="Proveedores"
       onAddClick={() => navigate("crear")}
-      showSearch={true}
-      searchPlaceholder="Buscar por razón social, NIT, contacto..."
+      showSearch
+      searchPlaceholder="Buscar proveedor..."
       searchValue={search}
       onSearchChange={setSearch}
-      searchFilters={searchFilters}
+      searchFilters={estadoFilters}
       filterEstado={filterEstado}
       onFilterChange={setFilterEstado}
-      searchPosition="left"
     >
-      {/* Tabla */}
-      <CrudTable 
-        columns={columns} 
-        data={filteredProveedores} 
+      <CrudTable
+        columns={columns}
+        data={filteredProveedores}
         actions={tableActions}
         emptyMessage={
-          search || filterEstado ? 
-            'No se encontraron proveedores para los filtros aplicados' : 
-            'No hay proveedores registrados'
+          search || filterEstado
+            ? "No se encontraron proveedores"
+            : "No hay proveedores registrados"
         }
       />
 
-      {/* Botón para primer proveedor */}
-      {filteredProveedores.length === 0 && !search && !filterEstado && (
-        <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
-          <button 
-            onClick={() => navigate("crear")}
-            className="btn-primary"
-            style={{padding: 'var(--spacing-md) var(--spacing-lg)'}}
-          >
-            Agregar Primer Proveedor
-          </button>
-        </div>
-      )}
-
-      {/* Modal de Confirmación */}
+      {/* MODAL ELIMINAR */}
       <Modal
         open={modalDelete.open}
         type="warning"
@@ -177,9 +134,11 @@ export default function Proveedores() {
         message={`Esta acción eliminará al proveedor "${modalDelete.razonSocial}" y no se puede deshacer.`}
         confirmText="Eliminar"
         cancelText="Cancelar"
-        showCancel={true}
+        showCancel
         onConfirm={confirmDelete}
-        onCancel={() => setModalDelete({ open: false, id: null, razonSocial: "" })}
+        onCancel={() =>
+          setModalDelete({ open: false, id: null, razonSocial: "" })
+        }
       />
     </CrudLayout>
   );
