@@ -22,6 +22,7 @@ export default function Modal({
   showCancel = true,
   onConfirm,
   onCancel,
+  children,
 }) {
   const getIconColor = () => {
     switch (type) {
@@ -40,7 +41,7 @@ export default function Modal({
       open={open}
       onClose={onCancel}
       PaperProps={{
-        sx: { borderRadius: 3, p: 2, minWidth: 350 },
+        sx: { borderRadius: 3, p: 2, minWidth: 450 },
       }}
     >
       {/* Header con título e ícono de cerrar */}
@@ -55,10 +56,14 @@ export default function Modal({
       </DialogTitle>
 
       {/* Contenido del mensaje */}
-      <DialogContent>
+      <DialogContent dividers sx={{ py: 3 }}>
+         {message ? (
         <Typography variant="body1" color="text.secondary">
           {message}
         </Typography>
+        ) : (
+          children // Aquí se renderiza el formulario
+        )}
       </DialogContent>
 
       {/* Botones de acción */}
