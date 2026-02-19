@@ -1,83 +1,104 @@
-// Base de datos temporal de marcas
-let marcasDB = [
-  {
-    id: 1,
-    nombre: "Ray-Ban",
-    descripcion: "Marca líder en lentes de sol y monturas de alta gama",
-    estado: "activa"
+import axios from "../axios";
+
+export const MarcaData = {
+  // Función para obtener todas las marcas
+  async getAllMarcas() {
+    try {
+      const response = await axios.get('/marcas');
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener marcas:', error);
+      throw error;
+    }
   },
-  {
-    id: 2,
-    nombre: "Oakley",
-    descripcion: "Especialistas en lentes deportivos y de alto rendimiento",
-    estado: "activa"
+
+  // Función para obtener una marca por ID
+  async getMarcaById(id) {
+    try {
+      const response = await axios.get(`/marcas/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener marca:', error);
+      throw error;
+    }
   },
-  {
-    id: 3,
-    nombre: "Essilor",
-    descripcion: "Líder mundial en lentes oftálmicos y tecnología visual",
-    estado: "activa"
+
+  // Función para crear una marca
+  async createMarca(data) {
+    try {
+      const response = await axios.post('/marcas', {
+        nombre: data.nombre,
+        descripcion: data.descripcion || '',
+        estado: true // Por defecto activa
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error al crear marca:', error);
+      throw error;
+    }
   },
-  {
-    id: 4,
-    nombre: "Johnson & Johnson",
-    descripcion: "Marca confiable en lentes de contacto y productos de cuidado visual",
-    estado: "activa"
+
+  // Función para actualizar una marca
+  async updateMarca(id, data) {
+    try {
+      const response = await axios.put(`/marcas/${id}`, {
+        nombre: data.nombre,
+        descripcion: data.descripcion || '',
+        estado: data.estado
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error al actualizar marca:', error);
+      throw error;
+    }
   },
-  {
-    id: 5,
-    nombre: "Nikon",
-    descripcion: "Tecnología avanzada en lentes oftálmicos",
-    estado: "inactiva"
+
+  // Función para eliminar una marca
+  async deleteMarca(id) {
+    try {
+      await axios.delete(`/marcas/${id}`);
+      return true;
+    } catch (error) {
+      console.error('Error al eliminar marca:', error);
+      throw error;
+    }
+  },
+
+  // Función para verificar si una marca tiene productos asociados
+  async hasMarcaProductosAsociados(id) {
+    try {
+      const response = await axios.get('/productos');
+      const productos = response.data;
+      return productos.some(producto => producto.marca_id === parseInt(id));
+    } catch (error) {
+      console.error('Error al verificar productos asociados:', error);
+      throw error;
+    }
+  },
+
+  // Función para cambiar estado (activar/desactivar)
+  async toggleMarcaEstado(id, estadoActual) {
+    try {
+      const response = await axios.put(`/marcas/${id}`, {
+        estado: !estadoActual
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error al cambiar estado de marca:', error);
+      throw error;
+    }
+  },
+
+  // Funciones de utilidad para el frontend
+  getEstadoTexto(estado) {
+    return estado ? 'Activa' : 'Inactiva';
+  },
+
+  getEstadoBadge(estado) {
+    return estado ? 'success' : 'error';
+  },
+
+  getEstadoColor(estado) {
+    return estado ? 'success' : 'error';
   }
-];
-
-// Obtener todas las marcas
-export function getAllMarcas() {
-  return [...marcasDB];
-}
-
-// Obtener por ID
-export function getMarcaById(id) {
-  return marcasDB.find((m) => m.id === id);
-}
-
-// Crear marca
-export function createMarca(data) {
-  const newId = marcasDB.length ? marcasDB.at(-1).id + 1 : 1;
-  const nuevaMarca = { 
-    id: newId,
-    ...data 
-  };
-  
-  marcasDB.push(nuevaMarca);
-  return nuevaMarca;
-}
-
-// Actualizar marca
-export function updateMarca(id, updated) {
-  const index = marcasDB.findIndex((m) => m.id === id);
-  if (index !== -1) {
-    marcasDB[index] = { ...marcasDB[index], ...updated };
-  }
-  return marcasDB;
-}
-
-// Eliminar marca
-export function deleteMarca(id) {
-  marcasDB = marcasDB.filter((m) => m.id !== id);
-  return marcasDB;
-}
-
-// Cambiar estado
-export function updateEstadoMarca(id) {
-  marcasDB = marcasDB.map((m) =>
-    m.id === id
-      ? { 
-          ...m, 
-          estado: m.estado === "activa" ? "inactiva" : "activa" 
-        }
-      : m
-  );
-  return marcasDB;
-}
+};

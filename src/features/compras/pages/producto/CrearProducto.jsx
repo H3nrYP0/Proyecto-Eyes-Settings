@@ -8,7 +8,7 @@ import "../../../../shared/styles/components/crud-forms.css";
 import CrudNotification from '../../../../shared/styles/components/notifications/CrudNotification';
 
 // Importar desde la base de datos temporal
-import { getAllMarcas } from '../../../../lib/data/marcasData';
+import { MarcaData } from '../../../../lib/data/marcasData';
 import { getAllCategorias } from '../../../../lib/data/categoriasData';
 
 export default function CrearProducto() {
