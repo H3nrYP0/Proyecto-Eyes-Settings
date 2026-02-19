@@ -12,7 +12,6 @@ export const menuStructure = [
     title: "Ventas",
     icon: "ventas",
     items: [
-
       { name: "Clientes", path: "/admin/ventas/clientes", icon: "users-icon" },
       { name: "Pedidos", path: "/admin/ventas/pedidos", icon: "orders-icon" },
     ]
@@ -35,6 +34,7 @@ export const menuStructure = [
     icon: "servicios",
     items: [
       { name: "Servicios", path: "/admin/servicios", icon: "services-icon" },
+      { name: "Citas", path: "/admin/servicios/citas", icon: "appointments-icon" }, // 👈 NUEVO
       { name: "Agenda", path: "/admin/servicios/agenda", icon: "calendar-icon" },
       { name: "Empleados", path: "/admin/servicios/empleados", icon: "employees-icon" },
       { name: "Campañas de Salud", path: "/admin/servicios/campanas-salud", icon: "campaigns-icon" }
