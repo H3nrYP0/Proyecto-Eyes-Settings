@@ -78,9 +78,13 @@ export default function UnifiedCrudTable({
   const getStatusColor = (estado) => {
     switch (estado?.toLowerCase()) {
       case "activo":
+        case "activa":
       case "aprobado":
+        case "completada":
         return "success";
       case "inactivo":
+        case "inactiva":
+          case "anulada":
       case "rechazado":
         return "error";
       case "pendiente":

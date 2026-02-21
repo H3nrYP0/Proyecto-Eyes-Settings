@@ -37,6 +37,25 @@ export const MarcaData = {
       throw error;
     }
   },
+  
+
+
+  // Función para verificar si ya existe una marca con ese nombre
+  async checkMarcaExists(nombre) {  // 👈 Ahora está dentro del objeto
+    try {
+      const response = await axios.get('/marcas');
+      const marcas = response.data;
+      const nombreTrimmed = nombre.trim().toLowerCase();
+      // Comparar ignorando mayúsculas/minúsculas
+      return marcas.some(marca =>  marca.nombre.toLowerCase().trim() === nombreTrimmed
+    );  
+    } catch (error) {
+      console.error('Error al verificar marca:', error);
+      throw error;
+    }
+  },
+
+// 👇 Elimina la función suelta que está fuera
 
   // Función para actualizar una marca
   async updateMarca(id, data) {
@@ -101,4 +120,8 @@ export const MarcaData = {
   getEstadoColor(estado) {
     return estado ? 'success' : 'error';
   }
+  
 };
+
+
+
