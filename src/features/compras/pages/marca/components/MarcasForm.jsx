@@ -1,21 +1,18 @@
 // src/features/compras/pages/marca/components/MarcasForm.jsx
 import { useState, useEffect } from "react";
-import { FormHelperText, MenuItem, TextField, Box, Grid,Typography } from "@mui/material";
+import { FormHelperText, MenuItem, TextField, Box } from "@mui/material";
 
-import BaseFormField from "../../../../../shared/components/base/BaseFormField";
 import BaseInputField from "../../../../../shared/components/base/BaseInputField";
+import { MarcaData } from "../../../../../lib/data/marcasData";
 
 export default function MarcaForm({
   mode = "create",
   initialData,
   onSubmit,
   onCancel,
-  embedded = false,
-  id,
-  buttonRef
+  id
 }) {
   const isView = mode === "view";
-  const isCreate = mode === "create";
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -23,6 +20,7 @@ export default function MarcaForm({
     estado: true
   });
 
+  const [nombreExists, setNombreExists] = useState(false);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
@@ -35,46 +33,65 @@ export default function MarcaForm({
           : initialData.estado === 'activa'
       });
     } else {
-      // Reset para creación
-      setFormData({
-        nombre: "",
-        descripcion: "",
-        estado: true
-      });
+      setFormData({ nombre: "", descripcion: "", estado: true });
     }
     setErrors({});
+    setNombreExists(false);
   }, [initialData]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const formatNombre = (text) => {
+    if (!text) return '';
+    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+  };
 
+  const handleChange = async (e) => {
+    const { name, value } = e.target;
+    
+    // ✅ DEFINIR processedValue AQUÍ - ESTA ES LA LÍNEA CLAVE
+    const processedValue = name === 'nombre' ? formatNombre(value) : value;
+    
     setFormData((prev) => ({
       ...prev,
-      [name]: name === 'estado' ? value === 'true' : value
+      [name]: name === 'estado' ? value === 'true' : processedValue
     }));
 
     if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: ""
-      }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+    
+    if (name === 'nombre' && mode === 'create') {
+      const trimmedValue = value.trim();
+      if (trimmedValue.length > 0) {
+        try {
+          const exists = await MarcaData.checkMarcaExists(trimmedValue);
+          setNombreExists(exists);
+        } catch (error) {
+          console.error("Error verificando duplicado:", error);
+        }
+      } else {
+        setNombreExists(false);
+      }
     }
   };
 
   const handleSubmit = (e) => {
-    if (e) e.preventDefault();
+    e.preventDefault();
 
     const newErrors = {};
+    const nombreTrimmed = formData.nombre.trim();
+    const descripcionTrimmed = formData.descripcion?.trim() || '';
 
-    if (!formData.nombre.trim()) {
+    if (!nombreTrimmed) {
       newErrors.nombre = "El nombre de la marca es requerido";
-    } else if (formData.nombre.length < 2) {
+    } else if (nombreTrimmed.length < 2) {
       newErrors.nombre = "El nombre debe tener al menos 2 caracteres";
-    } else if (formData.nombre.length > 23) {
+    } else if (nombreTrimmed.length > 23) {
       newErrors.nombre = "El nombre no puede exceder 23 caracteres";
+    } else if (nombreExists) {
+      newErrors.nombre = "Ya existe una marca con este nombre";
     }
 
-    if (formData.descripcion && formData.descripcion.length < 3) {
+    if (descripcionTrimmed && descripcionTrimmed.length < 3) {
       newErrors.descripcion = "La descripción debe tener al menos 3 caracteres";
     }
 
@@ -83,13 +100,16 @@ export default function MarcaForm({
       return;
     }
 
-    onSubmit?.(formData);
+    onSubmit?.({
+      ...formData,
+      nombre: nombreTrimmed,
+      descripcion: descripcionTrimmed
+    });
   };
 
   return (
     <form id={id} onSubmit={handleSubmit}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        {/* Campo Nombre */}
         <Box>
           <BaseInputField
             label="Nombre de la Marca"
@@ -101,13 +121,16 @@ export default function MarcaForm({
             inputProps={{ maxLength: 23 }}
             fullWidth
             required
+            error={!!errors.nombre || nombreExists}
           />
           {errors.nombre && (
             <FormHelperText error sx={{ mt: 1 }}>{errors.nombre}</FormHelperText>
           )}
+          {nombreExists && !errors.nombre && (
+            <FormHelperText error sx={{ mt: 1 }}>Ya existe una marca con este nombre</FormHelperText>
+          )}
         </Box>
 
-        {/* Campo Descripción */}
         <Box>
           <TextField
             fullWidth
@@ -128,41 +151,22 @@ export default function MarcaForm({
           )}
         </Box>
 
-        {/* Campo Estado */}
-        <Box>
-          <TextField
-            select
-            fullWidth
-            label="Estado"
-            name="estado"
-            value={formData.estado}
-            onChange={handleChange}
-            disabled={isView}
-            size="medium"
-            variant="outlined"
-          >
-            <MenuItem value={true}>Activa</MenuItem>
-            <MenuItem value={false}>Inactiva</MenuItem>
-          </TextField>
-        </Box>
-
-        {/* Información adicional solo en modo view */}
-        {isView && initialData?.id && (
-          <Box sx={{ mt: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={6}>
-                <Typography variant="caption" color="textSecondary">ID</Typography>
-                <Typography variant="body2">{initialData.id}</Typography>
-              </Grid>
-              {initialData.created_at && (
-                <Grid item xs={6}>
-                  <Typography variant="caption" color="textSecondary">Creado</Typography>
-                  <Typography variant="body2">
-                    {new Date(initialData.created_at).toLocaleDateString()}
-                  </Typography>
-                </Grid>
-              )}
-            </Grid>
+        {mode !== "create" && (
+          <Box>
+            <TextField
+              select
+              fullWidth
+              label="Estado"
+              name="estado"
+              value={formData.estado}
+              onChange={handleChange}
+              disabled={isView}
+              size="medium"
+              variant="outlined"
+            >
+              <MenuItem value={true}>Activa</MenuItem>
+              <MenuItem value={false}>Inactiva</MenuItem>
+            </TextField>
           </Box>
         )}
       </Box>
