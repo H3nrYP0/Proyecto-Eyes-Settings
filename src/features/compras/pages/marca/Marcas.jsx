@@ -7,6 +7,7 @@ import MarcaForm from "./components/MarcasForm";
 import "../../../../shared/styles/components/crud-table.css";
 import "../../../../shared/styles/components/modal.css";
 
+import Loading from "../../../../shared/components/ui/Loading";
 // Importamos el servicio con axios
 import { MarcaData } from "../../../../lib/data/marcasData";
 
@@ -220,7 +221,16 @@ export default function Marcas() {
   //    6. RENDERIZADO CONDICIONAL (DESPUÉS DE TODOS LOS HOOKS)
   // =============================
   if (loading && marcas.length === 0) {
-    return <div>Cargando...</div>;
+    return (
+      <CrudLayout
+        title="Marcas"
+        showSearch={true}
+        searchPlaceholder="Buscar por nombre, descripción..."
+        searchPosition="left"
+      >
+        <Loading message="Cargando marcas..." />
+      </CrudLayout>
+    );
   }
 
   return (

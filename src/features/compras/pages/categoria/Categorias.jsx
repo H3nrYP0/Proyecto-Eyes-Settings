@@ -7,6 +7,7 @@ import CategoriaForm from "../categoria/components/categoriasForm";
 import "../../../../shared/styles/components/crud-table.css";
 import "../../../../shared/styles/components/modal.css";
 
+import Loading from "../../../../shared/components/ui/Loading";
 // Importamos el servicio
 import { CategoriaData } from "../../../../lib/data/categoriasData";
 
@@ -253,7 +254,16 @@ export default function Categorias() {
   //    6. RENDERIZADO CONDICIONAL
   // =============================
   if (loading && categorias.length === 0) {
-    return <div>Cargando...</div>;
+    return (
+      <CrudLayout
+        title="Categorías de Productos"
+        showSearch={true}
+        searchPlaceholder="Buscar por nombre, descripción..."
+        searchPosition="left"
+      >
+        <Loading message="Cargando categorías..." />
+      </CrudLayout>
+    );
   }
 
   return (
