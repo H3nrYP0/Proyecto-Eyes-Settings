@@ -52,7 +52,10 @@ export default function MarcaForm({
     
     setFormData((prev) => ({
       ...prev,
-      [name]: name === 'estado' ? value === 'true' : processedValue
+      [name]:
+        name === "estado"
+          ? value === "true"
+          : processedValue
     }));
 
     if (errors[name]) {
@@ -158,14 +161,14 @@ export default function MarcaForm({
               fullWidth
               label="Estado"
               name="estado"
-              value={formData.estado}
+              value={formData.estado ? "true" : "false"}
               onChange={handleChange}
               disabled={isView}
               size="medium"
               variant="outlined"
             >
-              <MenuItem value={true}>Activa</MenuItem>
-              <MenuItem value={false}>Inactiva</MenuItem>
+              <MenuItem value="true">Activa</MenuItem>
+              <MenuItem value="false">Inactiva</MenuItem>
             </TextField>
           </Box>
         )}

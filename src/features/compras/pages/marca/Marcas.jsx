@@ -166,9 +166,18 @@ export default function Marcas() {
 
   
 
-  const handleStatusChange = async (row, ) => {
+  const handleStatusChange = async (row, newStatus) => {
     try {
-      await MarcaData.toggleMarcaEstado(row.id, row.estado === "activa");
+      const estadoFinal =
+        newStatus !== undefined
+          ? newStatus
+          : (row.estado === "activa" ? "inactiva" : "activa");
+
+      await MarcaData.toggleMarcaEstado(
+        row.id,
+        estadoFinal === "activa"
+      );
+
       await loadMarcas();
     } catch (err) {
       console.error("Error al cambiar estado:", err);
