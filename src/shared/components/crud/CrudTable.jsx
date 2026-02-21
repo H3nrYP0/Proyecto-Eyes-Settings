@@ -45,7 +45,7 @@ export default function UnifiedCrudTable({
 
   // 🔹 CLICK EN BOTÓN
   const handleStatusClick = (event, row) => {
-    const estados = row.estadosDisponibles || ["activo", "inactivo"];
+    const estados = row.estadosDisponibles || ["activa", "inactiva"];
 
     setSelectedRow(row);
 

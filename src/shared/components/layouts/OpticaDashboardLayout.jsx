@@ -36,9 +36,7 @@ import DetalleCompra from "../../../features/compras/pages/DetalleCompra";
 import CompraPDFView from "../../../features/compras/pages/CompraPDFView";
 
 import Categorias from "../../../features/compras/pages/categoria/Categorias";
-import CrearCategoria from "../../../features/compras/pages/categoria/CrearCategoria";
-import EditarCategoria from "../../../features/compras/pages/categoria/EditarCategoria";
-import DetalleCategoria from "../../../features/compras/pages/categoria/DetalleCategoria";
+
 
 import Marcas from "../../../features/compras/pages/marca/Marcas";
 
@@ -199,9 +197,7 @@ export default function OpticaDashboardLayout({ user, setUser }) {
 
               <Route path="categorias">
                 <Route index element={<Categorias />} />
-                <Route path="crear" element={<CrearCategoria />} />
-                <Route path="editar/:id" element={<EditarCategoria />} />
-                <Route path="detalle/:id" element={<DetalleCategoria />} />
+
               </Route>
 
               <Route path="marcas">
