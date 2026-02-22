@@ -1,6 +1,4 @@
 import { useState, useEffect } from "react";
-import { FormHelperText, MenuItem, TextField, Grid } from "@mui/material";
-
 import BaseFormLayout from "../../../../../shared/components/base/BaseFormLayout";
 import BaseFormSection from "../../../../../shared/components/base/BaseFormSection";
 import BaseFormField from "../../../../../shared/components/base/BaseFormField";
@@ -127,197 +125,167 @@ export default function EmpleadoForm({
     onSubmit?.(formData);
   };
 
+  // Opciones para selects
+  const tipoDocumentoOptions = [
+    { value: "CC", label: "Cédula de Ciudadanía" },
+    { value: "CE", label: "Cédula de Extranjería" },
+    { value: "PA", label: "Pasaporte" },
+  ];
+
+  const cargoOptions = [
+    { value: "", label: "-- Seleccione un cargo --" },
+    { value: "Optómetra", label: "Optómetra" },
+    { value: "Asistente", label: "Asistente" },
+    { value: "Técnico", label: "Técnico" },
+    { value: "Administrador", label: "Administrador" },
+    { value: "Recepcionista", label: "Recepcionista" },
+    { value: "Vendedor", label: "Vendedor" },
+  ];
+
+  const estadoOptions = [
+    { value: "activo", label: "Activo" },
+    { value: "inactivo", label: "Inactivo" },
+  ];
+
   return (
     <BaseFormLayout title={title}>
-      <BaseFormSection title="Información del Empleado">
-        <Grid container spacing={3}>
-          {/* Nombre */}
-          <Grid item xs={12} md={6}>
-            <BaseFormField>
-              <BaseInputField
-                label="Nombre Completo*"
-                name="nombre"
-                value={formData.nombre}
-                onChange={handleChange}
-                disabled={isView}
-                required
-                asterisk
-              />
-              <FormHelperText error>
-                {errors.nombre || " "}
-              </FormHelperText>
-            </BaseFormField>
-          </Grid>
+      {/* INFORMACIÓN DEL EMPLEADO */}
+      <BaseFormSection>
+        <BaseFormField>
+          <BaseInputField
+            label="Nombre Completo"
+            name="nombre"
+            value={formData.nombre}
+            onChange={handleChange}
+            disabled={isView}
+            required
+            error={!!errors.nombre}
+            helperText={errors.nombre}
+          />
+        </BaseFormField>
 
-          {/* Cargo */}
-          <Grid item xs={12} md={6}>
-            <BaseFormField>
-              <TextField
-                select
-                fullWidth
-                label="Cargo*"
-                name="cargo"
-                value={formData.cargo}
-                onChange={handleChange}
-                disabled={isView}
-                size="small"
-                required
-                error={!!errors.cargo}
-              >
-                <MenuItem value="">Seleccionar cargo</MenuItem>
-                <MenuItem value="Optómetra">Optómetra</MenuItem>
-                <MenuItem value="Asistente">Asistente</MenuItem>
-                <MenuItem value="Técnico">Técnico</MenuItem>
-                <MenuItem value="Administrador">Administrador</MenuItem>
-                <MenuItem value="Recepcionista">Recepcionista</MenuItem>
-                <MenuItem value="Vendedor">Vendedor</MenuItem>
-              </TextField>
-              <FormHelperText error>
-                {errors.cargo || " "}
-              </FormHelperText>
-            </BaseFormField>
-          </Grid>
+        <BaseFormField>
+          <BaseInputField
+            label="Cargo"
+            name="cargo"
+            value={formData.cargo}
+            onChange={handleChange}
+            select
+            options={cargoOptions}
+            disabled={isView}
+            required
+            error={!!errors.cargo}
+            helperText={errors.cargo}
+          />
+        </BaseFormField>
 
-          {/* Tipo Documento */}
-          <Grid item xs={12} md={6}>
-            <BaseFormField>
-              <TextField
-                select
-                fullWidth
-                label="Tipo de Documento*"
-                name="tipoDocumento"
-                value={formData.tipoDocumento}
-                onChange={handleChange}
-                disabled={isView}
-                size="small"
-                required
-                error={!!errors.tipoDocumento}
-              >
-                <MenuItem value="CC">Cédula de Ciudadanía</MenuItem>
-                <MenuItem value="CE">Cédula de Extranjería</MenuItem>
-                <MenuItem value="PA">Pasaporte</MenuItem>
-              </TextField>
-              <FormHelperText error>
-                {errors.tipoDocumento || " "}
-              </FormHelperText>
-            </BaseFormField>
-          </Grid>
+        <BaseFormField>
+          <BaseInputField
+            label="Tipo de Documento"
+            name="tipoDocumento"
+            value={formData.tipoDocumento}
+            onChange={handleChange}
+            select
+            options={tipoDocumentoOptions}
+            disabled={isView}
+            required
+            error={!!errors.tipoDocumento}
+            helperText={errors.tipoDocumento}
+          />
+        </BaseFormField>
 
-          {/* Número Documento */}
-          <Grid item xs={12} md={6}>
-            <BaseFormField>
-              <BaseInputField
-                label="Número de Documento*"
-                name="numero_documento"
-                value={formData.numero_documento}
-                onChange={handleChange}
-                disabled={isView}
-                required
-                asterisk
-              />
-              <FormHelperText error>
-                {errors.numero_documento || " "}
-              </FormHelperText>
-            </BaseFormField>
-          </Grid>
+        <BaseFormField>
+          <BaseInputField
+            label="Número de Documento"
+            name="numero_documento"
+            value={formData.numero_documento}
+            onChange={(e) => {
+              const soloNumeros = e.target.value.replace(/\D/g, "");
+              handleChange({
+                target: { name: "numero_documento", value: soloNumeros }
+              });
+            }}
+            disabled={isView}
+            required
+            error={!!errors.numero_documento}
+            helperText={errors.numero_documento}
+          />
+        </BaseFormField>
 
-          {/* Teléfono */}
-          <Grid item xs={12} md={6}>
-            <BaseFormField>
-              <BaseInputField
-                label="Teléfono*"
-                name="telefono"
-                value={formData.telefono}
-                onChange={handleChange}
-                disabled={isView}
-                required
-                asterisk
-              />
-              <FormHelperText error>
-                {errors.telefono || " "}
-              </FormHelperText>
-            </BaseFormField>
-          </Grid>
+        <BaseFormField>
+          <BaseInputField
+            label="Teléfono"
+            name="telefono"
+            value={formData.telefono}
+            onChange={(e) => {
+              const soloNumeros = e.target.value.replace(/\D/g, "");
+              handleChange({
+                target: { name: "telefono", value: soloNumeros }
+              });
+            }}
+            disabled={isView}
+            required
+            error={!!errors.telefono}
+            helperText={errors.telefono}
+          />
+        </BaseFormField>
 
-          {/* Correo */}
-          <Grid item xs={12} md={6}>
-            <BaseFormField>
-              <BaseInputField
-                label="Correo Electrónico"
-                name="correo"
-                type="email"
-                value={formData.correo}
-                onChange={handleChange}
-                disabled={isView}
-              />
-              <FormHelperText error>
-                {errors.correo || " "}
-              </FormHelperText>
-            </BaseFormField>
-          </Grid>
+        <BaseFormField>
+          <BaseInputField
+            label="Correo Electrónico"
+            name="correo"
+            type="email"
+            value={formData.correo}
+            onChange={handleChange}
+            disabled={isView}
+            error={!!errors.correo}
+            helperText={errors.correo}
+          />
+        </BaseFormField>
 
-          {/* Fecha Ingreso */}
-          <Grid item xs={12} md={6}>
-            <BaseFormField>
-              <BaseInputField
-                label="Fecha de Ingreso*"
-                name="fecha_ingreso"
-                type="date"
-                value={formData.fecha_ingreso}
-                onChange={handleChange}
-                disabled={isView}
-                required
-                asterisk
-                InputLabelProps={{ shrink: true }}
-              />
-              <FormHelperText error>
-                {errors.fecha_ingreso || " "}
-              </FormHelperText>
-            </BaseFormField>
-          </Grid>
+        <BaseFormField>
+          <BaseInputField
+            label="Fecha de Ingreso"
+            name="fecha_ingreso"
+            type="date"
+            value={formData.fecha_ingreso}
+            onChange={handleChange}
+            disabled={isView}
+            required
+            error={!!errors.fecha_ingreso}
+            helperText={errors.fecha_ingreso}
+            InputLabelProps={{ shrink: true }}
+          />
+        </BaseFormField>
 
-          {/* Estado */}
-          <Grid item xs={12} md={6}>
-            <BaseFormField>
-              <TextField
-                select
-                fullWidth
-                label="Estado*"
-                name="estado"
-                value={formData.estado}
-                onChange={handleChange}
-                disabled={isView}
-                size="small"
-                required
-                error={!!errors.estado}
-              >
-                <MenuItem value="activo">Activo</MenuItem>
-                <MenuItem value="inactivo">Inactivo</MenuItem>
-              </TextField>
-              <FormHelperText error>
-                {errors.estado || " "}
-              </FormHelperText>
-            </BaseFormField>
-          </Grid>
+        <BaseFormField>
+          <BaseInputField
+            label="Estado"
+            name="estado"
+            value={formData.estado}
+            onChange={handleChange}
+            select
+            options={estadoOptions}
+            disabled={isView}
+            required
+            error={!!errors.estado}
+            helperText={errors.estado}
+          />
+        </BaseFormField>
 
-          {/* Dirección */}
-          <Grid item xs={12}>
-            <BaseFormField>
-              <BaseInputField
-                label="Dirección"
-                name="direccion"
-                value={formData.direccion}
-                onChange={handleChange}
-                disabled={isView}
-                multiline
-                rows={2}
-              />
-              <FormHelperText error>
-                {errors.direccion || " "}
-              </FormHelperText>
-            </BaseFormField>
-          </Grid>
-        </Grid>
+        <BaseFormField>
+          <BaseInputField
+            label="Dirección"
+            name="direccion"
+            value={formData.direccion}
+            onChange={handleChange}
+            disabled={isView}
+            multiline
+            rows={2}
+            error={!!errors.direccion}
+            helperText={errors.direccion}
+          />
+        </BaseFormField>
       </BaseFormSection>
 
       <BaseFormActions

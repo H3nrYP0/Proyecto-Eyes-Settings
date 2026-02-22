@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import EmpleadoForm from "./components/empleadosForm";
+import Loading from "../../../../shared/components/ui/Loading"; // 👈 IMPORTAR
 
 import {
   getEmpleadoById,
@@ -13,21 +14,36 @@ export default function EditarEmpleado() {
 
   const [empleado, setEmpleado] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // ============================
   // Cargar empleado (API)
   // ============================
   useEffect(() => {
     const cargarEmpleado = async () => {
-      const empleadoData = await getEmpleadoById(Number(id));
+      try {
+        setLoading(true);
+        setError(null);
+        const empleadoData = await getEmpleadoById(Number(id));
 
-      if (!empleadoData) {
-        navigate("/admin/servicios/empleados");
-        return;
+        if (!empleadoData) {
+          navigate("/admin/servicios/empleados");
+          return;
+        }
+
+        // 👇 NORMALIZAR ESTADO: boolean -> string
+        const empleadoNormalizado = {
+          ...empleadoData,
+          estado: empleadoData.estado === true ? "activo" : "inactivo"
+        };
+
+        setEmpleado(empleadoNormalizado);
+      } catch (error) {
+        console.error("Error cargando empleado:", error);
+        setError("No se pudo cargar la información del empleado");
+      } finally {
+        setLoading(false);
       }
-
-      setEmpleado(empleadoData);
-      setLoading(false);
     };
 
     cargarEmpleado();
@@ -37,23 +53,47 @@ export default function EditarEmpleado() {
   // Guardar cambios
   // ============================
   const handleUpdate = async (data) => {
-    const empleadoActualizado = {
-      nombre: data.nombre,
-      tipoDocumento: data.tipoDocumento,
-      numero_documento: data.numero_documento,
-      telefono: data.telefono,
-      correo: data.correo,
-      direccion: data.direccion,
-      fecha_ingreso: data.fecha_ingreso,
-      cargo: data.cargo,
-      estado: data.estado ?? empleado.estado,
-    };
-
-    await updateEmpleado(Number(id), empleadoActualizado);
-    navigate("/admin/servicios/empleados");
+    try {
+      // data ya viene con estado como string "activo"/"inactivo"
+      await updateEmpleado(Number(id), data);
+      navigate("/admin/servicios/empleados");
+    } catch (error) {
+      console.error("Error al actualizar empleado:", error);
+      alert("Error al actualizar el empleado");
+    }
   };
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div style={{ padding: '40px' }}>
+        <Loading message="Cargando información del empleado..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ 
+        padding: '40px', 
+        textAlign: 'center',
+        color: '#c62828'
+      }}>
+        ⚠️ {error}
+        <div style={{ marginTop: '20px' }}>
+          <button 
+            onClick={() => navigate("/admin/servicios/empleados")}
+            className="btn-primary"
+          >
+            Volver a Empleados
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!empleado) {
+    return null;
+  }
 
   return (
     <EmpleadoForm

@@ -196,17 +196,7 @@ export default function Citas() {
         }
       />
 
-      {filteredCitas.length === 0 && !search && !filterEstado && (
-        <div style={{ textAlign: "center", marginTop: "var(--spacing-lg)" }}>
-          <button
-            onClick={() => navigate("crear")}
-            className="btn-primary"
-            style={{ padding: "var(--spacing-md) var(--spacing-lg)" }}
-          >
-            Registrar Primera Cita
-          </button>
-        </div>
-      )}
+
 
       <Modal
         open={modalDelete.open}

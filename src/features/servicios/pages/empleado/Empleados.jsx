@@ -3,10 +3,10 @@ import { useNavigate } from "react-router-dom";
 import CrudLayout from "../../../../shared/components/crud/CrudLayout";
 import CrudTable from "../../../../shared/components/crud/CrudTable";
 import Modal from "../../../../shared/components/ui/Modal";
+import Loading from "../../../../shared/components/ui/Loading";
 import "../../../../shared/styles/components/crud-table.css";
 import "../../../../shared/styles/components/modal.css";
 
-// Backend (API real)
 import {
   getAllEmpleados,
   deleteEmpleado,
@@ -19,6 +19,8 @@ export default function Empleados() {
   const [empleados, setEmpleados] = useState([]);
   const [search, setSearch] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [modalDelete, setModalDelete] = useState({
     open: false,
@@ -26,30 +28,29 @@ export default function Empleados() {
     nombre: "",
   });
 
-  const [modalEstado, setModalEstado] = useState({
-    open: false,
-    id: null,
-    nombre: "",
-    nuevoEstado: "",
-  });
-
   // ============================
-  // CARGA DE DATOS (API)
+  // CARGA DE DATOS
   // ============================
   const cargarEmpleados = async () => {
     try {
+      setLoading(true);
+      setError(null);
+
       const data = await getAllEmpleados();
 
-      // Normalizar estado: true/false -> "activo"/"inactivo"
       const normalizados = (Array.isArray(data) ? data : []).map((e) => ({
         ...e,
         estado: e.estado === true ? "activo" : "inactivo",
+        estadosDisponibles: ["activo", "inactivo"], // ⭐ CLAVE
       }));
 
       setEmpleados(normalizados);
     } catch (error) {
       console.error("Error cargando empleados:", error);
+      setError("No se pudieron cargar los empleados");
       setEmpleados([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -64,28 +65,27 @@ export default function Empleados() {
     setModalDelete({ open: true, id, nombre });
 
   const confirmDelete = async () => {
-    await deleteEmpleado(modalDelete.id);
-    await cargarEmpleados();
-    setModalDelete({ open: false, id: null, nombre: "" });
+    try {
+      await deleteEmpleado(modalDelete.id);
+      await cargarEmpleados();
+      setModalDelete({ open: false, id: null, nombre: "" });
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+      alert("Error al eliminar el empleado");
+    }
   };
 
   // ============================
-  // CAMBIAR ESTADO
+  // CAMBIAR ESTADO (LO USA CrudTable)
   // ============================
-  const handleToggleEstado = (row) => {
-    const nuevoEstado = row.estado === "activo" ? "inactivo" : "activo";
-    setModalEstado({
-      open: true,
-      id: row.id,
-      nombre: row.nombre,
-      nuevoEstado,
-    });
-  };
-
-  const confirmChangeStatus = async () => {
-    await updateEstadoEmpleado(modalEstado.id, modalEstado.nuevoEstado);
-    await cargarEmpleados();
-    setModalEstado({ open: false, id: null, nombre: "", nuevoEstado: "" });
+  const handleChangeStatus = async (row, nuevoEstado) => {
+    try {
+      await updateEstadoEmpleado(row.id, nuevoEstado);
+      await cargarEmpleados();
+    } catch (error) {
+      console.error("Error al cambiar estado:", error);
+      alert("Error al cambiar el estado del empleado");
+    }
   };
 
   // ============================
@@ -95,9 +95,11 @@ export default function Empleados() {
     const matchesSearch =
       empleado.nombre.toLowerCase().includes(search.toLowerCase()) ||
       (empleado.numero_documento?.toLowerCase() || "").includes(search.toLowerCase()) ||
-      (empleado.cargo?.toLowerCase() || "").includes(search.toLowerCase());
+      (empleado.cargo?.toLowerCase() || "").includes(search.toLowerCase()) ||
+      (empleado.correo?.toLowerCase() || "").includes(search.toLowerCase());
 
-    const matchesEstado = !filterEstado || empleado.estado === filterEstado;
+    const matchesEstado =
+      !filterEstado || empleado.estado === filterEstado;
 
     return matchesSearch && matchesEstado;
   });
@@ -114,17 +116,13 @@ export default function Empleados() {
   const columns = [
     { field: "nombre", header: "Nombre" },
     { field: "cargo", header: "Cargo" },
+    { field: "correo", header: "Correo Electrónico" },
   ];
 
   // ============================
-  // ACCIONES
+  // ACCIONES (SIN CAMBIAR ESTADO)
   // ============================
   const tableActions = [
-    {
-      label: "Cambiar estado",
-      type: "toggle-status",
-      onClick: handleToggleEstado,
-    },
     {
       label: "Ver detalles",
       type: "view",
@@ -142,22 +140,48 @@ export default function Empleados() {
     },
   ];
 
+  // ============================
+  // LOADING INICIAL
+  // ============================
+  if (loading && empleados.length === 0) {
+    return (
+      <CrudLayout title="Empleados" showSearch>
+        <Loading message="Cargando empleados..." />
+      </CrudLayout>
+    );
+  }
+
   return (
     <CrudLayout
       title="Empleados"
       onAddClick={() => navigate("crear")}
       showSearch
-      searchPlaceholder="Buscar por nombre, documento, cargo..."
+      searchPlaceholder="Buscar por nombre, documento, cargo, email..."
       searchValue={search}
       onSearchChange={setSearch}
       searchFilters={estadoFilters}
       filterEstado={filterEstado}
       onFilterChange={setFilterEstado}
     >
+      {error && (
+        <div
+          style={{
+            padding: "16px",
+            backgroundColor: "#ffebee",
+            color: "#c62828",
+            borderRadius: "4px",
+            marginBottom: "16px",
+          }}
+        >
+          ⚠️ {error}
+        </div>
+      )}
+
       <CrudTable
         columns={columns}
         data={filteredEmpleados}
         actions={tableActions}
+        onChangeStatus={handleChangeStatus}
         emptyMessage={
           search || filterEstado
             ? "No se encontraron empleados para los filtros aplicados"
@@ -165,18 +189,7 @@ export default function Empleados() {
         }
       />
 
-      {filteredEmpleados.length === 0 && !search && !filterEstado && (
-        <div style={{ textAlign: "center", marginTop: "var(--spacing-lg)" }}>
-          <button
-            onClick={() => navigate("crear")}
-            className="btn-primary"
-            style={{ padding: "var(--spacing-md) var(--spacing-lg)" }}
-          >
-            Registrar Primer Empleado
-          </button>
-        </div>
-      )}
-
+      {/* MODAL ELIMINAR */}
       <Modal
         open={modalDelete.open}
         type="warning"
@@ -186,20 +199,8 @@ export default function Empleados() {
         cancelText="Cancelar"
         showCancel
         onConfirm={confirmDelete}
-        onCancel={() => setModalDelete({ open: false, id: null, nombre: "" })}
-      />
-
-      <Modal
-        open={modalEstado.open}
-        type="info"
-        title="¿Cambiar estado?"
-        message={`El empleado "${modalEstado.nombre}" cambiará a estado "${modalEstado.nuevoEstado}".`}
-        confirmText="Confirmar"
-        cancelText="Cancelar"
-        showCancel
-        onConfirm={confirmChangeStatus}
         onCancel={() =>
-          setModalEstado({ open: false, id: null, nombre: "", nuevoEstado: "" })
+          setModalDelete({ open: false, id: null, nombre: "" })
         }
       />
     </CrudLayout>

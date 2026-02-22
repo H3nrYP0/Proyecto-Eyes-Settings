@@ -6,14 +6,14 @@ export default function CrearEmpleado() {
   const navigate = useNavigate();
 
   const handleCreate = async (data) => {
-    // Agregamos estado por defecto al empleado nuevo
-    const empleadoConEstado = {
-      ...data,
-      estado: "activo",
-    };
-
-    await createEmpleado(empleadoConEstado);
-    navigate("/admin/servicios/empleados");
+    try {
+      // El estado ya viene del formulario (por defecto "activo")
+      await createEmpleado(data);
+      navigate("/admin/servicios/empleados");
+    } catch (error) {
+      console.error("Error al crear empleado:", error);
+      alert("Error al crear el empleado");
+    }
   };
 
   return (
