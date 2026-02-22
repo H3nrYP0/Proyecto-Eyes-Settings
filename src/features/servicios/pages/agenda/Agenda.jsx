@@ -197,13 +197,6 @@ export default function Agenda() {
           </select>
 
           <button
-            className="agenda-btn"
-            onClick={() => navigate("crear")}
-          >
-            + Crear Horario
-          </button>
-
-          <button
             className="agenda-btn agenda-btn-secondary"
             onClick={() => navigate("horarios")}
           >

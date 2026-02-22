@@ -1,13 +1,14 @@
-import { useState, useEffect } from "react";
-import { Grid } from "@mui/material";
+import { useState, useEffect, forwardRef } from "react";
+import { Grid, FormHelperText, Box } from "@mui/material";
 
 import BaseFormLayout from "../../../../../shared/components/base/BaseFormLayout";
 import BaseFormSection from "../../../../../shared/components/base/BaseFormSection";
 import BaseFormField from "../../../../../shared/components/base/BaseFormField";
-import BaseFormActions from "../../../../../shared/components/base/BaseFormActions";
 import BaseInputField from "../../../../../shared/components/base/BaseInputField";
 
-// Mapeo de días (0 = lunes, 1 = martes, ... 6 = domingo)
+// ============================================
+// 1. CONSTANTES
+// ============================================
 const diasSemana = [
   { value: 0, label: "Lunes" },
   { value: 1, label: "Martes" },
@@ -18,17 +19,22 @@ const diasSemana = [
   { value: 6, label: "Domingo" },
 ];
 
-export default function HorarioForm({
+// ============================================
+// 2. COMPONENTE PRINCIPAL
+// ============================================
+const HorarioForm = forwardRef(({
   mode = "create",
-  title,
   initialData,
   empleados = [],
   onSubmit,
   onCancel,
-  onEdit,
-}) {
+  embedded = false,
+}, ref) => {
+  // ============================================
+  // 3. ESTADOS
+  // ============================================
   const isView = mode === "view";
-
+  
   const [formData, setFormData] = useState({
     empleado_id: "",
     dia: "",
@@ -38,6 +44,9 @@ export default function HorarioForm({
 
   const [errors, setErrors] = useState({});
 
+  // ============================================
+  // 4. EFECTOS
+  // ============================================
   useEffect(() => {
     if (initialData) {
       setFormData({
@@ -49,6 +58,9 @@ export default function HorarioForm({
     }
   }, [initialData]);
 
+  // ============================================
+  // 5. FUNCIONES AUXILIARES
+  // ============================================
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -57,12 +69,16 @@ export default function HorarioForm({
       [name]: value,
     }));
 
+    // Limpiar error del campo modificado
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
-  const handleSubmit = () => {
+  // ============================================
+  // 6. VALIDACIÓN
+  // ============================================
+  const validateForm = () => {
     const newErrors = {};
 
     if (!formData.empleado_id) {
@@ -74,7 +90,7 @@ export default function HorarioForm({
     }
 
     if (!formData.hora_inicio) {
-      newErrors.hora_inicio = "Debe ingresar hora inicio";
+      newErrors.hora_inicio = "Debe ingresar hora de inicio";
     }
 
     if (!formData.hora_final) {
@@ -87,8 +103,25 @@ export default function HorarioForm({
       formData.hora_final <= formData.hora_inicio
     ) {
       newErrors.hora_final =
-        "La hora final debe ser mayor que la hora inicio";
+        "La hora final debe ser mayor que la hora de inicio";
     }
+
+    return newErrors;
+  };
+
+  // ============================================
+  // 7. SUBMIT
+  // ============================================
+  const handleSubmit = (e) => {
+    if (e) e.preventDefault();
+
+    if (isView) {
+      // En modo vista, si hay onSubmit lo llamamos, si no, no hacemos nada
+      if (onSubmit) onSubmit(formData);
+      return;
+    }
+
+    const newErrors = validateForm();
 
     if (Object.keys(newErrors).length) {
       setErrors(newErrors);
@@ -102,105 +135,106 @@ export default function HorarioForm({
     });
   };
 
+  // ============================================
+  // 8. OPCIONES PARA SELECTS
+  // ============================================
+  const empleadoOptions = [
+    { value: "", label: "-- Seleccione empleado --" },
+    ...empleados.map((emp) => ({
+      value: emp.id,
+      label: emp.nombre,
+    })),
+  ];
+
+  const diaOptions = [
+    { value: "", label: "-- Seleccione día --" },
+    ...diasSemana,
+  ];
+
+  // ============================================
+  // 9. RENDER
+  // ============================================
   return (
-    <BaseFormLayout title={title}>
-      <BaseFormSection title="Información del Horario">
-        <Grid container spacing={3}>
+    <form id="horario-form" onSubmit={handleSubmit}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {/* Empleado */}
+        <Box>
+          <BaseInputField
+            label="Empleado"
+            name="empleado_id"
+            select
+            value={formData.empleado_id}
+            onChange={handleChange}
+            disabled={isView}
+            options={empleadoOptions}
+            required
+            error={!!errors.empleado_id}
+            fullWidth
+          />
+          {errors.empleado_id && (
+            <FormHelperText error sx={{ mt: 1 }}>{errors.empleado_id}</FormHelperText>
+          )}
+        </Box>
 
-          {/* Empleado */}
-          <Grid item xs={12} md={6}>
-            <BaseFormField>
-              <BaseInputField
-                label="Empleado"
-                name="empleado_id"
-                select
-                value={formData.empleado_id}
-                onChange={handleChange}
-                disabled={isView}
-                options={[
-                  { value: "", label: "-- Seleccione empleado --" },
-                  ...empleados.map((emp) => ({
-                    value: emp.id,
-                    label: emp.nombre,
-                  })),
-                ]}
-                required
-                error={!!errors.empleado_id}
-                helperText={errors.empleado_id}
-              />
-            </BaseFormField>
-          </Grid>
+        {/* Día */}
+        <Box>
+          <BaseInputField
+            label="Día de la semana"
+            name="dia"
+            select
+            value={formData.dia}
+            onChange={handleChange}
+            disabled={isView}
+            options={diaOptions}
+            required
+            error={!!errors.dia}
+            fullWidth
+          />
+          {errors.dia && (
+            <FormHelperText error sx={{ mt: 1 }}>{errors.dia}</FormHelperText>
+          )}
+        </Box>
 
-          {/* Día */}
-          <Grid item xs={12} md={6}>
-            <BaseFormField>
-              <BaseInputField
-                label="Día de la semana"
-                name="dia"
-                select
-                value={formData.dia}
-                onChange={handleChange}
-                disabled={isView}
-                options={[
-                  { value: "", label: "-- Seleccione día --" },
-                  ...diasSemana.map((dia) => ({
-                    value: dia.value,
-                    label: dia.label,
-                  })),
-                ]}
-                required
-                error={!!errors.dia}
-                helperText={errors.dia}
-              />
-            </BaseFormField>
-          </Grid>
+        {/* Hora inicio */}
+        <Box>
+          <BaseInputField
+            label="Hora Inicio"
+            name="hora_inicio"
+            type="time"
+            value={formData.hora_inicio}
+            onChange={handleChange}
+            disabled={isView}
+            required
+            error={!!errors.hora_inicio}
+            InputLabelProps={{ shrink: true }}
+            fullWidth
+          />
+          {errors.hora_inicio && (
+            <FormHelperText error sx={{ mt: 1 }}>{errors.hora_inicio}</FormHelperText>
+          )}
+        </Box>
 
-          {/* Hora inicio */}
-          <Grid item xs={12} md={6}>
-            <BaseFormField>
-              <BaseInputField
-                label="Hora Inicio"
-                name="hora_inicio"
-                type="time"
-                value={formData.hora_inicio}
-                onChange={handleChange}
-                disabled={isView}
-                required
-                error={!!errors.hora_inicio}
-                helperText={errors.hora_inicio}
-                InputLabelProps={{ shrink: true }}
-              />
-            </BaseFormField>
-          </Grid>
-
-          {/* Hora final */}
-          <Grid item xs={12} md={6}>
-            <BaseFormField>
-              <BaseInputField
-                label="Hora Final"
-                name="hora_final"
-                type="time"
-                value={formData.hora_final}
-                onChange={handleChange}
-                disabled={isView}
-                required
-                error={!!errors.hora_final}
-                helperText={errors.hora_final}
-                InputLabelProps={{ shrink: true }}
-              />
-            </BaseFormField>
-          </Grid>
-
-        </Grid>
-      </BaseFormSection>
-
-      <BaseFormActions
-        onCancel={onCancel}
-        onSave={handleSubmit}
-        onEdit={onEdit}
-        showSave={mode !== "view"}
-        showEdit={mode === "view"}
-      />
-    </BaseFormLayout>
+        {/* Hora final */}
+        <Box>
+          <BaseInputField
+            label="Hora Final"
+            name="hora_final"
+            type="time"
+            value={formData.hora_final}
+            onChange={handleChange}
+            disabled={isView}
+            required
+            error={!!errors.hora_final}
+            InputLabelProps={{ shrink: true }}
+            fullWidth
+          />
+          {errors.hora_final && (
+            <FormHelperText error sx={{ mt: 1 }}>{errors.hora_final}</FormHelperText>
+          )}
+        </Box>
+      </Box>
+    </form>
   );
-}
+});
+
+export default HorarioForm;

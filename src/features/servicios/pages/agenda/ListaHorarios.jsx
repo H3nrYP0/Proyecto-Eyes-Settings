@@ -1,17 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Box } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CrudLayout from "../../../../shared/components/crud/CrudLayout";
 import CrudTable from "../../../../shared/components/crud/CrudTable";
-import Modal from "../../../../shared/components/ui/Modal";
+import Modal from "../../../../shared/components/ui/Modal"; // ✅ IMPORTAMOS EL MODAL REUTILIZABLE
+import HorarioForm from "./components/HorarioForm";
 import Loading from "../../../../shared/components/ui/Loading";
 import "../../../../shared/styles/components/crud-table.css";
 import "../../../../shared/styles/components/modal.css";
 
 import {
   getAllHorarios,
+  createHorario,
+  updateHorario,
   deleteHorario,
+  updateEstadoHorario,
 } from "../../../../lib/data/horariosData";
 
 import { getAllEmpleados } from "../../../../lib/data/empleadosData";
@@ -30,11 +34,23 @@ const diasSemanaMap = {
 export default function ListaHorarios() {
   const navigate = useNavigate();
 
+  // ============================================
+  // 1. ESTADOS
+  // ============================================
   const [horarios, setHorarios] = useState([]);
+  const [empleados, setEmpleados] = useState([]);
   const [search, setSearch] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const submitButtonRef = useRef(null);
+
+  const [modalForm, setModalForm] = useState({
+    open: false,
+    mode: "create",
+    title: "",
+    initialData: null,
+  });
 
   const [modalDelete, setModalDelete] = useState({
     open: false,
@@ -42,9 +58,29 @@ export default function ListaHorarios() {
     descripcion: "",
   });
 
-  // ============================
-  // CARGA DE DATOS
-  // ============================
+  // ============================================
+  // 2. EFECTOS
+  // ============================================
+  useEffect(() => {
+    cargarDatos();
+  }, []);
+
+  // ============================================
+  // 3. FUNCIONES AUXILIARES
+  // ============================================
+  const limpiarAriaHidden = () => {
+    setTimeout(() => {
+      const root = document.getElementById('root');
+      if (root && root.hasAttribute('aria-hidden')) {
+        root.removeAttribute('aria-hidden');
+      }
+      document.body.style.pointerEvents = 'auto';
+    }, 300);
+  };
+
+  // ============================================
+  // 4. CARGA DE DATOS
+  // ============================================
   const cargarDatos = async () => {
     try {
       setLoading(true);
@@ -55,7 +91,8 @@ export default function ListaHorarios() {
         getAllEmpleados(),
       ]);
 
-      // Normalizar horarios para la tabla
+      setEmpleados(Array.isArray(empleadosData) ? empleadosData : []);
+
       const horariosNormalizados = (Array.isArray(horariosData) ? horariosData : []).map((h) => {
         const empleado = empleadosData.find(e => e.id === h.empleado_id);
         const empleadoNombre = empleado?.nombre || "Desconocido";
@@ -66,10 +103,14 @@ export default function ListaHorarios() {
           empleado_id: h.empleado_id,
           empleado_nombre: empleadoNombre,
           dia: diaNombre,
+          dia_valor: h.dia,
           hora_inicio: h.hora_inicio?.substring(0,5) || "",
+          hora_inicio_completa: h.hora_inicio,
           hora_final: h.hora_final?.substring(0,5) || "",
+          hora_final_completa: h.hora_final,
           estado: h.activo ? "activo" : "inactivo",
           estadosDisponibles: ["activo", "inactivo"],
+          descripcion: `${empleadoNombre} - ${diaNombre} ${h.hora_inicio?.substring(0,5)}`
         };
       });
 
@@ -83,44 +124,129 @@ export default function ListaHorarios() {
     }
   };
 
-  useEffect(() => {
-    cargarDatos();
-  }, []);
+  // ============================================
+  // 5. HANDLERS DE MODALES - IGUAL QUE EN MARCAS
+  // ============================================
+  const handleOpenCreate = () => {
+    setModalForm({ 
+      open: true, 
+      mode: "create", 
+      title: "Crear Nuevo Horario", 
+      initialData: null 
+    });
+    limpiarAriaHidden();
+  };
 
-  // ============================
-  // ELIMINAR
-  // ============================
-  const handleDelete = (id, descripcion) =>
+  const handleOpenEdit = (item) => {
+    const horarioParaEditar = {
+      id: item.id,
+      empleado_id: item.empleado_id,
+      dia: item.dia_valor,
+      hora_inicio: item.hora_inicio,
+      hora_final: item.hora_final,
+      activo: item.estado === "activo"
+    };
+
+    setModalForm({ 
+      open: true, 
+      mode: "edit", 
+      title: `Editar Horario: ${item.empleado_nombre} - ${item.dia} ${item.hora_inicio}`, 
+      initialData: horarioParaEditar 
+    });
+    limpiarAriaHidden();
+  };
+
+  const handleOpenView = (item) => {
+    const horarioParaVer = {
+      id: item.id,
+      empleado_id: item.empleado_id,
+      empleado_nombre: item.empleado_nombre,
+      dia: item.dia_valor,
+      dia_nombre: item.dia,
+      hora_inicio: item.hora_inicio,
+      hora_final: item.hora_final,
+      activo: item.estado === "activo"
+    };
+
+    setModalForm({ 
+      open: true, 
+      mode: "view", 
+      title: `Detalle de Horario: ${item.empleado_nombre} - ${item.dia} ${item.hora_inicio}`, 
+      initialData: horarioParaVer 
+    });
+    limpiarAriaHidden();
+  };
+
+  const handleCloseForm = () => {
+    setModalForm({ open: false, mode: "create", title: "", initialData: null });
+    limpiarAriaHidden();
+  };
+
+  const handleModalConfirm = () => {
+    if (modalForm.mode === "view") {
+      handleCloseForm();
+    } else {
+      // Disparamos el submit del formulario
+      const formElement = document.getElementById("horario-form");
+      if (formElement) {
+        formElement.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+      }
+    }
+    limpiarAriaHidden();
+  };
+
+  // ============================================
+  // 6. CRUD OPERACIONES
+  // ============================================
+  const handleFormSubmit = async (data) => {
+    try {
+      if (modalForm.mode === "create") {
+        await createHorario(data);
+      } else if (modalForm.mode === "edit") {
+        await updateHorario(modalForm.initialData.id, data);
+      }
+      handleCloseForm();
+      await cargarDatos();
+    } catch (error) {
+      console.error("Error al guardar horario:", error);
+      alert("Error al guardar el horario");
+    }
+  };
+
+  const handleDelete = (id, descripcion) => {
     setModalDelete({ open: true, id, descripcion });
+  };
+
+  const handleCancelDelete = () => {
+    setModalDelete({ open: false, id: null, descripcion: "" });
+    limpiarAriaHidden();
+  };
 
   const confirmDelete = async () => {
     try {
       await deleteHorario(modalDelete.id);
       await cargarDatos();
       setModalDelete({ open: false, id: null, descripcion: "" });
+      limpiarAriaHidden();
     } catch (error) {
       console.error("Error al eliminar:", error);
       alert("Error al eliminar el horario");
     }
   };
 
-  // ============================
-  // CAMBIAR ESTADO (pendiente de implementar en API)
-  // ============================
   const handleChangeStatus = async (row, nuevoEstado) => {
     try {
-      // TODO: Implementar cuando la API tenga endpoint para cambiar estado
-      console.log("Cambiar estado de:", row.id, "a:", nuevoEstado);
-      alert("Función de cambio de estado en desarrollo");
+      await updateEstadoHorario(row.id, nuevoEstado === "activo");
+      await cargarDatos();
     } catch (error) {
       console.error("Error al cambiar estado:", error);
       alert("Error al cambiar el estado del horario");
     }
   };
 
-  // ============================
-  // FILTROS
-  // ============================
+  // ============================================
+  // 7. FILTROS Y CONFIGURACIÓN
+  // ============================================
   const filteredHorarios = horarios.filter((horario) => {
     const matchesSearch =
       horario.empleado_nombre?.toLowerCase().includes(search.toLowerCase()) ||
@@ -140,9 +266,6 @@ export default function ListaHorarios() {
     { value: "inactivo", label: "Inactivos" },
   ];
 
-  // ============================
-  // COLUMNAS
-  // ============================
   const columns = [
     { field: "empleado_nombre", header: "Empleado" },
     { field: "dia", header: "Día" },
@@ -150,25 +273,32 @@ export default function ListaHorarios() {
     { field: "hora_final", header: "Hora Final" },
   ];
 
-  // ============================
-  // ACCIONES
-  // ============================
   const tableActions = [
+    {
+      label: "Cambiar estado",
+      type: "toggle-status",
+      onClick: (item) => handleChangeStatus(item),
+    },
+    {
+      label: "Ver Detalles",
+      type: "view",
+      onClick: (item) => handleOpenView(item),
+    },
     {
       label: "Editar",
       type: "edit",
-      onClick: (item) => navigate(`/admin/servicios/agenda/editar/${item.id}`),
+      onClick: (item) => handleOpenEdit(item),
     },
     {
       label: "Eliminar",
       type: "delete",
-      onClick: (item) => handleDelete(item.id, `${item.empleado_nombre} - ${item.dia} ${item.hora_inicio}`),
+      onClick: (item) => handleDelete(item.id, item.descripcion),
     },
   ];
 
-  // ============================
-  // LOADING INICIAL
-  // ============================
+  // ============================================
+  // 8. RENDER
+  // ============================================
   if (loading && horarios.length === 0) {
     return (
       <CrudLayout title="Horarios" showSearch>
@@ -179,7 +309,7 @@ export default function ListaHorarios() {
 
   return (
     <>
-      {/* BOTÓN DE REGRESAR FUERA DEL CrudLayout */}
+      {/* Botón Volver - igual que antes */}
       <Box sx={{ p: 2, pb: 0 }}>
         <Button
           startIcon={<ArrowBackIcon />}
@@ -194,7 +324,7 @@ export default function ListaHorarios() {
 
       <CrudLayout
         title="Horarios"
-        onAddClick={() => navigate("/admin/servicios/agenda/crear")}
+        onAddClick={handleOpenCreate}
         showSearch
         searchPlaceholder="Buscar por empleado, día, hora..."
         searchValue={search}
@@ -229,7 +359,19 @@ export default function ListaHorarios() {
           }
         />
 
-        {/* MODAL ELIMINAR */}
+        {filteredHorarios.length === 0 && !search && !filterEstado && !loading && (
+          <div style={{ textAlign: 'center', marginTop: '24px' }}>
+            <button 
+              onClick={handleOpenCreate}
+              className="btn-primary"
+              style={{ padding: '12px 24px' }}
+            >
+              Crear Primer Horario
+            </button>
+          </div>
+        )}
+
+        {/* ✅ MODAL ELIMINAR - usando Modal reutilizable (igual que en marcas) */}
         <Modal
           open={modalDelete.open}
           type="warning"
@@ -237,12 +379,33 @@ export default function ListaHorarios() {
           message={`Esta acción eliminará el horario de "${modalDelete.descripcion}" y no se puede deshacer.`}
           confirmText="Eliminar"
           cancelText="Cancelar"
-          showCancel
+          showCancel={true}
           onConfirm={confirmDelete}
-          onCancel={() =>
-            setModalDelete({ open: false, id: null, descripcion: "" })
-          }
+          onCancel={handleCancelDelete}
         />
+
+        {/* ✅ MODAL FORMULARIO - usando Modal reutilizable (igual que en marcas) */}
+        <Modal
+          open={modalForm.open}
+          type="info"
+          title={modalForm.title}
+          confirmText={modalForm.mode === "view" ? "Cerrar" : "Guardar"}
+          cancelText="Cancelar"
+          showCancel={modalForm.mode !== "view"}
+          onConfirm={handleModalConfirm}
+          onCancel={handleCloseForm}
+        >
+          <HorarioForm
+            id="horario-form"
+            mode={modalForm.mode}
+            initialData={modalForm.initialData}
+            empleados={empleados}
+            onSubmit={handleFormSubmit}
+            onCancel={handleCloseForm}
+            embedded={true}
+            buttonRef={submitButtonRef}
+          />
+        </Modal>
       </CrudLayout>
     </>
   );

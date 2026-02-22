@@ -71,14 +71,15 @@ export async function createHorario(data) {
 }
 
 /* =========================================
-   ACTUALIZAR HORARIO
+   ACTUALIZAR HORARIO (incluye estado)
 ========================================= */
 export async function updateHorario(id, updated) {
   const payload = {
     empleado_id: Number(updated.empleado_id),
     dia: Number(updated.dia),
     hora_inicio: updated.hora_inicio,
-    hora_final: updated.hora_final
+    hora_final: updated.hora_final,
+    activo: updated.activo  // 👈 Incluir estado
   };
 
   try {
@@ -114,4 +115,21 @@ export async function getEmpleados() {
     console.error("Error cargando empleados:", error);
     return [];
   }
+}
+
+/* =========================================
+   ACTUALIZAR SOLO ESTADO (USA EL MISMO PUT)
+========================================= */
+export async function updateEstadoHorario(id, activo) {
+  // Primero obtenemos el horario actual
+  const horario = await getHorarioById(id);
+  
+  // Actualizamos solo el estado
+  return updateHorario(id, {
+    empleado_id: horario.empleado_id,
+    dia: horario.dia,
+    hora_inicio: horario.hora_inicio.substring(0,5),
+    hora_final: horario.hora_final.substring(0,5),
+    activo: activo
+  });
 }
