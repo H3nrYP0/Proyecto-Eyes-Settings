@@ -5,7 +5,7 @@ import { getAllClientes } from "../../../../lib/data/clientesData";
 import { getAllServicios } from "../../../../lib/data/serviciosData";
 import { getAllEmpleados } from "../../../../lib/data/empleadosData";
 import { getAllEstadosCita } from "../../../../lib/data/estadosCitaData";
-
+import Loading from "../../../../shared/components/ui/Loading";
 import CitaForm from "./components/citasForm";
 
 export default function DetalleCita() {
@@ -57,11 +57,14 @@ export default function DetalleCita() {
     cargarDatos();
   }, [id, navigate]);
 
-  if (loading || !cita) {
-    return <div>Cargando...</div>;
+  if (loading) {
+    return <Loading message="Cargando detalles de la cita..." />;
   }
 
-  // Encontrar los nombres para mostrar en el título
+  if (!cita) {
+    return null;
+  }
+
   const cliente = clientes.find(c => c.id === cita.cliente_id);
   const servicio = servicios.find(s => s.id === cita.servicio_id);
   const titulo = `Cita: ${cliente ? `${cliente.nombre} ${cliente.apellido}` : 'Cliente'} - ${servicio ? servicio.nombre : 'Servicio'}`;

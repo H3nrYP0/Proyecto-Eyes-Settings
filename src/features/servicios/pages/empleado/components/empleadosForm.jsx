@@ -24,27 +24,36 @@ export default function EmpleadoForm({
     direccion: "",
     fecha_ingreso: "",
     cargo: "",
-    estado: "activo",
+    estado: "activo", // ✅ interno (no visible)
   });
 
   const [errors, setErrors] = useState({});
 
+  // ============================
+  // CARGAR DATA INICIAL
+  // ============================
   useEffect(() => {
     if (initialData) {
       setFormData({
         nombre: initialData.nombre || "",
-        tipoDocumento: initialData.tipo_documento || initialData.tipoDocumento || "CC",
+        tipoDocumento:
+          initialData.tipo_documento ||
+          initialData.tipoDocumento ||
+          "CC",
         numero_documento: initialData.numero_documento || "",
         telefono: initialData.telefono || "",
         correo: initialData.correo || initialData.email || "",
         direccion: initialData.direccion || "",
         fecha_ingreso: initialData.fecha_ingreso || "",
         cargo: initialData.cargo || "",
-        estado: initialData.estado || "activo",
+        estado: initialData.estado ?? "activo", // ✅ seguro
       });
     }
   }, [initialData]);
 
+  // ============================
+  // HANDLE CHANGE
+  // ============================
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -58,10 +67,12 @@ export default function EmpleadoForm({
     }
   };
 
+  // ============================
+  // VALIDACIÓN + SUBMIT
+  // ============================
   const handleSubmit = () => {
     const newErrors = {};
 
-    // Validaciones
     if (!formData.nombre.trim()) {
       newErrors.nombre = "El nombre es requerido";
     } else if (formData.nombre.trim().length < 3) {
@@ -76,13 +87,16 @@ export default function EmpleadoForm({
       newErrors.numero_documento = "El número de documento es requerido";
     } else {
       const doc = formData.numero_documento.trim();
+
       if (formData.tipoDocumento === "CC" || formData.tipoDocumento === "CE") {
         if (!/^[0-9]{6,10}$/.test(doc)) {
-          newErrors.numero_documento = "Documento inválido (6-10 dígitos)";
+          newErrors.numero_documento =
+            "Documento inválido (6-10 dígitos)";
         }
       } else if (formData.tipoDocumento === "PA") {
         if (!/^[A-Za-z0-9]{6,12}$/.test(doc)) {
-          newErrors.numero_documento = "Pasaporte inválido (6-12 caracteres)";
+          newErrors.numero_documento =
+            "Pasaporte inválido (6-12 caracteres)";
         }
       }
     }
@@ -113,10 +127,6 @@ export default function EmpleadoForm({
       }
     }
 
-    if (!formData.estado) {
-      newErrors.estado = "Debe seleccionar un estado";
-    }
-
     if (Object.keys(newErrors).length) {
       setErrors(newErrors);
       return;
@@ -125,7 +135,9 @@ export default function EmpleadoForm({
     onSubmit?.(formData);
   };
 
-  // Opciones para selects
+  // ============================
+  // OPCIONES SELECT
+  // ============================
   const tipoDocumentoOptions = [
     { value: "CC", label: "Cédula de Ciudadanía" },
     { value: "CE", label: "Cédula de Extranjería" },
@@ -135,22 +147,16 @@ export default function EmpleadoForm({
   const cargoOptions = [
     { value: "", label: "-- Seleccione un cargo --" },
     { value: "Optómetra", label: "Optómetra" },
-    { value: "Asistente", label: "Asistente" },
-    { value: "Técnico", label: "Técnico" },
-    { value: "Administrador", label: "Administrador" },
     { value: "Recepcionista", label: "Recepcionista" },
-    { value: "Vendedor", label: "Vendedor" },
   ];
 
-  const estadoOptions = [
-    { value: "activo", label: "Activo" },
-    { value: "inactivo", label: "Inactivo" },
-  ];
-
+  // ============================
+  // UI
+  // ============================
   return (
     <BaseFormLayout title={title}>
-      {/* INFORMACIÓN DEL EMPLEADO */}
       <BaseFormSection>
+
         <BaseFormField>
           <BaseInputField
             label="Nombre Completo"
@@ -202,7 +208,7 @@ export default function EmpleadoForm({
             onChange={(e) => {
               const soloNumeros = e.target.value.replace(/\D/g, "");
               handleChange({
-                target: { name: "numero_documento", value: soloNumeros }
+                target: { name: "numero_documento", value: soloNumeros },
               });
             }}
             disabled={isView}
@@ -220,7 +226,7 @@ export default function EmpleadoForm({
             onChange={(e) => {
               const soloNumeros = e.target.value.replace(/\D/g, "");
               handleChange({
-                target: { name: "telefono", value: soloNumeros }
+                target: { name: "telefono", value: soloNumeros },
               });
             }}
             disabled={isView}
@@ -260,32 +266,18 @@ export default function EmpleadoForm({
 
         <BaseFormField>
           <BaseInputField
-            label="Estado"
-            name="estado"
-            value={formData.estado}
-            onChange={handleChange}
-            select
-            options={estadoOptions}
-            disabled={isView}
-            required
-            error={!!errors.estado}
-            helperText={errors.estado}
-          />
-        </BaseFormField>
-
-        <BaseFormField>
-          <BaseInputField
             label="Dirección"
             name="direccion"
             value={formData.direccion}
             onChange={handleChange}
             disabled={isView}
             multiline
-            rows={2}
+            rows={1}
             error={!!errors.direccion}
             helperText={errors.direccion}
           />
         </BaseFormField>
+
       </BaseFormSection>
 
       <BaseFormActions

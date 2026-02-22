@@ -5,7 +5,8 @@ import api from "../axios";
 // ============================
 export async function getAllEstadosCita() {
   try {
-    const res = await api.get("/estados-cita");
+    // CORREGIDO: cambiado de "/estados-cita" a "/estado-cita" (sin la 's')
+    const res = await api.get("/estado-cita");
     return res.data;
   } catch (error) {
     console.error("Error cargando estados de cita:", error);
@@ -18,7 +19,8 @@ export async function getAllEstadosCita() {
 // ============================
 export async function getEstadoCitaById(id) {
   try {
-    const res = await api.get("/estados-cita");
+    // CORREGIDO: cambiado de "/estados-cita" a "/estado-cita"
+    const res = await api.get("/estado-cita");
     const estados = res.data || [];
     return estados.find((e) => e.id === id);
   } catch (error) {

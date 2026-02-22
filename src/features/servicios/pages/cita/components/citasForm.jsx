@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { FormHelperText, MenuItem, TextField, Grid } from "@mui/material";
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { TimePicker } from '@mui/x-date-pickers/TimePicker';
-import esLocale from 'date-fns/locale/es';
+import { FormHelperText } from "@mui/material";
+
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
+import esLocale from "date-fns/locale/es";
 
 import BaseFormLayout from "../../../../../shared/components/base/BaseFormLayout";
 import BaseFormSection from "../../../../../shared/components/base/BaseFormSection";
@@ -22,10 +23,13 @@ export default function CitaForm({
   clientes = [],
   servicios = [],
   empleados = [],
-  estadosCita = []
+  estadosCita = [],
 }) {
   const isView = mode === "view";
 
+  // ============================
+  // STATE
+  // ============================
   const [formData, setFormData] = useState({
     cliente_id: "",
     servicio_id: "",
@@ -34,31 +38,60 @@ export default function CitaForm({
     metodo_pago: "",
     fecha: null,
     hora: null,
-    duracion: 30
+    duracion: 30,
   });
 
   const [errors, setErrors] = useState({});
 
+  // ============================
+  // LOAD INITIAL DATA
+  // ============================
   useEffect(() => {
-    if (initialData) {
-      setFormData({
-        cliente_id: initialData.cliente_id || "",
-        servicio_id: initialData.servicio_id || "",
-        empleado_id: initialData.empleado_id || "",
-        estado_cita_id: initialData.estado_cita_id || "",
-        metodo_pago: initialData.metodo_pago || "",
-        fecha: initialData.fecha ? new Date(initialData.fecha) : null,
-        hora: initialData.hora ? (() => {
-          const [hours, minutes] = initialData.hora.split(':');
-          const date = new Date();
-          date.setHours(hours, minutes, 0);
-          return date;
-        })() : null,
-        duracion: initialData.duracion || 30
-      });
-    }
+    if (!initialData) return;
+
+    setFormData({
+      cliente_id: initialData.cliente_id || "",
+      servicio_id: initialData.servicio_id || "",
+      empleado_id: initialData.empleado_id || "",
+      estado_cita_id: initialData.estado_cita_id || "",
+      metodo_pago: initialData.metodo_pago || "",
+      fecha: initialData.fecha ? new Date(initialData.fecha) : null,
+      hora: initialData.hora
+        ? (() => {
+            const [h, m] = initialData.hora.split(":");
+            const d = new Date();
+            d.setHours(h, m, 0);
+            return d;
+          })()
+        : null,
+      duracion: initialData.duracion || 30,
+    });
   }, [initialData]);
 
+  // ============================
+  // DEFAULT ESTADO (CREATE)
+  // ============================
+  useEffect(() => {
+    if (
+      mode === "create" &&
+      estadosCita.length > 0 &&
+      !formData.estado_cita_id
+    ) {
+      const estadoPendiente =
+        estadosCita.find(e =>
+          e.nombre?.toLowerCase().includes("pendiente")
+        ) || estadosCita[0];
+
+      setFormData(prev => ({
+        ...prev,
+        estado_cita_id: estadoPendiente.id
+      }));
+    }
+  }, [estadosCita, mode]);
+
+  // ============================
+  // HANDLE CHANGE
+  // ============================
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -73,57 +106,52 @@ export default function CitaForm({
   };
 
   const handleDateChange = (date) => {
-    setFormData((prev) => ({ ...prev, fecha: date }));
-    if (errors.fecha) {
-      setErrors((prev) => ({ ...prev, fecha: "" }));
-    }
+    setFormData((p) => ({ ...p, fecha: date }));
+    if (errors.fecha) setErrors((p) => ({ ...p, fecha: "" }));
   };
 
   const handleTimeChange = (time) => {
-    setFormData((prev) => ({ ...prev, hora: time }));
-    if (errors.hora) {
-      setErrors((prev) => ({ ...prev, hora: "" }));
-    }
+    setFormData((p) => ({ ...p, hora: time }));
+    if (errors.hora) setErrors((p) => ({ ...p, hora: "" }));
   };
 
+  // ============================
+  // VALIDACIÓN
+  // ============================
   const handleSubmit = () => {
     const newErrors = {};
 
-    // Validaciones
-    if (!formData.cliente_id) {
+    if (!formData.cliente_id)
       newErrors.cliente_id = "Seleccione un cliente";
-    }
 
-    if (!formData.servicio_id) {
+    if (!formData.servicio_id)
       newErrors.servicio_id = "Seleccione un servicio";
-    }
 
-    if (!formData.empleado_id) {
+    if (!formData.empleado_id)
       newErrors.empleado_id = "Seleccione un empleado";
-    }
 
-    if (!formData.estado_cita_id) {
+    if (!formData.estado_cita_id)
       newErrors.estado_cita_id = "Seleccione un estado";
-    }
+
+    if (!formData.metodo_pago)
+      newErrors.metodo_pago = "Seleccione un método de pago";
 
     if (!formData.fecha) {
       newErrors.fecha = "Seleccione una fecha";
     } else {
       const hoy = new Date();
       hoy.setHours(0, 0, 0, 0);
-      if (formData.fecha < hoy) {
+      if (formData.fecha < hoy)
         newErrors.fecha = "La fecha no puede ser anterior a hoy";
-      }
     }
 
-    if (!formData.hora) {
+    if (!formData.hora)
       newErrors.hora = "Seleccione una hora";
-    }
 
     if (!formData.duracion) {
       newErrors.duracion = "Ingrese la duración";
     } else if (formData.duracion < 15 || formData.duracion > 180) {
-      newErrors.duracion = "La duración debe estar entre 15 y 180 minutos";
+      newErrors.duracion = "Debe estar entre 15 y 180 minutos";
     }
 
     if (Object.keys(newErrors).length) {
@@ -131,234 +159,203 @@ export default function CitaForm({
       return;
     }
 
-    // Preparar datos para enviar - SOLO método de pago es manual, el resto viene de la API
+    // Adaptar formato backend
     const datosEnvio = {
-      cliente_id: formData.cliente_id,
-      servicio_id: formData.servicio_id,
-      empleado_id: formData.empleado_id,
-      estado_cita_id: formData.estado_cita_id,
-      metodo_pago: formData.metodo_pago, // Único campo manual
-      fecha: formData.fecha ? formData.fecha.toISOString().split('T')[0] : null,
-      hora: formData.hora ? 
-        `${formData.hora.getHours().toString().padStart(2, '0')}:${formData.hora.getMinutes().toString().padStart(2, '0')}` 
+      ...formData,
+      fecha: formData.fecha
+        ? formData.fecha.toISOString().split("T")[0]
         : null,
-      duracion: formData.duracion
+      hora: formData.hora
+        ? `${formData.hora.getHours()
+            .toString()
+            .padStart(2, "0")}:${formData.hora
+            .getMinutes()
+            .toString()
+            .padStart(2, "0")}`
+        : null,
     };
 
     onSubmit?.(datosEnvio);
   };
 
+  // ============================
+  // OPTIONS
+  // ============================
+  const metodoPagoOptions = [
+    { value: "", label: "-- Seleccione método --" },
+    { value: "Efectivo", label: "Efectivo" },
+    { value: "Tarjeta", label: "Tarjeta" },
+    { value: "Transferencia", label: "Transferencia" },
+  ];
+
+  // ============================
+  // UI
+  // ============================
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={esLocale}>
+    <LocalizationProvider
+      dateAdapter={AdapterDateFns}
+      adapterLocale={esLocale}
+    >
       <BaseFormLayout title={title}>
         <BaseFormSection title="Información de la Cita">
-          <Grid container spacing={3}>
-            {/* Cliente - de API */}
-            <Grid item xs={12} md={6}>
-              <BaseFormField>
-                <TextField
-                  select
-                  fullWidth
-                  label="Cliente*"
-                  name="cliente_id"
-                  value={formData.cliente_id}
-                  onChange={handleChange}
-                  disabled={isView}
-                  size="small"
-                  required
-                  error={!!errors.cliente_id}
-                >
-                  <MenuItem value="">Seleccionar cliente</MenuItem>
-                  {clientes.map((cliente) => (
-                    <MenuItem key={cliente.id} value={cliente.id}>
-                      {cliente.nombre} {cliente.apellido || ''}
-                    </MenuItem>
-                  ))}
-                </TextField>
-                <FormHelperText error>
-                  {errors.cliente_id || " "}
-                </FormHelperText>
-              </BaseFormField>
-            </Grid>
 
-            {/* Servicio - de API */}
-            <Grid item xs={12} md={6}>
-              <BaseFormField>
-                <TextField
-                  select
-                  fullWidth
-                  label="Servicio*"
-                  name="servicio_id"
-                  value={formData.servicio_id}
-                  onChange={handleChange}
-                  disabled={isView}
-                  size="small"
-                  required
-                  error={!!errors.servicio_id}
-                >
-                  <MenuItem value="">Seleccionar servicio</MenuItem>
-                  {servicios.map((servicio) => (
-                    <MenuItem key={servicio.id} value={servicio.id}>
-                      {servicio.nombre}
-                    </MenuItem>
-                  ))}
-                </TextField>
-                <FormHelperText error>
-                  {errors.servicio_id || " "}
-                </FormHelperText>
-              </BaseFormField>
-            </Grid>
+          <BaseFormField>
+            <BaseInputField
+              label="Cliente"
+              name="cliente_id"
+              select
+              value={formData.cliente_id}
+              onChange={handleChange}
+              disabled={isView}
+              options={[
+                { value: "", label: "-- Seleccione --" },
+                ...clientes.map((c) => ({
+                  value: c.id,
+                  label: `${c.nombre} ${c.apellido || ""}`,
+                })),
+              ]}
+              required
+              error={!!errors.cliente_id}
+              helperText={errors.cliente_id}
+            />
+          </BaseFormField>
 
-            {/* Empleado - de API */}
-            <Grid item xs={12} md={6}>
-              <BaseFormField>
-                <TextField
-                  select
-                  fullWidth
-                  label="Empleado*"
-                  name="empleado_id"
-                  value={formData.empleado_id}
-                  onChange={handleChange}
-                  disabled={isView}
-                  size="small"
-                  required
-                  error={!!errors.empleado_id}
-                >
-                  <MenuItem value="">Seleccionar empleado</MenuItem>
-                  {empleados
-                    .filter(emp => emp.estado === "activo" || emp.estado === true)
-                    .map((empleado) => (
-                      <MenuItem key={empleado.id} value={empleado.id}>
-                        {empleado.nombre}
-                      </MenuItem>
-                    ))}
-                </TextField>
-                <FormHelperText error>
-                  {errors.empleado_id || " "}
-                </FormHelperText>
-              </BaseFormField>
-            </Grid>
+          <BaseFormField>
+            <BaseInputField
+              label="Servicio"
+              name="servicio_id"
+              select
+              value={formData.servicio_id}
+              onChange={handleChange}
+              disabled={isView}
+              options={[
+                { value: "", label: "-- Seleccione --" },
+                ...servicios.map((s) => ({
+                  value: s.id,
+                  label: s.nombre,
+                })),
+              ]}
+              required
+              error={!!errors.servicio_id}
+              helperText={errors.servicio_id}
+            />
+          </BaseFormField>
 
-            {/* Estado Cita - de API */}
-            <Grid item xs={12} md={6}>
-              <BaseFormField>
-                <TextField
-                  select
-                  fullWidth
-                  label="Estado de la Cita*"
-                  name="estado_cita_id"
-                  value={formData.estado_cita_id}
-                  onChange={handleChange}
-                  disabled={isView}
-                  size="small"
-                  required
-                  error={!!errors.estado_cita_id}
-                >
-                  <MenuItem value="">Seleccionar estado</MenuItem>
-                  {estadosCita.map((estado) => (
-                    <MenuItem key={estado.id} value={estado.id}>
-                      {estado.nombre}
-                    </MenuItem>
-                  ))}
-                </TextField>
-                <FormHelperText error>
-                  {errors.estado_cita_id || " "}
-                </FormHelperText>
-              </BaseFormField>
-            </Grid>
+          <BaseFormField>
+            <BaseInputField
+              label="Empleado"
+              name="empleado_id"
+              select
+              value={formData.empleado_id}
+              onChange={handleChange}
+              disabled={isView}
+              options={[
+                { value: "", label: "-- Seleccione --" },
+                ...empleados
+                  .filter(e => e.estado === "activo" || e.estado === true)
+                  .map((e) => ({
+                    value: e.id,
+                    label: e.nombre,
+                  })),
+              ]}
+              required
+              error={!!errors.empleado_id}
+              helperText={errors.empleado_id}
+            />
+          </BaseFormField>
 
-            {/* Método de Pago - ÚNICO MANUAL */}
-            <Grid item xs={12} md={6}>
-              <BaseFormField>
-                <TextField
-                  select
-                  fullWidth
-                  label="Método de Pago*"
-                  name="metodo_pago"
-                  value={formData.metodo_pago}
-                  onChange={handleChange}
-                  disabled={isView}
-                  size="small"
-                  required
-                  error={!!errors.metodo_pago}
-                >
-                  <MenuItem value="">Seleccionar método</MenuItem>
-                  <MenuItem value="Efectivo">Efectivo</MenuItem>
-                  <MenuItem value="Tarjeta">Tarjeta</MenuItem>
-                  <MenuItem value="Transferencia">Transferencia</MenuItem>
-                </TextField>
-                <FormHelperText error>
-                  {errors.metodo_pago || " "}
-                </FormHelperText>
-              </BaseFormField>
-            </Grid>
+          <BaseFormField>
+            <BaseInputField
+              label="Estado"
+              name="estado_cita_id"
+              select
+              value={formData.estado_cita_id}
+              onChange={handleChange}
+              disabled={isView}
+              options={[
+                { value: "", label: "-- Seleccione --" },
+                ...estadosCita.map((e) => ({
+                  value: e.id,
+                  label: e.nombre,
+                })),
+              ]}
+              required
+              error={!!errors.estado_cita_id}
+              helperText={errors.estado_cita_id}
+            />
+          </BaseFormField>
 
-            {/* Duración - de API (viene en initialData) */}
-            <Grid item xs={12} md={6}>
-              <BaseFormField>
-                <BaseInputField
-                  label="Duración (minutos)*"
-                  name="duracion"
-                  type="number"
-                  value={formData.duracion}
-                  onChange={handleChange}
-                  disabled={isView}
-                  required
-                  asterisk
-                  InputProps={{ inputProps: { min: 15, max: 180, step: 5 } }}
-                />
-                <FormHelperText error>
-                  {errors.duracion || " "}
-                </FormHelperText>
-              </BaseFormField>
-            </Grid>
+          <BaseFormField>
+            <BaseInputField
+              label="Método de Pago"
+              name="metodo_pago"
+              select
+              value={formData.metodo_pago}
+              onChange={handleChange}
+              disabled={isView}
+              options={metodoPagoOptions}
+              required
+              error={!!errors.metodo_pago}
+              helperText={errors.metodo_pago}
+            />
+          </BaseFormField>
 
-            {/* Fecha - de API */}
-            <Grid item xs={12} md={6}>
-              <BaseFormField>
-                <DatePicker
-                  label="Fecha*"
-                  value={formData.fecha}
-                  onChange={handleDateChange}
-                  disabled={isView}
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      size: "small",
-                      error: !!errors.fecha,
-                      required: true
-                    }
-                  }}
-                />
-                <FormHelperText error>
-                  {errors.fecha || " "}
-                </FormHelperText>
-              </BaseFormField>
-            </Grid>
+          <BaseFormField>
+            <BaseInputField
+              label="Duración (min)"
+              name="duracion"
+              type="number"
+              value={formData.duracion}
+              onChange={handleChange}
+              disabled={isView}
+              required
+              error={!!errors.duracion}
+              helperText={errors.duracion}
+            />
+          </BaseFormField>
 
-            {/* Hora - de API */}
-            <Grid item xs={12} md={6}>
-              <BaseFormField>
-                <TimePicker
-                  label="Hora*"
-                  value={formData.hora}
-                  onChange={handleTimeChange}
-                  disabled={isView}
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      size: "small",
-                      error: !!errors.hora,
-                      required: true
-                    }
-                  }}
-                />
-                <FormHelperText error>
-                  {errors.hora || " "}
-                </FormHelperText>
-              </BaseFormField>
-            </Grid>
-          </Grid>
+          {/* FECHA */}
+          <BaseFormField>
+            <DatePicker
+              label="Fecha"
+              value={formData.fecha}
+              onChange={handleDateChange}
+              disabled={isView}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                  size: "small",
+                  error: !!errors.fecha,
+                  required: true,
+                },
+              }}
+            />
+            <FormHelperText error>
+              {errors.fecha || " "}
+            </FormHelperText>
+          </BaseFormField>
+
+          {/* HORA */}
+          <BaseFormField>
+            <TimePicker
+              label="Hora"
+              value={formData.hora}
+              onChange={handleTimeChange}
+              disabled={isView}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                  size: "small",
+                  error: !!errors.hora,
+                  required: true,
+                },
+              }}
+            />
+            <FormHelperText error>
+              {errors.hora || " "}
+            </FormHelperText>
+          </BaseFormField>
+
         </BaseFormSection>
 
         <BaseFormActions

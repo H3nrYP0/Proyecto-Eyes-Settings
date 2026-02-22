@@ -21,7 +21,6 @@ export async function getCitaById(id) {
 // Crear cita
 // ============================
 export async function createCita(data) {
-  // Adaptar de camelCase a snake_case para el backend
   const payload = {
     cliente_id: data.cliente_id,
     servicio_id: data.servicio_id,
@@ -38,7 +37,7 @@ export async function createCita(data) {
 }
 
 // ============================
-// Actualizar cita
+// Actualizar cita COMPLETA
 // ============================
 export async function updateCita(id, data) {
   const payload = {
@@ -50,6 +49,29 @@ export async function updateCita(id, data) {
     hora: data.hora,
     duracion: data.duracion,
     fecha: data.fecha
+  };
+
+  const res = await api.put(`/citas/${id}`, payload);
+  return res.data;
+}
+
+// ============================
+// Actualizar SOLO el estado de la cita
+// ============================
+export async function updateCitaStatus(id, estado_cita_id) {
+  // Primero obtenemos la cita actual
+  const citaActual = await getCitaById(id);
+  
+  // Actualizamos solo el estado
+  const payload = {
+    cliente_id: citaActual.cliente_id,
+    servicio_id: citaActual.servicio_id,
+    empleado_id: citaActual.empleado_id,
+    estado_cita_id: estado_cita_id,
+    metodo_pago: citaActual.metodo_pago,
+    hora: citaActual.hora,
+    duracion: citaActual.duracion,
+    fecha: citaActual.fecha
   };
 
   const res = await api.put(`/citas/${id}`, payload);

@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import CitaForm from "./components/citasForm";
 import { createCita } from "../../../../lib/data/citasData";
 import { getAllClientes } from "../../../../lib/data/clientesData";
 import { getAllServicios } from "../../../../lib/data/serviciosData";
 import { getAllEmpleados } from "../../../../lib/data/empleadosData";
 import { getAllEstadosCita } from "../../../../lib/data/estadosCitaData";
+import Loading from "../../../../shared/components/ui/Loading";
+import CitaForm from "./components/citasForm";
 
 export default function CrearCita() {
   const navigate = useNavigate();
@@ -19,21 +20,19 @@ export default function CrearCita() {
   useEffect(() => {
     const cargarDatos = async () => {
       try {
-        const [clientesData, serviciosData, empleadosData, estadosData] = await Promise.all([
-          getAllClientes(),
-          getAllServicios(),
-          getAllEmpleados(),
-          getAllEstadosCita()
-        ]);
+        const [clientesData, serviciosData, empleadosData, estadosData] = 
+          await Promise.all([
+            getAllClientes(),
+            getAllServicios(),
+            getAllEmpleados(),
+            getAllEstadosCita()
+          ]);
 
         setClientes(Array.isArray(clientesData) ? clientesData : []);
         setServicios(Array.isArray(serviciosData) ? serviciosData : []);
         
-        // Normalizar empleados
-        const empleadosNormalizados = (Array.isArray(empleadosData) ? empleadosData : []).map(e => ({
-          ...e,
-          estado: e.estado === true ? "activo" : "inactivo"
-        }));
+        const empleadosNormalizados = (Array.isArray(empleadosData) ? empleadosData : [])
+          .map(e => ({ ...e, estado: e.estado === true ? "activo" : "inactivo" }));
         setEmpleados(empleadosNormalizados);
         
         setEstadosCita(Array.isArray(estadosData) ? estadosData : []);
@@ -47,20 +46,24 @@ export default function CrearCita() {
     cargarDatos();
   }, []);
 
-  const handleCreate = async (data) => {
-    await createCita(data);
-    navigate("/admin/servicios/citas");
+  const handleSubmit = async (data) => {
+    try {
+      await createCita(data);
+      navigate("/admin/servicios/citas");
+    } catch (error) {
+      console.error("Error creando cita:", error);
+    }
   };
 
   if (loading) {
-    return <div>Cargando...</div>;
+    return <Loading message="Cargando formulario de creación..." />;
   }
 
   return (
     <CitaForm
       mode="create"
-      title="Registrar Nueva Cita"
-      onSubmit={handleCreate}
+      title="Nueva Cita"
+      onSubmit={handleSubmit}
       onCancel={() => navigate("/admin/servicios/citas")}
       clientes={clientes}
       servicios={servicios}

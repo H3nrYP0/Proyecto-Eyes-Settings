@@ -3,14 +3,17 @@ import { useNavigate } from "react-router-dom";
 import CrudLayout from "../../../../shared/components/crud/CrudLayout";
 import CrudTable from "../../../../shared/components/crud/CrudTable";
 import Modal from "../../../../shared/components/ui/Modal";
+import Loading from "../../../../shared/components/ui/Loading";
+
 import "../../../../shared/styles/components/crud-table.css";
 import "../../../../shared/styles/components/modal.css";
 
-// Backend (API real)
 import {
   getAllCitas,
   deleteCita,
+  updateCitaStatus,
 } from "../../../../lib/data/citasData";
+
 import { getAllEstadosCita } from "../../../../lib/data/estadosCitaData";
 
 export default function Citas() {
@@ -18,8 +21,12 @@ export default function Citas() {
 
   const [citas, setCitas] = useState([]);
   const [estadosCita, setEstadosCita] = useState([]);
+
   const [search, setSearch] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [modalDelete, setModalDelete] = useState({
     open: false,
@@ -28,42 +35,67 @@ export default function Citas() {
   });
 
   // ============================
-  // CARGA DE DATOS (API)
+  // NORMALIZAR DATA
+  // ============================
+  const normalizarCitas = (data = []) =>
+    data.map((c) => ({
+      ...c,
+      fecha_formateada: c.fecha
+        ? new Date(c.fecha).toLocaleDateString("es-ES")
+        : "N/A",
+      hora_formateada: c.hora?.substring(0, 5) || "N/A",
+      estado: c.estado_nombre || "N/A",
+      estadosDisponibles: estadosCita.map(e => e.nombre),
+    }));
+
+  // ============================
+  // CARGAR DATOS
   // ============================
   const cargarCitas = async () => {
     try {
-      const data = await getAllCitas();
-      setCitas(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error("Error cargando citas:", error);
-      setCitas([]);
-    }
-  };
+      setLoading(true);
+      setError(null);
 
-  const cargarEstadosCita = async () => {
-    try {
-      const data = await getAllEstadosCita();
-      setEstadosCita(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error("Error cargando estados de cita:", error);
-      setEstadosCita([]);
+      const [citasData, estadosData] = await Promise.all([
+        getAllCitas(),
+        getAllEstadosCita(),
+      ]);
+
+      setEstadosCita(Array.isArray(estadosData) ? estadosData : []);
+      
+      const citasNormalizadas = normalizarCitas(citasData);
+      setCitas(citasNormalizadas);
+    } catch (err) {
+      console.error(err);
+      setError("No se pudieron cargar las citas");
+      setCitas([]);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
+    if (citas.length > 0 && estadosCita.length > 0) {
+      setCitas(prev => normalizarCitas(prev));
+    }
+  }, [estadosCita]);
+
+  useEffect(() => {
     cargarCitas();
-    cargarEstadosCita();
   }, []);
 
   // ============================
   // ELIMINAR
   // ============================
-  const handleDelete = (id, descripcion) => {
-    const cita = citas.find(c => c.id === id);
-    const desc = cita ? 
-      `${cita.cliente_nombre || 'Cliente'} - ${cita.servicio_nombre || 'Servicio'}` : 
-      'cita';
-    setModalDelete({ open: true, id, descripcion: desc });
+  const handleDelete = (id) => {
+    const cita = citas.find((c) => c.id === id);
+
+    setModalDelete({
+      open: true,
+      id,
+      descripcion:
+        `${cita?.cliente_nombre || "Cliente"} - ${cita?.servicio_nombre || "Servicio"}`,
+    });
   };
 
   const confirmDelete = async () => {
@@ -77,79 +109,56 @@ export default function Citas() {
   // ============================
   const filteredCitas = citas.filter((cita) => {
     const matchesSearch =
-      (cita.cliente_nombre?.toLowerCase() || "").includes(search.toLowerCase()) ||
-      (cita.servicio_nombre?.toLowerCase() || "").includes(search.toLowerCase()) ||
-      (cita.empleado_nombre?.toLowerCase() || "").includes(search.toLowerCase());
+      cita.cliente_nombre?.toLowerCase().includes(search.toLowerCase()) ||
+      cita.servicio_nombre?.toLowerCase().includes(search.toLowerCase()) ||
+      cita.empleado_nombre?.toLowerCase().includes(search.toLowerCase());
 
-    const matchesEstado = !filterEstado || cita.estado_cita_id === parseInt(filterEstado);
+    const matchesEstado =
+      !filterEstado ||
+      cita.estado_cita_id === parseInt(filterEstado);
 
     return matchesSearch && matchesEstado;
   });
 
-  // Filtros desde la API
   const estadoFilters = [
     { value: "", label: "Todos los estados" },
-    ...estadosCita.map(estado => ({ 
-      value: estado.id.toString(), 
-      label: estado.nombre 
-    }))
+    ...estadosCita.map((e) => ({
+      value: e.id.toString(),
+      label: e.nombre,
+    })),
   ];
+
+  // ============================
+  // MANEJAR CAMBIO DE ESTADO
+  // ============================
+  const handleChangeStatus = async (row, newStatus) => {
+    try {
+      console.log("Cambiando estado de:", row.cliente_nombre, "a:", newStatus);
+      
+      const estadoSeleccionado = estadosCita.find(e => e.nombre === newStatus);
+      
+      if (!estadoSeleccionado) {
+        console.error("No se encontró el estado:", newStatus);
+        return;
+      }
+
+      await updateCitaStatus(row.id, estadoSeleccionado.id);
+      await cargarCitas();
+      
+    } catch (error) {
+      console.error("Error al cambiar estado:", error);
+      setError("No se pudo cambiar el estado de la cita");
+    }
+  };
 
   // ============================
   // COLUMNAS
   // ============================
   const columns = [
-    { 
-      field: "cliente_nombre", 
-      header: "Cliente",
-      render: (row) => row.cliente_nombre || 'N/A'
-    },
-    { 
-      field: "servicio_nombre", 
-      header: "Servicio",
-      render: (row) => row.servicio_nombre || 'N/A'
-    },
-    { 
-      field: "fecha", 
-      header: "Fecha",
-      render: (row) => {
-        if (!row.fecha) return 'N/A';
-        const fecha = new Date(row.fecha);
-        return fecha.toLocaleDateString('es-ES');
-      }
-    },
-    { 
-      field: "hora", 
-      header: "Hora",
-      render: (row) => row.hora ? row.hora.substring(0, 5) : 'N/A'
-    },
-    { 
-      field: "estado_nombre", 
-      header: "Estado",
-      render: (row) => {
-        // Determinar clase CSS basada en el estado
-        let badgeClass = "badge";
-        const estadoNombre = (row.estado_nombre || '').toLowerCase();
-        
-        if (estadoNombre.includes('pendiente')) {
-          badgeClass += " badge-warning";
-        } else if (estadoNombre.includes('confirmada') || estadoNombre.includes('activa')) {
-          badgeClass += " badge-success";
-        } else if (estadoNombre.includes('cancelada')) {
-          badgeClass += " badge-danger";
-        } else if (estadoNombre.includes('completada')) {
-          badgeClass += " badge-info";
-        } else {
-          badgeClass += " badge-secondary";
-        }
-        
-        return (
-          <span className={badgeClass}>
-            {row.estado_nombre || 'Pendiente'}
-          </span>
-        );
-      }
-    },
+    { field: "cliente_nombre", header: "Cliente" },
+    { field: "servicio_nombre", header: "Servicio" },
+    { field: "fecha_formateada", header: "Fecha" },
+    { field: "hora_formateada", header: "Hora" },
   ];
 
   // ============================
@@ -169,9 +178,20 @@ export default function Citas() {
     {
       label: "Eliminar",
       type: "delete",
-      onClick: (item) => handleDelete(item.id, item.cliente_nombre),
+      onClick: (item) => handleDelete(item.id),
     },
   ];
+
+  // ============================
+  // LOADING INICIAL
+  // ============================
+  if (loading && citas.length === 0) {
+    return (
+      <CrudLayout title="Citas" showSearch>
+        <Loading message="Cargando citas..." />
+      </CrudLayout>
+    );
+  }
 
   return (
     <CrudLayout
@@ -185,18 +205,23 @@ export default function Citas() {
       filterEstado={filterEstado}
       onFilterChange={setFilterEstado}
     >
+      {error && (
+        <div className="crud-error">
+          ⚠️ {error}
+        </div>
+      )}
+
       <CrudTable
         columns={columns}
         data={filteredCitas}
         actions={tableActions}
+        onChangeStatus={handleChangeStatus}
         emptyMessage={
           search || filterEstado
             ? "No se encontraron citas para los filtros aplicados"
             : "No hay citas registradas"
         }
       />
-
-
 
       <Modal
         open={modalDelete.open}
@@ -207,7 +232,9 @@ export default function Citas() {
         cancelText="Cancelar"
         showCancel
         onConfirm={confirmDelete}
-        onCancel={() => setModalDelete({ open: false, id: null, descripcion: "" })}
+        onCancel={() =>
+          setModalDelete({ open: false, id: null, descripcion: "" })
+        }
       />
     </CrudLayout>
   );
