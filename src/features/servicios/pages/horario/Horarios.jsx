@@ -2,16 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getEmpleadoById } from '../../../../lib/data/empleadosData';
 import "../../../../shared/styles/components/horario.css";
-import { 
-  getHorariosByEmpleado, 
-  getHorariosEspecialesByEmpleado,
-  createHorario,
-  updateHorario,
-  deleteHorario,
-  diasSemana,
-  tiposHorario,
-  verificarDisponibilidad
-} from '../../../../lib/data/horariosData';
+
 import "../../../../shared/styles/components/crud-forms.css";
 
 export default function Horarios() {

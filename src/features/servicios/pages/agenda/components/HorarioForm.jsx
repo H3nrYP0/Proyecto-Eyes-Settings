@@ -1,10 +1,22 @@
 import { useState, useEffect } from "react";
-import { Grid, MenuItem, TextField, FormHelperText } from "@mui/material";
+import { Grid } from "@mui/material";
 
 import BaseFormLayout from "../../../../../shared/components/base/BaseFormLayout";
 import BaseFormSection from "../../../../../shared/components/base/BaseFormSection";
 import BaseFormField from "../../../../../shared/components/base/BaseFormField";
 import BaseFormActions from "../../../../../shared/components/base/BaseFormActions";
+import BaseInputField from "../../../../../shared/components/base/BaseInputField";
+
+// Mapeo de días (0 = lunes, 1 = martes, ... 6 = domingo)
+const diasSemana = [
+  { value: 0, label: "Lunes" },
+  { value: 1, label: "Martes" },
+  { value: 2, label: "Miércoles" },
+  { value: 3, label: "Jueves" },
+  { value: 4, label: "Viernes" },
+  { value: 5, label: "Sábado" },
+  { value: 6, label: "Domingo" },
+];
 
 export default function HorarioForm({
   mode = "create",
@@ -31,21 +43,11 @@ export default function HorarioForm({
       setFormData({
         empleado_id: initialData.empleado_id || "",
         dia: initialData.dia ?? "",
-        hora_inicio: initialData.hora_inicio || "",
-        hora_final: initialData.hora_final || "",
+        hora_inicio: initialData.hora_inicio?.substring(0,5) || "",
+        hora_final: initialData.hora_final?.substring(0,5) || "",
       });
     }
   }, [initialData]);
-
-  const diasSemana = [
-    { value: 0, label: "Lunes" },
-    { value: 1, label: "Martes" },
-    { value: 2, label: "Miércoles" },
-    { value: 3, label: "Jueves" },
-    { value: 4, label: "Viernes" },
-    { value: 5, label: "Sábado" },
-    { value: 6, label: "Domingo" },
-  ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -108,100 +110,84 @@ export default function HorarioForm({
           {/* Empleado */}
           <Grid item xs={12} md={6}>
             <BaseFormField>
-              <TextField
-                select
-                fullWidth
-                label="Empleado*"
+              <BaseInputField
+                label="Empleado"
                 name="empleado_id"
+                select
                 value={formData.empleado_id}
                 onChange={handleChange}
                 disabled={isView}
-                size="small"
+                options={[
+                  { value: "", label: "-- Seleccione empleado --" },
+                  ...empleados.map((emp) => ({
+                    value: emp.id,
+                    label: emp.nombre,
+                  })),
+                ]}
                 required
                 error={!!errors.empleado_id}
-              >
-                <MenuItem value="">Seleccionar empleado</MenuItem>
-                {empleados.map((emp) => (
-                  <MenuItem key={emp.id} value={emp.id}>
-                    {emp.nombre}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <FormHelperText error>
-                {errors.empleado_id || " "}
-              </FormHelperText>
+                helperText={errors.empleado_id}
+              />
             </BaseFormField>
           </Grid>
 
           {/* Día */}
           <Grid item xs={12} md={6}>
             <BaseFormField>
-              <TextField
-                select
-                fullWidth
-                label="Día de la semana*"
+              <BaseInputField
+                label="Día de la semana"
                 name="dia"
+                select
                 value={formData.dia}
                 onChange={handleChange}
                 disabled={isView}
-                size="small"
+                options={[
+                  { value: "", label: "-- Seleccione día --" },
+                  ...diasSemana.map((dia) => ({
+                    value: dia.value,
+                    label: dia.label,
+                  })),
+                ]}
                 required
                 error={!!errors.dia}
-              >
-                <MenuItem value="">Seleccionar día</MenuItem>
-                {diasSemana.map((dia) => (
-                  <MenuItem key={dia.value} value={dia.value}>
-                    {dia.label}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <FormHelperText error>
-                {errors.dia || " "}
-              </FormHelperText>
+                helperText={errors.dia}
+              />
             </BaseFormField>
           </Grid>
 
           {/* Hora inicio */}
           <Grid item xs={12} md={6}>
             <BaseFormField>
-              <TextField
-                fullWidth
-                label="Hora Inicio*"
-                type="time"
+              <BaseInputField
+                label="Hora Inicio"
                 name="hora_inicio"
+                type="time"
                 value={formData.hora_inicio}
                 onChange={handleChange}
                 disabled={isView}
-                size="small"
                 required
-                InputLabelProps={{ shrink: true }}
                 error={!!errors.hora_inicio}
+                helperText={errors.hora_inicio}
+                InputLabelProps={{ shrink: true }}
               />
-              <FormHelperText error>
-                {errors.hora_inicio || " "}
-              </FormHelperText>
             </BaseFormField>
           </Grid>
 
           {/* Hora final */}
           <Grid item xs={12} md={6}>
             <BaseFormField>
-              <TextField
-                fullWidth
-                label="Hora Final*"
-                type="time"
+              <BaseInputField
+                label="Hora Final"
                 name="hora_final"
+                type="time"
                 value={formData.hora_final}
                 onChange={handleChange}
                 disabled={isView}
-                size="small"
                 required
-                InputLabelProps={{ shrink: true }}
                 error={!!errors.hora_final}
+                helperText={errors.hora_final}
+                InputLabelProps={{ shrink: true }}
               />
-              <FormHelperText error>
-                {errors.hora_final || " "}
-              </FormHelperText>
             </BaseFormField>
           </Grid>
 

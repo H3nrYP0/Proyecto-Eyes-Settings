@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import HorarioForm from "./components/HorarioForm";
-import { createAgenda, getEmpleados } from "../../../../lib/data/agendaData";
+import { createAgenda } from "../../../../lib/data/agendaData";
+import { getAllEmpleados } from "../../../../lib/data/empleadosData"; // ← CORREGIDO
 
 export default function CrearAgenda() {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ export default function CrearAgenda() {
   }, []);
 
   const cargarEmpleados = async () => {
-    const data = await getEmpleados();
+    const data = await getAllEmpleados(); // ← USAR getAllEmpleados
     setEmpleados(data || []);
   };
 

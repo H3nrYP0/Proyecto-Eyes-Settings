@@ -65,6 +65,8 @@ import Agenda from "../../../features/servicios/pages/agenda/Agenda";
 import CrearAgenda from "../../../features/servicios/pages/agenda/CrearAgenda";
 import EditarAgenda from "../../../features/servicios/pages/agenda/EditarAgenda";
 import DetalleAgenda from "../../../features/servicios/pages/agenda/DetalleAgenda";
+import ListaHorarios from "../../../features/servicios/pages/agenda/ListaHorarios";
+import EditarHorario from "../../../features/servicios/pages/agenda/EditarHorario";
 
 import Horarios from "../../../features/servicios/pages/horario/Horarios";
 
@@ -241,6 +243,8 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               <Route path="agenda/crear" element={<CrearAgenda />} />
               <Route path="agenda/editar/:id" element={<EditarAgenda />} />
               <Route path="agenda/detalle/:id" element={<DetalleAgenda />} />
+              <Route path="agenda/editar/:id" element={<EditarHorario />} />
+              <Route path="agenda/horarios" element={<ListaHorarios />} />
 
               <Route path="horarios" element={<Horarios />} />
               <Route path="campanas-salud" element={<CampanasSalud />} />

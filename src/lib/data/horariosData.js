@@ -1,160 +1,117 @@
-// Base de datos temporal de horarios
-let horariosDB = [
-  {
-    id: 1,
-    empleadoId: 1,
-    empleadoNombre: "Dr. Carlos Méndez",
-    tipo: "regular", // regular, especial, vacaciones
-    dias: ["lunes", "martes", "miercoles", "jueves", "viernes"],
-    horaInicio: "08:00",
-    horaFinal: "17:00",
-    descansoInicio: "12:00",
-    descansoFinal: "13:00",
-    fechaInicio: "2024-01-01",
-    fechaFin: null, // null para horarios permanentes
-    estado: "activo"
-  },
-  {
-    id: 2,
-    empleadoId: 2,
-    empleadoNombre: "Dra. Ana Rodríguez",
-    tipo: "regular",
-    dias: ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado"],
-    horaInicio: "09:00",
-    horaFinal: "18:00",
-    descansoInicio: "13:00",
-    descansoFinal: "14:00",
-    fechaInicio: "2024-01-01",
-    fechaFin: null,
-    estado: "activo"
-  }
-];
+import api from "../axios";
 
-// Horarios especiales
-let horariosEspecialesDB = [
-  {
-    id: 1,
-    empleadoId: 1,
-    tipo: "vacaciones",
-    fechaInicio: "2024-12-20",
-    fechaFin: "2024-12-31",
-    motivo: "Vacaciones de fin de año",
-    estado: "activo"
-  }
-];
-
-// Listas para selects
+// Mapeo de días (0 = lunes, 1 = martes, ... 6 = domingo)
 export const diasSemana = [
-  { value: "lunes", label: "Lunes" },
-  { value: "martes", label: "Martes" },
-  { value: "miercoles", label: "Miércoles" },
-  { value: "jueves", label: "Jueves" },
-  { value: "viernes", label: "Viernes" },
-  { value: "sabado", label: "Sábado" },
-  { value: "domingo", label: "Domingo" }
+  { value: 0, label: "Lunes" },
+  { value: 1, label: "Martes" },
+  { value: 2, label: "Miércoles" },
+  { value: 3, label: "Jueves" },
+  { value: 4, label: "Viernes" },
+  { value: 5, label: "Sábado" },
+  { value: 6, label: "Domingo" }
 ];
 
-export const tiposHorario = [
-  { value: "regular", label: "Horario Regular" },
-  { value: "especial", label: "Horario Especial" },
-  { value: "vacaciones", label: "Vacaciones" },
-  { value: "permiso", label: "Permiso" }
-];
-
-// Obtener horarios por empleado
-export function getHorariosByEmpleado(empleadoId) {
-  return horariosDB.filter(h => h.empleadoId === empleadoId && h.estado === "activo");
-}
-
-// Obtener horarios especiales por empleado
-export function getHorariosEspecialesByEmpleado(empleadoId) {
-  return horariosEspecialesDB.filter(h => h.empleadoId === empleadoId && h.estado === "activo");
-}
-
-// Verificar disponibilidad para una cita
-export function verificarDisponibilidad(empleadoId, fecha, hora) {
-  const fechaObj = new Date(fecha);
-  const diaSemana = fechaObj.toLocaleDateString('es-ES', { weekday: 'long' }).toLowerCase();
-  
-  // Buscar horarios regulares
-  const horariosRegulares = getHorariosByEmpleado(empleadoId);
-  const horarioDelDia = horariosRegulares.find(h => 
-    h.dias.includes(diaSemana) && 
-    hora >= h.horaInicio && 
-    hora <= h.horaFinal
-  );
-  
-  if (!horarioDelDia) return false;
-  
-  // Verificar si está en horario de descanso
-  if (hora >= horarioDelDia.descansoInicio && hora <= horarioDelDia.descansoFinal) {
-    return false;
+/* =========================================
+   OBTENER TODOS LOS HORARIOS
+========================================= */
+export async function getAllHorarios() {
+  try {
+    const res = await api.get("/horario");
+    return res.data;
+  } catch (error) {
+    console.error("Error cargando horarios:", error);
+    return [];
   }
-  
-  // Verificar horarios especiales (vacaciones, permisos)
-  const horariosEspeciales = getHorariosEspecialesByEmpleado(empleadoId);
-  const tieneHorarioEspecial = horariosEspeciales.some(h => {
-    const inicio = new Date(h.fechaInicio);
-    const fin = new Date(h.fechaFin);
-    return fechaObj >= inicio && fechaObj <= fin;
-  });
-  
-  return !tieneHorarioEspecial;
 }
 
-// ... mantener las otras funciones (create, update, delete, etc.)
+/* =========================================
+   OBTENER HORARIO POR ID
+========================================= */
+export async function getHorarioById(id) {
+  try {
+    const res = await api.get(`/horario/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error("Error cargando horario:", error);
+    return null;
+  }
+}
 
-// Crear horario
-export function createHorario(data) {
-  const newId = horariosDB.length ? horariosDB.at(-1).id + 1 : 1;
-  
-  // Calcular duración automáticamente
-  const duracion = calcularDuracion(data.horaInicio, data.horaFinal);
-  
-  const nuevoHorario = { 
-    id: newId, 
-    ...data,
-    duracion 
+/* =========================================
+   OBTENER HORARIOS POR EMPLEADO
+========================================= */
+export async function getHorariosByEmpleado(empleadoId) {
+  try {
+    const res = await api.get(`/horario/empleado/${empleadoId}`);
+    return res.data;
+  } catch (error) {
+    console.error("Error cargando horarios del empleado:", error);
+    return [];
+  }
+}
+
+/* =========================================
+   CREAR HORARIO
+========================================= */
+export async function createHorario(data) {
+  const payload = {
+    empleado_id: Number(data.empleado_id),
+    dia: Number(data.dia),
+    hora_inicio: data.hora_inicio,
+    hora_final: data.hora_final
   };
-  
-  horariosDB.push(nuevoHorario);
-  return nuevoHorario;
-}
 
-// Actualizar horario
-export function updateHorario(id, updated) {
-  const index = horariosDB.findIndex((h) => h.id === id);
-  if (index !== -1) {
-    // Recalcular duración si cambian las horas
-    const duracion = calcularDuracion(
-      updated.horaInicio || horariosDB[index].horaInicio,
-      updated.horaFinal || horariosDB[index].horaFinal
-    );
-    
-    horariosDB[index] = { 
-      ...horariosDB[index], 
-      ...updated,
-      duracion 
-    };
+  try {
+    const res = await api.post("/horario", payload);
+    return res.data;
+  } catch (error) {
+    console.error("Error creando horario:", error);
+    throw error;
   }
-  return horariosDB;
 }
 
-// Eliminar horario
-export function deleteHorario(id) {
-  horariosDB = horariosDB.filter((h) => h.id !== id);
-  return horariosDB;
+/* =========================================
+   ACTUALIZAR HORARIO
+========================================= */
+export async function updateHorario(id, updated) {
+  const payload = {
+    empleado_id: Number(updated.empleado_id),
+    dia: Number(updated.dia),
+    hora_inicio: updated.hora_inicio,
+    hora_final: updated.hora_final
+  };
+
+  try {
+    const res = await api.put(`/horario/${id}`, payload);
+    return res.data;
+  } catch (error) {
+    console.error("Error actualizando horario:", error);
+    throw error;
+  }
 }
 
-// Cambiar estado
-export function updateEstadoHorario(id) {
-  horariosDB = horariosDB.map((h) =>
-    h.id === id
-      ? { 
-          ...h, 
-          estado: h.estado === "activo" ? "inactivo" : "activo" 
-        }
-      : h
-  );
-  return horariosDB;
+/* =========================================
+   ELIMINAR HORARIO
+========================================= */
+export async function deleteHorario(id) {
+  try {
+    const res = await api.delete(`/horario/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error("Error eliminando horario:", error);
+    throw error;
+  }
+}
+
+/* =========================================
+   OBTENER EMPLEADOS (para selects)
+========================================= */
+export async function getEmpleados() {
+  try {
+    const res = await api.get("/empleados");
+    return res.data;
+  } catch (error) {
+    console.error("Error cargando empleados:", error);
+    return [];
+  }
 }
