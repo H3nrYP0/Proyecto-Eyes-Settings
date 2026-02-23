@@ -1,64 +1,105 @@
-let clientesDB = [];
+import api from "../axios";
 
-// ==============================
-// OBTENER TODOS
-// ==============================
-export function getAllClientes() {
-  return [...clientesDB];
+// ============================
+// Obtener todos los clientes
+// ============================
+export async function getAllClientes() {
+  const res = await api.get("/clientes");
+  return res.data;
 }
 
-// ==============================
-// OBTENER POR ID
-// ==============================
-export function getClienteById(id) {
-  return clientesDB.find((c) => c.id === id);
+// ============================
+// Obtener cliente por ID
+// ============================
+export async function getClienteById(id) {
+  try {
+    const res = await api.get(`/clientes/${id}`);
+    return res.data;
+  } catch (error) {
+    console.warn("Error al obtener cliente por ID, obteniendo de la lista completa");
+    const todos = await getAllClientes();
+    const cliente = todos.find(c => c.id === id);
+    return cliente || null;
+  }
 }
 
-// ==============================
-// CREAR
-// ==============================
-export function createCliente(data) {
-  const id = Date.now();
-
-  const nuevo = {
-    id,
-    estado: true,
-    ...data,
+// ============================
+// Crear cliente
+// ============================
+export async function createCliente(data) {
+  // Mapeo correcto de campos con valores cortos para tipo_documento
+  const payload = {
+    nombre: data.nombre,
+    apellido: data.apellido,
+    // Mapear a valores cortos (máx 4 caracteres)
+    tipo_documento: data.tipoDocumento === "cedula" ? "CC" : 
+                    data.tipoDocumento === "cedula_extranjeria" ? "CE" : 
+                    data.tipoDocumento === "pasaporte" ? "PA" : "OTRO",
+    numero_documento: data.documento,
+    fecha_nacimiento: data.fechaNacimiento,
+    genero: data.genero,
+    telefono: data.telefono || "",
+    correo: data.correo || "",
+    municipio: data.ciudad,
+    direccion: data.direccion || "",
+    ocupacion: "",
+    telefono_emergencia: "",
+    estado: true
   };
 
-  clientesDB.push(nuevo);
-  return nuevo;
+  console.log("Enviando payload al backend:", payload);
+
+  const res = await api.post("/clientes", payload);
+  return res.data;
 }
 
-// ==============================
-// ACTUALIZAR DATOS
-// ==============================
-export function updateCliente(id, updated) {
-  const index = clientesDB.findIndex((c) => c.id === id);
-  if (index !== -1) {
-    clientesDB[index] = { ...clientesDB[index], ...updated };
-    return clientesDB[index];
-  }
-  return null;
+// ============================
+// Actualizar cliente
+// ============================
+export async function updateCliente(id, data) {
+  const payload = {
+    nombre: data.nombre,
+    apellido: data.apellido,
+    tipo_documento: data.tipoDocumento === "cedula" ? "CC" : 
+                    data.tipoDocumento === "cedula_extranjeria" ? "CE" : 
+                    data.tipoDocumento === "pasaporte" ? "PA" : "OTRO",
+    numero_documento: data.documento,
+    fecha_nacimiento: data.fechaNacimiento,
+    genero: data.genero,
+    telefono: data.telefono || "",
+    correo: data.correo || "",
+    municipio: data.ciudad,
+    direccion: data.direccion || "",
+    ocupacion: "",
+    telefono_emergencia: ""
+  };
+
+  console.log("Actualizando cliente con payload:", payload);
+
+  const res = await api.put(`/clientes/${id}`, payload);
+  return res.data;
 }
 
-// ==============================
-// CAMBIAR ESTADO
-// ==============================
-export function updateEstadoCliente(id, nuevoEstado) {
-  const cliente = clientesDB.find((c) => c.id === id);
-
-  if (cliente) {
-    cliente.estado = nuevoEstado; // true o false
-    return cliente;
-  }
-
-  return null;
+// ============================
+// Eliminar cliente
+// ============================
+export async function deleteCliente(id) {
+  const res = await api.delete(`/clientes/${id}`);
+  return res.data;
 }
 
-// ==============================
-// ELIMINAR
-// ==============================
-export function deleteCliente(id) {
-  clientesDB = clientesDB.filter((c) => c.id !== id);
+// ============================
+// Cambiar estado cliente
+// ============================
+export async function updateEstadoCliente(id, nuevoEstado) {
+  const estadoBooleano = typeof nuevoEstado === "string" 
+    ? nuevoEstado === "activo" 
+    : nuevoEstado;
+
+  const payload = {
+    estado: estadoBooleano
+  };
+
+  const res = await api.put(`/clientes/${id}`, payload);
+  return res.data;
 }
