@@ -18,7 +18,27 @@ export async function getCitaById(id) {
 }
 
 // ============================
-// Crear cita
+// 🔴 NUEVO: Verificar disponibilidad
+// ============================
+export async function verificarDisponibilidad(empleadoId, fecha, hora, duracion = 30) {
+  try {
+    const res = await api.get("/verificar-disponibilidad", {
+      params: {
+        empleado_id: empleadoId,
+        fecha: fecha,
+        hora: hora,
+        duracion: duracion
+      }
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Error verificando disponibilidad:", error);
+    return { disponible: false, mensaje: "Error al verificar disponibilidad" };
+  }
+}
+
+// ============================
+// Crear cita (con manejo de errores mejorado)
 // ============================
 export async function createCita(data) {
   const payload = {
@@ -32,12 +52,29 @@ export async function createCita(data) {
     fecha: data.fecha
   };
 
-  const res = await api.post("/citas", payload);
-  return res.data;
+  try {
+    const res = await api.post("/citas", payload);
+    return { success: true, data: res.data };
+  } catch (error) {
+    // 🔴 Manejar errores específicos del backend
+    if (error.response?.data) {
+      const errorData = error.response.data;
+      return { 
+        success: false, 
+        error: errorData.error,
+        codigo: errorData.codigo,
+        horario: errorData.horario_inicio ? {
+          inicio: errorData.horario_inicio,
+          fin: errorData.horario_fin
+        } : null
+      };
+    }
+    throw error;
+  }
 }
 
 // ============================
-// Actualizar cita COMPLETA
+// Actualizar cita COMPLETA (con manejo de errores)
 // ============================
 export async function updateCita(id, data) {
   const payload = {
@@ -51,18 +88,28 @@ export async function updateCita(id, data) {
     fecha: data.fecha
   };
 
-  const res = await api.put(`/citas/${id}`, payload);
-  return res.data;
+  try {
+    const res = await api.put(`/citas/${id}`, payload);
+    return { success: true, data: res.data };
+  } catch (error) {
+    if (error.response?.data) {
+      const errorData = error.response.data;
+      return { 
+        success: false, 
+        error: errorData.error,
+        codigo: errorData.codigo
+      };
+    }
+    throw error;
+  }
 }
 
 // ============================
 // Actualizar SOLO el estado de la cita
 // ============================
 export async function updateCitaStatus(id, estado_cita_id) {
-  // Primero obtenemos la cita actual
   const citaActual = await getCitaById(id);
   
-  // Actualizamos solo el estado
   const payload = {
     cliente_id: citaActual.cliente_id,
     servicio_id: citaActual.servicio_id,

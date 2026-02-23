@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FormHelperText } from "@mui/material";
+import { FormHelperText, Alert } from "@mui/material"; // ← Agregar Alert
 
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -12,6 +12,9 @@ import BaseFormSection from "../../../../../shared/components/base/BaseFormSecti
 import BaseFormField from "../../../../../shared/components/base/BaseFormField";
 import BaseFormActions from "../../../../../shared/components/base/BaseFormActions";
 import BaseInputField from "../../../../../shared/components/base/BaseInputField";
+
+// 🔴 Importar función de verificación
+import { verificarDisponibilidad } from "../../../../../lib/data/citasData";
 
 export default function CitaForm({
   mode = "create",
@@ -42,6 +45,11 @@ export default function CitaForm({
   });
 
   const [errors, setErrors] = useState({});
+  
+  // 🔴 NUEVOS ESTADOS
+  const [verificando, setVerificando] = useState(false);
+  const [disponibilidad, setDisponibilidad] = useState(null);
+  const [errorDisponibilidad, setErrorDisponibilidad] = useState("");
 
   // ============================
   // LOAD INITIAL DATA
@@ -90,6 +98,53 @@ export default function CitaForm({
   }, [estadosCita, mode]);
 
   // ============================
+  // 🔴 VERIFICAR DISPONIBILIDAD CUANDO CAMBIAN EMPLEADO/FECHA/HORA/DURACION
+  // ============================
+  useEffect(() => {
+    const verificar = async () => {
+      // Solo verificar en modo crear/editar, no en vista
+      if (isView) return;
+      
+      // Verificar que tengamos todos los datos necesarios
+      if (!formData.empleado_id || !formData.fecha || !formData.hora) {
+        setDisponibilidad(null);
+        setErrorDisponibilidad("");
+        return;
+      }
+
+      setVerificando(true);
+      setErrorDisponibilidad("");
+
+      try {
+        const fechaStr = formData.fecha.toISOString().split("T")[0];
+        const horaStr = `${formData.hora.getHours().toString().padStart(2, "0")}:${formData.hora.getMinutes().toString().padStart(2, "0")}`;
+
+        const resultado = await verificarDisponibilidad(
+          formData.empleado_id,
+          fechaStr,
+          horaStr,
+          formData.duracion
+        );
+
+        setDisponibilidad(resultado);
+        
+        if (!resultado.disponible) {
+          setErrorDisponibilidad(resultado.mensaje);
+        }
+      } catch (error) {
+        console.error("Error verificando:", error);
+        setErrorDisponibilidad("Error al verificar disponibilidad");
+      } finally {
+        setVerificando(false);
+      }
+    };
+
+    // Usar timeout para no verificar en cada cambio
+    const timeoutId = setTimeout(verificar, 500);
+    return () => clearTimeout(timeoutId);
+  }, [formData.empleado_id, formData.fecha, formData.hora, formData.duracion, isView]);
+
+  // ============================
   // HANDLE CHANGE
   // ============================
   const handleChange = (e) => {
@@ -103,16 +158,26 @@ export default function CitaForm({
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
+    
+    // Limpiar disponibilidad cuando cambia el empleado
+    if (name === "empleado_id") {
+      setDisponibilidad(null);
+      setErrorDisponibilidad("");
+    }
   };
 
   const handleDateChange = (date) => {
     setFormData((p) => ({ ...p, fecha: date }));
     if (errors.fecha) setErrors((p) => ({ ...p, fecha: "" }));
+    setDisponibilidad(null);
+    setErrorDisponibilidad("");
   };
 
   const handleTimeChange = (time) => {
     setFormData((p) => ({ ...p, hora: time }));
     if (errors.hora) setErrors((p) => ({ ...p, hora: "" }));
+    setDisponibilidad(null);
+    setErrorDisponibilidad("");
   };
 
   // ============================
@@ -152,6 +217,11 @@ export default function CitaForm({
       newErrors.duracion = "Ingrese la duración";
     } else if (formData.duracion < 15 || formData.duracion > 180) {
       newErrors.duracion = "Debe estar entre 15 y 180 minutos";
+    }
+
+    // 🔴 VALIDAR DISPONIBILIDAD ANTES DE ENVIAR
+    if (disponibilidad && !disponibilidad.disponible) {
+      newErrors.general = errorDisponibilidad;
     }
 
     if (Object.keys(newErrors).length) {
@@ -198,6 +268,27 @@ export default function CitaForm({
     >
       <BaseFormLayout title={title}>
         <BaseFormSection title="Información de la Cita">
+          
+          {/* 🔴 MOSTRAR ERROR GENERAL */}
+          {errors.general && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {errors.general}
+            </Alert>
+          )}
+
+          {/* 🔴 MOSTRAR MENSAJE DE DISPONIBILIDAD */}
+          {verificando && (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              Verificando disponibilidad...
+            </Alert>
+          )}
+          
+          {!verificando && disponibilidad && disponibilidad.disponible && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              ✓ Horario disponible {disponibilidad.horario && 
+                `(${disponibilidad.horario.inicio} - ${disponibilidad.horario.fin})`}
+            </Alert>
+          )}
 
           <BaseFormField>
             <BaseInputField
@@ -348,6 +439,9 @@ export default function CitaForm({
                   size: "small",
                   error: !!errors.hora,
                   required: true,
+                  // 🔴 Deshabilitar horas no disponibles? (opcional)
+                  // helperText: disponibilidad?.horario ? 
+                  //   `Horario laboral: ${disponibilidad.horario.inicio} - ${disponibilidad.horario.fin}` : ""
                 },
               }}
             />
@@ -364,6 +458,8 @@ export default function CitaForm({
           onEdit={onEdit}
           showSave={mode !== "view"}
           showEdit={mode === "view"}
+          // 🔴 Deshabilitar botón si está verificando o no disponible
+          saveDisabled={verificando || (disponibilidad && !disponibilidad.disponible)}
         />
       </BaseFormLayout>
     </LocalizationProvider>
