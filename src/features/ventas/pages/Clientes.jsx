@@ -53,6 +53,7 @@ export default function Clientes() {
       const normalizados = clientesArray.map((c) => ({
         ...c,
         estado: c.estado ? "activo" : "inactivo",
+        documento: c.numero_documento || c.documento || "",
       }));
 
       setClientes(normalizados);
@@ -131,12 +132,12 @@ export default function Clientes() {
   });
 
   // =============================
-  // COLUMNAS
+  // COLUMNAS - SOLO AGREGAMOS DOCUMENTO
   // =============================
   const columns = [
     { field: "nombre", header: "Nombre" },
     { field: "apellido", header: "Apellido" },
-    { field: "documento", header: "Documento" },
+    { field: "documento", header: "Documento" }, // ← ÚNICA LÍNEA AGREGADA
     { field: "telefono", header: "Teléfono" },
   ];
 

@@ -10,12 +10,13 @@ import BaseInputField from "../../../../shared/components/base/BaseInputField";
 export default function ClientsForm({
   mode = "create",
   title,
-  initialData,
+  initialData = null,
   onSubmit,
   onCancel,
   onEdit
 }) {
   const isView = mode === "view";
+  const isEdit = mode === "edit";
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -32,18 +33,20 @@ export default function ClientsForm({
 
   const [errors, setErrors] = useState({});
 
+  // Cargar datos cuando hay initialData
   useEffect(() => {
     if (initialData) {
+      console.log("Cargando datos en formulario:", initialData);
       setFormData({
         nombre: initialData.nombre || "",
         apellido: initialData.apellido || "",
-        tipoDocumento: initialData.tipoDocumento || "",
-        documento: initialData.documento || "",
+        tipoDocumento: initialData.tipoDocumento || initialData.tipo_documento || "",
+        documento: initialData.documento || initialData.numero_documento || "",
         telefono: initialData.telefono || "",
         correo: initialData.correo || "",
-        fechaNacimiento: initialData.fechaNacimiento || "",
+        fechaNacimiento: initialData.fechaNacimiento || initialData.fecha_nacimiento || "",
         genero: initialData.genero || "",
-        ciudad: initialData.ciudad || "",
+        ciudad: initialData.ciudad || initialData.municipio || "",
         direccion: initialData.direccion || ""
       });
     }
@@ -70,16 +73,9 @@ export default function ClientsForm({
 
     if (!formData.nombre.trim()) newErrors.nombre = "Nombre requerido";
     if (!formData.apellido.trim()) newErrors.apellido = "Apellido requerido";
-
-    if (!formData.tipoDocumento)
-      newErrors.tipoDocumento = "Seleccione tipo documento";
-
-    if (!formData.documento.trim())
-      newErrors.documento = "Documento requerido";
-
-    if (!formData.fechaNacimiento)
-      newErrors.fechaNacimiento = "Fecha requerida";
-
+    if (!formData.tipoDocumento) newErrors.tipoDocumento = "Seleccione tipo documento";
+    if (!formData.documento.trim()) newErrors.documento = "Documento requerido";
+    if (!formData.fechaNacimiento) newErrors.fechaNacimiento = "Fecha requerida";
     if (!formData.genero) newErrors.genero = "Seleccione género";
     if (!formData.ciudad.trim()) newErrors.ciudad = "Ciudad requerida";
 
@@ -93,13 +89,27 @@ export default function ClientsForm({
       return;
     }
 
-    onSubmit?.(formData);
+    // Preparar datos para enviar al backend
+    const datosParaEnviar = {
+      nombre: formData.nombre,
+      apellido: formData.apellido,
+      tipoDocumento: formData.tipoDocumento,
+      documento: formData.documento,
+      telefono: formData.telefono,
+      correo: formData.correo,
+      fechaNacimiento: formData.fechaNacimiento,
+      genero: formData.genero,
+      ciudad: formData.ciudad,
+      direccion: formData.direccion
+    };
+
+    onSubmit?.(datosParaEnviar);
   };
 
   return (
     <BaseFormLayout title={title}>
       {/* INFORMACIÓN PERSONAL */}
-      <BaseFormSection>
+      <BaseFormSection title="Información Personal">
 
         <BaseFormField>
           <BaseInputField
@@ -178,9 +188,9 @@ export default function ClientsForm({
             onChange={handleChange}
             select
             options={[
-              { value: "cedula", label: "Cédula" },
-              { value: "cedula_extranjeria", label: "Cédula extranjería" },
-              { value: "pasaporte", label: "Pasaporte" }
+              { value: "cedula", label: "Cédula (CC)" },
+              { value: "cedula_extranjeria", label: "Cédula extranjería (CE)" },
+              { value: "pasaporte", label: "Pasaporte (PA)" }
             ]}
             disabled={isView}
             required
@@ -253,12 +263,14 @@ export default function ClientsForm({
 
       </BaseFormSection>
 
+      {/* ACCIONES */}
       <BaseFormActions
         onCancel={onCancel}
         onSave={handleSubmit}
         onEdit={onEdit}
-        showSave={mode !== "view"}
-        showEdit={mode === "view"}
+        showSave={!isView}           // Mostrar guardar en create y edit
+        showEdit={isView}             // Mostrar editar solo en vista
+        saveLabel={isEdit ? "Actualizar Cliente" : "Guardar Cliente"}
       />
     </BaseFormLayout>
   );

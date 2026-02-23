@@ -10,7 +10,7 @@ import "../../../shared/styles/components/modal.css";
 import {
   getAllPedidos,
   deletePedido,
-  marcarComoEntregado,
+  registrarAbono,
 } from "../../../lib/data/pedidosData";
 
 export default function Pedidos() {
@@ -31,21 +31,21 @@ export default function Pedidos() {
     open: false,
     id: null,
     cliente: "",
+    total: 0,
+    abonoActual: 0,
     saldoPendiente: 0,
   });
 
   const [montoAbono, setMontoAbono] = useState("");
 
-  // =============================
-  //        CARGA DE DATOS
-  // =============================
   useEffect(() => {
-    setPedidos(getAllPedidos());
+    cargarPedidos();
   }, []);
 
-  // =============================
-  //    MODAL DE ELIMINACIÓN
-  // =============================
+  const cargarPedidos = () => {
+    setPedidos(getAllPedidos());
+  };
+
   const handleDelete = (id, cliente) => {
     setModalDelete({ open: true, id, cliente });
   };
@@ -56,44 +56,44 @@ export default function Pedidos() {
     setModalDelete({ open: false, id: null, cliente: "" });
   };
 
-  // =============================
-  //    MODAL DE ABONO
-  // =============================
-  const handleAbonar = (id, cliente, saldoPendiente) => {
-    setModalAbono({ open: true, id, cliente, saldoPendiente });
+  const handleAbonar = (id, cliente, total, abono, saldoPendiente) => {
+    setModalAbono({ 
+      open: true, 
+      id, 
+      cliente, 
+      total,
+      abonoActual: abono || 0,
+      saldoPendiente: saldoPendiente || total 
+    });
     setMontoAbono("");
   };
 
   const confirmAbono = () => {
     const monto = Number(montoAbono);
-    if (monto <= 0 || monto > modalAbono.saldoPendiente) {
-      alert("El monto del abono debe ser mayor a 0 y no puede exceder el saldo pendiente");
+    if (monto <= 0) {
+      alert("El monto del abono debe ser mayor a 0");
       return;
     }
-    alert(`Abono de $${monto.toLocaleString()} registrado para ${modalAbono.cliente}`);
-    setModalAbono({ open: false, id: null, cliente: "", saldoPendiente: 0 });
+    if (monto > modalAbono.saldoPendiente) {
+      alert(`El abono no puede exceder el saldo pendiente de $${modalAbono.saldoPendiente.toLocaleString()}`);
+      return;
+    }
+
+    const pedidoActualizado = registrarAbono(modalAbono.id, monto);
+    if (pedidoActualizado) {
+      cargarPedidos(); // Recargar la lista
+      alert(`✅ Abono de $${monto.toLocaleString()} registrado correctamente para ${modalAbono.cliente}`);
+    }
+    
+    setModalAbono({ open: false, id: null, cliente: "", total: 0, abonoActual: 0, saldoPendiente: 0 });
     setMontoAbono("");
   };
 
-  // =============================
-  //    MARCAR COMO ENTREGADO
-  // =============================
-  const handleEntregar = (id, cliente) => {
-    if (window.confirm(`¿Marcar como entregado el pedido de ${cliente}?`)) {
-      const updated = marcarComoEntregado(id);
-      setPedidos([...updated]);
-    }
-  };
-
-  // =============================
-  //          BUSCADOR
-  // =============================
   const filteredPedidos = pedidos.filter((pedido) => {
     const cliente = (pedido.cliente || "").toLowerCase();
     const searchTerm = search.toLowerCase();
 
     const matchesSearch = cliente.includes(searchTerm);
-
     const matchesEstado = !filterEstado || pedido.estado === filterEstado;
 
     let matchesTipo = true;
@@ -106,13 +106,10 @@ export default function Pedidos() {
     return matchesSearch && matchesEstado && matchesTipo;
   });
 
-  // =============================
-  //          FILTROS
-  // =============================
   const estadoFilters = [
     { value: "", label: "Todos los estados" },
     { value: "En proceso", label: "En proceso" },
-    { value: "Pendiente pago", label: "Pendiente pago" },
+    { value: "Pendiente", label: "Pendiente" },
     { value: "Pagado", label: "Pagado" },
     { value: "Entregado", label: "Entregado" },
   ];
@@ -125,7 +122,7 @@ export default function Pedidos() {
     { value: "Productos y Servicios", label: "Productos y Servicios" },
   ];
 
-  const formatCurrency = (amount) => `$${amount.toLocaleString()}`;
+  const formatCurrency = (amount) => `$${(amount || 0).toLocaleString()}`;
 
   const obtenerDescripcionItems = (pedido) => {
     if (pedido.items && Array.isArray(pedido.items) && pedido.items.length > 0) {
@@ -145,9 +142,7 @@ export default function Pedidos() {
     return 1;
   };
 
-  // =============================
-  //          COLUMNAS
-  // =============================
+  // ✅ COLUMNAS - SIN SALDO PENDIENTE
   const columns = [
     {
       field: "cliente",
@@ -164,38 +159,36 @@ export default function Pedidos() {
       },
     },
     {
-      field: "estado",
-      header: "Estado",
-      render: (row) => row.estado,
-    },
-    {
       field: "total",
       header: "Total",
       render: (row) => formatCurrency(row.total),
     },
+    {
+      field: "abono",
+      header: "Abonar",
+      render: (row) => (
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <button
+            className="crud-btn crud-btn-primary"
+            style={{ padding: "4px 8px", fontSize: "0.8rem" }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleAbonar(row.id, row.cliente, row.total, row.abono, row.saldoPendiente);
+            }}
+            disabled={row.saldoPendiente <= 0}
+          >
+            Abonar
+          </button>
+        </div>
+      ),
+    },
   ];
 
-  // =============================
-  //          ACCIONES
-  // =============================
   const tableActions = [
     {
       label: "Ver Detalles",
       type: "view",
       onClick: (row) => navigate(`detalle/${row.id}`),
-      disabled: (row) => row.estado === "Entregado",
-    },
-    {
-      label: "Abonar",
-      type: "primary",
-      onClick: (row) => handleAbonar(row.id, row.cliente, row.saldoPendiente),
-      disabled: (row) => row.saldoPendiente <= 0,
-    },
-    {
-      label: "Entregar",
-      type: "success",
-      onClick: (row) => handleEntregar(row.id, row.cliente),
-      disabled: (row) => row.estado === "Entregado",
     },
     {
       label: "Editar",
@@ -211,13 +204,16 @@ export default function Pedidos() {
 
   return (
     <>
-      {/* ✅ ESTILO QUE SÍ SE APLICA EN CRUDTABLE */}
       <style>
         {`
           tr.row-entregado td {
             background-color: #e5e5e5 !important;
             color: #888 !important;
             opacity: 0.7;
+          }
+          .crud-btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
           }
         `}
       </style>
@@ -233,29 +229,6 @@ export default function Pedidos() {
         filterEstado={filterEstado}
         onFilterChange={setFilterEstado}
         searchPosition="left"
-        additionalFilters={
-          <div className="filter-group" style={{ marginLeft: "1rem" }}>
-            <select
-              value={filterTipo}
-              onChange={(e) => setFilterTipo(e.target.value)}
-              style={{
-                padding: "var(--spacing-sm) var(--spacing-md)",
-                border: "1px solid var(--border-color)",
-                borderRadius: "var(--border-radius-md)",
-                backgroundColor: "var(--bg-color)",
-                color: "var(--text-color)",
-                fontSize: "0.9rem",
-                cursor: "pointer",
-              }}
-            >
-              {tipoFilters.map((filter) => (
-                <option key={filter.value} value={filter.value}>
-                  {filter.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        }
       >
         <CrudTable
           columns={columns}
@@ -271,19 +244,6 @@ export default function Pedidos() {
           }
         />
 
-        {/* BOTÓN PRIMER PEDIDO */}
-        {filteredPedidos.length === 0 && !search && !filterEstado && !filterTipo && (
-          <div style={{ textAlign: "center", marginTop: "var(--spacing-lg)" }}>
-            <button
-              onClick={() => navigate("crear")}
-              className="btn-primary"
-            >
-              Crear Primer Pedido
-            </button>
-          </div>
-        )}
-
-        {/* MODAL ELIMINAR */}
         <Modal
           open={modalDelete.open}
           type="warning"
@@ -298,34 +258,34 @@ export default function Pedidos() {
           }
         />
 
-        {/* MODAL ABONO */}
         <Modal
           open={modalAbono.open}
           type="info"
           title="Registrar Abono"
           message={
             <div>
-              <p>Cliente: <strong>{modalAbono.cliente}</strong></p>
-              <p>Saldo pendiente: <strong>${(modalAbono.saldoPendiente || 0).toLocaleString()}</strong></p>
-              <div style={{ marginTop: "1rem" }}>
-                <label htmlFor="montoAbono" style={{ display: "block", marginBottom: "0.5rem" }}>
-                  Monto del abono:
-                </label>
+              <p><strong>Cliente:</strong> {modalAbono.cliente}</p>
+              <p><strong>Total del pedido:</strong> {formatCurrency(modalAbono.total)}</p>
+              <p><strong>Abonado hasta ahora:</strong> {formatCurrency(modalAbono.abonoActual)}</p>
+              <p><strong>Saldo pendiente:</strong> {formatCurrency(modalAbono.saldoPendiente)}</p>
+              <div style={{ marginTop: "15px" }}>
+                <label htmlFor="montoAbono">Monto a abonar:</label>
                 <input
                   id="montoAbono"
                   type="number"
+                  min="1"
+                  max={modalAbono.saldoPendiente}
                   value={montoAbono}
                   onChange={(e) => setMontoAbono(e.target.value)}
-                  placeholder="Ingrese el monto"
                   style={{
                     width: "100%",
-                    padding: "0.5rem",
+                    padding: "8px",
+                    marginTop: "5px",
                     border: "1px solid #ccc",
-                    borderRadius: "4px",
-                    fontSize: "1rem",
+                    borderRadius: "4px"
                   }}
-                  min="0"
-                  max={modalAbono.saldoPendiente}
+                  placeholder="Ingrese el monto"
+                  autoFocus
                 />
               </div>
             </div>
@@ -335,7 +295,7 @@ export default function Pedidos() {
           showCancel
           onConfirm={confirmAbono}
           onCancel={() =>
-            setModalAbono({ open: false, id: null, cliente: "", saldoPendiente: 0 })
+            setModalAbono({ open: false, id: null, cliente: "", total: 0, abonoActual: 0, saldoPendiente: 0 })
           }
         />
       </CrudLayout>

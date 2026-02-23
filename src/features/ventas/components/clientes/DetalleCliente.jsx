@@ -13,8 +13,8 @@ export default function DetalleCliente() {
   useEffect(() => {
     const cargarCliente = async () => {
       try {
-        const res = await getClienteById(Number(id));
-        const data = res?.data || res;
+        const data = await getClienteById(Number(id));
+        console.log("Cliente cargado en detalle:", data);
         setCliente(data);
       } catch (error) {
         console.error("Error cargando cliente:", error);
@@ -28,17 +28,27 @@ export default function DetalleCliente() {
   }, [id]);
 
   if (loading) {
-    return <p>Cargando cliente...</p>;
+    return <div style={{ padding: "2rem", textAlign: "center" }}>Cargando cliente...</div>;
   }
 
   if (!cliente) {
-    return <p>Cliente no encontrado</p>;
+    return (
+      <div style={{ padding: "2rem", textAlign: "center" }}>
+        <p>Cliente no encontrado</p>
+        <button 
+          className="crud-btn crud-btn-secondary" 
+          onClick={() => navigate("/admin/ventas/clientes")}
+        >
+          Volver
+        </button>
+      </div>
+    );
   }
 
   return (
     <ClientsForm
       mode="view"
-      title="Detalle Cliente"
+      title={`Detalle Cliente: ${cliente.nombre} ${cliente.apellido}`}
       initialData={cliente}
       onCancel={() => navigate("/admin/ventas/clientes")}
       onEdit={() => navigate(`/admin/ventas/clientes/editar/${id}`)}
