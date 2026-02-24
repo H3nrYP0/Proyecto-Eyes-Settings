@@ -18,6 +18,9 @@ export default function EditarCita() {
   const [empleados, setEmpleados] = useState([]);
   const [estadosCita, setEstadosCita] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // 🔴 Estado para errores
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -47,6 +50,7 @@ export default function EditarCita() {
         setEstadosCita(Array.isArray(estadosData) ? estadosData : []);
       } catch (error) {
         console.error("Error cargando datos:", error);
+        setError("Error al cargar datos");
         navigate("/admin/servicios/citas");
       } finally {
         setLoading(false);
@@ -56,12 +60,19 @@ export default function EditarCita() {
     cargarDatos();
   }, [id, navigate]);
 
+  // 🔴 MODIFICADO: Manejar errores de validación
   const handleSubmit = async (data) => {
     try {
-      await updateCita(Number(id), data);
-      navigate("/admin/servicios/citas");
+      const resultado = await updateCita(Number(id), data);
+      
+      if (resultado.success) {
+        navigate("/admin/servicios/citas");
+      } else {
+        alert(`❌ ${resultado.error}`);
+      }
     } catch (error) {
       console.error("Error actualizando cita:", error);
+      alert("Error al actualizar la cita");
     }
   };
 

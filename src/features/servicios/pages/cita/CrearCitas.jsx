@@ -16,6 +16,9 @@ export default function CrearCita() {
   const [empleados, setEmpleados] = useState([]);
   const [estadosCita, setEstadosCita] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // 🔴 Estado para errores
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -38,6 +41,7 @@ export default function CrearCita() {
         setEstadosCita(Array.isArray(estadosData) ? estadosData : []);
       } catch (error) {
         console.error("Error cargando datos:", error);
+        setError("Error al cargar datos necesarios");
       } finally {
         setLoading(false);
       }
@@ -46,12 +50,20 @@ export default function CrearCita() {
     cargarDatos();
   }, []);
 
+  // 🔴 MODIFICADO: Manejar errores de validación
   const handleSubmit = async (data) => {
     try {
-      await createCita(data);
-      navigate("/admin/servicios/citas");
+      const resultado = await createCita(data);
+      
+      if (resultado.success) {
+        navigate("/admin/servicios/citas");
+      } else {
+        // Mostrar error específico del backend
+        alert(`❌ ${resultado.error}`);
+      }
     } catch (error) {
       console.error("Error creando cita:", error);
+      alert("Error al crear la cita");
     }
   };
 

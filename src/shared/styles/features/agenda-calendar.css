@@ -1,20 +1,20 @@
 /* ===== CONTENEDOR GENERAL ===== */
-
 .agenda-container {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 120px); /* Ajusta si tu layout tiene header */
+  height: calc(100vh - 120px);
   padding: 24px;
   box-sizing: border-box;
 }
 
 /* ===== HEADER ===== */
-
 .agenda-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
   flex-shrink: 0;
 }
 
@@ -22,6 +22,27 @@
   font-size: 22px;
   font-weight: 600;
   margin: 0;
+}
+
+.agenda-controls {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.agenda-filter {
+  padding: 10px 18px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 14px;
+  min-width: 200px;
+  background-color: white;
+  cursor: pointer;
+}
+
+.agenda-filter:focus {
+  outline: none;
+  border-color: var(--color-primary, #1976d2);
 }
 
 .agenda-btn {
@@ -37,28 +58,86 @@
 
 .agenda-btn:hover {
   opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.agenda-btn-secondary {
+  background-color: #6c757d;
+}
+
+/* ===== LEYENDA ===== */
+.agenda-legend {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+
+.legend-color.disponible {
+  background-color: #4CAF50;
+  opacity: 0.3;
+}
+
+.legend-color.cita-pendiente {
+  background-color: #ff9800;
+}
+
+.legend-color.cita-confirmada {
+  background-color: #2196f3;
+}
+
+.legend-color.cita-completada {
+  background-color: #4caf50;
+}
+
+.legend-color.cita-cancelada {
+  background-color: #f44336;
+}
+
+/* ===== ERROR ===== */
+.agenda-error {
+  padding: 12px 16px;
+  background-color: #ffebee;
+  color: #c62828;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border-left: 4px solid #c62828;
 }
 
 /* ===== WRAPPER DEL CALENDARIO ===== */
-
 .agenda-calendar-wrapper {
   flex: 1;
   background: white;
   border-radius: 16px;
-  padding: 16px;
+  padding: 20px;
   box-shadow: 0 6px 25px rgba(0, 0, 0, 0.05);
-  overflow: hidden; /* 👈 CLAVE para evitar scroll */
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
-/* Hace que FullCalendar ocupe todo el espacio */
 .agenda-calendar-wrapper .fc {
   flex: 1;
 }
 
 /* ===== FULLCALENDAR PERSONALIZACIÓN ===== */
-
 .fc .fc-toolbar-title {
   font-size: 18px;
   font-weight: 600;
@@ -67,6 +146,7 @@
 .fc .fc-button {
   border-radius: 8px !important;
   padding: 6px 12px !important;
+  text-transform: capitalize;
 }
 
 .fc .fc-button-primary {
@@ -78,6 +158,10 @@
   opacity: 0.9;
 }
 
+.fc .fc-button-primary:disabled {
+  opacity: 0.5;
+}
+
 .fc-theme-standard td,
 .fc-theme-standard th {
   border-color: #f1f1f1;
@@ -86,3 +170,39 @@
 .fc-timegrid-slot {
   height: 42px !important;
 }
+
+/* Estilos para eventos */
+.fc-event {
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.fc-event.cita-agendada {
+  font-weight: 500;
+  padding: 2px 4px;
+  border: none;
+}
+
+.fc-event.horario-disponible {
+  opacity: 0.25;
+  border: none;
+}
+
+.fc-event:hover {
+  opacity: 0.9;
+  filter: brightness(0.95);
+}
+
+/* Tooltip personalizado */
+.fc-event .fc-event-title {
+  font-weight: 500;
+  white-space: normal;
+  line-height: 1.3;
+}
+
+/* Vista de día actual */
+.fc .fc-day-today {
+  background-color: rgba(25, 118, 210, 0.05) !important;
+}
+
