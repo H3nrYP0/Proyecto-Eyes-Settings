@@ -1,23 +1,27 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import CrudLayout from "../../../../shared/components/crud/CrudLayout";
 import CrudTable from "../../../../shared/components/crud/CrudTable";
 import Modal from "../../../../shared/components/ui/Modal";
 import "../../../../shared/styles/components/crud-table.css";
+import "../../../../shared/styles/components/modal.css";
 
-// Importamos las funciones del backend
-import {
-  getAllProductos,
-  deleteProducto,
-  updateEstadoProducto,
-} from "../../../../lib/data/productosData";
+import { ProductoData } from "../../../../lib/data/productosData";
+import { MarcaData } from "../../../../lib/data/marcasData";
+import { getAllCategorias } from "../../../../lib/data/categoriasData";
 
 export default function Productos() {
   const navigate = useNavigate();
 
   const [productos, setProductos] = useState([]);
-  const [search, setSearch] = useState('');
-  const [filterEstado, setFilterEstado] = useState('');
+  const [marcas, setMarcas] = useState([]);
+  const [categorias, setCategorias] = useState([]);
+  const [search, setSearch] = useState("");
+  const [filterEstado, setFilterEstado] = useState("");
+  const [filterMarca, setFilterMarca] = useState("");
+  const [filterCategoria, setFilterCategoria] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [modalDelete, setModalDelete] = useState({
     open: false,
@@ -25,158 +29,253 @@ export default function Productos() {
     nombre: "",
   });
 
-  // Cargar datos
   useEffect(() => {
-    const productosData = getAllProductos();
-    setProductos(productosData);
+    loadData();
   }, []);
 
-  // =============================
-  //    MODAL DE ELIMINACIÓN
-  // =============================
-  const handleDelete = (id, nombre) => {
-    setModalDelete({
-      open: true,
-      id,
-      nombre,
-    });
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [productosData, marcasData, categoriasData] = await Promise.all([
+        ProductoData.getAllProductos(),
+        MarcaData.getAllMarcas(),
+        getAllCategorias()
+      ]);
+
+      const productosConNombres = productosData.map(producto => {
+        const marca = marcasData.find(m => m.id === producto.marca_id);
+        const categoria = categoriasData.find(c => c.id === producto.categoria_id);
+        
+        return {
+          id: producto.id,
+          nombre: producto.nombre,
+          codigo: producto.codigo || '',
+          descripcion: producto.descripcion || '',
+          precioVenta: producto.precio_venta,
+          precioCompra: producto.precio_compra,
+          stockActual: producto.stock,
+          stockMinimo: producto.stock_minimo,
+          marca: marca?.nombre || '-',
+          categoria: categoria?.nombre || '-',
+          marca_id: producto.marca_id,
+          categoria_id: producto.categoria_id,
+          estado: producto.estado ? 'activo' : 'inactivo'
+        };
+      });
+
+      setProductos(productosConNombres);
+      setMarcas(marcasData.filter(m => m.estado === true));
+      setCategorias(categoriasData.filter(c => c.estado === true));
+      setError(null);
+    } catch (error) {
+      console.error("Error cargando datos:", error);
+      setError("No se pudieron cargar los productos");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const confirmDelete = () => {
-    const updated = deleteProducto(modalDelete.id);
-    setProductos([...updated]);
+  const handleDelete = (id, nombre) => {
+    setModalDelete({ open: true, id, nombre });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await ProductoData.deleteProducto(modalDelete.id);
+      await loadData();
+      setModalDelete({ open: false, id: null, nombre: "" });
+    } catch (err) {
+      console.error("Error al eliminar:", err);
+      alert("Error al eliminar el producto");
+    }
+  };
+
+  const handleCancelDelete = () => {
     setModalDelete({ open: false, id: null, nombre: "" });
   };
 
-  // =============================
-  //    CAMBIAR ESTADO
-  // =============================
-  const toggleEstado = (id) => {
-    const updated = updateEstadoProducto(id);
-    setProductos([...updated]);
-  };
+  //  ACTUALIZACIÓN OPTIMISTA - Cambia el estado instantáneamente
+ const cambiarEstado = async (row, newStatus) => {
+  try {
+  
+    const nuevoEstadoUI = newStatus === 'activa' ? 'activo' : 'inactivo';
+     
+   setProductos(prev => prev.map(p => 
+      p.id === row.id ? { ...p, estado: nuevoEstadoUI  } : p
+    ));
+      // Llamar a la función específica para cambiar estado
+   await ProductoData.updateEstadoProducto(row.id, nuevoEstadoUI);
+    
+  } catch (err) {
+    console.error("Error al cambiar estado:", err);
+    loadData(); // Revertir cambio si hay error
+  }
+};
 
-  // =============================
-  //          BUSCADOR
-  // =============================
-  const filteredProductos = productos.filter(producto => {
-    const matchesSearch = 
-      producto.nombre.toLowerCase().includes(search.toLowerCase()) ||
-      producto.codigo.toLowerCase().includes(search.toLowerCase()) ||
-      producto.categoria.toLowerCase().includes(search.toLowerCase()) ||
-      producto.marca.toLowerCase().includes(search.toLowerCase()) ||
-      producto.precioVenta.toString().includes(search) ||
-      producto.stockActual.toString().includes(search);
-    
-    const matchesFilter = !filterEstado || producto.estado === filterEstado;
-    
-    return matchesSearch && matchesFilter;
+
+
+
+  const filteredProductos = productos.filter((p) => {
+    const matchesSearch =
+      p.nombre.toLowerCase().includes(search.toLowerCase()) ||
+      (p.codigo && p.codigo.toLowerCase().includes(search.toLowerCase()));
+
+    const matchesEstado = !filterEstado || p.estado === filterEstado;
+    const matchesMarca = !filterMarca || p.marca_id?.toString() === filterMarca;
+    const matchesCategoria = !filterCategoria || p.categoria_id?.toString() === filterCategoria;
+
+    return matchesSearch && matchesEstado && matchesMarca && matchesCategoria;
   });
 
-  // FILTROS PARA PRODUCTOS
-  const searchFilters = [
-    { value: 'activo', label: 'Activos' },
-    { value: 'inactivo', label: 'Inactivos' },
-    { value: 'bajo-stock', label: 'Bajo Stock' }
+  const estadoFilters = [
+    { value: "", label: "Todos los estados" },
+    { value: "activo", label: "Activos" },
+    { value: "inactivo", label: "Inactivos" },
   ];
 
-  const formatCurrency = (amount) => {
-    return `$${amount.toLocaleString()}`;
+  const marcaFilters = [
+    { value: "", label: "Todas las marcas" },
+    ...marcas.map(m => ({ value: m.id.toString(), label: m.nombre }))
+  ];
+
+  const categoriaFilters = [
+    { value: "", label: "Todas las categorías" },
+    ...categorias.map(c => ({ value: c.id.toString(), label: c.nombre }))
+  ];
+
+  const formatCOP = (value) => {
+    if (!value) return '$0';
+    return new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      minimumFractionDigits: 0
+    }).format(value);
   };
 
-  // =============================
-  //          COLUMNAS
-  // =============================
   const columns = [
-    { field: "nombre", header: "nombre" },
+    { field: "nombre", header: "Nombre" },
+    { field: "marca", header: "Marca" },
+    { field: "categoria", header: "Categoría" },
+    { 
+      field: "precioVenta", 
+      header: "Precio Venta",
+      render: (item) => formatCOP(item.precioVenta)
+    },
     { 
       field: "stockActual", 
       header: "Stock",
       render: (item) => (
-        <span className={item.stockActual <= item.stockMinimo ? "stock-bajo" : ""}>
+        <span className={item.stockActual <= item.stockMinimo ? 'stock-bajo' : ''}>
           {item.stockActual}
         </span>
       )
-    },
-    { field: "marca", header: "Marca" },
-    {
-      field: "estado",
-      header: "Estado",
-      render: (item) => (
-        <button
-          className={`estado-btn ${
-            item.estado === "activo" ? "activo" : 
-            item.estado === "bajo-stock" ? "bajo-stock" : "inactivo"
-          }`}
-          onClick={() => toggleEstado(item.id)}
-        >
-          {item.estado === "activo" ? "Activo" : 
-           item.estado === "bajo-stock" ? " Bajo Stock" : "Inactivo"}
-        </button>
-      ),
-    },
+    }
   ];
 
-  // =============================
-  //          ACCIONES
-  // =============================
   const tableActions = [
     {
-      label: "Ver Detalles",
+      label: "Cambiar estado",
+      type: "toggle-status",
+      onClick: (item) => cambiarEstado(item),
+    },
+    {
+      label: "Ver",
       type: "view",
-      onClick: (item) => navigate(`/admin/compras/productos/detalle/${item.id}`),
+      onClick: (row) => navigate(`detalle/${row.id}`),
     },
     {
       label: "Editar",
       type: "edit",
-      onClick: (item) => navigate(`/admin/compras/productos/editar/${item.id}`),
+      onClick: (row) => navigate(`editar/${row.id}`),
     },
     {
       label: "Eliminar",
       type: "delete",
-      onClick: (item) => handleDelete(item.id, item.nombre),
+      onClick: (row) => handleDelete(row.id, row.nombre),
     },
   ];
+
+  if (loading) {
+    return (
+      <CrudLayout
+        title="Productos"
+        showSearch={true}
+        searchPlaceholder="Buscar por nombre o código..."
+        searchPosition="left"
+      >
+        <div className="loading-container">Cargando productos...</div>
+      </CrudLayout>
+    );
+  }
 
   return (
     <CrudLayout
       title="Productos"
-      onAddClick={() => navigate("/admin/compras/productos/crear")}
-      showSearch={true}
-      searchPlaceholder="Buscar por nombre, código, categoría..."
+      onAddClick={() => navigate("crear")}
+      showSearch
+      searchPlaceholder="Buscar por nombre o código..."
       searchValue={search}
       onSearchChange={setSearch}
-      searchFilters={searchFilters}
+      searchFilters={estadoFilters}
       filterEstado={filterEstado}
       onFilterChange={setFilterEstado}
-      searchPosition="left"
     >
-      {/* Tabla */}
-      <CrudTable 
-        columns={columns} 
-        data={filteredProductos} 
+      <div className="unified-search-container" style={{ marginBottom: '16px' }}>
+        <select
+          value={filterMarca}
+          onChange={(e) => setFilterMarca(e.target.value)}
+          className="unified-filter-select"
+        >
+          {marcaFilters.map(f => (
+            <option key={f.value} value={f.value}>{f.label}</option>
+          ))}
+        </select>
+
+        <select
+          value={filterCategoria}
+          onChange={(e) => setFilterCategoria(e.target.value)}
+          className="unified-filter-select"
+        >
+          {categoriaFilters.map(f => (
+            <option key={f.value} value={f.value}>{f.label}</option>
+          ))}
+        </select>
+      </div>
+
+      {error && (
+        <div className="unified-no-data" style={{ 
+          backgroundColor: '#ffebee', 
+          color: '#c62828',
+          marginBottom: '16px'
+        }}>
+          ⚠️ {error}
+        </div>
+      )}
+
+      <CrudTable
+        columns={columns}
+        data={filteredProductos}
         actions={tableActions}
+        onChangeStatus={cambiarEstado}
         emptyMessage={
-          search || filterEstado ? 
-            'No se encontraron productos para los filtros aplicados' : 
-            'No hay productos registrados'
+          search || filterEstado || filterMarca || filterCategoria
+            ? "No se encontraron productos para los filtros aplicados"
+            : "No hay productos registrados"
         }
       />
 
-      {/* Botón para primer producto */}
-      {filteredProductos.length === 0 && !search && !filterEstado && (
-        <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
+      {filteredProductos.length === 0 && !search && !filterEstado && !filterMarca && !filterCategoria && !loading && (
+        <div style={{ textAlign: 'center', marginTop: '24px' }}>
           <button 
-            onClick={() => navigate("/admin/compras/productos/crear")}
+            onClick={() => navigate("crear")}
             className="btn-primary"
-            style={{padding: 'var(--spacing-md) var(--spacing-lg)'}}
+            style={{ padding: '12px 24px' }}
           >
-            Registrar Primer Producto
+            Crear Primer Producto
           </button>
         </div>
       )}
 
-      {/* Modal de Confirmación */}
       <Modal
         open={modalDelete.open}
         type="warning"
@@ -184,9 +283,9 @@ export default function Productos() {
         message={`Esta acción eliminará el producto "${modalDelete.nombre}" y no se puede deshacer.`}
         confirmText="Eliminar"
         cancelText="Cancelar"
-        showCancel={true}
+        showCancel
         onConfirm={confirmDelete}
-        onCancel={() => setModalDelete({ open: false, id: null, nombre: "" })}
+        onCancel={handleCancelDelete}
       />
     </CrudLayout>
   );
