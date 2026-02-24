@@ -29,16 +29,22 @@ export default function RolForm({
 
   const [errors, setErrors] = useState({});
 
-  // Cuando cambia initialData (detalle / editar), actualizar estado
+  // 🔥 CORREGIDO: Convertir estado y permisos
   useEffect(() => {
     if (initialData) {
+      // Convertir estado de booleano a "activo"/"inactivo"
+      const estadoStr = initialData.estado === true ? "activo" : "inactivo";
+      
+      // Convertir permisos a IDs (por si acaso)
+      const permisosIds = Array.isArray(initialData.permisos) 
+        ? initialData.permisos.map(p => p.id || p)
+        : [];
+
       setFormData({
         nombre: initialData.nombre || "",
         descripcion: initialData.descripcion || "",
-        estado: initialData.estado || "activo",
-        permisos: Array.isArray(initialData.permisos)
-          ? initialData.permisos.map(p => p.id)
-          : []
+        estado: estadoStr,
+        permisos: permisosIds
       });
     }
   }, [initialData]);

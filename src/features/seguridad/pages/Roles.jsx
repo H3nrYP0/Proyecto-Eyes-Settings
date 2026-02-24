@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import CrudLayout from "../../../shared/components/crud/CrudLayout";
 import CrudTable from "../../../shared/components/crud/CrudTable";
 import Modal from "../../../shared/components/ui/Modal";
+import Loading from "../../../shared/components/ui/Loading";
 
 // Backend
 import {
@@ -17,24 +18,16 @@ export default function Roles() {
   const [roles, setRoles] = useState([]);
   const [search, setSearch] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // =============================
-  // MODAL ELIMINAR
+  // MODAL ELIMINAR (SOLO ESTE)
   // =============================
   const [modalDelete, setModalDelete] = useState({
     open: false,
     id: null,
     nombre: "",
-  });
-
-  // =============================
-  // MODAL CAMBIAR ESTADO
-  // =============================
-  const [modalEstado, setModalEstado] = useState({
-    open: false,
-    id: null,
-    nombre: "",
-    nuevoEstado: "",
   });
 
   // =============================
@@ -46,20 +39,27 @@ export default function Roles() {
 
   const cargarRoles = async () => {
     try {
+      setLoading(true);
+      setError(null);
+      
       const data = await getAllRoles();
 
       const normalizados = data.map((r) => ({
         ...r,
         estado: r.estado ? "activo" : "inactivo",
         permisosCount: r.permisos?.length || 0,
+        estadosDisponibles: ["activo", "inactivo"],
       }));
 
       setRoles(normalizados);
     } catch (error) {
       console.error("Error cargando roles:", error);
+      setError("No se pudieron cargar los roles");
+      setRoles([]);
+    } finally {
+      setLoading(false);
     }
   };
-
 
   // =============================
   // ELIMINAR
@@ -73,42 +73,28 @@ export default function Roles() {
   };
 
   const confirmDelete = async () => {
-    await deleteRol(modalDelete.id);
-    await cargarRoles();
-    setModalDelete({ open: false, id: null, nombre: "" });
+    try {
+      await deleteRol(modalDelete.id);
+      await cargarRoles();
+      setModalDelete({ open: false, id: null, nombre: "" });
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+      alert("Error al eliminar el rol");
+    }
   };
 
-
   // =============================
-  // CAMBIAR ESTADO
+  // CAMBIAR ESTADO (AHORA SOLO ESTA FUNCIÓN)
   // =============================
-  const handleToggleEstado = (row) => {
-    const nuevoEstado = row.estado === "activo" ? "inactivo" : "activo";
-
-    setModalEstado({
-      open: true,
-      id: row.id,
-      nombre: row.nombre,
-      nuevoEstado,
-    });
+  const handleChangeStatus = async (row, nuevoEstado) => {
+    try {
+      await updateEstadoRol(row.id, nuevoEstado);
+      await cargarRoles();
+    } catch (error) {
+      console.error("Error al cambiar estado:", error);
+      alert("Error al cambiar el estado del rol");
+    }
   };
-
-  const confirmChangeStatus = async () => {
-  await updateEstadoRol(
-    modalEstado.id,
-    modalEstado.nuevoEstado
-  );
-
-  await cargarRoles();
-
-  setModalEstado({
-    open: false,
-    id: null,
-    nombre: "",
-    nuevoEstado: "",
-  });
-};
-
 
   // =============================
   // FILTROS
@@ -145,14 +131,9 @@ export default function Roles() {
   ];
 
   // =============================
-  // ACCIONES
+  // ACCIONES (SIN CAMBIAR ESTADO)
   // =============================
   const tableActions = [
-    {
-      label: "Cambiar estado",
-      type: "toggle-status",
-      onClick: (row) => handleToggleEstado(row),
-    },
     {
       label: "Ver detalles",
       type: "view",
@@ -179,6 +160,17 @@ export default function Roles() {
     { value: "inactivo", label: "Inactivos" },
   ];
 
+  // =============================
+  // LOADING INICIAL
+  // =============================
+  if (loading && roles.length === 0) {
+    return (
+      <CrudLayout title="Roles" showSearch>
+        <Loading message="Cargando roles..." />
+      </CrudLayout>
+    );
+  }
+
   return (
     <CrudLayout
       title="Roles"
@@ -187,15 +179,30 @@ export default function Roles() {
       searchPlaceholder="Buscar por nombre, descripción..."
       searchValue={search}
       onSearchChange={setSearch}
-      searchFilters={estadoFilters}       // <- aquí pasamos los filtros
-      filterEstado={filterEstado}         // <- valor actual del filtro
-      onFilterChange={setFilterEstado}    // <- función para actualizar filtro
+      searchFilters={estadoFilters}
+      filterEstado={filterEstado}
+      onFilterChange={setFilterEstado}
     >
+      {error && (
+        <div
+          style={{
+            padding: "16px",
+            backgroundColor: "#ffebee",
+            color: "#c62828",
+            borderRadius: "4px",
+            marginBottom: "16px",
+          }}
+        >
+          ⚠️ {error}
+        </div>
+      )}
+
       {/* TABLA */}
       <CrudTable
         columns={columns}
         data={filteredRoles}
         actions={tableActions}
+        onChangeStatus={handleChangeStatus} // 👈 ESTO MANEJA EL CAMBIO DE ESTADO
         emptyMessage={
           search || filterEstado
             ? "No se encontraron roles para los filtros aplicados"
@@ -203,7 +210,7 @@ export default function Roles() {
         }
       />
 
-      {/* MODAL ELIMINAR */}
+      {/* MODAL ELIMINAR (SOLO ESTE MODAL) */}
       <Modal
         open={modalDelete.open}
         type="warning"
@@ -215,26 +222,6 @@ export default function Roles() {
         onConfirm={confirmDelete}
         onCancel={() =>
           setModalDelete({ open: false, id: null, nombre: "" })
-        }
-      />
-
-      {/* MODAL CAMBIAR ESTADO */}
-      <Modal
-        open={modalEstado.open}
-        type="info"
-        title="¿Cambiar estado?"
-        message={`El rol "${modalEstado.nombre}" cambiará a estado "${modalEstado.nuevoEstado}".`}
-        confirmText="Confirmar"
-        cancelText="Cancelar"
-        showCancel
-        onConfirm={confirmChangeStatus}
-        onCancel={() =>
-          setModalEstado({
-            open: false,
-            id: null,
-            nombre: "",
-            nuevoEstado: "",
-          })
         }
       />
     </CrudLayout>
