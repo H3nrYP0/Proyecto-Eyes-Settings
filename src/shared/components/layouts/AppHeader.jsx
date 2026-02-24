@@ -20,7 +20,6 @@ export default function AppHeader({ onToggleSidebar, user, onLogout }) {
     >
       <Toolbar>
 
-        {/* Toggle sidebar */}
         <IconButton color="inherit" edge="start" onClick={onToggleSidebar}>
           <MenuIcon />
         </IconButton>
@@ -35,9 +34,8 @@ export default function AppHeader({ onToggleSidebar, user, onLogout }) {
             letterSpacing: "0.5px"
           }}
         >
-  Visual Outlet
-</Typography>
-
+          Visual Outlet
+        </Typography>
 
         <IconButton color="inherit" onClick={() => navigate("/")}>
           <HomeIcon />
@@ -46,7 +44,7 @@ export default function AppHeader({ onToggleSidebar, user, onLogout }) {
         <Button
           color="inherit"
           startIcon={<PersonIcon />}
-          onClick={() => navigate("/admin/perfil")}
+          onClick={() => navigate("/admin/configuracion")}
         >
           {user?.nombre || "Mi Perfil"}
         </Button>
