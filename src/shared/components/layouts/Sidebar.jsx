@@ -6,7 +6,9 @@ import {
   ListItemText,
   Collapse,
   Toolbar,
-  Box
+  Box,
+  useTheme,
+  useMediaQuery
 } from "@mui/material";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import { useState, useMemo } from "react";
@@ -18,9 +20,12 @@ import { useSidebar } from "../../hooks/useSidebar";
 
 const drawerWidth = 240;
 
-export default function Sidebar({ open, user }) {
+export default function Sidebar({ open, onToggle, user }) {
   const { hasPermission } = useSidebar(user);
   const [openSections, setOpenSections] = useState({});
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const filteredSections = useMemo(
     () => menuStructure.filter(section => hasPermission(section.id)),
@@ -36,9 +41,10 @@ export default function Sidebar({ open, user }) {
 
   return (
     <Drawer
-      variant="persistent"
+      variant={isMobile ? "temporary" : "persistent"}
       anchor="left"
       open={open}
+      onClose={isMobile ? onToggle : undefined}
       sx={{
         width: drawerWidth,
         flexShrink: 0,
@@ -55,7 +61,6 @@ export default function Sidebar({ open, user }) {
         <List>
           {filteredSections.map(section => (
             <Box key={section.id}>
-
               <ListItemButton onClick={() => toggleSection(section.id)}>
                 <ListItemIcon sx={{ color: "#fff" }}>
                   <IconRenderer name={section.icon} />
@@ -72,6 +77,7 @@ export default function Sidebar({ open, user }) {
                       component={NavLink}
                       to={item.path}
                       sx={{ pl: 4 }}
+                      onClick={isMobile ? onToggle : undefined}
                     >
                       <ListItemIcon sx={{ color: "#fff" }}>
                         <IconRenderer name={item.icon} />
@@ -81,7 +87,6 @@ export default function Sidebar({ open, user }) {
                   ))}
                 </List>
               </Collapse>
-
             </Box>
           ))}
         </List>
