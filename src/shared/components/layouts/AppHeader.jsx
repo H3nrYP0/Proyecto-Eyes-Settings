@@ -44,7 +44,7 @@ export default function AppHeader({ onToggleSidebar, user, onLogout }) {
         <Button
           color="inherit"
           startIcon={<PersonIcon />}
-          onClick={() => navigate("/admin/perfil")}
+          onClick={() => navigate("/admin/configuracion")}
         >
           {user?.nombre || "Mi Perfil"}
         </Button>
