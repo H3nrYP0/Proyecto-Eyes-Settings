@@ -1,110 +1,169 @@
-// Base de datos temporal de productos
-let productosDB = [
-  {
-    id: 1,
-    nombre: "Lente Solar Ray-Ban Aviator",
-    codigo: "RB-AV-001",
-    descripcion: "Lentes de sol clásicos estilo aviador",
-    precioVenta: 150000,
-    precioCompra: 90000,
-    stockActual: 25,
-    stockMinimo: 5,
-    categoria: "Lentes de Sol",
-    marca: "Ray-Ban",
-    estado: "activo",
-    imagenes: []
-  },
-  {
-    id: 2,
-    nombre: "Montura Acetato Negro",
-    codigo: "OK-MT-002",
-    descripcion: "Montura de acetato color negro clásico",
-    precioVenta: 80000,
-    precioCompra: 45000,
-    stockActual: 15,
-    stockMinimo: 3,
-    categoria: "Monturas",
-    marca: "Oakley",
-    estado: "activo",
-    imagenes: []
-  },
-  {
-    id: 3,
-    nombre: "Lentes de Contacto Diarios",
-    codigo: "JJ-LC-003",
-    descripcion: "Lentes de contacto de uso diario",
-    precioVenta: 120000,
-    precioCompra: 75000,
-    stockActual: 8,
-    stockMinimo: 10,
-    categoria: "Lentes de Contacto",
-    marca: "Johnson & Johnson",
-    estado: "bajo-stock",
-    imagenes: []
-  },
-  {
-    id: 4,
-    nombre: "Estuche para Lentes",
-    codigo: "GN-AC-004",
-    descripcion: "Estuche protector para lentes",
-    precioVenta: 25000,
-    precioCompra: 12000,
-    stockActual: 30,
-    stockMinimo: 5,
-    categoria: "Accesorios",
-    marca: "Generic",
-    estado: "activo",
-    imagenes: []
-  }
-];
+import api from "../axios";
 
-// Obtener todos los productos
-export function getAllProductos() {
-  return [...productosDB];
-}
-
-// Obtener por ID
-export function getProductoById(id) {
-  return productosDB.find((p) => p.id === id);
-}
-
-// Crear producto
-export function createProducto(data) {
-  const newId = productosDB.length ? productosDB.at(-1).id + 1 : 1;
-  const nuevoProducto = { 
-    id: newId,
-    estado:"activo",
-    ...data 
-  };
-  
-  productosDB.push(nuevoProducto);
-  return nuevoProducto;
-}
-
-// Actualizar producto
-export function updateProducto(id, updated) {
-  const index = productosDB.findIndex((p) => p.id === id);
-  if (index !== -1) {
-    productosDB[index] = { ...productosDB[index], ...updated };
-  }
-  return productosDB;
-}
-
-// Eliminar producto
-export function deleteProducto(id) {
-  productosDB = productosDB.filter((p) => p.id !== id);
-  return productosDB;
-}
-
-// Cambiar estado
-export function updateEstadoProducto(id) {
-  productosDB = productosDB.map((p) =>
-    p.id === id
-      ? { 
-          ...p, 
-          estado: p.estado === "activo" ? "inactivo" : "activo" 
+export const ProductoData = {
+  // Obtener todos los productos
+  async getAllProductos() {
+    try {
+      const response = await api.get('/productos', {
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
         }
-      : p
-  );
-  return productosDB;
-}
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener productos:', error);
+      throw error;
+    }
+  },
+
+  // Obtener un producto por ID
+  async getProductoById(id) {
+    try {
+      const response = await api.get(`/productos/${id}`);
+        
+
+      const producto = response.data;
+      
+      return {
+        id: producto.id,
+        nombre: producto.nombre,
+        codigo: producto.codigo || '',
+        descripcion: producto.descripcion || '',
+        precioVenta: producto.precio_venta,
+        precioCompra: producto.precio_compra,
+        stockActual: producto.stock,
+        stockMinimo: producto.stock_minimo,
+        categoria: producto.categoria_id?.toString(),
+        marca: producto.marca_id?.toString(),
+        estado: producto.estado ? 'activo' : 'inactivo'
+      };
+    } catch (error) {
+      console.error('Error al obtener producto:', error);
+      throw error;
+    }
+  },
+
+  // Crear un nuevo producto
+  async createProducto(data) {
+    try {
+      const productoData = {
+        nombre: data.nombre,
+        codigo: data.codigo || '',
+        descripcion: data.descripcion || '',
+        precio_venta: data.precioVenta,
+        precio_compra: data.precioCompra,
+        stock: data.stockActual,
+        stock_minimo: data.stockMinimo,
+        categoria_producto_id: parseInt(data.categoria, 10),
+        marca_id: parseInt(data.marca, 10),
+        estado: true
+      };
+
+      const response = await api.post('/productos', productoData);
+      return response.data;
+    } catch (error) {
+      console.error('Error al crear producto:', error);
+      throw error;
+    }
+  },
+
+  // Actualizar un producto
+  async updateProducto(id, data) {
+    try {
+      const productoData = {
+        nombre: data.nombre,
+        codigo: data.codigo || '',
+        descripcion: data.descripcion || '',
+        precio_venta: data.precioVenta,
+        precio_compra: data.precioCompra,
+        stock: data.stockActual,
+        stock_minimo: data.stockMinimo,
+        categoria_producto_id: parseInt(data.categoria, 10),
+        marca_id: parseInt(data.marca, 10),
+        estado: data.estado === 'activo'
+      };
+
+      const response = await api.put(`/productos/${id}`, productoData);
+      return response.data;
+    } catch (error) {
+      console.error('Error al actualizar producto:', error);
+      throw error;
+    }
+  },
+
+  // Eliminar un producto
+  async deleteProducto(id) {
+    try {
+      await api.delete(`/productos/${id}`);
+      return true;
+    } catch (error) {
+      console.error('Error al eliminar producto:', error);
+      throw error;
+    }
+  },
+// ============================
+// Cambiar estado del producto
+// ============================
+async updateEstadoProducto(id, nuevoEstado) {
+  const payload = {
+    estado: nuevoEstado === "activo" 
+  };
+
+  const res = await api.put(`/productos/${id}`, payload);
+  return res.data;
+},
+  // Verificar si ya existe un producto con ese nombre
+  async checkProductoExists(nombre, excludeId = null) {
+    try {
+      const response = await api.get('/productos');
+      const productos = response.data;
+      const nombreTrimmed = nombre.trim().toLowerCase();
+      
+      return productos.some(producto => 
+        producto.nombre?.toLowerCase().trim() === nombreTrimmed &&
+        (excludeId ? producto.id !== excludeId : true)
+      );
+    } catch (error) {
+      console.error('Error al verificar producto:', error);
+      return false;
+    }
+  },
+
+  // Funciones de utilidad
+  getEstadoTexto(estado) {
+    const estados = {
+      activo: 'Activo',
+      inactivo: 'Inactivo',
+      'bajo-stock': 'Bajo Stock'
+    };
+    return estados[estado] || estado;
+  },
+
+  getEstadoBadge(estado) {
+    const badges = {
+      activo: 'success',
+      inactivo: 'error',
+      'bajo-stock': 'warning'
+    };
+    return badges[estado] || 'default';
+  },
+
+  getEstadoColor(estado) {
+    const colores = {
+      activo: '#2e7d32',
+      inactivo: '#d32f2f',
+      'bajo-stock': '#ed6c02'
+    };
+    return colores[estado] || '#1976d2';
+  }
+};
+
+// Exportaciones individuales
+export const getAllProductos = () => ProductoData.getAllProductos();
+export const getProductoById = (id) => ProductoData.getProductoById(id);
+export const createProducto = (data) => ProductoData.createProducto(data);
+export const updateProducto = (id, data) => ProductoData.updateProducto(id, data);
+export const deleteProducto = (id) => ProductoData.deleteProducto(id);
+export const updateEstadoProducto = (id, nuevoEstado) => ProductoData.updateEstadoProducto(id, nuevoEstado);
+export const checkProductoExists = (nombre, excludeId) => ProductoData.checkProductoExists(nombre, excludeId);
