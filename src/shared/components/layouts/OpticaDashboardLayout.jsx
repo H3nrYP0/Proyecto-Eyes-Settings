@@ -154,13 +154,13 @@ export default function OpticaDashboardLayout({ user, setUser }) {
       />
 
       <Box
-        component="main"
         sx={{
-          flexGrow: 1,
-          p: 3,
-          mt: 8,
-          transition: "margin 0.3s ease"
-        }}
+        flexGrow: 1,
+        p: 3,
+        mt: 8,
+        ml: !isMobile ? (sidebarOpen ? `${drawerWidth}px` : 0) : 0,
+        transition: "margin 0.3s ease"
+      }}
       >
         <Routes>
           <Route index element={<Navigate to="dashboard" replace />} />

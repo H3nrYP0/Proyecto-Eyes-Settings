@@ -41,19 +41,21 @@ export default function Sidebar({ open, onToggle, user }) {
 
   return (
     <Drawer
-      variant={isMobile ? "temporary" : "persistent"}
-      anchor="left"
-      open={open}
-      onClose={isMobile ? onToggle : undefined}
-      sx={{
-        width: drawerWidth,
-        flexShrink: 0,
-        "& .MuiDrawer-paper": {
-          width: drawerWidth,
-          backgroundColor: "#1e293b",
-          color: "#fff"
-        }
-      }}
+        variant={isMobile ? "temporary" : "permanent"}
+        anchor="left"
+        open={isMobile ? open : true}
+        onClose={isMobile ? onToggle : undefined}
+        sx={{
+          width: isMobile ? drawerWidth : (open ? drawerWidth : 0),
+          flexShrink: 0,
+          "& .MuiDrawer-paper": {
+            width: open ? drawerWidth : 0,
+            overflowX: "hidden",
+            transition: "width 0.3s ease",
+            backgroundColor: "#1e293b",
+            color: "#fff"
+          }
+        }}
     >
       <Toolbar />
 
