@@ -622,7 +622,7 @@ export default function ProductoForm({
         onEdit={onEdit}
         showSave={mode !== "view"}
         showEdit={mode === "view"}
-        saveLabel={mode === "create" ? "Crear Producto" : "Actualizar Producto"}
+        saveLabel={mode === "create" ? "Guardar " : "Guardar "}
         cancelLabel="Cancelar"
         editLabel="Editar"
       />
