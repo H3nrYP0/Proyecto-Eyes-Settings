@@ -16,7 +16,7 @@ import CrudNotification from "../../../shared/styles/components/notifications/Cr
 
 import { createCompra } from "../../../lib/data/comprasData";
 import { getAllProductos } from "../../../lib/data/productosData";
-import { getProveedoresActivos } from "../../../lib/data/proveedoresData";
+import { ProveedoresData } from "../../../lib/data/proveedoresData"; // ← corregido
 
 const viewFieldStyle = {
   backgroundColor: "#f3f4f6",
@@ -30,13 +30,13 @@ export default function ComprasForm({
   title = "Crear Compra",
   initialData = null,
   onCancel,
-  onSubmit, // 👈 usado en edit
+  onSubmit,
   onEdit,
   onPdf,
 }) {
   const navigate = useNavigate();
   const isView = mode === "view";
-  const isEdit = mode === "edit"; // 👈
+  const isEdit = mode === "edit";
 
   const [productos, setProductos] = useState([]);
   const [proveedores, setProveedores] = useState([]);
@@ -62,19 +62,25 @@ export default function ComprasForm({
   });
 
   useEffect(() => {
-    // Cargamos catálogos en create y edit
     if (!isView) {
+      // Productos (síncrono, sin cambios)
       setProductos(getAllProductos().filter((p) => p.estado === "activo"));
-      setProveedores(getProveedoresActivos());
+
+      // Proveedores — ahora es async
+      ProveedoresData.getAllProveedores()
+        .then((data) => {
+          // Filtramos solo los activos (estado booleano true)
+          setProveedores(data.filter((p) => p.estado === true));
+        })
+        .catch((err) => console.error("Error al cargar proveedores:", err));
     }
 
-    // Cargamos datos iniciales en view y edit
     if (initialData) {
       setFormData({
-        proveedorId: initialData.proveedorId || "",
+        proveedorId:     initialData.proveedorId     || "",
         proveedorNombre: initialData.proveedorNombre || "",
-        fecha: initialData.fecha || new Date().toISOString().split("T")[0],
-        productos: initialData.productos || [],
+        fecha:           initialData.fecha           || new Date().toISOString().split("T")[0],
+        productos:       initialData.productos       || [],
       });
     }
   }, [initialData]);
@@ -87,8 +93,8 @@ export default function ComprasForm({
     if (isView && initialData) {
       return {
         subtotal: initialData.subtotal || 0,
-        iva: initialData.iva || 0,
-        total: initialData.total || 0,
+        iva:      initialData.iva      || 0,
+        total:    initialData.total    || 0,
       };
     }
     const subtotal = formData.productos.reduce((s, p) => s + p.total, 0);
@@ -104,12 +110,12 @@ export default function ComprasForm({
       productos: [
         ...prev.productos,
         {
-          itemId: Date.now(),
-          productoId: productoActual.productoId,
-          nombre: productoActual.nombre,
-          cantidad: Number(productoActual.cantidad),
+          itemId:        Date.now(),
+          productoId:    productoActual.productoId,
+          nombre:        productoActual.nombre,
+          cantidad:      Number(productoActual.cantidad),
           precioUnitario: Number(productoActual.precioUnitario),
-          total: Number(productoActual.cantidad) * Number(productoActual.precioUnitario),
+          total:         Number(productoActual.cantidad) * Number(productoActual.precioUnitario),
         },
       ],
     }));
@@ -138,10 +144,8 @@ export default function ComprasForm({
     const payload = { ...formData, subtotal, iva, total, estado: "Completada" };
 
     if (isEdit && onSubmit) {
-      // 👈 en edit delegamos al padre
       onSubmit(payload);
     } else {
-      // create
       createCompra(payload);
       navigate("/admin/compras");
     }
@@ -173,14 +177,14 @@ export default function ComprasForm({
                     const p = proveedores.find((x) => x.id == e.target.value);
                     setFormData({
                       ...formData,
-                      proveedorId: p.id,
-                      proveedorNombre: p.razon_social_o_Nombre,
+                      proveedorId:     p.id,
+                      proveedorNombre: p.razonSocial, // ← campo correcto del _toUI
                     });
                   }}
                 >
                   {proveedores.map((p) => (
                     <MenuItem key={p.id} value={p.id}>
-                      {p.razon_social_o_Nombre}
+                      {p.razonSocial} {/* ← campo correcto del _toUI */}
                     </MenuItem>
                   ))}
                 </Select>
@@ -239,9 +243,9 @@ export default function ComprasForm({
                   onChange={(e) => {
                     const p = productos.find((x) => x.id == e.target.value);
                     setProductoActual({
-                      productoId: p.id,
-                      nombre: p.nombre,
-                      cantidad: 1,
+                      productoId:     p.id,
+                      nombre:         p.nombre,
+                      cantidad:       1,
                       precioUnitario: p.precioCompra,
                     });
                   }}
@@ -437,7 +441,7 @@ export default function ComprasForm({
             <BaseFormActions
               onCancel={onCancel ?? (() => navigate("/admin/compras"))}
               onSave={guardarCompra}
-              saveLabel={isEdit ? "Actualizar Compra" : "Guardar Compra"} // 👈 label dinámico
+              saveLabel={isEdit ? "Actualizar Compra" : "Guardar Compra"}
               showSave
             />
           )}

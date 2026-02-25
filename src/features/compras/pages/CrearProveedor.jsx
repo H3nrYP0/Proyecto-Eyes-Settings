@@ -1,18 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import ProveedorForm from "../components/ProveedoresForm";
-import { createProveedor } from "../../../lib/data/proveedoresData";
+import { ProveedoresData } from "../../../lib/data/proveedoresData";
 
 export default function CrearProveedor() {
   const navigate = useNavigate();
 
-  const handleCreate = (data) => {
-    const proveedorConEstado = {
-      ...data,
-      estado: true
-    };
-
-    createProveedor(proveedorConEstado);
-    navigate("/admin/compras/proveedores");
+  const handleCreate = async (data) => {
+    try {
+      await ProveedoresData.createProveedor(data);
+      navigate("/admin/compras/proveedores");
+    } catch (error) {
+      console.error("Error al crear proveedor:", error);
+    }
   };
 
   return (
