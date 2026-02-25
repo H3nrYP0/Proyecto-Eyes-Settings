@@ -27,7 +27,10 @@ export default function Proveedores() {
     try {
       setLoading(true);
       const data = await ProveedoresData.getAllProveedores();
-      setProveedores(data);
+      setProveedores(data.map((p) => ({
+        ...p,
+        estadosDisponibles: ["Activo", "Inactivo"],
+      })));
     } catch (error) {
       console.error(error);
     } finally {
@@ -50,11 +53,16 @@ export default function Proveedores() {
     }
   };
 
-  const toggleEstado = async (row) => {
+  const handleChangeStatus = async (row, nuevoEstado) => {
     try {
-      const updated = await ProveedoresData.toggleEstadoProveedor(row.id, row.estadoBool);
+      const nuevoEstadoBool = nuevoEstado === "Activo";
+      const response = await ProveedoresData.toggleEstadoProveedor(row.id, !nuevoEstadoBool);
       setProveedores((prev) =>
-        prev.map((p) => (p.id === updated.id ? updated : p))
+        prev.map((p) =>
+          p.id === response.id
+            ? { ...response, estadosDisponibles: ["Activo", "Inactivo"] }
+            : p
+        )
       );
     } catch (error) {
       console.error(error);
@@ -78,28 +86,43 @@ export default function Proveedores() {
     { value: "Inactivo", label: "Inactivos" },
   ];
 
-  // Solo columnas con campos que el backend realmente devuelve
   const columns = [
     {
       field: "tipoProveedor",
       header: "Tipo",
+      // Solo visible en md en adelante
+      headerSx: { display: { xs: "none", md: "table-cell" } },
+      cellSx:   { display: { xs: "none", md: "table-cell" } },
       render: (item) => (
         <span className={item.tipoProveedor === "Persona Jurídica" ? "juridica" : "natural"}>
           {item.tipoProveedor}
         </span>
       ),
     },
-    { field: "razonSocial", header: "Razón Social" },
-    { field: "documento",   header: "Documento"    },
-    { field: "telefono",    header: "Teléfono"     },
+    {
+      field: "razonSocial",
+      header: "Razón Social",
+      // Siempre visible
+      headerSx: {},
+      cellSx:   {},
+    },
+    {
+      field: "documento",
+      header: "Documento",
+      // Solo visible en sm en adelante
+      headerSx: { display: { xs: "none", sm: "table-cell" } },
+      cellSx:   { display: { xs: "none", sm: "table-cell" } },
+    },
+    {
+      field: "telefono",
+      header: "Teléfono",
+      // Solo visible en md en adelante
+      headerSx: { display: { xs: "none", md: "table-cell" } },
+      cellSx:   { display: { xs: "none", md: "table-cell" } },
+    },
   ];
 
   const tableActions = [
-    {
-      label: "Cambiar estado",
-      type: "toggle-status",
-      onClick: toggleEstado,
-    },
     {
       label: "Ver",
       type: "view",
@@ -135,6 +158,7 @@ export default function Proveedores() {
         columns={columns}
         data={filteredProveedores}
         actions={tableActions}
+        onChangeStatus={handleChangeStatus}
         emptyMessage={
           search || filterEstado
             ? "No se encontraron proveedores"

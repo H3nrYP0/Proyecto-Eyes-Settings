@@ -3,27 +3,29 @@ import axios from "../axios";
 export const ProveedoresData = {
 
   // ── Backend → UI ─────────────────────────────────────────────────────────
-  // Solo los campos que to_dict() realmente devuelve:
-  // id, tipo_proveedor, documento, razon_social_o_nombre, telefono, correo, estado
   _toUI(p) {
     return {
       id:            p.id,
-      tipoProveedor: p.tipo_proveedor         ?? "Persona Jurídica",
+      tipoProveedor: p.tipo_proveedor        ?? "Persona Jurídica",
+      tipoDocumento: p.tipo_documento         ?? "NIT",
       documento:     p.documento              ?? "",
       razonSocial:   p.razon_social_o_nombre  ?? "",
+      contactoNombre: p.contacto              ?? "",
       telefono:      p.telefono               ?? "",
       correo:        p.correo                 ?? "",
-      // CrudTable necesita estado como STRING
+      departamento:  p.departamento           ?? "",
+      municipio:     p.municipio              ?? "",
+      direccion:     p.direccion              ?? "",
+      // Estado booleano del backend → string para CrudTable y el form
       estado:        p.estado ? "Activo" : "Inactivo",
-      // Booleano para el toggle
+      // Booleano puro para el toggle (igual que estadoBool en versión anterior)
       estadoBool:    !!p.estado,
-      // Alias para búsqueda
+      // Alias búsqueda
       nit:           p.documento ?? "",
     };
   },
 
   // ── Form/UI → Backend ────────────────────────────────────────────────────
-  // Mandamos todos los campos del form, el backend ignora los que no use
   _toAPI(data) {
     return {
       tipo_proveedor:        data.tipoProveedor   ?? "Persona Jurídica",
@@ -36,6 +38,8 @@ export const ProveedoresData = {
       departamento:          data.departamento     ?? "",
       municipio:             data.municipio        ?? "",
       direccion:             data.direccion        ?? "",
+      // El form envía estado como booleano (lo convierte handleSubmit)
+      ...(data.estado !== undefined && { estado: data.estado }),
     };
   },
 
@@ -94,6 +98,7 @@ export const ProveedoresData = {
     }
   },
 
+  // Toggle usa estadoBool (booleano puro) para invertir correctamente
   async toggleEstadoProveedor(id, estadoBool) {
     try {
       const response = await axios.put(`/proveedores/${id}`, {
@@ -106,7 +111,7 @@ export const ProveedoresData = {
     }
   },
 
-  // Filtrar activos para otros módulos (ej: ComprasForm)
+  // Para ComprasForm u otros módulos que necesiten solo activos
   async getProveedoresActivos() {
     try {
       const todos = await this.getAllProveedores();
@@ -119,5 +124,5 @@ export const ProveedoresData = {
 
   getEstadoTexto(estado) { return estado ? "Activo" : "Inactivo"; },
   getEstadoBadge(estado) { return estado ? "success" : "error"; },
-  getEstadoColor(estado) { return estado ? "success" : "error"; },
+  getEstadoColor(estado)  { return estado ? "success" : "error"; },
 };
