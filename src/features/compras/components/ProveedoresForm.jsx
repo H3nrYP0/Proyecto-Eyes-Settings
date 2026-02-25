@@ -6,43 +6,42 @@ import BaseFormField from "../../../shared/components/base/BaseFormField";
 import BaseFormActions from "../../../shared/components/base/BaseFormActions";
 import BaseInputField from "../../../shared/components/base/BaseInputField";
 
+const DEFAULT_FORM = {
+  tipoProveedor:  "Persona Jurídica",
+  tipoDocumento:  "NIT",
+  documento:      "",
+  razonSocial:    "",
+  contactoNombre: "",
+  telefono:       "",
+  correo:         "",
+  departamento:   "",
+  municipio:      "",
+  direccion:      "",
+};
+
 export default function ProveedorForm({
   mode = "create",
   title,
   initialData,
   onSubmit,
   onCancel,
-  onEdit
+  onEdit,
 }) {
   const isView = mode === "view";
 
-  const [formData, setFormData] = useState({
-    tipoProveedor: "Persona Jurídica",
-    tipoDocumento: "NIT",
-    documento: "",
-    razonSocial: "",
-    contactoNombre: "",
-    telefono: "",
-    correo: "",
-    departamento: "",
-    municipio: "",
-    direccion: "",
-    estado: true
-  });
-
-  const [errors, setErrors] = useState({});
+  const [formData, setFormData] = useState(DEFAULT_FORM);
+  const [errors,   setErrors]   = useState({});
 
   useEffect(() => {
     if (initialData) {
-      setFormData({ ...initialData });
+      setFormData({ ...DEFAULT_FORM, ...initialData });
     }
   }, [initialData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: "" }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handleSubmit = () => {
@@ -50,14 +49,14 @@ export default function ProveedorForm({
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^[0-9]{7,15}$/;
 
-    if (!formData.razonSocial.trim()) newErrors.razonSocial = "Requerido";
-    if (!formData.documento.trim()) newErrors.documento = "Requerido";
+    if (!formData.razonSocial.trim())    newErrors.razonSocial    = "Requerido";
+    if (!formData.documento.trim())      newErrors.documento      = "Requerido";
     if (!formData.contactoNombre.trim()) newErrors.contactoNombre = "Requerido";
-    if (!phoneRegex.test(formData.telefono)) newErrors.telefono = "Teléfono inválido";
-    if (!emailRegex.test(formData.correo)) newErrors.correo = "Correo inválido";
-    if (!formData.departamento.trim()) newErrors.departamento = "Requerido";
-    if (!formData.municipio.trim()) newErrors.municipio = "Requerido";
-    if (!formData.direccion.trim()) newErrors.direccion = "Requerido";
+    if (!phoneRegex.test(formData.telefono))  newErrors.telefono  = "Teléfono inválido (7-15 dígitos)";
+    if (!emailRegex.test(formData.correo))    newErrors.correo    = "Correo inválido";
+    if (!formData.departamento.trim())   newErrors.departamento   = "Requerido";
+    if (!formData.municipio.trim())      newErrors.municipio      = "Requerido";
+    if (!formData.direccion.trim())      newErrors.direccion      = "Requerido";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -71,7 +70,6 @@ export default function ProveedorForm({
     <BaseFormLayout title={title}>
       <BaseFormSection title="Información del Proveedor">
 
-        {/* Tipo de Proveedor */}
         <BaseFormField>
           <BaseInputField
             label="Tipo de Proveedor"
@@ -81,13 +79,12 @@ export default function ProveedorForm({
             select
             options={[
               { value: "Persona Jurídica", label: "Persona Jurídica" },
-              { value: "Persona Natural", label: "Persona Natural" }
+              { value: "Persona Natural",  label: "Persona Natural"  },
             ]}
             disabled={isView}
           />
         </BaseFormField>
 
-        {/* Razón Social / Nombre Completo */}
         <BaseFormField>
           <BaseInputField
             label={formData.tipoProveedor === "Persona Jurídica" ? "Razón Social" : "Nombre Completo"}
@@ -101,7 +98,6 @@ export default function ProveedorForm({
           />
         </BaseFormField>
 
-        {/* Tipo de Documento */}
         <BaseFormField>
           <BaseInputField
             label="Tipo de Documento"
@@ -110,15 +106,14 @@ export default function ProveedorForm({
             onChange={handleChange}
             select
             options={[
-              { value: "NIT", label: "NIT" },
-              { value: "CC", label: "Cédula" },
-              { value: "CE", label: "Cédula Extranjería" }
+              { value: "NIT", label: "NIT"                },
+              { value: "CC",  label: "Cédula"             },
+              { value: "CE",  label: "Cédula Extranjería" },
             ]}
             disabled={isView}
           />
         </BaseFormField>
 
-        {/* Número de Documento */}
         <BaseFormField>
           <BaseInputField
             label="Número de Documento"
@@ -135,7 +130,6 @@ export default function ProveedorForm({
           />
         </BaseFormField>
 
-        {/* Persona de Contacto */}
         <BaseFormField>
           <BaseInputField
             label="Persona de Contacto"
@@ -149,7 +143,6 @@ export default function ProveedorForm({
           />
         </BaseFormField>
 
-        {/* Teléfono */}
         <BaseFormField>
           <BaseInputField
             label="Teléfono"
@@ -166,7 +159,6 @@ export default function ProveedorForm({
           />
         </BaseFormField>
 
-        {/* Correo Electrónico */}
         <BaseFormField>
           <BaseInputField
             label="Correo Electrónico"
@@ -180,7 +172,6 @@ export default function ProveedorForm({
           />
         </BaseFormField>
 
-        {/* Departamento */}
         <BaseFormField>
           <BaseInputField
             label="Departamento"
@@ -194,7 +185,6 @@ export default function ProveedorForm({
           />
         </BaseFormField>
 
-        {/* Municipio */}
         <BaseFormField>
           <BaseInputField
             label="Municipio"
@@ -208,7 +198,6 @@ export default function ProveedorForm({
           />
         </BaseFormField>
 
-        {/* Dirección */}
         <BaseFormField>
           <BaseInputField
             label="Dirección"
