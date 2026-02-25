@@ -1,195 +1,125 @@
-// Base de datos temporal de servicios - ACTUALIZADA
-let serviciosDB = [
-  {
-    id: 1,
-    nombre: "Cita general",
-    descripcion: "Consulta optométrica completa para evaluación visual",
-    duracion_min: 30,
-    precio: 50000,
-    empleadoId: 1,
-    estado: true,
-  },
-  {
-    id: 2,
-    nombre: "Campaña de salud",
-    descripcion: "Servicio especial de campañas de salud visual",
-    duracion_min: 45,
-    precio: 80000,
-    empleadoId: 2,
-    estado: true,
-  },
-  {
-    id: 3,
-    nombre: "Adaptación lentes de contacto",
-    descripcion: "Prueba y adaptación de lentes de contacto",
-    duracion_min: 60,
-    precio: 75000,
-    empleadoId: 1,
-    estado: true,
-  },
-  {
-    id: 4,
-    nombre: "Examen de la vista",
-    descripcion: "Evaluación completa de la agudeza visual",
-    duracion_min: 40,
-    precio: 60000,
-    empleadoId: 2,
-    estado: false,
+// src/lib/data/serviciosData.js
+import api from "../axios";
+
+export const ServicioData = {
+  // Obtener todos los servicios
+ async getAllServicios() {
+  try {
+    const response = await api.get('/servicios');
+
+    return response.data.map(servicio => ({
+      ...servicio,
+      estado: servicio.estado ? 'activo' : 'inactivo',
+      estadosDisponibles: ['activo', 'inactivo']
+    }));
+
+  } catch (error) {
+    console.error('Error al obtener servicios:', error);
+    throw error;
   }
-];
+},
 
-// Función para obtener el próximo ID disponible
-function getNextId() {
-  if (serviciosDB.length === 0) return 1;
-  const maxId = Math.max(...serviciosDB.map(s => s.id));
-  return maxId + 1;
-}
+  // Obtener un servicio por ID
+  async getServicioById(id) {
+    try {
+      const response = await api.get(`/servicios/${id}`);
+      const servicio = response.data;
+      
+      return {
+        id: servicio.id,
+        nombre: servicio.nombre,
+        descripcion: servicio.descripcion || '',
+        duracion_min: servicio.duracion_min,
+        precio: servicio.precio,
+        estado: servicio.estado ? 'activo' : 'inactivo'
+      };
+    } catch (error) {
+      console.error('Error al obtener servicio:', error);
+      throw error;
+    }
+  },
 
-// Obtener todos los servicios (formateados para la UI)
-export function getAllServicios() {
-  // Convertir estado booleano a string para la UI
-  return serviciosDB.map(servicio => ({
-    ...servicio,
-    estado: servicio.estado ? "activo" : "inactivo",
-    duracion: `${servicio.duracion_min} min`,
-    duracion_min: servicio.duracion_min, // Mantener original
-    // Formatear precio
-    precio_formatted: `$${servicio.precio.toLocaleString()}`,
-    // Mantener compatibilidad
-    empleado: servicio.empleadoId ? `Empleado #${servicio.empleadoId}` : 'No asignado'
-  }));
-}
+  // Crear un nuevo servicio
+  async createServicio(data) {
+    try {
+      const servicioData = {
+        nombre: data.nombre,
+        descripcion: data.descripcion || '',
+        duracion_min: data.duracion_min,
+        precio: data.precio,
+        estado: data.estado
+      };
 
-// Obtener por ID
-export function getServicioById(id) {
-  const servicio = serviciosDB.find((s) => s.id === Number(id));
-  if (!servicio) return null;
-  
-  return {
-    ...servicio,
-    duracion: `${servicio.duracion_min} min`,
-    estado: servicio.estado ? "activo" : "inactivo",
-    empleado: servicio.empleadoId ? `Empleado #${servicio.empleadoId}` : 'No asignado',
-  };
-}
+      const response = await api.post('/servicios', servicioData);
+      return response.data;
+    } catch (error) {
+      console.error('Error al crear servicio:', error);
+      throw error;
+    }
+  },
 
-// Crear servicio
-export function createServicio(data) {
-  const newId = getNextId();
-  
-  const nuevoServicio = {
-    id: newId,
-    nombre: data.nombre || '',
-    descripcion: data.descripcion || '',
-    duracion_min: data.duracion_min || data.duracion || 30,
-    precio: data.precio || 0,
-    empleadoId: data.empleadoId || data.empleado || null,
-    estado: data.estado === "activo" ? true : 
-            data.estado === "inactivo" ? false : 
-            data.estado === undefined ? true : data.estado
-  };
-  
-  serviciosDB.push(nuevoServicio);
-  return nuevoServicio;
-}
+  // Actualizar un servicio
+  async updateServicio(id, data) {
+    try {
+      const servicioData = {
+        nombre: data.nombre,
+        descripcion: data.descripcion || '',
+        duracion_min: data.duracion_min,
+        precio: data.precio,
+        estado: data.estado 
+      };
 
-// Actualizar servicio
-export function updateServicio(id, updatedData) {
-  const index = serviciosDB.findIndex((s) => s.id === Number(id));
-  if (index === -1) return null;
-  
-  const datosActualizados = {
-    nombre: updatedData.nombre || serviciosDB[index].nombre,
-    descripcion: updatedData.descripcion || serviciosDB[index].descripcion,
-    duracion_min: updatedData.duracion_min || updatedData.duracion || serviciosDB[index].duracion_min,
-    precio: updatedData.precio || serviciosDB[index].precio,
-    empleadoId: updatedData.empleadoId || serviciosDB[index].empleadoId,
-    estado: updatedData.estado === "activo" ? true : 
-            updatedData.estado === "inactivo" ? false : 
-            updatedData.estado === undefined ? serviciosDB[index].estado : updatedData.estado
-  };
-  
-  serviciosDB[index] = { 
-    ...serviciosDB[index], 
-    ...datosActualizados 
-  };
-  
-  return serviciosDB[index];
-}
+      const response = await api.put(`/servicios/${id}`, servicioData);
+      return response.data;
+    } catch (error) {
+      console.error('Error al actualizar servicio:', error);
+      throw error;
+    }
+  },
 
-// Eliminar servicio - DEVUELVE ARRAY COMPLETO
-export function deleteServicio(id) {
-  serviciosDB = serviciosDB.filter((s) => s.id !== Number(id));
-  // Devolver todos los servicios formateados
-  return getAllServicios();
-}
+  // Eliminar un servicio
+  async deleteServicio(id) {
+    try {
+      await api.delete(`/servicios/${id}`);
+      return true;
+    } catch (error) {
+      console.error('Error al eliminar servicio:', error);
+      throw error;
+    }
+  },
 
-// Cambiar estado - DEVUELVE ARRAY COMPLETO
-export function updateEstadoServicio(id) {
-  const index = serviciosDB.findIndex((s) => s.id === Number(id));
-  if (index === -1) return getAllServicios();
-  
-  // Cambiar el estado booleano
-  serviciosDB[index].estado = !serviciosDB[index].estado;
-  
-  // Devolver todos los servicios formateados
-  return getAllServicios();
-}
+  // Cambiar estado del servicio
+  async updateEstadoServicio(id, nuevoEstado) {
+    try {
+      const payload = {
+        estado: nuevoEstado === 'activo'
+      };
+      const response = await api.put(`/servicios/${id}`, payload);
+      return response.data;
+    } catch (error) {
+      console.error('Error al cambiar estado de servicio:', error);
+      throw error;
+    }
+  },
 
-// Función para búsqueda de servicios
-export function searchServicios(query) {
-  const searchTerm = query.toLowerCase();
-  return serviciosDB
-    .filter(servicio => 
-      servicio.nombre.toLowerCase().includes(searchTerm) ||
-      servicio.descripcion.toLowerCase().includes(searchTerm)
-    )
-    .map(servicio => ({
-      ...servicio,
-      estado: servicio.estado ? "activo" : "inactivo",
-      duracion: `${servicio.duracion_min} min`,
-      precio_formatted: `$${servicio.precio.toLocaleString()}`
-    }));
-}
+  // Funciones de utilidad
+  getEstadoTexto(estado) {
+    return estado ? 'Activo' : 'Inactivo';
+  },
 
-// Función para obtener servicios activos
-export function getServiciosActivos() {
-  return serviciosDB
-    .filter(s => s.estado)
-    .map(servicio => ({
-      ...servicio,
-      estado: "activo",
-      duracion: `${servicio.duracion_min} min`,
-      precio_formatted: `$${servicio.precio.toLocaleString()}`
-    }));
-}
+  getEstadoBadge(estado) {
+    return estado ? 'success' : 'error';
+  },
 
-// Función para obtener servicios por empleado
-export function getServiciosByEmpleado(empleadoId) {
-  return serviciosDB
-    .filter(s => s.empleadoId === Number(empleadoId) && s.estado)
-    .map(servicio => ({
-      ...servicio,
-      estado: "activo",
-      duracion: `${servicio.duracion_min} min`,
-      precio_formatted: `$${servicio.precio.toLocaleString()}`
-    }));
-}
+  getEstadoColor(estado) {
+    return estado ? '#2e7d32' : '#d32f2f';
+  }
+};
 
-// Función para obtener estadísticas
-export function getServiciosStats() {
-  const total = serviciosDB.length;
-  const activos = serviciosDB.filter(s => s.estado).length;
-  const inactivos = total - activos;
-  const precioPromedio = total > 0 
-    ? serviciosDB.reduce((sum, s) => sum + s.precio, 0) / total
-    : 0;
-  
-  return {
-    total,
-    activos,
-    inactivos,
-    precioPromedio: precioPromedio.toFixed(2),
-    porcentajeActivos: total > 0 ? (activos / total * 100).toFixed(1) : 0
-  };
-}
+// Exportaciones individuales
+export const getAllServicios = () => ServicioData.getAllServicios();
+export const getServicioById = (id) => ServicioData.getServicioById(id);
+export const createServicio = (data) => ServicioData.createServicio(data);
+export const updateServicio = (id, data) => ServicioData.updateServicio(id, data);
+export const deleteServicio = (id) => ServicioData.deleteServicio(id);
+export const updateEstadoServicio = (id, nuevoEstado) => ServicioData.updateEstadoServicio(id, nuevoEstado);

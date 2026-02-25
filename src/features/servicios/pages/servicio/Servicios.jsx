@@ -1,17 +1,22 @@
+// src/features/servicios/pages/Servicios.jsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import CrudLayout from "../../../../shared/components/crud/CrudLayout";
+import CrudLayout from "../../../../shared/components/crud/CrudLayout"
 import CrudTable from "../../../../shared/components/crud/CrudTable";
 import Modal from "../../../../shared/components/ui/Modal";
 import "../../../../shared/styles/components/crud-table.css";
 import "../../../../shared/styles/components/modal.css";
 
-// Importamos las funciones del backend
-import {
-  getAllServicios,
-  deleteServicio,
-  updateEstadoServicio,
-} from "../../../../lib/data/serviciosData";
+import { getAllServicios, deleteServicio, updateEstadoServicio } from "../../../../lib/data/serviciosData";
+
+// Formateador de moneda
+const formatCOP = (value) => {
+  return new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: "COP",
+    minimumFractionDigits: 0
+  }).format(value);
+};
 
 export default function Servicios() {
   const navigate = useNavigate();
@@ -19,6 +24,8 @@ export default function Servicios() {
   const [servicios, setServicios] = useState([]);
   const [search, setSearch] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [modalDelete, setModalDelete] = useState({
     open: false,
@@ -26,144 +33,178 @@ export default function Servicios() {
     nombre: "",
   });
 
-  // Cargar datos
   useEffect(() => {
-    const serviciosData = getAllServicios();
-    setServicios(serviciosData);
+    loadServicios();
   }, []);
 
-  // =============================
-  //    MODAL DE ELIMINACIÓN
-  // =============================
-  const handleDelete = (id, nombre) => {
-    setModalDelete({
-      open: true,
-      id,
-      nombre,
-    });
+  const loadServicios = async () => {
+    try {
+      setLoading(true);
+      const data = await getAllServicios();
+      const serviciosTransformados = data.map(servicio => ({
+        id: servicio.id,
+        nombre: servicio.nombre,
+        descripcion: servicio.descripcion || '',
+        duracion: servicio.duracion_min,
+        precio: servicio.precio,
+        estado: servicio.estado 
+      }));
+      setServicios(serviciosTransformados);
+      setError(null);
+    } catch (error) {
+      console.error("Error cargando servicios:", error);
+      setError("No se pudieron cargar los servicios");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const confirmDelete = () => {
-    const updated = deleteServicio(modalDelete.id);
-    // ARREGLADO: No usar spread, setear directamente el array
-    setServicios(updated);
+  const handleDelete = (id, nombre) => {
+    setModalDelete({ open: true, id, nombre });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await deleteServicio(modalDelete.id);
+      await loadServicios();
+      setModalDelete({ open: false, id: null, nombre: "" });
+    } catch (err) {
+      console.error("Error al eliminar:", err);
+      alert("Error al eliminar el servicio");
+    }
+  };
+
+  const handleCancelDelete = () => {
     setModalDelete({ open: false, id: null, nombre: "" });
   };
 
-  // =============================
-  //    CAMBIAR ESTADO - ARREGLADO
-  // =============================
-  const toggleEstado = (id) => {
-    const updated = updateEstadoServicio(id);
-    // ARREGLADO: No usar spread, setear directamente el array
-    setServicios(updated);
+  const cambiarEstado = async (row, newStatus) => {
+    try {
+      const nuevoEstadoUI = newStatus = newStatus ;
+      
+      setServicios(prev => prev.map(s => 
+        s.id === row.id ? { ...s, estado: nuevoEstadoUI } : s
+      ));
+
+      await updateEstadoServicio(row.id, nuevoEstadoUI);
+    } catch (err) {
+      console.error("Error al cambiar estado:", err);
+      loadServicios();
+    }
   };
 
-  // =============================
-  //          BUSCADOR Y FILTRO
-  // =============================
-  const filteredServicios = servicios.filter((servicio) => {
-    const matchesSearch = 
-      servicio.nombre.toLowerCase().includes(search.toLowerCase()) ||
-      servicio.descripcion.toLowerCase().includes(search.toLowerCase()) ||
-      servicio.empleado.toLowerCase().includes(search.toLowerCase());
-    
-    const matchesFilter = !filterEstado || servicio.estado === filterEstado;
-    
-    return matchesSearch && matchesFilter;
+  const filteredServicios = servicios.filter((s) => {
+    const matchesSearch =
+      s.nombre.toLowerCase().includes(search.toLowerCase()) ||
+      (s.descripcion && s.descripcion.toLowerCase().includes(search.toLowerCase()));
+
+    const matchesEstado = !filterEstado || s.estado === filterEstado;
+
+    return matchesSearch && matchesEstado;
   });
 
-  // FILTROS PARA SERVICIOS
-  const searchFilters = [
-    { value: 'activo', label: 'Activos' },
-    { value: 'inactivo', label: 'Inactivos' }
+  const estadoFilters = [
+    { value: "", label: "Todos los estados" },
+    { value: "activo", label: "Activos" },
+    { value: "inactivo", label: "Inactivos" },
   ];
 
-  // =============================
-  //          COLUMNAS
-  // =============================
   const columns = [
     { field: "nombre", header: "Nombre" },
-    { field: "duracion", header: "Duración (min)" },
-    {
-      field: "estado",
-      header: "Estado",
-      render: (item) => (
-        <button
-          className={`estado-btn ${item.estado === "activo" ? "activo" : "inactivo"}`}
-          onClick={() => toggleEstado(item.id)}
-        >
-          {item.estado === "activo" ? "Activo" : "Inactivo"}
-        </button>
-      ),
+    { 
+      field: "duracion", 
+      header: "Duración",
+      render: (item) => `${item.duracion} min`
     },
+    { 
+      field: "precio", 
+      header: "Precio",
+      render: (item) => formatCOP(item.precio)
+    }
   ];
 
-  // =============================
-  //          ACCIONES
-  // =============================
   const tableActions = [
     {
-      label: "Ver Detalles",
+      label: "Cambiar estado",
+      type: "toggle-status",
+      onClick: (item) => cambiarEstado(item),
+    },
+    {
+      label: "Ver",
       type: "view",
-      onClick: (item) => navigate(`detalle/${item.id}`),
+      onClick: (row) => navigate(`detalle/${row.id}`),
     },
     {
       label: "Editar",
       type: "edit",
-      onClick: (item) => navigate(`editar/${item.id}`),
+      onClick: (row) => navigate(`editar/${row.id}`),
     },
     {
       label: "Eliminar",
       type: "delete",
-      onClick: (item) => handleDelete(item.id, item.nombre),
+      onClick: (row) => handleDelete(row.id, row.nombre),
     },
   ];
 
-  // Función para manejar cambio de filtro
-  const handleFilterChange = (value) => {
-    setFilterEstado(value);
-  };
+  if (loading) {
+    return (
+      <CrudLayout
+        title="Servicios"
+        showSearch={true}
+        searchPlaceholder="Buscar por nombre o descripción..."
+        searchPosition="left"
+      >
+        <div className="loading-container">Cargando servicios...</div>
+      </CrudLayout>
+    );
+  }
 
   return (
     <CrudLayout
       title="Servicios"
       onAddClick={() => navigate("crear")}
-      showSearch={true}
-      searchPlaceholder="Buscar por nombre, descripción, empleado..."
+      showSearch
+      searchPlaceholder="Buscar por nombre o descripción..."
       searchValue={search}
       onSearchChange={setSearch}
-      searchFilters={searchFilters}
+      searchFilters={estadoFilters}
       filterEstado={filterEstado}
-      onFilterChange={handleFilterChange}
-      searchPosition="left"
+      onFilterChange={setFilterEstado}
     >
-      {/* Tabla */}
-      <CrudTable 
-        columns={columns} 
-        data={filteredServicios} 
+      {error && (
+        <div className="unified-no-data" style={{ 
+          backgroundColor: '#ffebee', 
+          color: '#c62828',
+          marginBottom: '16px'
+        }}>
+          ⚠️ {error}
+        </div>
+      )}
+
+      <CrudTable
+        columns={columns}
+        data={filteredServicios}
         actions={tableActions}
+        onChangeStatus={cambiarEstado}
         emptyMessage={
-          search || filterEstado ? 
-            'No se encontraron servicios para los filtros aplicados' : 
-            'No hay servicios registrados'
+          search || filterEstado
+            ? "No se encontraron servicios para los filtros aplicados"
+            : "No hay servicios registrados"
         }
       />
 
-      {/* Botón para primer servicio */}
-      {filteredServicios.length === 0 && !search && !filterEstado && (
-        <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
+      {filteredServicios.length === 0 && !search && !filterEstado && !loading && (
+        <div style={{ textAlign: 'center', marginTop: '24px' }}>
           <button 
             onClick={() => navigate("crear")}
             className="btn-primary"
-            style={{padding: 'var(--spacing-md) var(--spacing-lg)'}}
+            style={{ padding: '12px 24px' }}
           >
             Crear Primer Servicio
           </button>
         </div>
       )}
 
-      {/* Modal de Confirmación */}
       <Modal
         open={modalDelete.open}
         type="warning"
@@ -171,9 +212,9 @@ export default function Servicios() {
         message={`Esta acción eliminará el servicio "${modalDelete.nombre}" y no se puede deshacer.`}
         confirmText="Eliminar"
         cancelText="Cancelar"
-        showCancel={true}
+        showCancel
         onConfirm={confirmDelete}
-        onCancel={() => setModalDelete({ open: false, id: null, nombre: "" })}
+        onCancel={handleCancelDelete}
       />
     </CrudLayout>
   );

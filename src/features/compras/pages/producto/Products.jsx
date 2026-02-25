@@ -98,7 +98,7 @@ export default function Productos() {
  const cambiarEstado = async (row, newStatus) => {
   try {
   
-    const nuevoEstadoUI = newStatus === 'activa' ? 'activo' : 'inactivo';
+    const nuevoEstadoUI = newStatus =newStatus;
      
    setProductos(prev => prev.map(p => 
       p.id === row.id ? { ...p, estado: nuevoEstadoUI  } : p
