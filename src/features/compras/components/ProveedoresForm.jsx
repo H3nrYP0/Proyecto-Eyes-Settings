@@ -17,6 +17,7 @@ const DEFAULT_FORM = {
   departamento:   "",
   municipio:      "",
   direccion:      "",
+  estado:         "activo",
 };
 
 export default function ProveedorForm({
@@ -32,9 +33,28 @@ export default function ProveedorForm({
   const [formData, setFormData] = useState(DEFAULT_FORM);
   const [errors,   setErrors]   = useState({});
 
+  // 🔥 Igual que RolForm: convierte estado booleano → "activo"/"inactivo"
   useEffect(() => {
     if (initialData) {
-      setFormData({ ...DEFAULT_FORM, ...initialData });
+      const estadoStr =
+        initialData.estado === true  ? "activo"   :
+        initialData.estado === false ? "inactivo" :
+        // Si ya viene como string (ej: "Activo"/"Inactivo") también lo normalizamos
+        (initialData.estado || "").toLowerCase() === "activo" ? "activo" : "inactivo";
+
+      setFormData({
+        tipoProveedor:  initialData.tipoProveedor  || DEFAULT_FORM.tipoProveedor,
+        tipoDocumento:  initialData.tipoDocumento   || DEFAULT_FORM.tipoDocumento,
+        documento:      initialData.documento       || "",
+        razonSocial:    initialData.razonSocial     || "",
+        contactoNombre: initialData.contactoNombre  || "",
+        telefono:       initialData.telefono        || "",
+        correo:         initialData.correo          || "",
+        departamento:   initialData.departamento    || "",
+        municipio:      initialData.municipio       || "",
+        direccion:      initialData.direccion       || "",
+        estado:         estadoStr,
+      });
     }
   }, [initialData]);
 
@@ -63,7 +83,11 @@ export default function ProveedorForm({
       return;
     }
 
-    onSubmit?.(formData);
+    // Enviamos estado como booleano al backend
+    onSubmit?.({
+      ...formData,
+      estado: formData.estado === "activo",
+    });
   };
 
   return (
@@ -210,6 +234,24 @@ export default function ProveedorForm({
             helperText={errors.direccion}
           />
         </BaseFormField>
+
+        {/* Estado — solo visible en editar y ver */}
+        {mode !== "create" && (
+          <BaseFormField>
+            <BaseInputField
+              label="Estado"
+              name="estado"
+              value={formData.estado}
+              onChange={handleChange}
+              select
+              options={[
+                { value: "activo",   label: "Activo"   },
+                { value: "inactivo", label: "Inactivo" },
+              ]}
+              disabled={isView}
+            />
+          </BaseFormField>
+        )}
 
       </BaseFormSection>
 
