@@ -1,76 +1,78 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import UsuarioForm from "./components/UserForm";
 
-import {
-  getUsuarioById,
-  updateUsuario
-} from "../../../../lib/data/usuariosData";
+import UsuarioForm from "./components/UserForm";
+import Loading from "../../../../shared/components/ui/Loading";
+
+import { UserData } from "../../../../lib/data/usuariosData";
+import { getAllRoles } from "../../../../lib/data/rolesData";
 
 export default function EditarUsuario() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [usuario, setUsuario] = useState(null);
+  const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ============================
-  // Cargar usuario
-  // ============================
-
   useEffect(() => {
-    const cargarUsuario = () => {
-      const usuarioData = getUsuarioById(Number(id));
-      
-      if (!usuarioData) {
-        navigate("/admin/seguridad/usuarios");
-        return;
-      }
+    loadData();
+  }, []);
 
-      setUsuario(usuarioData);
+  const loadData = async () => {
+    try {
+      const [data, rolesData] = await Promise.all([
+        UserData.getUserById(id),
+        getAllRoles(),
+      ]);
+
+      setUsuario({
+        ...data,
+        email: data.correo,
+        rol: data.rol_id,
+      });
+
+      setRoles(rolesData);
+    } catch (error) {
+      console.error(error);
+      alert("Error al cargar usuario");
+    } finally {
       setLoading(false);
-    };
-
-    cargarUsuario();
-  }, [id, navigate]);
-
-  // ============================
-  // Guardar cambios
-  // ============================
-
-  const handleUpdate = (data) => {
-    // Crear objeto con los datos a actualizar
-    const usuarioActualizado = {
-      id: Number(id),
-      nombre: data.nombre,
-      email: data.email,
-      telefono: data.telefono,
-      fechaNacimiento: data.fechaNacimiento,
-      tipoDocumento: data.tipoDocumento,
-      numeroDocumento: data.numeroDocumento,
-      rol: data.rol,
-      // Mantener estado y fechaRegistro del usuario original
-      estado: usuario.estado,
-      fechaRegistro: usuario.fechaRegistro
-    };
-
-    // Solo incluir password si se proporcionó una nueva
-    if (data.password) {
-      usuarioActualizado.password = data.password;
     }
-
-    updateUsuario(Number(id), usuarioActualizado);
-    navigate("/admin/seguridad/usuarios");
   };
 
-  if (loading) return null;
+  const handleEdit = async (data) => {
+    try {
+      const payload = {
+        nombre: data.nombre,
+        correo: data.email,
+        contrasenia: data.password,
+        rol_id: Number(data.rol),
+      };
+
+      await UserData.updateUser(id, payload);
+      navigate("/admin/seguridad/usuarios");
+    } catch (error) {
+      console.log("MENSAJE BACKEND:", error.response?.data);
+      alert("Error al editar usuario");
+    }
+  };
+
+  if (loading) {
+    return <Loading message="Cargando usuario..." />;
+  }
+
+  if (!usuario) {
+    return <div>No se encontró el usuario</div>;
+  }
 
   return (
     <UsuarioForm
       mode="edit"
-      title="Editar Usuario"
+      title={`Editar Usuario: ${usuario.nombre}`}
       initialData={usuario}
-      onSubmit={handleUpdate}
+      rolesDisponibles={roles}
+      onSubmit={handleEdit}
       onCancel={() => navigate("/admin/seguridad/usuarios")}
     />
   );

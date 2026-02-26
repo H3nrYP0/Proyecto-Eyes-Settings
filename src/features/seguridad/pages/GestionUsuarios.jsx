@@ -3,152 +3,141 @@ import { useNavigate } from "react-router-dom";
 import CrudLayout from "../../../shared/components/crud/CrudLayout";
 import CrudTable from "../../../shared/components/crud/CrudTable";
 import Modal from "../../../shared/components/ui/Modal";
+import Loading from "../../../shared/components/ui/Loading";
 
-// Backend
-import {
-  getAllUsuarios,
-  deleteUsuario,
-  updateEstadoUsuario,
-} from "../../../lib/data/usuariosData";
+import { UserData } from "../../../lib/data/usuariosData";
+import { getAllRoles } from "../../../lib/data/rolesData";
 
 export default function GestionUsuarios() {
   const navigate = useNavigate();
 
-  const [usuarios, setUsuarios] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [roles, setRoles] = useState([]);
   const [search, setSearch] = useState("");
-  const [filterEstado, setFilterEstado] = useState("");
-  const [filterRol, setFilterRol] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // =============================
   // MODAL ELIMINAR
   // =============================
-  const [modalDelete, setModalDelete] = useState({
+  const [deleteModal, setDeleteModal] = useState({
     open: false,
     id: null,
-    nombre: "",
+    name: "",
   });
 
   // =============================
-  // MODAL CAMBIAR ESTADO
-  // =============================
-  const [modalEstado, setModalEstado] = useState({
-    open: false,
-    id: null,
-    nombre: "",
-    nuevoEstado: "",
-  });
-
-  // =============================
-  // CARGA DE DATOS
+  // CARGAR USUARIOS DESDE BACKEND
   // =============================
   useEffect(() => {
-    cargarUsuarios();
+    loadUsers();
   }, []);
 
-  const cargarUsuarios = () => {
-    const data = getAllUsuarios();
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-    const normalizados = data.map((u) => ({
-      ...u,
-      estado: u.estado ? "activo" : "inactivo", // 👈 misma convención que Roles
-    }));
+      const [data, rolesData] = await Promise.all([
+        UserData.getAllUsers(),
+        getAllRoles(),
+      ]);
 
-    setUsuarios(normalizados);
-  };
-
-  // =============================
-  // ELIMINAR
-  // =============================
-  const handleDelete = (id, nombre) => {
-    setModalDelete({ open: true, id, nombre });
-  };
-
-  const confirmDelete = () => {
-    const updated = deleteUsuario(modalDelete.id);
-    setUsuarios(
-      updated.map((u) => ({
+      // ← Igual que Roles: normaliza estado booleano a string
+      const normalizados = data.map((u) => ({
         ...u,
         estado: u.estado ? "activo" : "inactivo",
-      }))
-    );
-    setModalDelete({ open: false, id: null, nombre: "" });
+        estadosDisponibles: ["activo", "inactivo"],
+      }));
+
+      setUsers(normalizados);
+      setRoles(rolesData);
+
+    } catch (err) {
+      console.error(err);
+      setError("No se pudieron cargar los usuarios");
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // =============================
-  // CAMBIAR ESTADO
+  // ELIMINAR USUARIO
   // =============================
-  const handleToggleEstado = (row) => {
-    const nuevoEstado =
-      row.estado === "activo" ? "inactivo" : "activo";
-
-    setModalEstado({
-      open: true,
-      id: row.id,
-      nombre: row.nombre,
-      nuevoEstado,
-    });
+  const handleDelete = (id, name) => {
+    setDeleteModal({ open: true, id, name });
   };
 
-  const confirmChangeStatus = () => {
-    const updated = updateEstadoUsuario(modalEstado.id);
-
-    setUsuarios(
-      updated.map((u) => ({
-        ...u,
-        estado: u.estado ? "activo" : "inactivo",
-      }))
-    );
-
-    setModalEstado({
-      open: false,
-      id: null,
-      nombre: "",
-      nuevoEstado: "",
-    });
+  const confirmDelete = async () => {
+    try {
+      await UserData.deleteUser(deleteModal.id);
+      await loadUsers();
+      setDeleteModal({ open: false, id: null, name: "" });
+    } catch (error) {
+      console.error(error);
+      alert("Error al eliminar usuario");
+    }
   };
 
   // =============================
-  // FILTROS
+  // CAMBIAR ESTADO DEL USUARIO
+  // ← Igual que Roles: recibe (row, nuevoEstado)
   // =============================
-  const filteredUsuarios = usuarios.filter((usuario) => {
+  const handleChangeStatus = async (row, nuevoEstado) => {
+    try {
+      await UserData.toggleUserEstado(row, nuevoEstado);
+      await loadUsers();
+    } catch (error) {
+      console.error(error);
+      alert("Error al cambiar estado del usuario");
+    }
+  };
+
+  // =============================
+  // FILTRAR USUARIOS
+  // ← Igual que Roles: compara strings "activo"/"inactivo"
+  // =============================
+  const filteredUsers = users.filter((user) => {
     const matchesSearch =
-      usuario.nombre.toLowerCase().includes(search.toLowerCase()) ||
-      usuario.email.toLowerCase().includes(search.toLowerCase()) ||
-      usuario.rol.toLowerCase().includes(search.toLowerCase());
+      user.nombre?.toLowerCase().includes(search.toLowerCase()) ||
+      user.correo?.toLowerCase().includes(search.toLowerCase());
 
-    const matchesEstado =
-      !filterEstado || usuario.estado === filterEstado;
+    const matchesStatus = !filterStatus || user.estado === filterStatus;
 
-    const matchesRol =
-      !filterRol || usuario.rol === filterRol;
-
-    return matchesSearch && matchesEstado && matchesRol;
+    return matchesSearch && matchesStatus;
   });
 
   // =============================
-  // COLUMNAS (SIN ESTADO MANUAL)
+  // COLUMNAS DE LA TABLA
   // =============================
   const columns = [
     {
       field: "nombre",
       header: "Nombre",
+      render: (item) => item.nombre,
     },
     {
-      field: "rol",
+      field: "correo",
+      header: "Correo",
+      render: (item) => item.correo,
+    },
+    {
+      field: "rol_id",
       header: "Rol",
-      render: (item) => item.rol,
+      render: ({ rol_id }) => {
+        const rol = roles.find((r) => r.id === rol_id);
+        return rol?.nombre ?? "Sin rol";
+      },
     },
   ];
 
   // =============================
-  // ACCIONES (MISMA ESTRUCTURA QUE ROLES)
+  // ACCIONES DE LA TABLA
+  // ← Sin toggle-status, igual que Roles
   // =============================
   const tableActions = [
-    {
-      label: "Cambiar estado",
-      type: "toggle-status",
-      onClick: (row) => handleToggleEstado(row),
-    },
     {
       label: "Ver detalles",
       type: "view",
@@ -167,43 +156,58 @@ export default function GestionUsuarios() {
   ];
 
   // =============================
-  // FILTROS
+  // FILTROS DE ESTADO
   // =============================
-  const estadoFilters = [
+  const statusFilters = [
     { value: "", label: "Todos los estados" },
     { value: "activo", label: "Activos" },
     { value: "inactivo", label: "Inactivos" },
   ];
 
-  const rolFilters = [
-    { value: "", label: "Todos los roles" },
-    { value: "administrador", label: "Administrador" },
-    { value: "vendedor", label: "Vendedor" },
-    { value: "optometra", label: "Optómetra" },
-    { value: "tecnico", label: "Técnico" },
-  ];
+  // =============================
+  // LOADING INICIAL
+  // =============================
+  if (loading && users.length === 0) {
+    return (
+      <CrudLayout title="Gestión de Usuarios" showSearch>
+        <Loading message="Cargando usuarios..." />
+      </CrudLayout>
+    );
+  }
 
   return (
     <CrudLayout
       title="Gestión de Usuarios"
       onAddClick={() => navigate("crear")}
       showSearch
-      searchPlaceholder="Buscar por nombre, email, rol..."
+      searchPlaceholder="Buscar por nombre o correo..."
       searchValue={search}
       onSearchChange={setSearch}
-      searchFilters={estadoFilters}
-      filterEstado={filterEstado}
-      onFilterChange={setFilterEstado}
-      searchFiltersRol={rolFilters}
-      filterRol={filterRol}
-      onFilterChangeRol={setFilterRol}
+      searchFilters={statusFilters}
+      filterEstado={filterStatus}
+      onFilterChange={setFilterStatus}
     >
+      {error && (
+        <div
+          style={{
+            padding: "16px",
+            backgroundColor: "#ffebee",
+            color: "#c62828",
+            borderRadius: "4px",
+            marginBottom: "16px",
+          }}
+        >
+          ⚠️ {error}
+        </div>
+      )}
+
       <CrudTable
         columns={columns}
-        data={filteredUsuarios}
+        data={filteredUsers}
         actions={tableActions}
+        onChangeStatus={handleChangeStatus}
         emptyMessage={
-          search || filterEstado || filterRol
+          search || filterStatus
             ? "No se encontraron usuarios para los filtros aplicados"
             : "No hay usuarios registrados"
         }
@@ -211,36 +215,16 @@ export default function GestionUsuarios() {
 
       {/* MODAL ELIMINAR */}
       <Modal
-        open={modalDelete.open}
+        open={deleteModal.open}
         type="warning"
         title="¿Eliminar Usuario?"
-        message={`Esta acción eliminará al usuario "${modalDelete.nombre}" y no se puede deshacer.`}
+        message={`Esta acción eliminará al usuario "${deleteModal.name}" y no se puede deshacer.`}
         confirmText="Eliminar"
         cancelText="Cancelar"
         showCancel
         onConfirm={confirmDelete}
         onCancel={() =>
-          setModalDelete({ open: false, id: null, nombre: "" })
-        }
-      />
-
-      {/* MODAL CAMBIAR ESTADO */}
-      <Modal
-        open={modalEstado.open}
-        type="info"
-        title="¿Cambiar estado?"
-        message={`El usuario "${modalEstado.nombre}" cambiará a estado "${modalEstado.nuevoEstado}".`}
-        confirmText="Confirmar"
-        cancelText="Cancelar"
-        showCancel
-        onConfirm={confirmChangeStatus}
-        onCancel={() =>
-          setModalEstado({
-            open: false,
-            id: null,
-            nombre: "",
-            nuevoEstado: "",
-          })
+          setDeleteModal({ open: false, id: null, name: "" })
         }
       />
     </CrudLayout>
