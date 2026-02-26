@@ -202,7 +202,7 @@ export default function Roles() {
         columns={columns}
         data={filteredRoles}
         actions={tableActions}
-        onChangeStatus={handleChangeStatus} // 👈 ESTO MANEJA EL CAMBIO DE ESTADO
+        onChangeStatus={handleChangeStatus} 
         emptyMessage={
           search || filterEstado
             ? "No se encontraron roles para los filtros aplicados"
