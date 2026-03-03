@@ -201,29 +201,7 @@ export default function Login({ setUser }) {
                 {error}
               </Alert>
             )}
-
-            {/* Información para probar usuarios especiales */}
-            {/* <Alert severity="info" sx={{ mb: 3, fontSize: '0.8rem', borderRadius: 2 }}>
-              <Typography variant="body2" fontWeight="600" gutterBottom>
-                Usuarios de prueba:
-              </Typography>
-              <Typography variant="body2" component="div">
-                <strong>Super Admin:</strong> superadmin@visualoutlet.com / SuperAdmin123! (Dashboard)
-              </Typography>
-              <Typography variant="body2" component="div">
-                <strong>Admin:</strong> admin@visualoutlet.com / Admin123! (Dashboard)
-              </Typography>
-              <Typography variant="body2" component="div">
-                <strong>Vendedor:</strong> vendedor@visualoutlet.com / Vendedor123! (Dashboard)
-              </Typography>
-              <Typography variant="body2" component="div">
-                <strong>Óptico:</strong> optico@visualoutlet.com / Optico123! (Dashboard)
-              </Typography>
-              <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
-                <strong>Cualquier otro correo/contraseña:</strong> Irá a la Landing Page
-              </Typography>
-            </Alert> */}
-
+            
             {/* Login Form */}
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
               <TextField
