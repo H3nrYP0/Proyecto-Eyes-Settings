@@ -73,7 +73,7 @@ export default function App() {
           path="/admin/*"
           element={
             <ProtectedRoute permiso="dashboard">
-              <OpticaDashboardLayout />
+              <OpticaDashboardLayout user={user} setUser={setUser} />
             </ProtectedRoute>
           }
         />

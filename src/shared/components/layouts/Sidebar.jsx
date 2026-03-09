@@ -10,8 +10,9 @@ import {
   useTheme,
   useMediaQuery
 } from "@mui/material";
+
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { NavLink } from "react-router-dom";
 
 import { menuStructure } from "../../constants/menuStructure";
@@ -21,59 +22,99 @@ import { useSidebar } from "../../hooks/useSidebar";
 const drawerWidth = 240;
 
 export default function Sidebar({ open, onToggle, user }) {
-  const { hasPermission } = useSidebar(user);
-  const [openSections, setOpenSections] = useState({});
+
+  const {
+    expandedSections,   // secciones abiertas
+    toggleSection,      // función para abrir/cerrar secciones
+    hasPermission       // verifica permisos del usuario
+  } = useSidebar(user);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
+  /*
+  ============================================
+  Filtra los módulos del menú según permisos
+  del usuario que vienen del backend
+  ============================================
+  */
   const filteredSections = useMemo(
     () => menuStructure.filter(section => hasPermission(section.id)),
     [hasPermission]
   );
 
-  const toggleSection = (id) => {
-    setOpenSections(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
-  };
-
   return (
     <Drawer
-        variant={isMobile ? "temporary" : "permanent"}
-        anchor="left"
-        open={isMobile ? open : true}
-        onClose={isMobile ? onToggle : undefined}
-        sx={{
-          width: isMobile ? drawerWidth : (open ? drawerWidth : 0),
-          flexShrink: 0,
-          "& .MuiDrawer-paper": {
-            width: open ? drawerWidth : 0,
-            overflowX: "hidden",
-            transition: "width 0.3s ease",
-            backgroundColor: "#1e293b",
-            color: "#fff"
-          }
-        }}
+      variant={isMobile ? "temporary" : "permanent"}
+      anchor="left"
+      open={isMobile ? open : true}
+      onClose={isMobile ? onToggle : undefined}
+      sx={{
+        width: isMobile ? drawerWidth : (open ? drawerWidth : 80),
+        flexShrink: 0,
+
+        /*
+        ============================================
+        Estilos del sidebar
+        ============================================
+        */
+        "& .MuiDrawer-paper": {
+          width: open ? drawerWidth : 80,
+          overflowX: "hidden",
+          transition: "width 0.3s ease",
+          backgroundColor: "#1e293b",
+          color: "#fff"
+        }
+      }}
     >
+
+      {/* espacio para que no se superponga con el navbar */}
       <Toolbar />
 
       <Box sx={{ overflow: "auto" }}>
         <List>
+
           {filteredSections.map(section => (
             <Box key={section.id}>
-              <ListItemButton onClick={() => toggleSection(section.id)}>
-                <ListItemIcon sx={{ color: "#fff" }}>
+
+              {/* ===============================
+                  BOTÓN DEL MÓDULO PRINCIPAL
+                 =============================== */}
+              <ListItemButton
+                onClick={() => toggleSection(section.id)}
+              >
+
+                {/* ICONO DEL MÓDULO */}
+                <ListItemIcon sx={{ color: "#fff", minWidth: 40 }}>
                   <IconRenderer name={section.icon} />
                 </ListItemIcon>
-                <ListItemText primary={section.title} />
-                {openSections[section.id] ? <ExpandLess /> : <ExpandMore />}
+
+                {/* TEXTO DEL MÓDULO (solo visible cuando el sidebar está abierto) */}
+                {open && <ListItemText primary={section.title} />}
+
+                {/* ICONO EXPANDIR / COLAPSAR */}
+                {open && (
+                  expandedSections[section.id]
+                    ? <ExpandLess />
+                    : <ExpandMore />
+                )}
+
               </ListItemButton>
 
-              <Collapse in={openSections[section.id]} timeout="auto" unmountOnExit>
+              {/* ===============================
+                  SUBMENÚ DEL MÓDULO
+                 =============================== */}
+
+              <Collapse
+                in={expandedSections[section.id]}
+                timeout="auto"
+                unmountOnExit
+              >
+
                 <List component="div" disablePadding>
+
                   {section.items.map(item => (
+
                     <ListItemButton
                       key={item.path}
                       component={NavLink}
@@ -81,16 +122,26 @@ export default function Sidebar({ open, onToggle, user }) {
                       sx={{ pl: 4 }}
                       onClick={isMobile ? onToggle : undefined}
                     >
-                      <ListItemIcon sx={{ color: "#fff" }}>
+
+                      {/* ICONO DEL ITEM */}
+                      <ListItemIcon sx={{ color: "#fff", minWidth: 40 }}>
                         <IconRenderer name={item.icon} />
                       </ListItemIcon>
-                      <ListItemText primary={item.name} />
+
+                      {/* TEXTO DEL ITEM */}
+                      {open && <ListItemText primary={item.name} />}
+
                     </ListItemButton>
+
                   ))}
+
                 </List>
+
               </Collapse>
+
             </Box>
           ))}
+
         </List>
       </Box>
     </Drawer>
