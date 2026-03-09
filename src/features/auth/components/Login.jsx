@@ -1,374 +1,205 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { 
-  Box,
-  Card,
-  CardContent,
-  TextField,
-  FormControlLabel,
-  Checkbox,
-  Button,
-  Typography,
-  Container,
-  Alert,
-  InputAdornment,
-  IconButton
+  Box, Card, CardContent, TextField, FormControlLabel,
+  Checkbox, Button, Typography, Container, Alert,
+  InputAdornment, IconButton, CircularProgress
 } from "@mui/material";
 import { 
   VisibilityOutlined as VisibilityOutlinedIcon,
   VisibilityOffOutlined as VisibilityOffOutlinedIcon
 } from "@mui/icons-material";
-import { ROLES, TEST_USERS, PERMISSIONS } from "../../../shared/constants/roles"; // Asegúrate de importar PERMISSIONS
+
+import authService from "../Services/authService";
 
 export default function Login({ setUser }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+
   const navigate = useNavigate();
 
-  // Función para verificar usuarios especiales
-  const verifySpecialUser = (email, password) => {
-    const normalizedEmail = email.toLowerCase().trim();
-    
-    // Verificar si es usuario especial (de TEST_USERS)
-    for (const [key, user] of Object.entries(TEST_USERS)) {
-      if (user.email.toLowerCase() === normalizedEmail && user.password === password) {
-        console.log(`✅ Usuario especial encontrado: ${key} (${user.role})`);
-        
-        // IMPORTANTE: Asegurarse de incluir los permisos del rol
-        const userWithPermissions = {
-          ...user,
-          permissions: PERMISSIONS[user.role] || []
-        };
-        
-        return userWithPermissions;
-      }
-    }
-    
-    return null; // No es usuario especial
-  };
+  const [correo, setCorreo] = useState("");
+  const [contrasenia, setContrasenia] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    if (!email.trim() || !password.trim()) {
+    // ── Validaciones frontend ──
+    if (!correo.trim() || !contrasenia.trim()) {
       setError("Ingresa correo y contraseña para continuar");
       return;
     }
 
-    // 1. Verificar si es usuario especial (super_admin, admin, vendedor, óptico)
-    const specialUser = verifySpecialUser(email, password);
-    
-    if (specialUser) {
-      // Es usuario especial - redirigir al dashboard
-      console.log("🔑 Autenticación exitosa como:", specialUser.role);
-      console.log("📋 Permisos:", specialUser.permissions);
-      setUser(specialUser);
-      
-      // Solo usuarios especiales van al dashboard
-      navigate("/admin/dashboard");
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(correo)) {
+      setError("Ingresa un correo electrónico válido");
       return;
     }
 
-    // 2. Si NO es usuario especial, es usuario normal
-    console.log("👤 Usuario normal detectado - Redirigiendo a landing");
-    const normalUser = {
-      id: Date.now(),
-      name: email.split('@')[0],
-      email: email.trim(),
-      role: ROLES.USUARIO, // Rol USUARIO por defecto
-      permissions: PERMISSIONS[ROLES.USUARIO] || [] // Agregar permisos vacíos
-    };
-    
-    setUser(normalUser);
-    console.log("📍 Navegando a / (landing page)");
-    
-    // IMPORTANTE: Usar replace: true para limpiar el historial
-    navigate("/", { replace: true });
-  };
+    if (contrasenia.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres");
+      return;
+    }
 
-  // Función para alternar visibilidad de contraseña
-  const handleClickShowPassword = () => {
-    setShowPassword(!showPassword);
-  };
+    setLoading(true);
 
-  // Función para evitar que el botón active el submit
-  const handleMouseDownPassword = (e) => {
-    e.preventDefault();
+    try {
+      const usuario = await authService.login(correo.trim(), contrasenia);
+
+      // Guardar en estado global
+      setUser(usuario);
+
+      // ── Redirección correcta con React Router ──
+      if (authService.hasPermission(usuario, "dashboard")) {
+        navigate("/admin/dashboard", { replace: true });
+      } else {
+        navigate("/", { replace: true });
+      }
+
+    } catch (err) {
+      const mensaje = err.response?.data?.error;
+
+      if (mensaje === "Tu cuenta está inactiva. Contacta al administrador.") {
+        setError(mensaje);
+      } else {
+        setError("Correo o contraseña incorrectos");
+      }
+
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        background: "linear-gradient(135deg, #e3f2fd 0%, #f3f8ff 50%, #ffffff 100%)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        py: 2,
-        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif"
-      }}
-    >
-      {/* Logo fuera de la card - centrado en la parte superior */}
+    <Box sx={{
+      minHeight: "100vh",
+      background: "linear-gradient(135deg, #e3f2fd 0%, #f3f8ff 50%, #ffffff 100%)",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      py: 2,
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif"
+    }}>
+      
+      {/* Logo */}
       <Box sx={{ textAlign: "center", mb: 1 }}>
-        <Box 
-          sx={{ 
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 1,
-            mb: 2
-          }}
-        >
-          <Box 
-            sx={{ 
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 52,
-              height: 52,
-              background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
-              borderRadius: '12px',
-              boxShadow: '0 4px 12px rgba(25, 118, 210, 0.2)'
-            }}
-          >
-            <VisibilityOutlinedIcon 
-              sx={{ 
-                fontSize: 26, 
-                color: 'white'
-              }} 
-            />
+        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 2 }}>
+          <Box sx={{ 
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: 52, height: 52,
+            background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
+            borderRadius: '12px',
+            boxShadow: '0 4px 12px rgba(25, 118, 210, 0.2)'
+          }}>
+            <VisibilityOutlinedIcon sx={{ fontSize: 26, color: 'white' }} />
           </Box>
-          <Typography 
-            variant="h4" 
-            component="h1" 
-            color="primary"
-            fontWeight="700"
-            fontFamily="inherit"
-            sx={{ letterSpacing: '-0.025em' }}
-          >
+          <Typography variant="h4" component="h1" color="primary"
+            fontWeight="700" fontFamily="inherit"
+            sx={{ letterSpacing: '-0.025em' }}>
             Visual Outlet
           </Typography>
         </Box>
       </Box>
 
-      <Container 
-        component="main" 
-        maxWidth="md"
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Card 
-          elevation={2}
-          sx={{
-            width: "100%",
-            maxWidth: 440,
-            p: 4,
-            borderRadius: 3,
-            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif"
-          }}
-        >
+      <Container component="main" maxWidth="md"
+        sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <Card elevation={2} sx={{
+          width: "100%",
+          maxWidth: 440,
+          p: 4,
+          borderRadius: 3,
+          fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif"
+        }}>
           <CardContent sx={{ p: 1 }}>
-            {/* Header dentro de la card */}
+
             <Box sx={{ textAlign: "center", mb: 3 }}>
-              <Typography 
-                variant="h5" 
-                component="h2" 
-                gutterBottom
-                color="text.primary"
-                fontWeight="600"
-                fontFamily="inherit"
-              >
+              <Typography variant="h5" component="h2"
+                color="text.primary" fontWeight="600">
                 Inicia sesión en tu cuenta
               </Typography>
             </Box>
 
-            {/* Error Alert */}
             {error && (
-              <Alert severity="error" sx={{ 
-                mb: 2, 
-                fontSize: '0.85rem',
-                fontFamily: 'inherit',
-                borderRadius: 2
-              }}>
+              <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
                 {error}
               </Alert>
             )}
 
-            {/* Información para probar usuarios especiales */}
-            {/* <Alert severity="info" sx={{ mb: 3, fontSize: '0.8rem', borderRadius: 2 }}>
-              <Typography variant="body2" fontWeight="600" gutterBottom>
-                Usuarios de prueba:
-              </Typography>
-              <Typography variant="body2" component="div">
-                <strong>Super Admin:</strong> superadmin@visualoutlet.com / SuperAdmin123! (Dashboard)
-              </Typography>
-              <Typography variant="body2" component="div">
-                <strong>Admin:</strong> admin@visualoutlet.com / Admin123! (Dashboard)
-              </Typography>
-              <Typography variant="body2" component="div">
-                <strong>Vendedor:</strong> vendedor@visualoutlet.com / Vendedor123! (Dashboard)
-              </Typography>
-              <Typography variant="body2" component="div">
-                <strong>Óptico:</strong> optico@visualoutlet.com / Optico123! (Dashboard)
-              </Typography>
-              <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
-                <strong>Cualquier otro correo/contraseña:</strong> Irá a la Landing Page
-              </Typography>
-            </Alert> */}
+            <Box component="form" onSubmit={handleSubmit}>
 
-            {/* Login Form */}
-            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
               <TextField
                 margin="normal"
                 required
                 fullWidth
-                id="email"
                 label="Correo Electrónico"
-                name="email"
                 autoComplete="email"
-                autoFocus
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="ejemplo@correo.com"
+                value={correo}
+                onChange={(e) => setCorreo(e.target.value)}
                 size="small"
-                sx={{ fontFamily: 'inherit' }}
+                disabled={loading}
               />
-              
+
               <TextField
                 margin="normal"
                 required
                 fullWidth
-                name="password"
                 label="Contraseña"
                 type={showPassword ? "text" : "password"}
-                id="password"
                 autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="········"
+                value={contrasenia}
+                onChange={(e) => setContrasenia(e.target.value)}
                 size="small"
-                sx={{ fontFamily: 'inherit' }}
+                disabled={loading}
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton
-                        aria-label="toggle password visibility"
-                        onClick={handleClickShowPassword}
-                        onMouseDown={handleMouseDownPassword}
+                        onClick={() => setShowPassword(!showPassword)}
                         edge="end"
                         size="small"
-                        sx={{ mr: 0.5 }}
                       >
-                        {showPassword ? (
-                          <VisibilityOffOutlinedIcon fontSize="small" />
-                        ) : (
-                          <VisibilityOutlinedIcon fontSize="small" />
-                        )}
+                        {showPassword
+                          ? <VisibilityOffOutlinedIcon fontSize="small" />
+                          : <VisibilityOutlinedIcon fontSize="small" />}
                       </IconButton>
                     </InputAdornment>
                   ),
                 }}
               />
 
-              {/* Options Row */}
-              <Box sx={{ 
-                display: "flex", 
-                justifyContent: "space-between", 
-                alignItems: "center",
-                mt: 1,
-                mb: 1
-              }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
                 <FormControlLabel
                   control={
-                    <Checkbox 
+                    <Checkbox
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      color="primary"
                       size="small"
+                      disabled={loading}
                     />
                   }
                   label="Recordarme"
-                  sx={{ 
-                    '& .MuiFormControlLabel-label': { 
-                      fontSize: '0.85rem',
-                      fontFamily: 'inherit',
-                      fontWeight: '500'
-                    } 
-                  }}
                 />
-                
-                <Button 
-                  component={Link}
-                  to="/forgot-password"
-                  variant="text"
-                  size="small"
-                  sx={{ 
-                    textTransform: 'none',
-                    fontSize: '0.85rem',
-                    fontFamily: 'inherit',
-                    fontWeight: '600'
-                  }}
-                >
+                <Button component={Link} to="/forgot-password" size="small">
                   ¿Olvidaste tu contraseña?
                 </Button>
               </Box>
 
-              {/* Login Button */}
               <Button
                 type="submit"
                 fullWidth
                 variant="contained"
-                sx={{ 
-                  mt: 2, 
-                  mb: 2, 
-                  py: 1.1,
-                  textTransform: 'none',
-                  fontSize: '0.95rem',
-                  fontFamily: 'inherit',
-                  fontWeight: '700',
-                  borderRadius: 2,
-                  letterSpacing: '0.01em'
-                }}
+                disabled={loading}
+                sx={{ mt: 2 }}
               >
-                Iniciar sesión
+                {loading
+                  ? <CircularProgress size={24} color="inherit" />
+                  : "Iniciar sesión"}
               </Button>
-            </Box>
 
-            {/* Footer */}
-            <Box sx={{ textAlign: "center", mt: 2 }}>
-              <Typography 
-                variant="body2" 
-                color="text.secondary" 
-                sx={{ 
-                  fontSize: '0.85rem',
-                  fontFamily: 'inherit',
-                  fontWeight: '500'
-                }}
-              >
-                ¿No tienes una cuenta?{" "}
-                <Button 
-                  component={Link}
-                  to="/register"
-                  variant="text"
-                  size="small"
-                  sx={{ 
-                    textTransform: 'none',
-                    fontSize: '0.85rem',
-                    fontFamily: 'inherit',
-                    fontWeight: '700'
-                  }}
-                >
-                  Regístrate aquí
-                </Button>
-              </Typography>
             </Box>
           </CardContent>
         </Card>

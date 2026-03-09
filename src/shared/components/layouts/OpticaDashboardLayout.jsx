@@ -88,8 +88,6 @@ import DetalleUsuario from "../../../features/seguridad/pages/usuario/DetalleUsu
 
 import Configuracion from "../../../features/configuracion/Configuration";
 
-import { ROLES } from "../../../shared/constants/roles";
-
 const drawerWidth = 240;
 
 export default function OpticaDashboardLayout({ user, setUser }) {
@@ -115,21 +113,6 @@ export default function OpticaDashboardLayout({ user, setUser }) {
     setUser(null);
     navigate("/login", { replace: true });
   };
-
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  const dashboardRoles = [
-    ROLES.SUPER_ADMIN,
-    ROLES.ADMIN,
-    ROLES.VENDEDOR,
-    ROLES.OPTICO
-  ];
-
-  if (!dashboardRoles.includes(user.role)) {
-    return <Navigate to="/" replace />;
-  }
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -161,9 +144,6 @@ export default function OpticaDashboardLayout({ user, setUser }) {
             
             {/* ESTA RUTA REDIRIGE AL DASHBOARD POR DEFECTO */}
             <Route index element={<Navigate to="dashboard" replace />} />
-
-            {/* ESTAS SON LAS RUTAS DEL DASHBOARD PRINCIPAL */}
-            <Route path="dashboard" element={<Dashboard />} />
 
             {/* ESTAS SON LAS RUTAS DEL MÓDULO DE VENTAS */}
             <Route path="ventas">

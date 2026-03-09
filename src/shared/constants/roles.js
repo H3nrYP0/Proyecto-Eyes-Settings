@@ -1,3 +1,6 @@
+// Queda pendiente borrar ya no se necesita
+
+
 // src/shared/constants/roles.js
 export const ROLES = {
   SUPER_ADMIN: 'super_admin',     // Acceso total (secreto)
