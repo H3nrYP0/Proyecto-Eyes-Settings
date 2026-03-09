@@ -7,6 +7,7 @@ import {
   Collapse,
   Toolbar,
   Box,
+  Tooltip,
   useTheme,
   useMediaQuery
 } from "@mui/material";
@@ -23,21 +24,11 @@ const drawerWidth = 240;
 
 export default function Sidebar({ open, onToggle, user }) {
 
-  const {
-    expandedSections,   // secciones abiertas
-    toggleSection,      // función para abrir/cerrar secciones
-    hasPermission       // verifica permisos del usuario
-  } = useSidebar(user);
+  const { expandedSections, toggleSection, hasPermission } = useSidebar(user);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-  /*
-  ============================================
-  Filtra los módulos del menú según permisos
-  del usuario que vienen del backend
-  ============================================
-  */
   const filteredSections = useMemo(
     () => menuStructure.filter(section => hasPermission(section.id)),
     [hasPermission]
@@ -52,12 +43,6 @@ export default function Sidebar({ open, onToggle, user }) {
       sx={{
         width: isMobile ? drawerWidth : (open ? drawerWidth : 80),
         flexShrink: 0,
-
-        /*
-        ============================================
-        Estilos del sidebar
-        ============================================
-        */
         "& .MuiDrawer-paper": {
           width: open ? drawerWidth : 80,
           overflowX: "hidden",
@@ -67,81 +52,87 @@ export default function Sidebar({ open, onToggle, user }) {
         }
       }}
     >
-
-      {/* espacio para que no se superponga con el navbar */}
       <Toolbar />
 
       <Box sx={{ overflow: "auto" }}>
         <List>
-
           {filteredSections.map(section => (
             <Box key={section.id}>
 
-              {/* ===============================
-                  BOTÓN DEL MÓDULO PRINCIPAL
-                 =============================== */}
-              <ListItemButton
-                onClick={() => toggleSection(section.id)}
+              {/* BOTÓN DEL MÓDULO PRINCIPAL */}
+              <Tooltip
+                title={!open ? section.title : ""}
+                placement="right"
+                arrow
               >
+                <ListItemButton
+                  onClick={() => toggleSection(section.id)}
+                  sx={{
+                    justifyContent: open ? "initial" : "center",
+                    px: 2.5,
+                  }}
+                >
+                  <ListItemIcon
+                    sx={{
+                      color: "#fff",
+                      minWidth: 0,
+                      mr: open ? 2 : "auto",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <IconRenderer name={section.icon} />
+                  </ListItemIcon>
 
-                {/* ICONO DEL MÓDULO */}
-                <ListItemIcon sx={{ color: "#fff", minWidth: 40 }}>
-                  <IconRenderer name={section.icon} />
-                </ListItemIcon>
+                  {open && <ListItemText primary={section.title} />}
+                  {open && (
+                    expandedSections[section.id] ? <ExpandLess /> : <ExpandMore />
+                  )}
+                </ListItemButton>
+              </Tooltip>
 
-                {/* TEXTO DEL MÓDULO (solo visible cuando el sidebar está abierto) */}
-                {open && <ListItemText primary={section.title} />}
-
-                {/* ICONO EXPANDIR / COLAPSAR */}
-                {open && (
-                  expandedSections[section.id]
-                    ? <ExpandLess />
-                    : <ExpandMore />
-                )}
-
-              </ListItemButton>
-
-              {/* ===============================
-                  SUBMENÚ DEL MÓDULO
-                 =============================== */}
-
+              {/* SUBMENÚ */}
               <Collapse
-                in={expandedSections[section.id]}
+                in={open && expandedSections[section.id]}
                 timeout="auto"
                 unmountOnExit
               >
-
                 <List component="div" disablePadding>
-
                   {section.items.map(item => (
-
-                    <ListItemButton
+                    <Tooltip
                       key={item.path}
-                      component={NavLink}
-                      to={item.path}
-                      sx={{ pl: 4 }}
-                      onClick={isMobile ? onToggle : undefined}
+                      title={!open ? item.name : ""}
+                      placement="right"
+                      arrow
                     >
+                      <ListItemButton
+                        component={NavLink}
+                        to={item.path}
+                        onClick={isMobile ? onToggle : undefined}
+                        sx={{
+                          justifyContent: open ? "initial" : "center",
+                          pl: open ? 4 : 2.5,
+                        }}
+                      >
+                        <ListItemIcon
+                          sx={{
+                            color: "#fff",
+                            minWidth: 0,
+                            mr: open ? 2 : "auto",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <IconRenderer name={item.icon} />
+                        </ListItemIcon>
 
-                      {/* ICONO DEL ITEM */}
-                      <ListItemIcon sx={{ color: "#fff", minWidth: 40 }}>
-                        <IconRenderer name={item.icon} />
-                      </ListItemIcon>
-
-                      {/* TEXTO DEL ITEM */}
-                      {open && <ListItemText primary={item.name} />}
-
-                    </ListItemButton>
-
+                        {open && <ListItemText primary={item.name} />}
+                      </ListItemButton>
+                    </Tooltip>
                   ))}
-
                 </List>
-
               </Collapse>
 
             </Box>
           ))}
-
         </List>
       </Box>
     </Drawer>
