@@ -1,4 +1,4 @@
-import { AppBar, Toolbar, IconButton, Typography, Button } from "@mui/material";
+import { AppBar, Toolbar, IconButton, Typography, Button, Tooltip } from "@mui/material";
 import {
   Menu as MenuIcon,
   Logout as LogoutIcon,
@@ -20,9 +20,11 @@ export default function AppHeader({ onToggleSidebar, user, onLogout }) {
     >
       <Toolbar>
 
-        <IconButton color="inherit" edge="start" onClick={onToggleSidebar}>
-          <MenuIcon />
-        </IconButton>
+        <Tooltip title="Menú">
+          <IconButton color="inherit" edge="start" onClick={onToggleSidebar}>
+            <MenuIcon />
+          </IconButton>
+        </Tooltip>
 
         <Typography
           sx={{
@@ -37,21 +39,28 @@ export default function AppHeader({ onToggleSidebar, user, onLogout }) {
           Visual Outlet
         </Typography>
 
-        <IconButton color="inherit" onClick={() => navigate("/")}>
-          <HomeIcon />
-        </IconButton>
+        <Tooltip title="Ir al inicio">
+          <IconButton color="inherit" onClick={() => navigate("/")}>
+            <HomeIcon />
+          </IconButton>
+        </Tooltip>
 
-        <Button
-          color="inherit"
-          startIcon={<PersonIcon />}
-          onClick={() => navigate("/admin/configuracion")}
-        >
-          {user?.nombre || "Mi Perfil"}
-        </Button>
+        <Tooltip title="Ver mi perfil">
+          <Button
+            color="inherit"
+            startIcon={<PersonIcon />}
+            onClick={() => navigate("/admin/configuracion")}
+            sx={{ textTransform: "none", fontWeight: 500 }}
+          >
+            {user?.nombre || user?.name || "Mi Perfil"}
+          </Button>
+        </Tooltip>
 
-        <IconButton color="inherit" onClick={onLogout}>
-          <LogoutIcon />
-        </IconButton>
+        <Tooltip title="Cerrar sesión">
+          <IconButton color="inherit" onClick={onLogout}>
+            <LogoutIcon />
+          </IconButton>
+        </Tooltip>
 
       </Toolbar>
     </AppBar>
