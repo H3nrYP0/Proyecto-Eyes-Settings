@@ -1,7 +1,7 @@
 import { Box, Grid, Paper, IconButton, Typography } from "@mui/material";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { useDropzone } from 'react-dropzone';
+import { useDropzone } from "react-dropzone";
 import "./ImageDropzone.css"; 
 
 export default function ImageDropzone({ onDrop, previews, onRemove, disabled, uploadingImages }) {
