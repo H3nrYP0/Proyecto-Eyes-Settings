@@ -28,7 +28,6 @@ export const MarcaData = {
     try {
       const response = await axios.post('/marcas', {
         nombre: data.nombre,
-        descripcion: data.descripcion || '',
         estado: true // Por defecto activa
       });
       return response.data;
@@ -62,7 +61,6 @@ export const MarcaData = {
     try {
       const response = await axios.put(`/marcas/${id}`, {
         nombre: data.nombre,
-        descripcion: data.descripcion || '',
         estado: data.estado
       });
       return response.data;
@@ -96,10 +94,10 @@ export const MarcaData = {
   },
 
   // Función para cambiar estado (activar/desactivar)
-  async toggleMarcaEstado(id, estadoActual) {
+  async toggleMarcaEstado(id, nuevoEstado) {
     try {
       const response = await axios.put(`/marcas/${id}`, {
-        estado: !estadoActual
+        estado: nuevoEstado
       });
       return response.data;
     } catch (error) {

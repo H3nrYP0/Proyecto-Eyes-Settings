@@ -1,0 +1,72 @@
+/* src/features/compras/pages/productos/Products.css */
+
+/* Solo estilos específicos de productos que NO existen en los componentes globales */
+
+/* Celda de stock (personalizada) */
+.stock-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.stock-badge {
+  background-color: #ff9800 !important;
+  color: white !important;
+  font-weight: bold !important;
+  font-size: 0.7rem !important;
+  height: 20px !important;
+}
+
+.stock-badge:hover {
+  background-color: #f57c00 !important;
+}
+
+/* Estado vacío (personalizado) */
+.empty-state {
+  text-align: center;
+  margin-top: 24px;
+}
+
+.create-button {
+  padding: 12px 24px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.create-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Mensaje de error (personalizado) */
+.error-box {
+  padding: 16px;
+  background-color: #ffebee;
+  color: #c62828;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+/* Media queries específicas si son necesarias */
+@media (max-width: 768px) {
+  .stock-cell {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .create-button {
+    width: 100%;
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+  
+  .error-box {
+    font-size: 0.9rem;
+    padding: 12px;
+  }
+}

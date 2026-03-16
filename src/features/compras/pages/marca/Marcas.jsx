@@ -6,6 +6,7 @@ import Modal from "../../../../shared/components/ui/Modal";
 import MarcaForm from "./components/MarcasForm";
 import "../../../../shared/styles/components/crud-table.css";
 import "../../../../shared/styles/components/modal.css";
+import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
 
 import Loading from "../../../../shared/components/ui/Loading";
 // Importamos el servicio con axios
@@ -23,6 +24,13 @@ export default function Marcas() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Estado para notificaciones
+  const [notification, setNotification] = useState({
+    isVisible: false,
+    message: "",
+    type: "success" // success, error, warning, info
+  });
+
   const submitButtonRef = useRef(null);
 
   const [modalForm, setModalForm] = useState({
@@ -39,14 +47,42 @@ export default function Marcas() {
   });
 
   // =============================
-  //    2. useEffect - Carga inicial
+  //    2. FUNCIONES DE NOTIFICACIÓN
+  // =============================
+  const showNotification = (message, type = "success") => {
+    setNotification({
+      isVisible: true,
+      message,
+      type
+    });
+  };
+
+  const handleCloseNotification = () => {
+    setNotification({
+      ...notification,
+      isVisible: false
+    });
+  };
+
+  // Auto-cerrar notificación después de 5 segundos
+  useEffect(() => {
+    if (notification.isVisible) {
+      const timer = setTimeout(() => {
+        handleCloseNotification();
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification.isVisible]);
+
+  // =============================
+  //    3. useEffect - Carga inicial
   // =============================
   useEffect(() => {
     loadMarcas();
   }, []);
 
   // =============================
-  //    3. LIMPIADOR GLOBAL DE ARIA-HIDDEN
+  //    4. LIMPIADOR GLOBAL DE ARIA-HIDDEN
   // =============================
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -64,7 +100,7 @@ export default function Marcas() {
   }, [marcas]);
 
   // =============================
-  //    4. FUNCIONES DE UTILIDAD
+  //    5. FUNCIONES DE UTILIDAD
   // =============================
   const loadMarcas = async () => {
     try {
@@ -73,7 +109,6 @@ export default function Marcas() {
       const marcasTransformadas = data.map(marca => ({
         id: marca.id,
         nombre: marca.nombre,
-        descripcion: marca.descripcion || '',
         estado: marca.estado ? 'activa' : 'inactiva'
       }));
       setMarcas(marcasTransformadas);
@@ -81,6 +116,7 @@ export default function Marcas() {
     } catch (err) {
       console.error("Error al cargar marcas:", err);
       setError("No se pudieron cargar las marcas");
+      showNotification("Error al cargar las marcas", "error");
     } finally {
       setLoading(false);
     }
@@ -121,14 +157,16 @@ export default function Marcas() {
     try {
       if (modalForm.mode === "create") {
         await MarcaData.createMarca(data);
+        showNotification("Marca creada exitosamente", "success");
       } else if (modalForm.mode === "edit") {
         await MarcaData.updateMarca(modalForm.initialData.id, data);
+        showNotification("Marca actualizada exitosamente", "success");
       }
       handleCloseForm();
       await loadMarcas();
     } catch (error) {
       console.error("Error al guardar marca:", error);
-      alert("Error al guardar la marca");
+      showNotification("Error al guardar la marca", "error");
     }
   };
 
@@ -155,24 +193,34 @@ export default function Marcas() {
 
   const confirmDelete = async () => {
     try {
+      const tieneProductos = await MarcaData.hasMarcaProductosAsociados(modalDelete.id);
+    
+    if (tieneProductos) {
+      showNotification(
+        `No se puede eliminar la marca "${modalDelete.nombre}" porque tiene productos asociados`, 
+        "warning"
+      );
+      setModalDelete({ open: false, id: null, nombre: "" });
+      limpiarAriaHidden();
+      return;
+    }
       await MarcaData.deleteMarca(modalDelete.id);
       await loadMarcas();
+      showNotification(`Marca "${modalDelete.nombre}" eliminada exitosamente`, "success");
       setModalDelete({ open: false, id: null, nombre: "" });
       limpiarAriaHidden();
     } catch (err) {
       console.error("Error al eliminar:", err);
-      alert("Error al eliminar la marca");
+      showNotification("Error al eliminar la marca", "error");
     }
   };
 
-  
-
   const handleStatusChange = async (row, newStatus) => {
     try {
-      const estadoFinal =
-        newStatus !== undefined
-          ? newStatus
-          : (row.estado === "activa" ? "inactiva" : "activa");
+      
+      const estadoFinal = newStatus !== undefined 
+      ? newStatus 
+      : (row.estado === "activa" ? "inactiva" : "activa");
 
       await MarcaData.toggleMarcaEstado(
         row.id,
@@ -180,19 +228,25 @@ export default function Marcas() {
       );
 
       await loadMarcas();
+      
+      const mensaje = estadoFinal === "activa" 
+        ? `Marca "${row.nombre}" activada exitosamente`
+        : `Marca "${row.nombre}" desactivada exitosamente`;
+      
+      showNotification(mensaje, "success");
     } catch (err) {
       console.error("Error al cambiar estado:", err);
-      alert("Error al cambiar el estado");
+      showNotification("Error al cambiar el estado de la marca", "error");
     }
   };
 
   // =============================
-  //    5. FILTROS Y CONFIGURACIÓN
+  //    6. FILTROS Y CONFIGURACIÓN
   // =============================
   const filteredMarcas = marcas.filter((marca) => {
     const matchesSearch = 
-      marca.nombre.toLowerCase().includes(search.toLowerCase()) ||
-      (marca.descripcion && marca.descripcion.toLowerCase().includes(search.toLowerCase()));
+      marca.nombre.toLowerCase().includes(search.toLowerCase());
+      
     
     const matchesFilter = !filterEstado || marca.estado === filterEstado;
     
@@ -211,14 +265,29 @@ export default function Marcas() {
 
   const tableActions = [
     {
-    label: "Cambiar estado",  type: "toggle-status",   onClick: (item) => handleStatusChange(item),  },
-    { label: "Ver Detalles", type: "view", onClick: (item) => handleOpenView(item) },
-    { label: "Editar", type: "edit", onClick: (item) => handleOpenEdit(item) },
-    { label: "Eliminar", type: "delete", onClick: (item) => handleDelete(item.id, item.nombre) },
+      label: "Cambiar estado",  
+      type: "toggle-status",   
+      onClick: (item) => handleStatusChange(item, undefined),
+    },
+    { 
+      label: "Ver Detalles", 
+      type: "view", 
+      onClick: (item) => handleOpenView(item) 
+    },
+    { 
+      label: "Editar", 
+      type: "edit", 
+      onClick: (item) => handleOpenEdit(item) 
+    },
+    { 
+      label: "Eliminar", 
+      type: "delete", 
+      onClick: (item) => handleDelete(item.id, item.nombre) 
+    },
   ];
 
   // =============================
-  //    6. RENDERIZADO CONDICIONAL (DESPUÉS DE TODOS LOS HOOKS)
+  //    7. RENDERIZADO CONDICIONAL
   // =============================
   if (loading && marcas.length === 0) {
     return (
@@ -239,7 +308,7 @@ export default function Marcas() {
         title="Marcas"
         onAddClick={handleOpenCreate}
         showSearch={true}
-        searchPlaceholder="Buscar por nombre, descripción..."
+        searchPlaceholder="Buscar por nombre..."
         searchValue={search}
         onSearchChange={setSearch}
         searchFilters={searchFilters}
@@ -287,7 +356,15 @@ export default function Marcas() {
           open={modalDelete.open}
           type="warning"
           title="¿Eliminar Marca?"
-          message={`Esta acción eliminará la marca "${modalDelete.nombre}" y no se puede deshacer.`}
+          message={
+            <>
+              Advertencia: al continuar, la marca{" "}
+              <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
+                {modalDelete.nombre}
+              </span>{"  "}
+              se eliminará permanentemente del sistema.
+            </>
+            }
           confirmText="Eliminar"
           cancelText="Cancelar"
           showCancel={true}
@@ -316,6 +393,14 @@ export default function Marcas() {
           buttonRef={submitButtonRef}
         />
       </Modal>
+
+      {/* Componente de notificación */}
+      <CrudNotification
+        isVisible={notification.isVisible}
+        message={notification.message}
+        type={notification.type}
+        onClose={handleCloseNotification}
+      />
     </>
   );
 }

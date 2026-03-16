@@ -1,15 +1,9 @@
 import api from "../axios";
 
 export const ProductoData = {
-  // Obtener todos los productos
   async getAllProductos() {
     try {
-      const response = await api.get('/productos', {
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
-      });
+      const response = await api.get('/productos');
       return response.data;
     } catch (error) {
       console.error('Error al obtener productos:', error);
@@ -17,13 +11,18 @@ export const ProductoData = {
     }
   },
 
-  // Obtener un producto por ID
   async getProductoById(id) {
     try {
       const response = await api.get(`/productos/${id}`);
-        
-
       const producto = response.data;
+      
+      let imagenes = [];
+      try {
+        const imagenesResponse = await api.get(`/imagen/producto/${id}`);
+        imagenes = imagenesResponse.data || [];
+      } catch (error) {
+        // No hay imágenes, continuamos con array vacío
+      }
       
       return {
         id: producto.id,
@@ -36,7 +35,8 @@ export const ProductoData = {
         stockMinimo: producto.stock_minimo,
         categoria: producto.categoria_id?.toString(),
         marca: producto.marca_id?.toString(),
-        estado: producto.estado ? 'activo' : 'inactivo'
+        estado: producto.estado ? 'activo' : 'inactivo',
+        imagenes: imagenes
       };
     } catch (error) {
       console.error('Error al obtener producto:', error);
@@ -55,13 +55,26 @@ export const ProductoData = {
         precio_compra: data.precioCompra,
         stock: data.stockActual,
         stock_minimo: data.stockMinimo,
-        categoria_producto_id: parseInt(data.categoria, 10),
+        categoria_id: parseInt(data.categoria, 10),
         marca_id: parseInt(data.marca, 10),
         estado: true
       };
 
       const response = await api.post('/productos', productoData);
-      return response.data;
+      const nuevoProducto = response.data.producto;
+
+      if (data.imagenes && data.imagenes.length > 0) {
+        const imagenesPromises = data.imagenes.map(img => 
+          api.post('/imagen', {
+            url: img.url,
+            producto_id: nuevoProducto.id
+          })
+        );
+        
+        await Promise.all(imagenesPromises);
+      }
+
+      return nuevoProducto;
     } catch (error) {
       console.error('Error al crear producto:', error);
       throw error;
@@ -75,16 +88,26 @@ export const ProductoData = {
         nombre: data.nombre,
         codigo: data.codigo || '',
         descripcion: data.descripcion || '',
-        precio_venta: data.precioVenta,
-        precio_compra: data.precioCompra,
-        stock: data.stockActual,
-        stock_minimo: data.stockMinimo,
-        categoria_producto_id: parseInt(data.categoria, 10),
+        precio_venta: Number(data.precioVenta) || 0,
+        precio_compra: Number(data.precioCompra) || 0,
+        stock: Number(data.stockActual) || 0,
+        stock_minimo: Number(data.stockMinimo) || 0,
+        categoria_id: parseInt(data.categoria, 10),
         marca_id: parseInt(data.marca, 10),
-        estado: data.estado === 'activo'
+         estado: data.estado === true || data.estado === 'activo' 
       };
-
       const response = await api.put(`/productos/${id}`, productoData);
+     
+      if (data.imagenes && data.imagenes.length > 0) {
+        const imagenesPromises = data.imagenes.map(img => 
+          api.post('/imagen', {
+            url: img.url,
+            producto_id: id
+          })
+        );
+        await Promise.all(imagenesPromises);
+      }
+      
       return response.data;
     } catch (error) {
       console.error('Error al actualizar producto:', error);
@@ -102,17 +125,86 @@ export const ProductoData = {
       throw error;
     }
   },
-// ============================
-// Cambiar estado del producto
-// ============================
-async updateEstadoProducto(id, nuevoEstado) {
-  const payload = {
-    estado: nuevoEstado === "activo" 
-  };
 
-  const res = await api.put(`/productos/${id}`, payload);
-  return res.data;
-},
+  // ============================
+  // Verificar si el producto tiene ventas asociadas
+  // ============================
+  async hasProductoVentasAsociadas(id) {
+    try {
+      const response = await api.get('/detalle-venta');
+      const detalles = response.data;
+      return detalles.some(detalle => detalle.producto_id === parseInt(id));
+    } catch (error) {
+      console.error('Error al verificar ventas asociadas:', error);
+      return false;
+    }
+  },
+
+  // ============================
+  // Verificar si el producto tiene compras asociadas
+  // ============================
+  async hasProductoComprasAsociadas(id) {
+    try {
+      const response = await api.get('/detalle-compra');
+      const detalles = response.data;
+      return detalles.some(detalle => detalle.producto_id === parseInt(id));
+    } catch (error) {
+      console.error('Error al verificar compras asociadas:', error);
+      return false;
+    }
+  },
+
+  // ============================
+  // Verificar si el producto tiene pedidos asociados
+  // ============================
+  async hasProductoPedidosAsociados(id) {
+    try {
+      const response = await api.get('/detalle-pedido');
+      const detalles = response.data;
+      return detalles.some(detalle => detalle.producto_id === parseInt(id));
+    } catch (error) {
+      console.error('Error al verificar pedidos asociados:', error);
+      return false;
+    }
+  },
+
+  // ============================
+  // Verificación completa (ventas O compras O pedidos)
+  // ============================
+  async hasProductoAsociaciones(id) {
+    try {
+      const [tieneVentas, tieneCompras, tienePedidos] = await Promise.all([
+        this.hasProductoVentasAsociadas(id).catch(() => false),
+        this.hasProductoComprasAsociadas(id).catch(() => false),
+        this.hasProductoPedidosAsociados(id).catch(() => false)
+      ]);
+      
+      return {
+        tieneAsociaciones: tieneVentas || tieneCompras || tienePedidos,
+        detalles: {
+          ventas: tieneVentas,
+          compras: tieneCompras,
+          pedidos: tienePedidos
+        }
+      };
+    } catch (error) {
+      console.error('Error al verificar asociaciones del producto:', error);
+      return { tieneAsociaciones: false, detalles: { ventas: false, compras: false, pedidos: false } };
+    }
+  },
+
+  // ============================
+  // Cambiar estado del producto
+  // ============================
+  async updateEstadoProducto(id, nuevoEstado) {
+    const payload = {
+      estado: nuevoEstado  
+    };
+    
+    const res = await api.put(`/productos/${id}`, payload);
+    return res.data;
+  },
+
   // Verificar si ya existe un producto con ese nombre
   async checkProductoExists(nombre, excludeId = null) {
     try {
@@ -128,34 +220,6 @@ async updateEstadoProducto(id, nuevoEstado) {
       console.error('Error al verificar producto:', error);
       return false;
     }
-  },
-
-  // Funciones de utilidad
-  getEstadoTexto(estado) {
-    const estados = {
-      activo: 'Activo',
-      inactivo: 'Inactivo',
-      'bajo-stock': 'Bajo Stock'
-    };
-    return estados[estado] || estado;
-  },
-
-  getEstadoBadge(estado) {
-    const badges = {
-      activo: 'success',
-      inactivo: 'error',
-      'bajo-stock': 'warning'
-    };
-    return badges[estado] || 'default';
-  },
-
-  getEstadoColor(estado) {
-    const colores = {
-      activo: '#2e7d32',
-      inactivo: '#d32f2f',
-      'bajo-stock': '#ed6c02'
-    };
-    return colores[estado] || '#1976d2';
   }
 };
 
