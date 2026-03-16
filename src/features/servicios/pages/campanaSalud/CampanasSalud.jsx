@@ -3,10 +3,10 @@ import { useNavigate } from "react-router-dom";
 import CrudLayout from "../../../../shared/components/crud/CrudLayout";
 import CrudTable from "../../../../shared/components/crud/CrudTable";
 import Modal from "../../../../shared/components/ui/Modal";
+import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification"
 import "../../../../shared/styles/components/crud-table.css";
 import "../../../../shared/styles/components/modal.css";
 
-// Importamos las funciones del backend
 import {
   getAllCampanasSalud,
   deleteCampanaSalud,
@@ -19,54 +19,89 @@ export default function CampanasSalud() {
   const [campanas, setCampanas] = useState([]);
   const [search, setSearch] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [notification, setNotification] = useState({
+    isVisible: false,
+    message: '',
+    type: 'success'
+  });
 
   const [modalDelete, setModalDelete] = useState({
     open: false,
     id: null,
-    nombre: "", // Cambiado a 'nombre' que es lo que se muestra
+    empresa: "",
   });
 
-  // Cargar datos
   useEffect(() => {
-    const campanasData = getAllCampanasSalud();
-    console.log("Campañas cargadas:", campanasData); // Para debug
-    setCampanas(campanasData || []);
+    loadCampanas();
   }, []);
 
-  // =============================
-  //    MODAL DE ELIMINACIÓN
-  // =============================
-  const handleDelete = (id, nombre) => {
-    setModalDelete({
-      open: true,
-      id,
-      nombre, // Usamos 'nombre' de la campaña
-    });
-  };
-
-  const confirmDelete = () => {
-    const updated = deleteCampanaSalud(modalDelete.id);
-    setCampanas([...updated]);
-    setModalDelete({ open: false, id: null, nombre: "" });
-  };
-
-  // =============================
-  //    CAMBIAR ESTADO
-  // =============================
-  const toggleEstado = (id) => {
-    const updated = updateEstadoCampanaSalud(id);
-    if (updated) {
-      setCampanas([...updated]);
+  const loadCampanas = async () => {
+    try {
+      setLoading(true);
+      const data = await getAllCampanasSalud();
+      
+      const campanasTransformadas = data.map(campana => ({
+        id: campana.id,
+        empleado_id: campana.empleado_id,
+        empleado_nombre: campana.empleado_nombre || "No asignado",
+        empresa: campana.empresa,
+        contacto: campana.contacto || "-",
+        fecha: campana.fecha ? new Date(campana.fecha).toLocaleDateString() : "-",
+        hora: campana.hora || "-",
+        direccion: campana.direccion || "-",
+        observaciones: campana.observaciones || "-",
+        estado: campana.estado ? "activa" : "inactiva"
+      }));
+      
+      setCampanas(campanasTransformadas);
+    } catch (error) {
+      console.error("Error cargando campañas:", error);
+      setNotification({
+        isVisible: true,
+        message: 'No se pudieron cargar las campañas',
+        type: 'error'
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  // =============================
-  //          BUSCADOR Y FILTRO
-  // =============================
+  const handleCloseNotification = () => {
+    setNotification(prev => ({
+      ...prev,
+      isVisible: false
+    }));
+  };
+
+  const handleDelete = (id, empresa) => {
+    setModalDelete({ open: true, id, empresa });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await deleteCampanaSalud(modalDelete.id);
+      await loadCampanas();
+      setModalDelete({ open: false, id: null, empresa: "" });
+      setNotification({
+        isVisible: true,
+        message: 'Campaña eliminada correctamente',
+        type: 'success'
+      });
+    } catch (err) {
+      console.error("Error al eliminar:", err);
+      setNotification({
+        isVisible: true,
+        message: 'Error al eliminar la campaña',
+        type: 'error'
+      });
+    }
+  };
+
   const filteredCampanas = campanas.filter((campana) => {
     const matchesSearch = 
-      (campana.nombre && campana.nombre.toLowerCase().includes(search.toLowerCase())) ||
-      (campana.empresa && campana.empresa.toLowerCase().includes(search.toLowerCase())) ||
+      campana.empresa.toLowerCase().includes(search.toLowerCase()) ||
+      (campana.contacto && campana.contacto.toLowerCase().includes(search.toLowerCase())) ||
       (campana.observaciones && campana.observaciones.toLowerCase().includes(search.toLowerCase()));
     
     const matchesFilter = !filterEstado || campana.estado === filterEstado;
@@ -74,53 +109,19 @@ export default function CampanasSalud() {
     return matchesSearch && matchesFilter;
   });
 
-  // FILTROS PARA CAMPAÑAS (ajustados a tus estados)
-  const searchFilters = [
-    { value: 'PLANIFICADA', label: 'Planificadas' },
-    { value: 'EN_CURSO', label: 'En Curso' },
-    { value: 'COMPLETADA', label: 'Completadas' },
-    { value: 'CANCELADA', label: 'Canceladas' }
+  const estadoFilters = [
+    { value: "", label: "Todos los estados" },
+    { value: "activa", label: "Activas" },
+    { value: "inactiva", label: "Inactivas" }
   ];
 
-  // =============================
-  //          COLUMNAS
-  // =============================
   const columns = [
-    
-    { 
-      field: "empresa", 
-      header: "Empresa",
-      render: (item) => item.empresa || "Sin empresa"
-    },
-    { 
-      field: "fecha", 
-      header: "Fecha",
-      render: (item) => item.fecha || "Sin fecha"
-    },
-    {
-      field: "hora",
-      header: "Hora inicio",
-      render: (item) => item.hora || "Sin hora"
-    },
-    {
-      field: "estado",
-      header: "Estado",
-      render: (item) => (
-        <button
-          className={`estado-btn ${item.estado === "activa" ? "activa" : item.estado === "proxima" ? "proxima" : item.estado === "finalizada" ? "finalizada" : "inactiva"}`}
-          onClick={() => toggleEstado(item.id)}
-        >
-          {item.estado === "activa" ? "Activa" : 
-           item.estado === "proxima" ? "Próxima" : 
-           item.estado === "finalizada" ? "Finalizada" : "Inactiva"}
-        </button>
-      ),
-    },
+    { field: "empresa", header: "Empresa" },
+    { field: "empleado_nombre", header: "Responsable" },
+    { field: "fecha", header: "Fecha" },
+    { field: "hora", header: "Hora" },
   ];
 
-  // =============================
-  //          ACCIONES
-  // =============================
   const tableActions = [
     {
       label: "Ver Detalles",
@@ -135,29 +136,36 @@ export default function CampanasSalud() {
     {
       label: "Eliminar",
       type: "delete",
-      onClick: (item) => handleDelete(item.id, item.nombre),
+      onClick: (item) => handleDelete(item.id, item.empresa),
     },
   ];
 
-  // Función para manejar cambio de filtro
-  const handleFilterChange = (value) => {
-    setFilterEstado(value);
-  };
+  if (loading) {
+    return (
+      <CrudLayout
+        title="Campañas de Salud"
+        showSearch={true}
+        searchPlaceholder="Buscar por empresa, contacto..."
+        searchPosition="left"
+      >
+        <div className="loading-container">Cargando campañas...</div>
+      </CrudLayout>
+    );
+  }
 
   return (
     <CrudLayout
       title="Campañas de Salud"
       onAddClick={() => navigate("crear")}
       showSearch={true}
-      searchPlaceholder="Buscar por nombre, empresa u observaciones..."
+      searchPlaceholder="Buscar por empresa, contacto..."
       searchValue={search}
       onSearchChange={setSearch}
-      searchFilters={searchFilters}
+      searchFilters={estadoFilters}
       filterEstado={filterEstado}
-      onFilterChange={handleFilterChange}
+      onFilterChange={setFilterEstado}
       searchPosition="left"
     >
-      {/* Tabla */}
       <CrudTable 
         columns={columns} 
         data={filteredCampanas} 
@@ -169,8 +177,7 @@ export default function CampanasSalud() {
         }
       />
 
-      {/* Botón para primera campaña */}
-      {filteredCampanas.length === 0 && !search && !filterEstado && (
+      {filteredCampanas.length === 0 && !search && !filterEstado && !loading && (
         <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
           <button 
             onClick={() => navigate("crear")}
@@ -182,17 +189,23 @@ export default function CampanasSalud() {
         </div>
       )}
 
-      {/* Modal de Confirmación */}
       <Modal
         open={modalDelete.open}
         type="warning"
         title="¿Eliminar Campaña?"
-        message={`Esta acción eliminará la campaña "${modalDelete.nombre}" y no se puede deshacer.`}
+        message={`Esta acción eliminará la campaña "${modalDelete.empresa}" y no se puede deshacer.`}
         confirmText="Eliminar"
         cancelText="Cancelar"
         showCancel={true}
         onConfirm={confirmDelete}
-        onCancel={() => setModalDelete({ open: false, id: null, nombre: "" })}
+        onCancel={() => setModalDelete({ open: false, id: null, empresa: "" })}
+      />
+
+      <CrudNotification
+        isVisible={notification.isVisible}
+        message={notification.message}
+        type={notification.type}
+        onClose={handleCloseNotification}
       />
     </CrudLayout>
   );

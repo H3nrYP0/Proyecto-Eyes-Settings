@@ -1,50 +1,66 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { getCampanaSaludById } from '../../../../lib/data/campanasSaludData';
-import { getEmpleadoById } from '../../../../lib/data/empleadosData';
-import "../../../../shared/styles/components/crud-forms.css";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import CampanaSaludForm from "./components/CampanaSaludForm";
+import { getCampanaSaludById } from "../../../../lib/data/campanasSaludData";
+import { getAllEmpleados } from "../../../../lib/data/empleadosData";
+import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification"
 
-export default function VerCampanaSalud() {
-  const { id } = useParams();
+export default function DetalleCampanaSalud() {
   const navigate = useNavigate();
-
+  const { id } = useParams();
   const [campana, setCampana] = useState(null);
-  const [empleado, setEmpleado] = useState(null);
+  const [empleados, setEmpleados] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [notification, setNotification] = useState({
+    isVisible: false,
+    message: '',
+    type: 'success'
+  });
+useEffect(() => {
+  console.log('🏁 DetalleCampanaSalud montado - ID desde params:', id, 'Tipo:', typeof id);
+  loadData();
+}, [id]);
 
-  useEffect(() => {
-    const cargarDatos = async () => {
-      try {
-        const campanaData = getCampanaSaludById(Number(id));
-        if (!campanaData) {
-          navigate('/admin/servicios/campanas-salud');
-          return;
-        }
-        
-        setCampana(campanaData);
-
-        if (campanaData.empleadoId) {
-          const empleadoData = getEmpleadoById(campanaData.empleadoId);
-          setEmpleado(empleadoData);
-        }
-      } catch (error) {
-        console.error('Error al cargar datos:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    cargarDatos();
-  }, [id, navigate]);
-
-  const obtenerTextoEstado = (estado) => {
-    switch(estado) {
-      case 'PLANIFICADA': return 'Planificada';
-      case 'EN_CURSO': return 'En curso';
-      case 'COMPLETADA': return 'Completada';
-      case 'CANCELADA': return 'Cancelada';
-      default: return estado || 'No especificado';
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [campanaData, empleadosData] = await Promise.all([
+        getCampanaSaludById(id),
+        getAllEmpleados()
+      ]);
+      
+      setCampana(campanaData);
+      
+      const empleadosActivos = empleadosData.filter(
+        emp => emp.estado === true || emp.estado === 'Activo'
+      );
+      setEmpleados(empleadosActivos);
+      
+    } catch (err) {
+      console.error("Error al cargar campaña:", err);
+      setNotification({
+        isVisible: true,
+        message: 'No se pudo cargar la campaña',
+        type: 'error'
+      });
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleCloseNotification = () => {
+    setNotification(prev => ({
+      ...prev,
+      isVisible: false
+    }));
+  };
+
+  const handleEdit = () => {
+    navigate(`/admin/servicios/campanas-salud/editar/${id}`);
+  };
+
+  const handleCancel = () => {
+    navigate('/admin/servicios/campanas-salud');
   };
 
   if (loading) {
@@ -52,7 +68,7 @@ export default function VerCampanaSalud() {
       <div className="crud-form-container">
         <div className="crud-form-content">
           <div style={{ textAlign: 'center', padding: '40px' }}>
-            Cargando datos...
+            Cargando campaña...
           </div>
         </div>
       </div>
@@ -63,147 +79,31 @@ export default function VerCampanaSalud() {
     return (
       <div className="crud-form-container">
         <div className="crud-form-content">
-          <div style={{ textAlign: 'center', padding: '40px' }}>
-            No se encontró la campaña
+          <div style={{ textAlign: 'center', padding: '40px', color: '#d32f2f' }}>
+            Campaña no encontrada
           </div>
         </div>
       </div>
     );
   }
 
-return (
-  <div className="crud-form-container">
-    <div className="crud-form-header">
-      <h1>Detalle de Campaña de Salud</h1>
-    </div>
-    
-    <div className="crud-form-content">
-      <form onSubmit={(e) => e.preventDefault()}>
-        <div className="crud-form-section">
-          
-
-          <div className="crud-form-group">
-            <input
-              type="text"
-              className="crud-input-view uniform-size"
-              value={campana.empresa || ''}
-              readOnly
-              disabled
-              placeholder="Empresa"
-            />
-          </div>
-
-          <div className="crud-form-group">
-            <input
-              type="text"
-              className="crud-input-view uniform-size"
-              value={campana.contacto_nombre || campana.contacto || ''}
-              readOnly
-              disabled
-              placeholder="Contacto"
-            />
-          </div>
-
-          <div className="crud-form-group">
-            <input
-              type="text"
-              className="crud-input-view uniform-size"
-              value={campana.contacto_telefono || ''}
-              readOnly
-              disabled
-              placeholder="Teléfono de Contacto"
-            />
-          </div>
-
-          <div className="crud-form-group">
-            <input
-              type="text"
-              className="crud-input-view uniform-size"
-              value={empleado ? `${empleado.nombre} - ${empleado.cargo || 'Sin cargo'}` : 'No asignado'}
-              readOnly
-              disabled
-              placeholder="Empleado Responsable"
-            />
-          </div>
-
-          <div className="crud-form-group">
-            <input
-              type="date"
-              className="crud-input-view uniform-size"
-              value={campana.fecha || ''}
-              readOnly
-              disabled
-            />
-          </div>
-
-          <div className="crud-form-group">
-            <input
-              type="time"
-              className="crud-input-view uniform-size"
-              value={campana.hora_inicio || ''}
-              readOnly
-              disabled
-            />
-          </div>
-
-          
-
-          <div className="crud-form-group">
-            <textarea
-              className="crud-input-view uniform-size"
-              value={campana.direccion || ''}
-              readOnly
-              disabled
-              placeholder="Dirección"
-              style={{ resize: 'none', height: '56px' }}
-            />
-          </div>
-
-          
-          <div className="crud-form-group">
-            <div className="crud-input-view uniform-size" style={{ display: 'flex', alignItems: 'center' }}>
-              <span className={`crud-badge ${
-                campana.estado === "EN_CURSO" ? "crud-badge-success" : 
-                campana.estado === "PLANIFICADA" ? "crud-badge-warning" : 
-                campana.estado === "COMPLETADA" ? "crud-badge-info" : "crud-badge-error"
-              }`}>
-                {obtenerTextoEstado(campana.estado)}
-              </span>
-            </div>
-          </div>
-
-          
-
-          <div className="crud-form-group">
-            <textarea
-              className="crud-input-view uniform-size"
-              value={campana.observaciones || ''}
-              readOnly
-              disabled
-              placeholder="Observaciones"
-              style={{ resize: 'none', height: '56px' }}
-            />
-          </div>
-        </div>
-
-        <div className="crud-form-actions">
-          <button 
-            type="button" 
-            className="crud-btn crud-btn-secondary"
-            onClick={() => navigate('/admin/servicios/campanas-salud')}
-          >
-            Volver
-          </button>
-          <button 
-            type="button" 
-            className="crud-btn crud-btn-primary"
-            onClick={() => navigate(`/admin/servicios/campanas-salud/editar/${campana.id}`)}
-          >
-            Editar Campaña
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-);
+  return (
+    <>
+      <CampanaSaludForm
+        mode="view"
+        title={`Detalle de Campaña: ${campana.empresa}`}
+        initialData={campana}
+        empleadosDisponibles={empleados}
+        onCancel={handleCancel}
+        onEdit={handleEdit}
+      />
+      
+      <CrudNotification
+        isVisible={notification.isVisible}
+        message={notification.message}
+        type={notification.type}
+        onClose={handleCloseNotification}
+      />
+    </>
+  );
 }

@@ -1,89 +1,157 @@
-// Base de datos temporal de campañas de salud
-// Adaptado a la tabla SQL aprobada, manteniendo los estados como strings
-let campanasSaludDB = [
-  {
-    id: 1,
-    empleadoId: 1,
-    empresa: "Colegio San José",
-    contacto: "3001234567",
-    fecha: "2025-12-23",
-    hora: "10:00",
-    direccion: "Calle 123 #45-67",
-    estado: "proxima",
-    observaciones: "Chequeo visual gratuito para estudiantes"
+import api from "../axios";
+
+export const CampanaSaludData = {
+  // Obtener todas las campañas
+  async getAllCampanasSalud() {
+    try {
+      const response = await api.get('/campanas-salud');
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener campañas:', error);
+      throw error;
+    }
   },
-  {
-    id: 2,
-    empleadoId: 2,
-    empresa: "Empresa ABC Ltda",
-    contacto: "3109876543",
-    fecha: "2026-02-23",
-    hora: "14:30",
-    direccion: "Av. Principal #89-10",
-    estado: "activa",
-    observaciones: "Campaña para empleados"
+
+  // Obtener una campaña por ID - CORREGIDO
+  async getCampanaSaludById(id) {
+    try {
+      console.log('🔍 getCampanaSaludById - ID recibido:', id);
+    console.log('🔍 getCampanaSaludById - Tipo de ID:', typeof id);
+    
+
+      const response = await api.get(`/campanas-salud/${id}`);
+   console.log('✅ Respuesta del backend - status:', response.status);
+    console.log('✅ Respuesta del backend - data:', response.data);
+
+      const campana = response.data;
+
+
+        // Si el backend devuelve un array y necesitas el primer elemento
+    const campanaData = Array.isArray(campana) ? campana[0] : campana;
+    
+    console.log('📦 Datos transformados:', {
+      id: campanaData.id,
+      empleado_id: campanaData.empleado_id,
+      empresa: campanaData.empresa,
+      fecha: campanaData.fecha,
+      hora: campanaData.hora,
+      estado: campanaData.estado
+    });
+      
+      // IMPORTANTE: Devolver los datos EXACTAMENTE como los espera el formulario
+      return {
+        id: campana.id,
+        empleado_id: campana.empleado_id,
+        empresa: campana.empresa,
+        contacto: campana.contacto || '',
+        fecha: campana.fecha,
+        hora: campana.hora,
+        direccion: campana.direccion || '',
+        observaciones: campana.observaciones || '',
+        estado: campana.estado // Mantener como booleano, NO convertir a string
+      };
+    } catch (error) {
+      console.error('❌ Error en getCampanaSaludById:');
+    console.error('   - ID:', id);
+    console.error('   - Status:', error.response?.status);
+    console.error('   - Data:', error.response?.data);
+    console.error('   - Message:', error.message);
+    throw error;
+    }
   },
-  {
-    id: 3,
-    empleadoId: 3,
-    empresa: "Universidad Central",
-    contacto: "3204567891",
-    fecha: "2025-03-10",
-    hora: "09:00",
-    direccion: "Carrera 56 #78-90",
-    estado: "finalizada",
-    observaciones: "Evento ya realizado"
+
+  // Crear una nueva campaña
+  async createCampanaSalud(data) {
+    try {
+      const campanaData = {
+        empleado_id: data.empleado_id,
+        empresa: data.empresa,
+        contacto: data.contacto || null,
+        fecha: data.fecha,
+        hora: data.hora,
+        direccion: data.direccion || null,
+        observaciones: data.observaciones || null,
+        estado: true // Por defecto activa
+      };
+
+      const response = await api.post('/campanas-salud', campanaData);
+      return response.data;
+    } catch (error) {
+      console.error('Error al crear campaña:', error);
+      throw error;
+    }
   },
-];
 
-// Obtener todas las campañas
-export function getAllCampanasSalud() {
-  return [...campanasSaludDB];
-}
+  // Actualizar una campaña - CORREGIDO
+  async updateCampanaSalud(id, data) {
+    try {
+      const campanaData = {
+        empleado_id: data.empleado_id,
+        empresa: data.empresa,
+        contacto: data.contacto || null,
+        fecha: data.fecha,
+        hora: data.hora,
+        direccion: data.direccion || null,
+        observaciones: data.observaciones || null,
+        estado: data.estado // Mantener como booleano
+      };
 
-// Obtener por ID
-export function getCampanaSaludById(id) {
-  return campanasSaludDB.find((c) => c.id === id);
-}
+      const response = await api.put(`/campanas-salud/${id}`, campanaData);
+      return response.data;
+    } catch (error) {
+      console.error('Error al actualizar campaña:', error);
+      throw error;
+    }
+  },
 
-// Crear campaña
-export function createCampanaSalud(data) {
-  const newId = campanasSaludDB.length ? campanasSaludDB.at(-1).id + 1 : 1;
-  const nuevaCampana = { 
-    id: newId, 
-    ...data 
-  };
-  
-  campanasSaludDB.push(nuevaCampana);
-  return nuevaCampana;
-}
+  // Eliminar una campaña
+  async deleteCampanaSalud(id) {
+    try {
+      await api.delete(`/campanas-salud/${id}`);
+      return true;
+    } catch (error) {
+      console.error('Error al eliminar campaña:', error);
+      throw error;
+    }
+  },
 
-// Actualizar campaña
-export function updateCampanaSalud(id, updated) {
-  const index = campanasSaludDB.findIndex((c) => c.id === id);
-  if (index !== -1) {
-    campanasSaludDB[index] = { ...campanasSaludDB[index], ...updated };
+  // Cambiar estado de la campaña - CORREGIDO
+  async updateEstadoCampanaSalud(id, nuevoEstado) {
+    try {
+      // nuevoEstado puede venir como booleano o como string
+      const estadoBooleano = typeof nuevoEstado === 'boolean' 
+        ? nuevoEstado 
+        : nuevoEstado === 'activo';
+        
+      const payload = {
+        estado: estadoBooleano
+      };
+      const response = await api.put(`/campanas-salud/${id}`, payload);
+      return response.data;
+    } catch (error) {
+      console.error('Error al cambiar estado de campaña:', error);
+      throw error;
+    }
+  },
+
+  // Funciones de utilidad (estas sí pueden usar strings para la UI)
+  getEstadoTexto(estado) {
+    return estado ? 'Activa' : 'Inactiva';
+  },
+
+  getEstadoBadge(estado) {
+    return estado ? 'success' : 'error';
+  },
+
+  getEstadoColor(estado) {
+    return estado ? '#2e7d32' : '#d32f2f';
   }
-  return campanasSaludDB;
-}
+};
 
-// Eliminar campaña
-export function deleteCampanaSalud(id) {
-  campanasSaludDB = campanasSaludDB.filter((c) => c.id !== id);
-  return campanasSaludDB;
-}
-
-// Cambiar estado
-export function updateEstadoCampanaSalud(id) {
-  campanasSaludDB = campanasSaludDB.map((c) =>
-    c.id === id
-      ? { 
-          ...c, 
-          estado: c.estado === "proxima" ? "activa" : 
-                 c.estado === "activa" ? "finalizada" : 
-                 c.estado === "finalizada" ? "inactiva" : "proxima"
-        }
-      : c
-  );
-  return campanasSaludDB;
-}
+// Exportaciones individuales
+export const getAllCampanasSalud = () => CampanaSaludData.getAllCampanasSalud();
+export const getCampanaSaludById = (id) => CampanaSaludData.getCampanaSaludById(id);
+export const createCampanaSalud = (data) => CampanaSaludData.createCampanaSalud(data);
+export const updateCampanaSalud = (id, data) => CampanaSaludData.updateCampanaSalud(id, data);
+export const deleteCampanaSalud = (id) => CampanaSaludData.deleteCampanaSalud(id);
+export const updateEstadoCampanaSalud = (id, nuevoEstado) => CampanaSaludData.updateEstadoCampanaSalud(id, nuevoEstado);

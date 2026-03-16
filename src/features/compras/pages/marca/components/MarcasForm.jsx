@@ -16,7 +16,6 @@ export default function MarcaForm({
 
   const [formData, setFormData] = useState({
     nombre: "",
-    descripcion: "",
     estado: true
   });
 
@@ -27,13 +26,12 @@ export default function MarcaForm({
     if (initialData) {
       setFormData({
         nombre: initialData.nombre || "",
-        descripcion: initialData.descripcion || "",
         estado: typeof initialData.estado === 'boolean' 
           ? initialData.estado 
           : initialData.estado === 'activa'
       });
     } else {
-      setFormData({ nombre: "", descripcion: "", estado: true });
+      setFormData({ nombre: "",  estado: true });
     }
     setErrors({});
     setNombreExists(false);
@@ -82,7 +80,7 @@ export default function MarcaForm({
 
     const newErrors = {};
     const nombreTrimmed = formData.nombre.trim();
-    const descripcionTrimmed = formData.descripcion?.trim() || '';
+    
 
     if (!nombreTrimmed) {
       newErrors.nombre = "El nombre de la marca es requerido";
@@ -94,9 +92,7 @@ export default function MarcaForm({
       newErrors.nombre = "Ya existe una marca con este nombre";
     }
 
-    if (descripcionTrimmed && descripcionTrimmed.length < 3) {
-      newErrors.descripcion = "La descripción debe tener al menos 3 caracteres";
-    }
+    
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -105,8 +101,7 @@ export default function MarcaForm({
 
     onSubmit?.({
       ...formData,
-      nombre: nombreTrimmed,
-      descripcion: descripcionTrimmed
+      nombre: nombreTrimmed
     });
   };
 
@@ -134,25 +129,7 @@ export default function MarcaForm({
           )}
         </Box>
 
-        <Box>
-          <TextField
-            fullWidth
-            label="Descripción"
-            name="descripcion"
-            value={formData.descripcion}
-            onChange={handleChange}
-            disabled={isView}
-            multiline
-            rows={4}
-            placeholder="Descripción de la marca (opcional)..."
-            variant="outlined"
-            size="medium"
-            error={!!errors.descripcion}
-          />
-          {errors.descripcion && (
-            <FormHelperText error sx={{ mt: 1 }}>{errors.descripcion}</FormHelperText>
-          )}
-        </Box>
+       
 
         {mode !== "create" && (
           <Box>
