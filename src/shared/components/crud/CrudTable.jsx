@@ -5,14 +5,16 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TablePagination,
   Paper,
   Typography,
   CircularProgress,
   Button,
   Menu,
   MenuItem,
+  Box,
 } from "@mui/material";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import CrudActions from "../ui/CrudActions";
 import Modal from "../ui/Modal";
 
@@ -28,6 +30,20 @@ export default function UnifiedCrudTable({
   const [selectedRow, setSelectedRow] = useState(null);
   const [newStatus, setNewStatus] = useState(null);
   const [openModal, setOpenModal] = useState(false);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const scrollRef = useRef(null);
+
+  // Scroll horizontal con la rueda del mouse
+  const handleWheel = (e) => {
+    if (!scrollRef.current) return;
+    const el = scrollRef.current;
+    const canScrollH = el.scrollWidth > el.clientWidth;
+    if (!canScrollH) return;
+    e.preventDefault();
+    el.scrollLeft += e.deltaY;
+  };
 
   if (loading) {
     return (
@@ -40,22 +56,17 @@ export default function UnifiedCrudTable({
     );
   }
 
-  const visibleColumns = columns.filter(col => col.field !== "id");
+  const visibleColumns = columns.filter((col) => col.field !== "id");
   const hasActions = actions && actions.length > 0;
 
-  // 🔹 CLICK EN BOTÓN
   const handleStatusClick = (event, row) => {
     const estados = row.estadosDisponibles || ["activa", "inactiva"];
-
     setSelectedRow(row);
-
     if (estados.length <= 2) {
-      // CAMBIO DIRECTO (SIN MENÚ)
-      const nuevoEstado = estados.find(e => e !== row.estado);
+      const nuevoEstado = estados.find((e) => e !== row.estado);
       setNewStatus(nuevoEstado);
       setOpenModal(true);
     } else {
-      // MÁS DE 2 → ABRE MENÚ
       setAnchorEl(event.currentTarget);
     }
   };
@@ -75,16 +86,25 @@ export default function UnifiedCrudTable({
     setNewStatus(null);
   };
 
+  const handleChangePage = (_, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (e) => {
+    setRowsPerPage(parseInt(e.target.value, 10));
+    setPage(0);
+  };
+
   const getStatusColor = (estado) => {
     switch (estado?.toLowerCase()) {
       case "activo":
-        case "activa":
+      case "activa":
       case "aprobado":
-        case "completada":
+      case "completada":
         return "success";
       case "inactivo":
-        case "inactiva":
-          case "anulada":
+      case "inactiva":
+      case "anulada":
       case "rechazado":
         return "error";
       case "pendiente":
@@ -94,97 +114,141 @@ export default function UnifiedCrudTable({
     }
   };
 
+  // Datos paginados
+  const paginatedData = data.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
+
   return (
     <>
-      <TableContainer component={Paper}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              {visibleColumns.map(col => (
-                <TableCell key={col.field}>
-                  {col.header}
-                </TableCell>
-              ))}
+      <Paper sx={{ width: "100%", overflow: "hidden" }}>
 
-              <TableCell align="center">Estado</TableCell>
-
-              {hasActions && (
-                <TableCell align="center">Acciones</TableCell>
-              )}
-            </TableRow>
-          </TableHead>
-
-          <TableBody>
-            {(!data || data.length === 0) ? (
+        {/* Contenedor con scroll horizontal + rueda del mouse */}
+        <Box
+          ref={scrollRef}
+          onWheel={handleWheel}
+          sx={{
+            overflowX: "auto",
+            overflowY: "hidden",
+            "&::-webkit-scrollbar": { height: 6 },
+            "&::-webkit-scrollbar-thumb": {
+              backgroundColor: "rgba(0,0,0,0.2)",
+              borderRadius: 3,
+            },
+          }}
+        >
+          <Table size="small" sx={{ minWidth: 500, tableLayout: "auto" }}>
+            <TableHead>
               <TableRow>
-                <TableCell
-                  colSpan={visibleColumns.length + 2}
-                  align="center"
-                  sx={{ py: 6 }}
-                >
-                  <Typography variant="body2" color="text.secondary">
-                    {emptyMessage}
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            ) : (
-              data.map(row => (
-                <TableRow key={row.id} hover>
-                  {visibleColumns.map(col => (
-                    <TableCell key={col.field}>
-                      {typeof col.render === "function"
-                        ? col.render(row)
-                        : row[col.field]
-                      }
-                    </TableCell>
-                  ))}
-
-                  <TableCell align="center">
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      color={getStatusColor(row.estado)}
-                      onClick={(e) => handleStatusClick(e, row)}
-                      sx={{
-                        textTransform: "capitalize",
-                        minWidth: 110
-                      }}
-                    >
-                      {row.estado}
-                    </Button>
+                {visibleColumns.map((col) => (
+                  <TableCell
+                    key={col.field}
+                    sx={{ whiteSpace: "nowrap", fontWeight: 600 }}
+                  >
+                    {col.header}
                   </TableCell>
+                ))}
+                <TableCell align="center" sx={{ whiteSpace: "nowrap", fontWeight: 600 }}>
+                  Estado
+                </TableCell>
+                {hasActions && (
+                  <TableCell align="center" sx={{ whiteSpace: "nowrap", fontWeight: 600 }}>
+                    Acciones
+                  </TableCell>
+                )}
+              </TableRow>
+            </TableHead>
 
-                  {hasActions && (
-                    <TableCell align="center">
-                      <CrudActions actions={actions} item={row} />
-                    </TableCell>
-                  )}
+            <TableBody>
+              {!data || data.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={visibleColumns.length + 2}
+                    align="center"
+                    sx={{ py: 6 }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      {emptyMessage}
+                    </Typography>
+                  </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+              ) : (
+                paginatedData.map((row) => (
+                  <TableRow key={row.id} hover>
+                    {visibleColumns.map((col) => (
+                      <TableCell key={col.field}>
+                        {typeof col.render === "function"
+                          ? col.render(row)
+                          : row[col.field]}
+                      </TableCell>
+                    ))}
 
-      {/* 🔹 MENÚ SOLO SI HAY MÁS DE 2 ESTADOS */}
+                    <TableCell align="center">
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color={getStatusColor(row.estado)}
+                        onClick={(e) => handleStatusClick(e, row)}
+                        sx={{
+                          textTransform: "capitalize",
+                          minWidth: 85,
+                          fontSize: "0.75rem",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {row.estado}
+                      </Button>
+                    </TableCell>
+
+                    {hasActions && (
+                      <TableCell align="center">
+                        <CrudActions actions={actions} item={row} />
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </Box>
+
+        {/* Paginación */}
+        {data.length > 0 && (
+          <TablePagination
+            component="div"
+            count={data.length}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[10, 25, 50]}
+            labelRowsPerPage="Filas por página:"
+            labelDisplayedRows={({ from, to, count }) =>
+              `${from}–${to} de ${count}`
+            }
+            sx={{
+              borderTop: "1px solid",
+              borderColor: "divider",
+            }}
+          />
+        )}
+      </Paper>
+
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={() => setAnchorEl(null)}
       >
         {selectedRow?.estadosDisponibles
-          ?.filter(e => e !== selectedRow.estado)
+          ?.filter((e) => e !== selectedRow.estado)
           .map((estado) => (
-            <MenuItem
-              key={estado}
-              onClick={() => handleSelectStatus(estado)}
-            >
+            <MenuItem key={estado} onClick={() => handleSelectStatus(estado)}>
               {estado}
             </MenuItem>
-        ))}
+          ))}
       </Menu>
 
-      {/* 🔹 ALERTA CONFIRMACIÓN */}
       <Modal
         open={openModal}
         type="warning"
