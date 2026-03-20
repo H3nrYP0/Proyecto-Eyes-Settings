@@ -3,13 +3,13 @@ import api from "../../../lib/axios";
 const authService = {
 
   // ── Login ──
-  async login(correo, contrasenia) {
+  async login(correo, contrasenia, recordarme = false) {
     const response = await api.post("/auth/login", { correo, contrasenia });
     const { token, usuario } = response.data;
 
-    // Guardar token y usuario en localStorage
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(usuario));
+    const storage = recordarme ? localStorage : sessionStorage;
+    storage.setItem("token", token);
+    storage.setItem("user", JSON.stringify(usuario));
 
     return usuario;
   },
@@ -18,12 +18,14 @@ const authService = {
   logout() {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
   },
 
   // ── Obtener usuario guardado ──
   getUser() {
     try {
-      const user = localStorage.getItem("user");
+      const user = localStorage.getItem("user") || sessionStorage.getItem("user");
       return user ? JSON.parse(user) : null;
     } catch {
       return null;
@@ -32,12 +34,12 @@ const authService = {
 
   // ── Obtener token ──
   getToken() {
-    return localStorage.getItem("token");
+    return localStorage.getItem("token") || sessionStorage.getItem("token");
   },
 
   // ── Verificar si está autenticado ──
   isAuthenticated() {
-    return !!localStorage.getItem("token");
+    return !!(localStorage.getItem("token") || sessionStorage.getItem("token"));
   },
 
   // ── Verificar si tiene un permiso específico ──

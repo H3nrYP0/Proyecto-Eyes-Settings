@@ -15,6 +15,7 @@ import authService from "../Services/authService";
 export default function Login({ setUser }) {
 
   const navigate = useNavigate();
+  
 
   const [correo, setCorreo] = useState("");
   const [contrasenia, setContrasenia] = useState("");
@@ -47,7 +48,7 @@ export default function Login({ setUser }) {
     setLoading(true);
 
     try {
-      const usuario = await authService.login(correo.trim(), contrasenia);
+      const usuario = await authService.login(correo.trim(), contrasenia, rememberMe);
 
       // Guardar en estado global
       setUser(usuario);
@@ -60,16 +61,13 @@ export default function Login({ setUser }) {
       }
 
     } catch (err) {
-      const mensaje = err.response?.data?.error;
+      const mensaje = err.response?.data?.error || err.message;
 
       if (mensaje === "Tu cuenta está inactiva. Contacta al administrador.") {
         setError(mensaje);
       } else {
         setError("Correo o contraseña incorrectos");
       }
-
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -202,6 +200,21 @@ export default function Login({ setUser }) {
 
             </Box>
           </CardContent>
+          {/* Footer */}
+          <Box sx={{ textAlign: "center", mt: 2, pb: 1 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
+              ¿No tienes una cuenta?{" "}
+              <Button
+                component={Link}
+                to="/register"
+                variant="text"
+                size="small"
+                sx={{ textTransform: 'none', fontSize: '0.85rem', fontWeight: '600' }}
+              >
+                Regístrate aquí
+              </Button>
+            </Typography>
+          </Box>
         </Card>
       </Container>
     </Box>
