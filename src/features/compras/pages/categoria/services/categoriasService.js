@@ -1,7 +1,7 @@
-import api from "../axios";
+import api from "../../../../../lib/axios";
 
 // ============================
-// EXPORTACIONES INDIVIDUALES (para productos y código viejo)
+// FUNCIONES BASE
 // ============================
 export async function getAllCategorias() {
   try {
@@ -28,25 +28,11 @@ export async function createCategoria(data) {
     const response = await api.post('/categorias', {
       nombre: data.nombre,
       descripcion: data.descripcion || '',
-      estado: true
+      estado: data.estado !== undefined ? data.estado : true
     });
     return response.data;
   } catch (error) {
     console.error('Error al crear categoría:', error);
-    throw error;
-  }
-}
-
-export async function checkCategoriaExists(nombre) {
-  try {
-    const response = await api.get('/categorias');
-    const categorias = response.data;
-    const nombreTrimmed = nombre.trim().toLowerCase();
-    return categorias.some(categoria => 
-      categoria.nombre.toLowerCase().trim() === nombreTrimmed
-    );
-  } catch (error) {
-    console.error('Error al verificar categoría:', error);
     throw error;
   }
 }
@@ -75,6 +61,28 @@ export async function deleteCategoria(id) {
   }
 }
 
+// ============================
+// VALIDACIONES ADICIONALES
+// ============================
+export async function checkCategoriaExists(nombre, excludeId = null) {
+  try {
+    const response = await api.get('/categorias');
+    const categorias = response.data;
+    const nombreTrimmed = nombre.trim().toLowerCase();
+    
+    return categorias.some(categoria => {
+      const nombreMatch = categoria.nombre.toLowerCase().trim() === nombreTrimmed;
+      if (excludeId && categoria.id === parseInt(excludeId)) {
+        return false;
+      }
+      return nombreMatch;
+    });
+  } catch (error) {
+    console.error('Error al verificar categoría:', error);
+    throw error;
+  }
+}
+
 export async function hasCategoriaProductosAsociados(id) {
   try {
     const response = await api.get('/productos');
@@ -99,7 +107,14 @@ export async function toggleCategoriaEstado(id, estadoActual) {
 }
 
 // ============================
-// OBJETO AGRUPADO (para la nueva estructura con modal)
+// UTILIDADES
+// ============================
+export const getEstadoTexto = (estado) => estado ? 'Activa' : 'Inactiva';
+export const getEstadoBadge = (estado) => estado ? 'success' : 'error';
+export const getEstadoColor = (estado) => estado ? 'success' : 'error';
+
+// ============================
+// OBJETO AGRUPADO PARA COMPATIBILIDAD
 // ============================
 export const CategoriaData = {
   getAllCategorias,
@@ -110,17 +125,7 @@ export const CategoriaData = {
   deleteCategoria,
   hasCategoriaProductosAsociados,
   toggleCategoriaEstado,
-  
-  // Funciones de utilidad
-  getEstadoTexto(estado) {
-    return estado ? 'Activa' : 'Inactiva';
-  },
-
-  getEstadoBadge(estado) {
-    return estado ? 'success' : 'error';
-  },
-
-  getEstadoColor(estado) {
-    return estado ? 'success' : 'error';
-  }
+  getEstadoTexto,
+  getEstadoBadge,
+  getEstadoColor,
 };

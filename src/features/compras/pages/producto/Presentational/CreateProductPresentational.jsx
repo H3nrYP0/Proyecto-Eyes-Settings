@@ -4,7 +4,7 @@ import ProductoForm from "../components/ProductoForm";
 import ChatBotContainer from "../components/ChatBotContainer";
 import Modal from "../../../../../shared/components/ui/Modal";
 import MarcaForm from "../../marca/components/MarcasForm";
-import CategoriaForm from "../../categoria/components/categoriasForm";
+import { CategoriaForm } from "../../categoria";
 import CrudNotification from "../../../../../shared/styles/components/notifications/CrudNotification";
 
 export default function CreateProductPresentational({

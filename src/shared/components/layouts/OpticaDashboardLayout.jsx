@@ -34,7 +34,7 @@ import EditarCompra from "../../../features/compras/pages/EditarCompra";
 import DetalleCompra from "../../../features/compras/pages/DetalleCompra";
 import CompraPDFView from "../../../features/compras/pages/CompraPDFView";
 
-import Categorias from "../../../features/compras/pages/categoria/Categorias";
+import { Categorias } from "../../../features/compras/pages/categoria";
 import Marcas from "../../../features/compras/pages/marca/Marcas";
 
 import Products from "../../../features/compras/pages/producto/Products";
