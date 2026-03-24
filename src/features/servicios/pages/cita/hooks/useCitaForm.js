@@ -63,7 +63,8 @@ export function useCitaForm({
       estado_cita_id: initialData.estado_cita_id || "",
       metodo_pago: initialData.metodo_pago || "",
       fecha: initialData.fecha ? new Date(initialData.fecha) : null,
-      hora: initialData.hora
+      // ✅ CORREGIDO: verificar que hora sea string antes de split
+      hora: initialData.hora && typeof initialData.hora === 'string'
         ? (() => {
             const [h, m] = initialData.hora.split(":");
             const d = new Date();

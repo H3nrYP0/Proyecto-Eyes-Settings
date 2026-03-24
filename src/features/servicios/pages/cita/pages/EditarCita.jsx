@@ -4,7 +4,7 @@ import { getCitaById } from "../services/citasService";
 import { getAllClientes } from "../../../../../lib/data/clientesData";
 import { getAllServicios } from "../../../../../lib/data/serviciosData";
 import { getAllEmpleados } from "../../empleado/services/empleadosService";
-import { getAllEstadosCita } from "../../../../../lib/data/estadosCitaData";
+import { getAllEstadosCita } from "../services/estadosCitaServices";
 import { normalizeCitaForForm } from "../utils/citasUtils";
 import Loading from "../../../../../shared/components/ui/Loading";
 import { useCitaForm } from "../hooks/useCitaForm";

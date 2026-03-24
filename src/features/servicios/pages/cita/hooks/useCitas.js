@@ -4,7 +4,7 @@ import {
   deleteCita,
   updateCitaStatus,
 } from "../services/citasService";
-import { getAllEstadosCita } from "../../../../../lib/data/estadosCitaData";
+import { getAllEstadosCita } from "../services/estadosCitaServices";
 import { normalizeCitasForList } from "../utils/citasUtils";
 
 export function useCitas() {

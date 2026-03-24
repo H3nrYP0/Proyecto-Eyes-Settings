@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { getAllEmpleados } from "../../empleado/services/empleadosService";
 import { getAllServicios } from "../../../../../lib/data/serviciosData";
 import { getAllClientes } from "../../../../../lib/data/clientesData";
-import { getAllEstadosCita } from "../../../../../lib/data/estadosCitaData";
+import { getAllEstadosCita } from "../services/estadosCitaServices";
 import Loading from "../../../../../shared/components/ui/Loading";
 import { useCitaForm } from "../hooks/useCitaForm";
 import CitaForm from "../components/CitaForm";

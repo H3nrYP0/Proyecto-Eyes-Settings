@@ -7,6 +7,8 @@ import { getAllEmpleados } from "../../empleado/services/empleadosService";
 import { normalizeCitaForForm } from "../utils/citasUtils";
 import Loading from "../../../../../shared/components/ui/Loading";
 import CitaForm from "../components/CitaForm";
+// Agrega esta importación
+import { getAllEstadosCita } from "../services/estadosCitaServices";
 
 export default function DetalleCita() {
   const navigate = useNavigate();

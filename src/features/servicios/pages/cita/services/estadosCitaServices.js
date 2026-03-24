@@ -1,4 +1,4 @@
-import api from "../axios";
+import api from "../../../../../lib/axios";
 
 // ============================
 // Obtener todos los estados de cita
