@@ -72,6 +72,8 @@ export default function EditarCita() {
     disponibilidad,
     errorDisponibilidad,
     isAvailable,
+    horariosEmpleado,
+    diasActivos,                     // 👈 agregar
     handleChange,
     handleDateChange,
     handleTimeChange,
@@ -134,6 +136,7 @@ export default function EditarCita() {
       servicios={servicios}
       empleados={empleados}
       estadosCita={estadosCita}
+      horariosEmpleado={horariosEmpleado}     // 👈 agregado
       formData={formData}
       errors={errors}
       submitting={submitting}
@@ -144,6 +147,7 @@ export default function EditarCita() {
       handleDateChange={handleDateChange}
       handleTimeChange={handleTimeChange}
       handleSubmit={handleSubmit}
+      diasActivos={diasActivos} 
     />
   );
 }

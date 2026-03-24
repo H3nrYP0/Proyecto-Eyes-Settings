@@ -20,16 +20,18 @@ export async function getCitaById(id) {
 // ============================
 // Verificar disponibilidad
 // ============================
-export async function verificarDisponibilidad(empleadoId, fecha, hora, duracion = 30) {
+export async function verificarDisponibilidad(empleadoId, fecha, hora, duracion = 30, excludeCitaId = null) {
   try {
-    const res = await api.get("/verificar-disponibilidad", {
-      params: {
-        empleado_id: empleadoId,
-        fecha: fecha,
-        hora: hora,
-        duracion: duracion
-      }
-    });
+    const params = {
+      empleado_id: empleadoId,
+      fecha: fecha,
+      hora: hora,
+      duracion: duracion
+    };
+    if (excludeCitaId) {
+      params.exclude_cita_id = excludeCitaId;
+    }
+    const res = await api.get("/verificar-disponibilidad", { params });
     return res.data;
   } catch (error) {
     console.error("Error verificando disponibilidad:", error);

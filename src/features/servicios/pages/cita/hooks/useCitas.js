@@ -1,11 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import {
-  getAllCitas,
-  deleteCita,
-  updateCitaStatus,
-} from "../services/citasService";
+import { getAllCitas, deleteCita, updateCitaStatus } from "../services/citasService";
 import { getAllEstadosCita } from "../services/estadosCitaServices";
-import { normalizeCitasForList } from "../utils/citasUtils";
+import { formatFecha, formatHora } from "../utils/citasUtils";
 
 export function useCitas() {
   const [citas, setCitas] = useState([]);
@@ -20,9 +16,6 @@ export function useCitas() {
     descripcion: "",
   });
 
-  // ============================
-  // Cargar citas
-  // ============================
   const cargarCitas = useCallback(async () => {
     try {
       setLoading(true);
@@ -34,8 +27,17 @@ export function useCitas() {
       ]);
 
       setEstadosCita(Array.isArray(estadosData) ? estadosData : []);
-      
-      const citasNormalizadas = normalizeCitasForList(citasData, estadosData);
+
+      const citasNormalizadas = (Array.isArray(citasData) ? citasData : []).map((c) => ({
+        ...c,
+        fecha_formateada: formatFecha(c.fecha),
+        hora_formateada: formatHora(c.hora),
+        // Campo requerido por CrudTable para mostrar el estado actual
+        estado: c.estado_nombre,
+        // Array con los nombres de los estados posibles para el desplegable
+        estadosDisponibles: estadosData.map((e) => e.nombre),
+      }));
+
       setCitas(citasNormalizadas);
     } catch (err) {
       console.error(err);
@@ -46,9 +48,6 @@ export function useCitas() {
     }
   }, []);
 
-  // ============================
-  // Eliminar cita
-  // ============================
   const eliminarCita = useCallback(async (id) => {
     try {
       await deleteCita(id);
@@ -60,18 +59,13 @@ export function useCitas() {
     }
   }, [cargarCitas]);
 
-  // ============================
-  // Cambiar estado
-  // ============================
   const cambiarEstado = useCallback(async (id, nuevoEstadoNombre) => {
     try {
-      const estadoSeleccionado = estadosCita.find(e => e.nombre === nuevoEstadoNombre);
-      
-      if (!estadoSeleccionado) {
+      const estado = estadosCita.find((e) => e.nombre === nuevoEstadoNombre);
+      if (!estado) {
         return { success: false, error: "Estado no encontrado" };
       }
-
-      await updateCitaStatus(id, estadoSeleccionado.id);
+      await updateCitaStatus(id, estado.id);
       await cargarCitas();
       return { success: true };
     } catch (error) {
@@ -80,36 +74,18 @@ export function useCitas() {
     }
   }, [estadosCita, cargarCitas]);
 
-  // ============================
-  // Filtrar citas
-  // ============================
   const citasFiltradas = citas.filter((cita) => {
     const matchesSearch =
-      cita.cliente_nombre?.toLowerCase().includes(search.toLowerCase()) ||
-      cita.servicio_nombre?.toLowerCase().includes(search.toLowerCase()) ||
-      cita.empleado_nombre?.toLowerCase().includes(search.toLowerCase());
+      (cita.cliente_nombre?.toLowerCase() || "").includes(search.toLowerCase()) ||
+      (cita.servicio_nombre?.toLowerCase() || "").includes(search.toLowerCase()) ||
+      (cita.empleado_nombre?.toLowerCase() || "").includes(search.toLowerCase());
 
     const matchesEstado =
-      !filterEstado ||
-      cita.estado_cita_id === parseInt(filterEstado);
+      !filterEstado || cita.estado_cita_id === parseInt(filterEstado);
 
     return matchesSearch && matchesEstado;
   });
 
-  // ============================
-  // Handlers de modales
-  // ============================
-  const openDeleteModal = useCallback((id, descripcion) => {
-    setModalDelete({ open: true, id, descripcion });
-  }, []);
-
-  const closeDeleteModal = useCallback(() => {
-    setModalDelete({ open: false, id: null, descripcion: "" });
-  }, []);
-
-  // ============================
-  // Opciones de filtros
-  // ============================
   const estadoFilters = [
     { value: "", label: "Todos los estados" },
     ...estadosCita.map((e) => ({
@@ -118,17 +94,20 @@ export function useCitas() {
     })),
   ];
 
-  // ============================
-  // Cargar datos iniciales
-  // ============================
+  const openDeleteModal = useCallback((id, descripcion) => {
+    setModalDelete({ open: true, id, descripcion });
+  }, []);
+
+  const closeDeleteModal = useCallback(() => {
+    setModalDelete({ open: false, id: null, descripcion: "" });
+  }, []);
+
   useEffect(() => {
     cargarCitas();
   }, [cargarCitas]);
 
   return {
     citas: citasFiltradas,
-    citasRaw: citas,
-    estadosCita,
     loading,
     error,
     search,
@@ -138,7 +117,6 @@ export function useCitas() {
     estadoFilters,
     eliminarCita,
     cambiarEstado,
-    recargar: cargarCitas,
     modalDelete,
     openDeleteModal,
     closeDeleteModal,

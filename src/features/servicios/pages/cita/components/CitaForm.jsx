@@ -1,4 +1,5 @@
-import { FormHelperText, Alert } from "@mui/material";
+import { useState, useEffect } from "react";
+import { FormHelperText, Alert, Box, Chip, Typography } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -11,6 +12,7 @@ import BaseFormField from "../../../../../shared/components/base/BaseFormField";
 import BaseFormActions from "../../../../../shared/components/base/BaseFormActions";
 import BaseInputField from "../../../../../shared/components/base/BaseInputField";
 import { metodoPagoOptions } from "../utils/citasUtils";
+import CrudNotification from "../../../../../shared/styles/components/notifications/CrudNotification";
 
 export default function CitaForm({
   mode = "create",
@@ -23,6 +25,8 @@ export default function CitaForm({
   servicios = [],
   empleados = [],
   estadosCita = [],
+  horariosEmpleado = [],
+  diasActivos = [],
   formData,
   errors,
   submitting,
@@ -35,42 +39,84 @@ export default function CitaForm({
   handleSubmit,
 }) {
   const isView = mode === "view";
-
   const onSubmitForm = async () => {
     const result = await handleSubmit();
     if (result.success && onSubmit) {
       onSubmit(result.data);
     }
   };
-
   const isDisabled = isView || submitting;
+
+  // Estado para controlar notificaciones
+  const [errorNotification, setErrorNotification] = useState({
+    visible: false,
+    message: "",
+  });
+  const [successNotification, setSuccessNotification] = useState({
+    visible: false,
+    message: "",
+  });
+
+  // Actualizar notificación de error cuando cambia errors.general
+  useEffect(() => {
+    if (errors.general) {
+      setErrorNotification({ visible: true, message: errors.general });
+    } else {
+      setErrorNotification({ visible: false, message: "" });
+    }
+  }, [errors.general]);
+
+  // Actualizar notificación de éxito cuando cambia disponibilidad
+  useEffect(() => {
+    if (!verificando && disponibilidad && disponibilidad.disponible) {
+      const mensaje = `✓ Horario disponible ${
+        disponibilidad.horario
+          ? `(${disponibilidad.horario.inicio} - ${disponibilidad.horario.fin})`
+          : ""
+      }`;
+      setSuccessNotification({ visible: true, message: mensaje });
+    } else {
+      setSuccessNotification({ visible: false, message: "" });
+    }
+  }, [verificando, disponibilidad]);
+
+  const closeErrorNotification = () => {
+    setErrorNotification({ visible: false, message: "" });
+  };
+
+  const closeSuccessNotification = () => {
+    setSuccessNotification({ visible: false, message: "" });
+  };
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={esLocale}>
       <BaseFormLayout title={title}>
         <BaseFormSection title="Información de la Cita">
-          
-          {/* Error general */}
-          {errors.general && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {errors.general}
-            </Alert>
-          )}
 
-          {/* Mensaje de verificación */}
-          {verificando && (
-            <Alert severity="info" sx={{ mb: 2 }}>
-              Verificando disponibilidad...
-            </Alert>
-          )}
-          
-          {/* Mensaje de disponibilidad exitosa */}
-          {!verificando && disponibilidad && disponibilidad.disponible && (
-            <Alert severity="success" sx={{ mb: 2 }}>
-              ✓ Horario disponible {disponibilidad.horario && 
-                `(${disponibilidad.horario.inicio} - ${disponibilidad.horario.fin})`}
-            </Alert>
-          )}
+          {/* Contenedor fijo para los mensajes (evita desplazamiento) */}
+          <Box sx={{ minHeight: 70, mb: 2 }}>
+            {verificando && (
+              <Alert severity="info" sx={{ mb: 1 }}>
+                Verificando disponibilidad...
+              </Alert>
+            )}
+
+            {/* Notificación de éxito */}
+            <CrudNotification
+              message={successNotification.message}
+              type="success"
+              isVisible={successNotification.visible}
+              onClose={closeSuccessNotification}
+            />
+
+            {/* Notificación de error */}
+            <CrudNotification
+              message={errorNotification.message}
+              type="error"
+              isVisible={errorNotification.visible}
+              onClose={closeErrorNotification}
+            />
+          </Box>
 
           {/* Cliente */}
           <BaseFormField>
@@ -235,6 +281,27 @@ export default function CitaForm({
               {errors.hora || " "}
             </FormHelperText>
           </BaseFormField>
+
+          {/* Chips de días activos */}
+          {diasActivos.length > 0 && (
+            <BaseFormField>
+              <Box>
+                <Typography variant="caption" color="textSecondary" sx={{ mb: 0.5, display: 'block' }}>
+                  Días con horario:
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  {diasActivos.map(d => (
+                    <Chip
+                      key={d.dia}
+                      label={`${d.nombre} (${d.hora_inicio} - ${d.hora_final})`}
+                      size="small"
+                      variant="outlined"
+                    />
+                  ))}
+                </Box>
+              </Box>
+            </BaseFormField>
+          )}
 
         </BaseFormSection>
 

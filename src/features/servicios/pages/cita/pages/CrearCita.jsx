@@ -61,10 +61,13 @@ export default function CrearCita() {
     disponibilidad,
     errorDisponibilidad,
     isAvailable,
+    horariosEmpleado,
+    diasActivos,                     // 👈 agregar
     handleChange,
     handleDateChange,
     handleTimeChange,
     handleSubmit,
+    setFormData,
   } = useCitaForm({
     mode: "create",
     clientes,
@@ -109,6 +112,7 @@ export default function CrearCita() {
       servicios={servicios}
       empleados={empleados}
       estadosCita={estadosCita}
+      horariosEmpleado={horariosEmpleado}     // 👈 agregado
       formData={formData}
       errors={errors}
       submitting={submitting}
@@ -119,6 +123,7 @@ export default function CrearCita() {
       handleDateChange={handleDateChange}
       handleTimeChange={handleTimeChange}
       handleSubmit={handleSubmit}
+      diasActivos={diasActivos} 
     />
   );
 }

@@ -1,16 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { verificarDisponibilidad } from "../services/citasService";
 
-export function useDisponibilidad({ empleadoId, fecha, hora, duracion = 30, isView = false }) {
+export function useDisponibilidad({ empleadoId, fecha, hora, duracion = 30, excludeCitaId = null, isView = false }) {
   const [verificando, setVerificando] = useState(false);
   const [disponibilidad, setDisponibilidad] = useState(null);
   const [errorDisponibilidad, setErrorDisponibilidad] = useState("");
 
   const verificar = useCallback(async () => {
-    // No verificar en modo vista
     if (isView) return;
-    
-    // Verificar que tengamos todos los datos necesarios
     if (!empleadoId || !fecha || !hora) {
       setDisponibilidad(null);
       setErrorDisponibilidad("");
@@ -28,11 +25,11 @@ export function useDisponibilidad({ empleadoId, fecha, hora, duracion = 30, isVi
         empleadoId,
         fechaStr,
         horaStr,
-        duracion
+        duracion,
+        excludeCitaId
       );
 
       setDisponibilidad(resultado);
-      
       if (!resultado.disponible) {
         setErrorDisponibilidad(resultado.mensaje);
       }
@@ -42,15 +39,13 @@ export function useDisponibilidad({ empleadoId, fecha, hora, duracion = 30, isVi
     } finally {
       setVerificando(false);
     }
-  }, [empleadoId, fecha, hora, duracion, isView]);
+  }, [empleadoId, fecha, hora, duracion, excludeCitaId, isView]);
 
-  // Verificar cuando cambian los parámetros (con debounce)
   useEffect(() => {
     const timeoutId = setTimeout(verificar, 500);
     return () => clearTimeout(timeoutId);
   }, [verificar]);
 
-  // Limpiar disponibilidad cuando cambia el empleado
   useEffect(() => {
     if (empleadoId) {
       setDisponibilidad(null);

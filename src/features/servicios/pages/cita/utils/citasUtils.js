@@ -96,3 +96,21 @@ export const metodoPagoOptions = [
   { value: "Tarjeta", label: "Tarjeta" },
   { value: "Transferencia", label: "Transferencia" },
 ];
+
+// ============================
+// NUEVAS utilidades para días
+// ============================
+export const diasSemanaMap = {
+  0: "Lunes",
+  1: "Martes",
+  2: "Miércoles",
+  3: "Jueves",
+  4: "Viernes",
+  5: "Sábado",
+  6: "Domingo"
+};
+
+export const getBackendDay = (date) => {
+  const day = date.getDay(); // 0=domingo, 1=lunes,...,6=sábado
+  return day === 0 ? 6 : day - 1;
+};
