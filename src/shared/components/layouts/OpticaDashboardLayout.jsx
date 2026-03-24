@@ -52,10 +52,12 @@ import CrearServicio from "../../../features/servicios/pages/servicio/CrearServi
 import EditarServicio from "../../../features/servicios/pages/servicio/EditarServicio";
 import DetalleServicio from "../../../features/servicios/pages/servicio/DetalleServicio";
 
-import Empleados from "../../../features/servicios/pages/empleado/Empleados";
-import CrearEmpleado from "../../../features/servicios/pages/empleado/CrearEmpleado";
-import EditarEmpleado from "../../../features/servicios/pages/empleado/EditarEmpleado";
-import DetalleEmpleado from "../../../features/servicios/pages/empleado/DetalleEmpleado";
+import {
+  Empleados,
+  CrearEmpleado,
+  EditarEmpleado,
+  DetalleEmpleado,
+} from "../../../features/servicios/pages/empleado";
 
 import Agenda from "../../../features/servicios/pages/agenda/Agenda";
 import ListaHorarios from "../../../features/servicios/pages/agenda/ListaHorarios";

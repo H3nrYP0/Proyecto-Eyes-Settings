@@ -1,4 +1,4 @@
-import api from "../axios";
+import api from "../../../../../lib/axios";
 
 // ============================
 // Obtener todos los empleados
@@ -76,9 +76,47 @@ export async function deleteEmpleado(id) {
 // ============================
 export async function updateEstadoEmpleado(id, nuevoEstado) {
   const payload = {
-    estado: nuevoEstado === "activo" // ✅ correcto
+    estado: nuevoEstado === "activo"
   };
 
   const res = await api.put(`/empleados/${id}`, payload);
   return res.data;
+}
+
+// ============================
+// Verificar si documento ya existe
+// ============================
+export async function checkDocumentoExists(numero_documento, excludeId = null) {
+  try {
+    const empleados = await getAllEmpleados();
+    return empleados.some(empleado => {
+      const docMatch = empleado.numero_documento === numero_documento;
+      if (excludeId && empleado.id === parseInt(excludeId)) {
+        return false;
+      }
+      return docMatch;
+    });
+  } catch (error) {
+    console.error("Error al verificar documento:", error);
+    return false;
+  }
+}
+
+// ============================
+// Verificar si email ya existe
+// ============================
+export async function checkEmailExists(correo, excludeId = null) {
+  try {
+    const empleados = await getAllEmpleados();
+    return empleados.some(empleado => {
+      const emailMatch = empleado.correo === correo;
+      if (excludeId && empleado.id === parseInt(excludeId)) {
+        return false;
+      }
+      return emailMatch;
+    });
+  } catch (error) {
+    console.error("Error al verificar email:", error);
+    return false;
+  }
 }

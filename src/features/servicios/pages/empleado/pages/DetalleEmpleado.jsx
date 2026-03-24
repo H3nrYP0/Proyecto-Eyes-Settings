@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import EmpleadoForm from "./components/empleadosForm";
-import Loading from "../../../../shared/components/ui/Loading"; // 👈 IMPORTAR
+import { getEmpleadoById } from "../services/empleadosService";
+import { normalizeEmpleadoForForm } from "../utils/empleadosUtils";
+import EmpleadoForm from "../components/EmpleadoForm";
+import Loading from "../../../../../shared/components/ui/Loading";
 
-import {
-  getEmpleadoById,
-  updateEmpleado,
-} from "../../../../lib/data/empleadosData";
-
-export default function EditarEmpleado() {
+export default function DetalleEmpleado() {
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -17,27 +14,22 @@ export default function EditarEmpleado() {
   const [error, setError] = useState(null);
 
   // ============================
-  // Cargar empleado (API)
+  // Cargar empleado
   // ============================
   useEffect(() => {
     const cargarEmpleado = async () => {
       try {
         setLoading(true);
         setError(null);
-        const empleadoData = await getEmpleadoById(Number(id));
+        const data = await getEmpleadoById(Number(id));
 
-        if (!empleadoData) {
+        if (!data) {
           navigate("/admin/servicios/empleados");
           return;
         }
 
-        // 👇 NORMALIZAR ESTADO: boolean -> string
-        const empleadoNormalizado = {
-          ...empleadoData,
-          estado: empleadoData.estado === true ? "activo" : "inactivo"
-        };
-
-        setEmpleado(empleadoNormalizado);
+        const normalizado = normalizeEmpleadoForForm(data);
+        setEmpleado(normalizado);
       } catch (error) {
         console.error("Error cargando empleado:", error);
         setError("No se pudo cargar la información del empleado");
@@ -50,22 +42,14 @@ export default function EditarEmpleado() {
   }, [id, navigate]);
 
   // ============================
-  // Guardar cambios
+  // Handlers dummy para modo view
   // ============================
-  const handleUpdate = async (data) => {
-    try {
-      // data ya viene con estado como string "activo"/"inactivo"
-      await updateEmpleado(Number(id), data);
-      navigate("/admin/servicios/empleados");
-    } catch (error) {
-      console.error("Error al actualizar empleado:", error);
-      alert("Error al actualizar el empleado");
-    }
-  };
+  const handleChange = () => {};
+  const handleSubmit = async () => ({ success: true });
 
   if (loading) {
     return (
-      <div style={{ padding: '40px' }}>
+      <div style={{ padding: "40px" }}>
         <Loading message="Cargando información del empleado..." />
       </div>
     );
@@ -73,14 +57,16 @@ export default function EditarEmpleado() {
 
   if (error) {
     return (
-      <div style={{ 
-        padding: '40px', 
-        textAlign: 'center',
-        color: '#c62828'
-      }}>
+      <div
+        style={{
+          padding: "40px",
+          textAlign: "center",
+          color: "#c62828",
+        }}
+      >
         ⚠️ {error}
-        <div style={{ marginTop: '20px' }}>
-          <button 
+        <div style={{ marginTop: "20px" }}>
+          <button
             onClick={() => navigate("/admin/servicios/empleados")}
             className="btn-primary"
           >
@@ -97,11 +83,16 @@ export default function EditarEmpleado() {
 
   return (
     <EmpleadoForm
-      mode="edit"
-      title="Editar Empleado"
+      mode="view"
+      title={`Detalle del Empleado: ${empleado.nombre}`}
       initialData={empleado}
-      onSubmit={handleUpdate}
       onCancel={() => navigate("/admin/servicios/empleados")}
+      onEdit={() => navigate(`/admin/servicios/empleados/editar/${empleado.id}`)}
+      formData={empleado}
+      errors={{}}
+      submitting={false}
+      handleChange={handleChange}
+      handleSubmit={handleSubmit}
     />
   );
 }

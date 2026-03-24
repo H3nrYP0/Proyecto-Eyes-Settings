@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { createCita } from "../../../../lib/data/citasData";
 import { getAllClientes } from "../../../../lib/data/clientesData";
 import { getAllServicios } from "../../../../lib/data/serviciosData";
-import { getAllEmpleados } from "../../../../lib/data/empleadosData";
+import { getAllEmpleados } from "../empleado/services/empleadosService";
 import { getAllEstadosCita } from "../../../../lib/data/estadosCitaData";
 import Loading from "../../../../shared/components/ui/Loading";
 import CitaForm from "./components/citasForm";

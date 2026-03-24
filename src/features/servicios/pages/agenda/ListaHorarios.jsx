@@ -18,7 +18,7 @@ import {
   updateEstadoHorario,
 } from "../../../../lib/data/horariosData";
 
-import { getAllEmpleados } from "../../../../lib/data/empleadosData";
+import { getAllEmpleados } from "../empleado/services/empleadosService";
 
 // Mapeo de días (0 = lunes, 1 = martes, ... 6 = domingo)
 const diasSemanaMap = {

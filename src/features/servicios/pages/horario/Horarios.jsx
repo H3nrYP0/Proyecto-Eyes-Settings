@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getEmpleadoById } from '../../../../lib/data/empleadosData';
+import { getEmpleadoById } from '../empleado/services/empleadosService';
 import "../../../../shared/styles/components/horario.css";
 
 import "../../../../shared/styles/components/crud-forms.css";
