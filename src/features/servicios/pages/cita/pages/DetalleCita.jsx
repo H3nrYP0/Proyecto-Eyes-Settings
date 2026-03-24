@@ -1,12 +1,12 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getCitaById } from "../../../../lib/data/citasData";
-import { getAllClientes } from "../../../../lib/data/clientesData";
-import { getAllServicios } from "../../../../lib/data/serviciosData";
-import { getAllEmpleados } from "../empleado/services/empleadosService";
-import { getAllEstadosCita } from "../../../../lib/data/estadosCitaData";
-import Loading from "../../../../shared/components/ui/Loading";
-import CitaForm from "./components/citasForm";
+import { getCitaById } from "../services/citasService";
+import { getAllClientes } from "../../../../../lib/data/clientesData";
+import { getAllServicios } from "../../../../../lib/data/serviciosData";
+import { getAllEmpleados } from "../../empleado/services/empleadosService";
+import { normalizeCitaForForm } from "../utils/citasUtils";
+import Loading from "../../../../../shared/components/ui/Loading";
+import CitaForm from "../components/CitaForm";
 
 export default function DetalleCita() {
   const navigate = useNavigate();
@@ -18,7 +18,11 @@ export default function DetalleCita() {
   const [empleados, setEmpleados] = useState([]);
   const [estadosCita, setEstadosCita] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  // ============================
+  // Cargar datos
+  // ============================
   useEffect(() => {
     const cargarDatos = async () => {
       try {
@@ -35,20 +39,18 @@ export default function DetalleCita() {
           return;
         }
 
-        setCita(citaData);
+        setCita(normalizeCitaForForm(citaData));
         setClientes(Array.isArray(clientesData) ? clientesData : []);
         setServicios(Array.isArray(serviciosData) ? serviciosData : []);
         
-        const empleadosNormalizados = (Array.isArray(empleadosData) ? empleadosData : []).map(e => ({
-          ...e,
-          estado: e.estado === true ? "activo" : "inactivo"
-        }));
+        const empleadosNormalizados = (Array.isArray(empleadosData) ? empleadosData : [])
+          .map(e => ({ ...e, estado: e.estado === true ? "activo" : "inactivo" }));
         setEmpleados(empleadosNormalizados);
         
         setEstadosCita(Array.isArray(estadosData) ? estadosData : []);
       } catch (error) {
         console.error("Error cargando datos:", error);
-        navigate("/admin/servicios/citas");
+        setError("Error al cargar datos");
       } finally {
         setLoading(false);
       }
@@ -57,8 +59,32 @@ export default function DetalleCita() {
     cargarDatos();
   }, [id, navigate]);
 
+  // ============================
+  // Handlers dummy para modo view
+  // ============================
+  const handleChange = () => {};
+  const handleDateChange = () => {};
+  const handleTimeChange = () => {};
+  const handleSubmit = async () => ({ success: true });
+
   if (loading) {
     return <Loading message="Cargando detalles de la cita..." />;
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: "40px", textAlign: "center", color: "#c62828" }}>
+        ⚠️ {error}
+        <div style={{ marginTop: "20px" }}>
+          <button
+            onClick={() => navigate("/admin/servicios/citas")}
+            className="btn-primary"
+          >
+            Volver a Citas
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (!cita) {
@@ -67,7 +93,7 @@ export default function DetalleCita() {
 
   const cliente = clientes.find(c => c.id === cita.cliente_id);
   const servicio = servicios.find(s => s.id === cita.servicio_id);
-  const titulo = `Cita: ${cliente ? `${cliente.nombre} ${cliente.apellido}` : 'Cliente'} - ${servicio ? servicio.nombre : 'Servicio'}`;
+  const titulo = `Cita: ${cliente ? `${cliente.nombre} ${cliente.apellido || ''}` : 'Cliente'} - ${servicio ? servicio.nombre : 'Servicio'}`;
 
   return (
     <CitaForm
@@ -80,6 +106,16 @@ export default function DetalleCita() {
       servicios={servicios}
       empleados={empleados}
       estadosCita={estadosCita}
+      formData={cita}
+      errors={{}}
+      submitting={false}
+      verificando={false}
+      disponibilidad={null}
+      errorDisponibilidad=""
+      handleChange={handleChange}
+      handleDateChange={handleDateChange}
+      handleTimeChange={handleTimeChange}
+      handleSubmit={handleSubmit}
     />
   );
 }

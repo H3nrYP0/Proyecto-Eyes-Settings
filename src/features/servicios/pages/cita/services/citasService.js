@@ -1,4 +1,4 @@
-import api from "../axios";
+import api from "../../../../../lib/axios";
 
 // ============================
 // Obtener todas las citas
@@ -18,7 +18,7 @@ export async function getCitaById(id) {
 }
 
 // ============================
-// 🔴 NUEVO: Verificar disponibilidad
+// Verificar disponibilidad
 // ============================
 export async function verificarDisponibilidad(empleadoId, fecha, hora, duracion = 30) {
   try {
@@ -38,7 +38,7 @@ export async function verificarDisponibilidad(empleadoId, fecha, hora, duracion 
 }
 
 // ============================
-// Crear cita (con manejo de errores mejorado)
+// Crear cita (con manejo de errores)
 // ============================
 export async function createCita(data) {
   const payload = {
@@ -56,7 +56,6 @@ export async function createCita(data) {
     const res = await api.post("/citas", payload);
     return { success: true, data: res.data };
   } catch (error) {
-    // 🔴 Manejar errores específicos del backend
     if (error.response?.data) {
       const errorData = error.response.data;
       return { 
@@ -74,7 +73,7 @@ export async function createCita(data) {
 }
 
 // ============================
-// Actualizar cita COMPLETA (con manejo de errores)
+// Actualizar cita completa
 // ============================
 export async function updateCita(id, data) {
   const payload = {
@@ -105,7 +104,7 @@ export async function updateCita(id, data) {
 }
 
 // ============================
-// Actualizar SOLO el estado de la cita
+// Actualizar solo el estado de la cita
 // ============================
 export async function updateCitaStatus(id, estado_cita_id) {
   const citaActual = await getCitaById(id);
