@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import CampanaSaludForm from "./components/CampanaSaludForm";
 import { getCampanaSaludById } from "../../../../lib/data/campanasSaludData";
-import { getAllEmpleados } from "../../../../lib/data/empleadosData";
+import { getAllEmpleados } from "../empleado/services/empleadosService";
 import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification"
 
 export default function DetalleCampanaSalud() {

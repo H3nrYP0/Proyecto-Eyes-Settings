@@ -3,8 +3,11 @@ import { useNavigate } from "react-router-dom";
 import ProductoForm from "../components/ProductoForm";
 import ChatBotContainer from "../components/ChatBotContainer";
 import { ProductoData } from "../../../../../lib/data/productosData";
+
 import { MarcaData } from "../../marca/services/marcasService";
-import { CategoriaData } from "../../../../../lib/data/categoriasData";
+
+import { CategoriaData } from "../../categoria/services/categoriasService";
+
 import CreateProductPresentational from "../Presentational/CreateProductPresentational";
 
 export default function CreateProductContainer() {

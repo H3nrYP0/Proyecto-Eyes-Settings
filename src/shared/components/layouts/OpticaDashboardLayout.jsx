@@ -34,8 +34,9 @@ import EditarCompra from "../../../features/compras/pages/EditarCompra";
 import DetalleCompra from "../../../features/compras/pages/DetalleCompra";
 import CompraPDFView from "../../../features/compras/pages/CompraPDFView";
 
-import Categorias from "../../../features/compras/pages/categoria/Categorias";
 import Marcas from "../../../features/compras/pages/marca/pages/Marcas";
+
+import { Categorias } from "../../../features/compras/pages/categoria";
 
 import Products from "../../../features/compras/pages/producto/Products";
 import CrearProducto from "../../../features/compras/pages/producto/CrearProducto";
@@ -49,24 +50,27 @@ import DetalleProveedor from "../../../features/compras/pages/DetalleProveedor";
 
 import Servicios from "../../../features/servicios/pages/servicio/pages/Servicios";
 
-import Empleados from "../../../features/servicios/pages/empleado/Empleados";
-import CrearEmpleado from "../../../features/servicios/pages/empleado/CrearEmpleado";
-import EditarEmpleado from "../../../features/servicios/pages/empleado/EditarEmpleado";
-import DetalleEmpleado from "../../../features/servicios/pages/empleado/DetalleEmpleado";
+import {
+  Empleados,
+  CrearEmpleado,
+  EditarEmpleado,
+  DetalleEmpleado,
+} from "../../../features/servicios/pages/empleado";
 
-import Agenda from "../../../features/servicios/pages/agenda/Agenda";
-import ListaHorarios from "../../../features/servicios/pages/agenda/ListaHorarios";
-import Horarios from "../../../features/servicios/pages/horario/Horarios";
+import { Agenda } from "../../../features/servicios/pages/agenda";
+import { Horarios } from "../../../features/servicios/pages/horario";
 
 import CampanasSalud from "../../../features/servicios/pages/campanaSalud/CampanasSalud";
 import CrearCampanaSalud from "../../../features/servicios/pages/campanaSalud/CrearCampanaSalud";
 import EditarCampanaSalud from "../../../features/servicios/pages/campanaSalud/EditarCampanaSalud";
 import DetalleCampanaSalud from "../../../features/servicios/pages/campanaSalud/DetalleCampanaSalud";
 
-import Citas from "../../../features/servicios/pages/cita/Citas";
-import CrearCitas from "../../../features/servicios/pages/cita/CrearCitas";
-import EditarCitas from "../../../features/servicios/pages/cita/EditarCitas";
-import DetalleCitas from "../../../features/servicios/pages/cita/DetalleCitas";
+import {
+  Citas,
+  CrearCita,
+  EditarCita,
+  DetalleCita,
+} from "../../../features/servicios/pages/cita";
 
 import Roles from "../../../features/seguridad/pages/Roles";
 import CrearRol from "../../../features/seguridad/pages/roles/CrearRol";
@@ -186,23 +190,24 @@ export default function OpticaDashboardLayout({ user, setUser }) {
 
           <Route path="servicios">
             <Route index element={<Servicios />} />
-            {/* <Route path="crear" element={<CrearServicio />} />
-            <Route path="editar/:id" element={<EditarServicio />} />
-            <Route path="detalle/:id" element={<DetalleServicio />} /> */}
+      
             <Route path="citas">
               <Route index element={<Citas />} />
-              <Route path="crear" element={<CrearCitas />} />
-              <Route path="editar/:id" element={<EditarCitas />} />
-              <Route path="detalle/:id" element={<DetalleCitas />} />
+              <Route path="crear" element={<CrearCita />} />
+              <Route path="editar/:id" element={<EditarCita />} />
+              <Route path="detalle/:id" element={<DetalleCita />} />
             </Route>
+
             <Route path="empleados" element={<Empleados />} />
             <Route path="empleados/crear" element={<CrearEmpleado />} />
             <Route path="empleados/editar/:id" element={<EditarEmpleado />} />
             <Route path="empleados/detalle/:id" element={<DetalleEmpleado />} />
+
             <Route path="empleados/horarios/:id" element={<Horarios />} />
             <Route path="agenda" element={<Agenda />} />
-            <Route path="agenda/horarios" element={<ListaHorarios />} />
+            <Route path="agenda/horarios" element={<Horarios />} />
             <Route path="horarios" element={<Horarios />} />
+            
             <Route path="campanas-salud" element={<CampanasSalud />} />
             <Route path="campanas-salud/crear" element={<CrearCampanaSalud />} />
             <Route path="campanas-salud/editar/:id" element={<EditarCampanaSalud />} />

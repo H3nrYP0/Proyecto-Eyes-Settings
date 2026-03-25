@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import CampanaSaludForm from "./components/CampanaSaludForm";
+import { getAllEmpleados } from "../empleado/services/empleadosService";
 import { getCampanaSaludById, updateCampanaSalud } from "../../../../lib/data/campanasSaludData";
-import { getAllEmpleados } from "../../../../lib/data/empleadosData";
 import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification"
 
 export default function EditarCampanaSalud() {

@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
+
 import { MarcaData } from "../../marca/services/marcasService";
-import { getAllCategorias } from "../../../../../lib/data/categoriasData";
+
+import { getAllCategorias } from "../../categoria/services/categoriasService";
+
 import { ProductoData } from "../../../../../lib/data/productosData";
 import { UploadData } from "../../../../../lib/data/uploadData";
 import ProductoFormPresentational from "./ProductoFormPresentational";
