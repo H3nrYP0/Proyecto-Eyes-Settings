@@ -48,7 +48,7 @@ import CrearProveedor from "../../../features/compras/pages/CrearProveedor";
 import EditarProveedor from "../../../features/compras/pages/EditarProveedor";
 import DetalleProveedor from "../../../features/compras/pages/DetalleProveedor";
 
-import Servicios from "../../../features/servicios/pages/servicio/pages/Servicios";
+import { Servicios } from "../../../features/servicios/servicio";
 
 import {
   Empleados,

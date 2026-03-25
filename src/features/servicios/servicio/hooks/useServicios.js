@@ -1,7 +1,7 @@
 // src/features/servicios/pages/servicio/hooks/useServicios.js
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { ServicioData } from '../services/serviciosService';
-import { formatCOP } from '../../../../../shared/utils/formatCOP';
+import { formatCOP } from '../../../../shared/utils/formatCOP';
 
 export const useServicios = () => {
   const [servicios, setServicios] = useState([]);

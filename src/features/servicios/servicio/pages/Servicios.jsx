@@ -1,12 +1,12 @@
 // src/features/servicios/pages/servicio/pages/Servicios.jsx
 import { useRef } from "react";
 import { Alert, Box, Button } from "@mui/material";
-import CrudLayout from "../../../../../shared/components/crud/CrudLayout";
-import CrudTable from "../../../../../shared/components/crud/CrudTable";
-import Modal from "../../../../../shared/components/ui/Modal";
-import ServicioForm from "../components/ServicioForm";
-import CrudNotification from "../../../../../shared/styles/components/notifications/CrudNotification";
-import Loading from "../../../../../shared/components/ui/Loading";
+import CrudLayout from "../../../../shared/components/crud/CrudLayout";
+import CrudTable from "../../../../shared/components/crud/CrudTable";
+import Modal from "../../../../shared/components/ui/Modal";
+import ServicioForm from "../components/ServicioForm"; 
+import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
+import Loading from "../../../../shared/components/ui/Loading";
 import { useServicios } from "../hooks/useServicios";
 
 export default function Servicios() {

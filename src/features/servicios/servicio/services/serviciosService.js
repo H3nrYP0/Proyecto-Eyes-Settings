@@ -1,5 +1,5 @@
 // src/features/servicios/pages/servicio/services/serviciosService.js
-import axios from "../../../../../lib/axios";
+import axios from "../../../../lib/axios";
 
 export const ServicioData = {
   async getAllServicios() {
