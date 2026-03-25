@@ -5,7 +5,6 @@ import CrudTable from "../../../shared/components/crud/CrudTable";
 import Modal from "../../../shared/components/ui/Modal";
 import "../../../shared/styles/components/crud-table.css";
 
-// Backend
 import {
   getAllCompras,
   deleteCompra,
@@ -15,104 +14,83 @@ import {
 export default function Compras() {
   const navigate = useNavigate();
 
-  const [compras, setCompras] = useState([]);
-  const [search, setSearch] = useState('');
+  const [compras, setCompras]           = useState([]);
+  const [loading, setLoading]           = useState(true);
+  const [search, setSearch]             = useState('');
   const [filterEstado, setFilterEstado] = useState('');
 
   const [modalDelete, setModalDelete] = useState({
-    open: false,
-    id: null,
-    numeroCompra: "",
+    open: false, id: null, numeroCompra: "",
   });
 
-  // =============================
-  //        CARGA DE DATOS
-  // =============================
+  // ── Carga inicial ──────────────────────────────────────────
+  const cargarCompras = async () => {
+    try {
+      setLoading(true);
+      const data = await getAllCompras();
+      setCompras(data);
+    } catch (err) {
+      console.error("Error al cargar compras:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    setCompras(getAllCompras());
+    cargarCompras();
   }, []);
 
-  // =============================
-  //    MODAL DE ELIMINACIÓN
-  // =============================
-  const handleDelete = (id, numeroCompra) => {
+  // ── Eliminar ───────────────────────────────────────────────
+  const handleDelete = (id, numeroCompra) =>
     setModalDelete({ open: true, id, numeroCompra });
+
+  const confirmDelete = async () => {
+    try {
+      await deleteCompra(modalDelete.id);
+      await cargarCompras();
+    } catch (err) {
+      console.error("Error al eliminar compra:", err);
+    } finally {
+      setModalDelete({ open: false, id: null, numeroCompra: "" });
+    }
   };
 
-  const confirmDelete = () => {
-    const updated = deleteCompra(modalDelete.id);
-    setCompras([...updated]);
-    setModalDelete({ open: false, id: null, numeroCompra: "" });
+  // ── Cambiar estado ─────────────────────────────────────────
+  const toggleEstado = async (row) => {
+    if (row.estado === "Anulada") return;
+    try {
+      await updateEstadoCompra(row.id, row.estado);
+      await cargarCompras();
+    } catch (err) {
+      console.error("Error al cambiar estado:", err);
+    }
   };
 
-  // =============================
-  //    CAMBIAR ESTADO
-  // =============================
-  const toggleEstado = (row) => {
-    if (row.estado === "Anulada") return; // 🔒 bloqueo total
-    const updated = updateEstadoCompra(row.id);
-    setCompras([...updated]);
-  };
-
-  // =============================
-  //          BUSCADOR
-  // =============================
+  // ── Filtrado local ─────────────────────────────────────────
   const filteredCompras = compras.filter((compra) => {
-    const proveedor = (compra.proveedorNombre || '').toLowerCase();
-    const observaciones = (compra.observaciones || '').toLowerCase();
-    const numeroCompra = (compra.numeroCompra || '').toLowerCase();
-    const total = (compra.total || 0).toString();
-    const searchTerm = search.toLowerCase();
-
+    const term = search.toLowerCase();
     const matchesSearch =
-      proveedor.includes(searchTerm) ||
-      observaciones.includes(searchTerm) ||
-      numeroCompra.includes(searchTerm) ||
-      total.includes(searchTerm);
+      (compra.proveedorNombre || '').toLowerCase().includes(term) ||
+      (compra.observaciones   || '').toLowerCase().includes(term) ||
+      (compra.numeroCompra    || '').toLowerCase().includes(term) ||
+      String(compra.total     || '').includes(term);
 
-    const matchesFilter =
-      !filterEstado || compra.estado === filterEstado;
-
+    const matchesFilter = !filterEstado || compra.estado === filterEstado;
     return matchesSearch && matchesFilter;
   });
 
-  // =============================
-  //          FILTROS
-  // =============================
-  const searchFilters = [
-    { value: '', label: 'Todos' },
-    { value: 'Completada', label: 'Completadas' },
-    { value: 'Anulada', label: 'Anuladas' },
-  ];
+  // ── Helpers ────────────────────────────────────────────────
+  const formatCurrency = (v) => `$${Number(v).toLocaleString()}`;
+  const formatDate     = (d) => new Date(d).toLocaleDateString('es-ES');
 
-  const formatCurrency = (amount) => `$${amount.toLocaleString()}`;
-  const formatDate = (dateString) =>
-    new Date(dateString).toLocaleDateString('es-ES');
-
-  // =============================
-  //          COLUMNAS
-  // =============================
+  // ── Columnas ───────────────────────────────────────────────
   const columns = [
-    {
-      field: "proveedorNombre",
-      header: "Proveedor",
-      render: (row) => row.proveedorNombre,
-    },
-    {
-      field: "fecha",
-      header: "Fecha",
-      render: (row) => formatDate(row.fecha),
-    },
-    {
-      field: "total",
-      header: "Total",
-      render: (row) => formatCurrency(row.total),
-    },
+    { field: "proveedorNombre", header: "Proveedor", render: (row) => row.proveedorNombre },
+    { field: "fecha",  header: "Fecha",  render: (row) => formatDate(row.fecha)  },
+    { field: "total",  header: "Total",  render: (row) => formatCurrency(row.total) },
   ];
 
-  // =============================
-  //          ACCIONES
-  // =============================
+  // ── Acciones ───────────────────────────────────────────────
   const tableActions = [
     {
       label: "Cambiar estado",
@@ -129,24 +107,26 @@ export default function Compras() {
     {
       label: "Generar PDF",
       type: "pdf",
-      onClick: (row) =>
-        navigate(`/admin/compras/detalle/${row.id}/pdf`),
+      onClick: (row) => navigate(`/admin/compras/detalle/${row.id}/pdf`),
       disabled: (row) => row.estado === "Anulada",
     },
   ];
 
+  const searchFilters = [
+    { value: '', label: 'Todos' },
+    { value: 'Completada', label: 'Completadas' },
+    { value: 'Anulada',    label: 'Anuladas'    },
+  ];
+
   return (
     <>
-      {/* ✅ ESTILO QUE SÍ SE APLICA EN CRUDTABLE */}
-      <style>
-        {`
-          tr.row-anulada td {
-            background-color: #e5e5e5 !important;
-            color: #888 !important;
-            opacity: 0.7;
-          }
-        `}
-      </style>
+      <style>{`
+        tr.row-anulada td {
+          background-color: #e5e5e5 !important;
+          color: #888 !important;
+          opacity: 0.7;
+        }
+      `}</style>
 
       <CrudLayout
         title="Compras"
@@ -160,22 +140,26 @@ export default function Compras() {
         onFilterChange={setFilterEstado}
         searchPosition="left"
       >
-        <CrudTable
-          columns={columns}
-          data={filteredCompras}
-          actions={tableActions}
-          rowClassName={(row) =>
-            row.estado === "Anulada" ? "row-anulada" : ""
-          }
-          emptyMessage={
-            search || filterEstado
-              ? "No se encontraron compras para los filtros aplicados"
-              : "No hay compras registradas"
-          }
-        />
+        {loading ? (
+          <div style={{ textAlign: "center", padding: "40px", color: "#9ca3af" }}>
+            Cargando compras...
+          </div>
+        ) : (
+          <CrudTable
+            columns={columns}
+            data={filteredCompras}
+            actions={tableActions}
+            rowClassName={(row) => row.estado === "Anulada" ? "row-anulada" : ""}
+            emptyMessage={
+              search || filterEstado
+                ? "No se encontraron compras para los filtros aplicados"
+                : "No hay compras registradas"
+            }
+          />
+        )}
 
-        {/* BOTÓN PRIMERA COMPRA */}
-        {filteredCompras.length === 0 && !search && !filterEstado && (
+        {/* Botón primera compra */}
+        {!loading && filteredCompras.length === 0 && !search && !filterEstado && (
           <div style={{ textAlign: "center", marginTop: "var(--spacing-lg)" }}>
             <button
               onClick={() => navigate("/admin/compras/crear")}
@@ -186,7 +170,7 @@ export default function Compras() {
           </div>
         )}
 
-        {/* MODAL ELIMINAR */}
+        {/* Modal eliminar */}
         <Modal
           open={modalDelete.open}
           type="warning"
@@ -196,9 +180,7 @@ export default function Compras() {
           cancelText="Cancelar"
           showCancel
           onConfirm={confirmDelete}
-          onCancel={() =>
-            setModalDelete({ open: false, id: null, numeroCompra: "" })
-          }
+          onCancel={() => setModalDelete({ open: false, id: null, numeroCompra: "" })}
         />
       </CrudLayout>
     </>

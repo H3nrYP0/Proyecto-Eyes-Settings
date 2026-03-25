@@ -1,100 +1,153 @@
-// Base de datos temporal de compras
-let comprasDB = [
-  {
-    id: 1,
-    numeroCompra: "C-001",
-    proveedorId: 1,
-    proveedorNombre: "Optical Supplies S.A.S.",
-    fecha: "2024-01-15",
-    productos: [
-      { id: 1, nombre: "Lentes Oftálmicos", cantidad: 50, precioUnitario: 25000, total: 1250000 },
-      { id: 2, nombre: "Monturas Acetato", cantidad: 30, precioUnitario: 35000, total: 1050000 }
-    ],
-    subtotal: 2300000,
-    iva: 437000,
-    total: 2737000,
-    estado: "Completada",
-    observaciones: "Pedido regular de lentes"
-  },
-  {
-    id: 2,
-    numeroCompra: "C-002",
-    proveedorId: 2,
-    proveedorNombre: "Lentes Premium",
-    fecha: "2024-01-10",
-    productos: [
-      { id: 3, nombre: "Lentes de Contacto", cantidad: 100, precioUnitario: 15000, total: 1500000 }
-    ],
-    subtotal: 1500000,
-    iva: 285000,
-    total: 1785000,
-    estado: "Completada",
-    observaciones: "Lentes de contacto mensuales"
-  },
-  {
-    id: 3,
-    numeroCompra: "C-003",
-    proveedorId: 3,
-    proveedorNombre: "Cristales Ópticos",
-    fecha: "2024-01-08",
-    productos: [
-      { id: 4, nombre: "Cristales Anti-reflejo", cantidad: 25, precioUnitario: 45000, total: 1125000 }
-    ],
-    subtotal: 1125000,
-    iva: 213750,
-    total: 1338750,
-    estado: "Anulada",
-    observaciones: "Pedido cancelado por falta de stock"
-  }
-];
+import api from "../axios";
 
-// Obtener todas las compras
-export function getAllCompras() {
-  return [...comprasDB];
-}
+// ============================================================
+//  HELPERS — mapeo entre snake_case (API) y camelCase (UI)
+// ============================================================
 
-// Obtener por ID
-export function getCompraById(id) {
-  return comprasDB.find((c) => c.id === id);
-}
-
-// Crear compra
-export function createCompra(data) {
-  const newId = comprasDB.length ? comprasDB.at(-1).id + 1 : 1;
-  const nuevaCompra = { 
-    id: newId,
-    numeroCompra: `C-${String(newId).padStart(3, '0')}`,
-    ...data 
+/**
+ * Convierte una compra que viene del backend al formato que usa la UI.
+ * El backend devuelve: { id, proveedor_id, proveedor_nombre, fecha,
+ *   subtotal, iva, total, estado_compra, observaciones, productos: [...] }
+ */
+function _toUI(compra) {
+  return {
+    id:               compra.id,
+    numeroCompra:     compra.numero_compra || `C-${String(compra.id).padStart(3, "0")}`,
+    proveedorId:      compra.proveedor_id,
+    proveedorNombre:  compra.proveedor_nombre || "",
+    fecha:            compra.fecha ? compra.fecha.split("T")[0] : "",
+    subtotal:         Number(compra.subtotal  || 0),
+    iva:              Number(compra.iva       || 0),
+    total:            Number(compra.total     || 0),
+    // estado_compra: true = Completada, false = Anulada
+    estado:           compra.estado_compra === false ? "Anulada" : "Completada",
+    observaciones:    compra.observaciones || "",
+    // productos viene del endpoint de detalle-compra
+    productos: (compra.productos || []).map(_detalleToUI),
   };
-  
-  comprasDB.push(nuevaCompra);
-  return nuevaCompra;
 }
 
-// Actualizar compra
-export function updateCompra(id, updated) {
-  const index = comprasDB.findIndex((c) => c.id === id);
-  if (index !== -1) {
-    comprasDB[index] = { ...comprasDB[index], ...updated };
-  }
-  return comprasDB;
+/**
+ * Convierte un detalle de compra (producto) del backend al formato UI.
+ * Backend: { id, compra_id, producto_id, nombre, cantidad, precio_unidad, subtotal }
+ */
+function _detalleToUI(detalle) {
+  return {
+    id:             detalle.id,
+    productoId:     detalle.producto_id,
+    nombre:         detalle.nombre || detalle.producto_nombre || "",
+    cantidad:       Number(detalle.cantidad       || 0),
+    precioUnitario: Number(detalle.precio_unidad  || 0),
+    total:          Number(detalle.subtotal        || 0),
+  };
 }
 
-// Eliminar compra
-export function deleteCompra(id) {
-  comprasDB = comprasDB.filter((c) => c.id !== id);
-  return comprasDB;
+// ============================================================
+//  COMPRAS — CRUD
+// ============================================================
+
+/** GET /compras → lista de compras */
+export async function getAllCompras() {
+  const res = await api.get("/compras");
+  return res.data.map(_toUI);
 }
 
-// Cambiar estado (Completada/Anulada)
-export function updateEstadoCompra(id) {
-  comprasDB = comprasDB.map((c) =>
-    c.id === id
-      ? { 
-          ...c, 
-          estado: c.estado === "Completada" ? "Anulada" : "Completada" 
-        }
-      : c
+/** GET /compras/:id → una compra con sus detalles */
+export async function getCompraById(id) {
+  const res = await api.get(`/compras/${id}`);
+  return _toUI(res.data);
+}
+
+/**
+ * POST /compras + POST /detalle-compra (uno por producto)
+ * payload UI esperado:
+ *   { proveedorId, proveedorNombre, fecha, subtotal, iva, total,
+ *     estado, observaciones, productos: [{ productoId, cantidad, precioUnitario, total }] }
+ */
+export async function createCompra(data) {
+  // 1. Crear la compra principal
+  const compraPayload = {
+    proveedor_id:   data.proveedorId,
+    total:          data.total,
+    subtotal:       data.subtotal,
+    iva:            data.iva,
+    fecha:          data.fecha,
+    observaciones:  data.observaciones || "",
+    estado_compra:  data.estado !== "Anulada", // true = Completada
+  };
+
+  const compraRes = await api.post("/compras", compraPayload);
+  const nuevaCompra = compraRes.data.compra || compraRes.data;
+
+  // 2. Crear cada detalle (producto)
+  const detallesPromises = (data.productos || []).map((p) =>
+    api.post("/detalle-compra", {
+      compra_id:    nuevaCompra.id,
+      producto_id:  p.productoId,
+      cantidad:     p.cantidad,
+      precio_unidad: p.precioUnitario,
+    })
   );
-  return comprasDB;
+  await Promise.all(detallesPromises);
+
+  return _toUI(nuevaCompra);
+}
+
+/**
+ * PUT /compras/:id  (campos de cabecera)
+ * También elimina los detalles viejos y recrea los nuevos
+ * si el payload trae productos[].
+ */
+export async function updateCompra(id, data) {
+  const compraPayload = {
+    proveedor_id:  data.proveedorId,
+    total:         data.total,
+    subtotal:      data.subtotal,
+    iva:           data.iva,
+    fecha:         data.fecha,
+    observaciones: data.observaciones || "",
+    estado_compra: data.estado !== "Anulada",
+  };
+
+  const res = await api.put(`/compras/${id}`, compraPayload);
+
+  // Si vienen productos nuevos, borramos los detalles actuales y los recreamos
+  if (data.productos && data.productos.length > 0) {
+    // Obtener detalles actuales para borrarlos
+    const detallesRes = await api.get("/detalle-compra");
+    const detallesActuales = detallesRes.data.filter((d) => d.compra_id === id);
+
+    await Promise.all(
+      detallesActuales.map((d) => api.delete(`/detalle-compra/${d.id}`))
+    );
+
+    // Crear los nuevos
+    await Promise.all(
+      data.productos.map((p) =>
+        api.post("/detalle-compra", {
+          compra_id:     id,
+          producto_id:   p.productoId,
+          cantidad:      p.cantidad,
+          precio_unidad: p.precioUnitario,
+        })
+      )
+    );
+  }
+
+  return _toUI(res.data.compra || res.data);
+}
+
+/** DELETE /compras/:id */
+export async function deleteCompra(id) {
+  await api.delete(`/compras/${id}`);
+}
+
+/**
+ * Cambiar estado: Completada ↔ Anulada
+ * PUT /compras/:id  con { estado_compra: boolean }
+ */
+export async function updateEstadoCompra(id, estadoActual) {
+  const nuevoEstado = estadoActual === "Completada" ? false : true;
+  const res = await api.put(`/compras/${id}`, { estado_compra: nuevoEstado });
+  return _toUI(res.data.compra || res.data);
 }

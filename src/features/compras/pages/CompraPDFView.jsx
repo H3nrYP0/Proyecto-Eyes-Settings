@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getCompraById } from '../../../lib/data/comprasData';
 
@@ -7,15 +7,21 @@ export default function CompraPDFView() {
   const navigate = useNavigate();
   const contentRef = useRef(null);
 
-  const compra = getCompraById(parseInt(id, 10));
+  const [compra,  setCompra]  = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!compra) {
-      navigate('/admin/compras');
-    }
-  }, [compra]);
+    getCompraById(parseInt(id, 10))
+      .then((data) => {
+        if (!data) { navigate('/admin/compras'); return; }
+        setCompra(data);
+      })
+      .catch(() => navigate('/admin/compras'))
+      .finally(() => setLoading(false));
+  }, [id]);
 
-  if (!compra) return null;
+  if (loading) return <div style={{ padding: 32 }}>Cargando...</div>;
+  if (!compra)  return null;
 
   const formatCurrency = (amount) => `$${Number(amount).toLocaleString()}`;
   const formatDate = (dateString) =>

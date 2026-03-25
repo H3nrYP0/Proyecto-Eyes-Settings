@@ -8,15 +8,15 @@ import {
   Select,
 } from "@mui/material";
 
-import BaseFormLayout from "../../../shared/components/base/BaseFormLayout";
-import BaseFormSection from "../../../shared/components/base/BaseFormSection";
-import BaseFormField from "../../../shared/components/base/BaseFormField";
-import BaseFormActions from "../../../shared/components/base/BaseFormActions";
+import BaseFormLayout   from "../../../shared/components/base/BaseFormLayout";
+import BaseFormSection  from "../../../shared/components/base/BaseFormSection";
+import BaseFormField    from "../../../shared/components/base/BaseFormField";
+import BaseFormActions  from "../../../shared/components/base/BaseFormActions";
 import CrudNotification from "../../../shared/styles/components/notifications/CrudNotification";
 
-import { createCompra } from "../../../lib/data/comprasData";
-import { getAllProductos } from "../../../lib/data/productosData";
-import { ProveedoresData } from "../../../lib/data/proveedoresData"; // ← corregido
+import { createCompra }            from "../../../lib/data/comprasData";
+import { getAllProductos }          from "../../../lib/data/productosData";
+import { ProveedoresData }          from "../../../lib/data/proveedoresData";
 
 const viewFieldStyle = {
   backgroundColor: "#f3f4f6",
@@ -26,11 +26,11 @@ const viewFieldStyle = {
 };
 
 export default function ComprasForm({
-  mode = "create",
-  title = "Crear Compra",
+  mode        = "create",
+  title       = "Crear Compra",
   initialData = null,
   onCancel,
-  onSubmit,
+  onSubmit,   // usado en modo edit (recibe payload ya listo)
   onEdit,
   onPdf,
 }) {
@@ -38,40 +38,45 @@ export default function ComprasForm({
   const isView = mode === "view";
   const isEdit = mode === "edit";
 
-  const [productos, setProductos] = useState([]);
+  const [productos,   setProductos]   = useState([]);
   const [proveedores, setProveedores] = useState([]);
+  const [saving,      setSaving]      = useState(false);
 
   const [formData, setFormData] = useState({
-    proveedorId: "",
+    proveedorId:     "",
     proveedorNombre: "",
-    fecha: new Date().toISOString().split("T")[0],
-    productos: [],
+    fecha:           new Date().toISOString().split("T")[0],
+    productos:       [],
+    observaciones:   "",
   });
 
   const [productoActual, setProductoActual] = useState({
-    productoId: "",
-    nombre: "",
-    cantidad: 1,
+    productoId:     "",
+    nombre:         "",
+    cantidad:       1,
     precioUnitario: 0,
   });
 
   const [notification, setNotification] = useState({
     isVisible: false,
-    message: "",
-    type: "success",
+    message:   "",
+    type:      "success",
   });
 
+  // ── Carga inicial ────────────────────────────────────────────
   useEffect(() => {
     if (!isView) {
-      // Productos (síncrono, sin cambios)
-      setProductos(getAllProductos().filter((p) => p.estado === "activo"));
-
-      // Proveedores — ahora es async
-      ProveedoresData.getAllProveedores()
+      // Productos — getAllProductos() es async y devuelve snake_case del backend
+      getAllProductos()
         .then((data) => {
-          // Filtramos solo los activos (estado booleano true)
-          setProveedores(data.filter((p) => p.estado === true));
+          // El backend devuelve estado como booleano: true = activo
+          setProductos(data.filter((p) => p.estado === true));
         })
+        .catch((err) => console.error("Error al cargar productos:", err));
+
+      // Proveedores — devuelve objetos con estadoBool (booleano puro)
+      ProveedoresData.getAllProveedores()
+        .then((data) => setProveedores(data.filter((p) => p.estadoBool === true)))
         .catch((err) => console.error("Error al cargar proveedores:", err));
     }
 
@@ -81,14 +86,12 @@ export default function ComprasForm({
         proveedorNombre: initialData.proveedorNombre || "",
         fecha:           initialData.fecha           || new Date().toISOString().split("T")[0],
         productos:       initialData.productos       || [],
+        observaciones:   initialData.observaciones   || "",
       });
     }
   }, [initialData]);
 
-  const formatCurrency = (v) => `$${v.toLocaleString()}`;
-  const formatDate = (dateString) =>
-    new Date(dateString).toLocaleDateString("es-ES");
-
+  // ── Cálculo de totales ───────────────────────────────────────
   const calcularTotales = () => {
     if (isView && initialData) {
       return {
@@ -98,10 +101,14 @@ export default function ComprasForm({
       };
     }
     const subtotal = formData.productos.reduce((s, p) => s + p.total, 0);
-    const iva = subtotal * 0.19;
+    const iva      = subtotal * 0.19;
     return { subtotal, iva, total: subtotal + iva };
   };
 
+  const formatCurrency = (v) => `$${Number(v).toLocaleString()}`;
+  const formatDate     = (d) => new Date(d).toLocaleDateString("es-ES");
+
+  // ── Producto temporal ────────────────────────────────────────
   const agregarProducto = () => {
     if (!productoActual.productoId || productoActual.cantidad <= 0) return;
 
@@ -110,12 +117,12 @@ export default function ComprasForm({
       productos: [
         ...prev.productos,
         {
-          itemId:        Date.now(),
-          productoId:    productoActual.productoId,
-          nombre:        productoActual.nombre,
-          cantidad:      Number(productoActual.cantidad),
+          itemId:         Date.now(),
+          productoId:     productoActual.productoId,
+          nombre:         productoActual.nombre,
+          cantidad:       Number(productoActual.cantidad),
           precioUnitario: Number(productoActual.precioUnitario),
-          total:         Number(productoActual.cantidad) * Number(productoActual.precioUnitario),
+          total:          Number(productoActual.cantidad) * Number(productoActual.precioUnitario),
         },
       ],
     }));
@@ -126,16 +133,17 @@ export default function ComprasForm({
   const eliminarProducto = (itemId) => {
     setFormData((prev) => ({
       ...prev,
-      productos: prev.productos.filter((p) => p.itemId !== itemId),
+      productos: prev.productos.filter((p) => (p.itemId || p.id) !== itemId),
     }));
   };
 
-  const guardarCompra = () => {
+  // ── Guardar ──────────────────────────────────────────────────
+  const guardarCompra = async () => {
     if (!formData.proveedorId || formData.productos.length === 0) {
       setNotification({
         isVisible: true,
-        message: "Selecciona proveedor y agrega al menos un producto",
-        type: "error",
+        message:   "Selecciona un proveedor y agrega al menos un producto",
+        type:      "error",
       });
       return;
     }
@@ -143,11 +151,26 @@ export default function ComprasForm({
     const { subtotal, iva, total } = calcularTotales();
     const payload = { ...formData, subtotal, iva, total, estado: "Completada" };
 
-    if (isEdit && onSubmit) {
-      onSubmit(payload);
-    } else {
-      createCompra(payload);
-      navigate("/admin/compras");
+    try {
+      setSaving(true);
+
+      if (isEdit && onSubmit) {
+        // EditarCompra.jsx llama a updateCompra internamente
+        await onSubmit(payload);
+      } else {
+        await createCompra(payload);
+        setNotification({ isVisible: true, message: "Compra guardada correctamente", type: "success" });
+        setTimeout(() => navigate("/admin/compras"), 1200);
+      }
+    } catch (err) {
+      console.error("Error al guardar compra:", err);
+      setNotification({
+        isVisible: true,
+        message:   "Error al guardar la compra. Intenta de nuevo.",
+        type:      "error",
+      });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -157,7 +180,7 @@ export default function ComprasForm({
     <>
       <BaseFormLayout title={title}>
 
-        {/* INFORMACIÓN BÁSICA */}
+        {/* ── INFORMACIÓN BÁSICA ── */}
         <BaseFormSection title="Información de la Compra">
           <BaseFormField>
             {isView ? (
@@ -175,16 +198,17 @@ export default function ComprasForm({
                   value={formData.proveedorId}
                   onChange={(e) => {
                     const p = proveedores.find((x) => x.id == e.target.value);
+                    if (!p) return;
                     setFormData({
                       ...formData,
                       proveedorId:     p.id,
-                      proveedorNombre: p.razonSocial, // ← campo correcto del _toUI
+                      proveedorNombre: p.razonSocial || p.razon_social_o_nombre || "",
                     });
                   }}
                 >
                   {proveedores.map((p) => (
                     <MenuItem key={p.id} value={p.id}>
-                      {p.razonSocial} {/* ← campo correcto del _toUI */}
+                      {p.razonSocial || p.razon_social_o_nombre}
                     </MenuItem>
                   ))}
                 </Select>
@@ -201,13 +225,9 @@ export default function ComprasForm({
               InputLabelProps={{ shrink: true }}
               InputProps={{
                 readOnly: isView,
-                style: isView ? viewFieldStyle : {},
+                style:    isView ? viewFieldStyle : {},
               }}
-              onChange={
-                !isView
-                  ? (e) => setFormData({ ...formData, fecha: e.target.value })
-                  : undefined
-              }
+              onChange={!isView ? (e) => setFormData({ ...formData, fecha: e.target.value }) : undefined}
             />
           </BaseFormField>
 
@@ -220,19 +240,44 @@ export default function ComprasForm({
                 InputProps={{
                   readOnly: true,
                   style: {
-                    backgroundColor: "#f3f4f6",
+                    ...viewFieldStyle,
                     color: initialData?.estado === "Completada" ? "#10b981" : "#ef4444",
-                    pointerEvents: "none",
-                    userSelect: "none",
                   },
                 }}
                 InputLabelProps={{ shrink: true }}
               />
             </BaseFormField>
           )}
+
+          {!isView && (
+            <BaseFormField>
+              <TextField
+                fullWidth
+                label="Observaciones"
+                multiline
+                rows={2}
+                value={formData.observaciones}
+                onChange={(e) => setFormData({ ...formData, observaciones: e.target.value })}
+              />
+            </BaseFormField>
+          )}
+
+          {isView && formData.observaciones && (
+            <BaseFormField>
+              <TextField
+                fullWidth
+                label="Observaciones"
+                multiline
+                rows={2}
+                value={formData.observaciones}
+                InputProps={{ readOnly: true, style: viewFieldStyle }}
+                InputLabelProps={{ shrink: true }}
+              />
+            </BaseFormField>
+          )}
         </BaseFormSection>
 
-        {/* SELECTOR DE PRODUCTO — solo en create y edit */}
+        {/* ── AGREGAR PRODUCTO (create / edit) ── */}
         {!isView && (
           <BaseFormSection title="Agregar Producto">
             <BaseFormField>
@@ -242,11 +287,13 @@ export default function ComprasForm({
                   value={productoActual.productoId}
                   onChange={(e) => {
                     const p = productos.find((x) => x.id == e.target.value);
+                    if (!p) return;
                     setProductoActual({
                       productoId:     p.id,
                       nombre:         p.nombre,
                       cantidad:       1,
-                      precioUnitario: p.precioCompra,
+                      // El backend devuelve precio_compra en snake_case
+                      precioUnitario: Number(p.precio_compra || 0),
                     });
                   }}
                 >
@@ -264,6 +311,7 @@ export default function ComprasForm({
                 fullWidth
                 label="Cantidad"
                 type="number"
+                inputProps={{ min: 1 }}
                 value={productoActual.cantidad}
                 onChange={(e) =>
                   setProductoActual({ ...productoActual, cantidad: e.target.value })
@@ -275,14 +323,14 @@ export default function ComprasForm({
               <TextField
                 fullWidth
                 label="Precio Unitario"
-                value={productoActual.precioUnitario}
+                value={formatCurrency(productoActual.precioUnitario)}
                 disabled
               />
             </BaseFormField>
           </BaseFormSection>
         )}
 
-        {/* TABLA DE PRODUCTOS + TOTALES */}
+        {/* ── TABLA DE PRODUCTOS + TOTALES ── */}
         {formData.productos.length > 0 && (
           <BaseFormSection title={isView ? "Productos de la Compra" : "Resumen de la Compra"}>
             <div
@@ -297,7 +345,7 @@ export default function ComprasForm({
                 border: "1px solid #e5e7eb",
               }}
             >
-              {/* TABLA */}
+              {/* Tabla */}
               <div>
                 <div
                   style={{
@@ -342,9 +390,7 @@ export default function ComprasForm({
                   >
                     <div style={{ textAlign: "left" }}>{p.nombre}</div>
                     <div>{p.cantidad}</div>
-                    <div style={{ textAlign: "right" }}>
-                      {formatCurrency(p.precioUnitario)}
-                    </div>
+                    <div style={{ textAlign: "right" }}>{formatCurrency(p.precioUnitario)}</div>
                     <div style={{ textAlign: "right", fontWeight: 600, color: isView ? "#6b7280" : "inherit" }}>
                       {formatCurrency(p.total)}
                     </div>
@@ -360,7 +406,7 @@ export default function ComprasForm({
                 ))}
               </div>
 
-              {/* TOTALES */}
+              {/* Totales */}
               <div
                 style={{
                   background: isView ? "#f3f4f6" : "#ffffff",
@@ -373,18 +419,17 @@ export default function ComprasForm({
                   pointerEvents: isView ? "none" : "auto",
                 }}
               >
-                <div style={{ marginBottom: 12 }}>
-                  <span style={{ color: "#9ca3af" }}>Subtotal</span>
-                  <strong style={{ float: "right", color: isView ? "#6b7280" : "inherit" }}>
-                    {formatCurrency(subtotal)}
-                  </strong>
-                </div>
-                <div style={{ marginBottom: 14 }}>
-                  <span style={{ color: "#9ca3af" }}>IVA (19%)</span>
-                  <strong style={{ float: "right", color: isView ? "#6b7280" : "inherit" }}>
-                    {formatCurrency(iva)}
-                  </strong>
-                </div>
+                {[
+                  { label: "Subtotal",  value: subtotal },
+                  { label: "IVA (19%)", value: iva      },
+                ].map(({ label, value }) => (
+                  <div key={label} style={{ marginBottom: 12 }}>
+                    <span style={{ color: "#9ca3af" }}>{label}</span>
+                    <strong style={{ float: "right", color: isView ? "#6b7280" : "inherit" }}>
+                      {formatCurrency(value)}
+                    </strong>
+                  </div>
+                ))}
                 <div
                   style={{
                     marginTop: 16,
@@ -404,7 +449,7 @@ export default function ComprasForm({
           </BaseFormSection>
         )}
 
-        {/* ACCIONES */}
+        {/* ── ACCIONES ── */}
         <div
           style={{
             display: "flex",
@@ -441,8 +486,9 @@ export default function ComprasForm({
             <BaseFormActions
               onCancel={onCancel ?? (() => navigate("/admin/compras"))}
               onSave={guardarCompra}
-              saveLabel={isEdit ? "Actualizar Compra" : "Guardar Compra"}
+              saveLabel={saving ? "Guardando..." : isEdit ? "Actualizar Compra" : "Guardar Compra"}
               showSave
+              disabled={saving}
             />
           )}
         </div>

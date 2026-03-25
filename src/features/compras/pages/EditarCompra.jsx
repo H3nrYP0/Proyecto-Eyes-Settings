@@ -5,32 +5,33 @@ import ComprasForm from "../components/ComprasForm";
 
 export default function EditarCompra() {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { id }   = useParams();
 
-  const [compra, setCompra] = useState(null);
+  const [compra,  setCompra]  = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const data = getCompraById(Number(id));
-    if (!data) {
-      navigate("/admin/compras");
-      return;
-    }
-    setCompra(data);
+    getCompraById(Number(id))
+      .then((data) => {
+        if (!data) { navigate("/admin/compras"); return; }
+        setCompra(data);
+      })
+      .catch(() => navigate("/admin/compras"))
+      .finally(() => setLoading(false));
   }, [id]);
 
-  if (!compra) {
-    return <div>Cargando...</div>;
-  }
+  if (loading) return <div>Cargando...</div>;
+  if (!compra)  return null;
 
-  const handleUpdate = (data) => {
-    updateCompra(Number(id), data);
+  const handleUpdate = async (data) => {
+    await updateCompra(Number(id), data);
     navigate("/admin/compras");
   };
 
   return (
     <ComprasForm
       mode="edit"
-      title={`Editar Compra #${compra.id}`}
+      title={`Editar Compra — ${compra.numeroCompra}`}
       initialData={compra}
       onSubmit={handleUpdate}
       onCancel={() => navigate("/admin/compras")}
