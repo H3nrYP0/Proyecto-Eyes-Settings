@@ -1,9 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-
-import "/src/shared/styles/globals/app.css";
-import "/src/shared/styles/globals/reset.css";
-import "/src/shared/styles/globals/variables.css";
 
 import LandingPage from "../features/home/pages/LandingPage";
 import ProductsPage from "../features/home/pages/ProductsPage";
@@ -13,41 +9,15 @@ import Register from "../features/auth/components/Register";
 import ForgotPassword from "../features/auth/components/ForgotPassword";
 import OpticaDashboardLayout from "../shared/components/layouts/OpticaDashboardLayout";
 import ProtectedRoute from "../shared/components/ProtectedRoute";
-import authService from "../features/auth/Services/authService";
+import authService from "../features/auth/services/authService";
 
 export default function App() {
-  // ── Inicializar user directamente desde localStorage ──
-  // Evita el flash de null antes del useEffect
   const [user, setUser] = useState(() => authService.getUser());
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setLoading(false);
-  }, []);
 
   const handleLogout = () => {
     authService.logout();
     setUser(null);
   };
-
-  if (loading) {
-    return (
-      <div style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-        background: "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)",
-        color: "white"
-      }}>
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>👁️</div>
-          <h2>Visual Outlet</h2>
-          <p>Cargando...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <Router>
@@ -58,22 +28,28 @@ export default function App() {
 
         <Route
           path="/login"
-          element={user ? <Navigate to="/admin/dashboard" replace /> : <Login setUser={setUser} />}
+          element={
+            user
+              ? authService.hasPermission(user, "dashboard")
+                ? <Navigate to="/admin/dashboard" replace />
+                : <Navigate to="/productos" replace />
+              : <Login key="login-page" setUser={setUser} /> 
+          }
         />
         <Route
           path="/register"
-          element={user ? <Navigate to="/admin/dashboard" replace /> : <Register />}
+          element={user ? <Navigate to="/productos" replace /> : <Register />}
         />
         <Route
           path="/forgot-password"
-          element={user ? <Navigate to="/admin/dashboard" replace /> : <ForgotPassword />}
+          element={user ? <Navigate to="/productos" replace /> : <ForgotPassword />}
         />
 
         <Route
           path="/admin/*"
           element={
             <ProtectedRoute permiso="dashboard">
-              <OpticaDashboardLayout user={user} setUser={setUser} />
+              <OpticaDashboardLayout user={user} setUser={setUser} onLogout={handleLogout} />
             </ProtectedRoute>
           }
         />

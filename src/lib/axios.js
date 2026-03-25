@@ -8,10 +8,9 @@ const api = axios.create({
 });
 
 // ── Interceptor de peticiones ──
-// Agrega el token JWT automáticamente en cada petición
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -21,15 +20,21 @@ api.interceptors.request.use(
 );
 
 // ── Interceptor de respuestas ──
-// Si el token expiró (401), limpia sesión y redirige al login
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const isAuthRoute = error.config?.url?.includes("/auth/");
+
+    // Solo limpiar sesión si el 401 viene de una ruta protegida
+    // Nunca interferir con login, register, forgot-password, etc.
+    if (error.response?.status === 401 && !isAuthRoute) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("user");
       window.location.href = "/login";
     }
+
     return Promise.reject(error);
   }
 );
