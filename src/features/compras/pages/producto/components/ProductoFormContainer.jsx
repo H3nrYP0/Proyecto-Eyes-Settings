@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MarcaData } from "../../../../../lib/data/marcasData";
+import { MarcaData } from "../../marca/services/marcasService";
 import { getAllCategorias } from "../../../../../lib/data/categoriasData";
 import { ProductoData } from "../../../../../lib/data/productosData";
 import { UploadData } from "../../../../../lib/data/uploadData";

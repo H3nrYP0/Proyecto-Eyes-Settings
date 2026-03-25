@@ -35,7 +35,7 @@ import DetalleCompra from "../../../features/compras/pages/DetalleCompra";
 import CompraPDFView from "../../../features/compras/pages/CompraPDFView";
 
 import Categorias from "../../../features/compras/pages/categoria/Categorias";
-import Marcas from "../../../features/compras/pages/marca/Marcas";
+import Marcas from "../../../features/compras/pages/marca/pages/Marcas";
 
 import Products from "../../../features/compras/pages/producto/Products";
 import CrearProducto from "../../../features/compras/pages/producto/CrearProducto";
@@ -47,10 +47,7 @@ import CrearProveedor from "../../../features/compras/pages/CrearProveedor";
 import EditarProveedor from "../../../features/compras/pages/EditarProveedor";
 import DetalleProveedor from "../../../features/compras/pages/DetalleProveedor";
 
-import Servicios from "../../../features/servicios/pages/servicio/Servicios";
-import CrearServicio from "../../../features/servicios/pages/servicio/CrearServicio";
-import EditarServicio from "../../../features/servicios/pages/servicio/EditarServicio";
-import DetalleServicio from "../../../features/servicios/pages/servicio/DetalleServicio";
+import Servicios from "../../../features/servicios/pages/servicio/pages/Servicios";
 
 import Empleados from "../../../features/servicios/pages/empleado/Empleados";
 import CrearEmpleado from "../../../features/servicios/pages/empleado/CrearEmpleado";
@@ -189,9 +186,9 @@ export default function OpticaDashboardLayout({ user, setUser }) {
 
           <Route path="servicios">
             <Route index element={<Servicios />} />
-            <Route path="crear" element={<CrearServicio />} />
+            {/* <Route path="crear" element={<CrearServicio />} />
             <Route path="editar/:id" element={<EditarServicio />} />
-            <Route path="detalle/:id" element={<DetalleServicio />} />
+            <Route path="detalle/:id" element={<DetalleServicio />} /> */}
             <Route path="citas">
               <Route index element={<Citas />} />
               <Route path="crear" element={<CrearCitas />} />

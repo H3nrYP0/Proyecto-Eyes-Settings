@@ -1,4 +1,4 @@
-import axios from "../axios";
+import axios from "../../../../../lib/axios";
 
 export const MarcaData = {
   // Función para obtener todas las marcas
@@ -40,7 +40,7 @@ export const MarcaData = {
 
 
   // Función para verificar si ya existe una marca con ese nombre
-  async checkMarcaExists(nombre) {  // 👈 Ahora está dentro del objeto
+  async checkMarcaExists(nombre) {  // Ahora está dentro del objeto
     try {
       const response = await axios.get('/marcas');
       const marcas = response.data;
@@ -54,7 +54,7 @@ export const MarcaData = {
     }
   },
 
-// 👇 Elimina la función suelta que está fuera
+//  Elimina la función suelta que está fuera
 
   // Función para actualizar una marca
   async updateMarca(id, data) {
