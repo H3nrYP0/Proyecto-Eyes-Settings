@@ -47,32 +47,32 @@ import CrearProveedor from "../../../features/compras/pages/CrearProveedor";
 import EditarProveedor from "../../../features/compras/pages/EditarProveedor";
 import DetalleProveedor from "../../../features/compras/pages/DetalleProveedor";
 
-import Servicios from "../../../features/servicios/pages/servicio/Servicios";
-import CrearServicio from "../../../features/servicios/pages/servicio/CrearServicio";
-import EditarServicio from "../../../features/servicios/pages/servicio/EditarServicio";
-import DetalleServicio from "../../../features/servicios/pages/servicio/DetalleServicio";
+import Servicios from "../../../features/servicios/servicio/Servicios";
+import CrearServicio from "../../../features/servicios/servicio/CrearServicio";
+import EditarServicio from "../../../features/servicios/servicio/EditarServicio";
+import DetalleServicio from "../../../features/servicios/servicio/DetalleServicio";
 
 import {
   Empleados,
   CrearEmpleado,
   EditarEmpleado,
   DetalleEmpleado,
-} from "../../../features/servicios/pages/empleado";
+} from "../../../features/servicios/empleado";
 
-import { Agenda } from "../../../features/servicios/pages/agenda";
-import { Horarios } from "../../../features/servicios/pages/horario";
+import { Agenda } from "../../../features/servicios/agenda";
+import { Horarios } from "../../../features/servicios/horario";
 
-import CampanasSalud from "../../../features/servicios/pages/campanaSalud/CampanasSalud";
-import CrearCampanaSalud from "../../../features/servicios/pages/campanaSalud/CrearCampanaSalud";
-import EditarCampanaSalud from "../../../features/servicios/pages/campanaSalud/EditarCampanaSalud";
-import DetalleCampanaSalud from "../../../features/servicios/pages/campanaSalud/DetalleCampanaSalud";
+import CampanasSalud from "../../../features/servicios/campanaSalud/CampanasSalud";
+import CrearCampanaSalud from "../../../features/servicios/campanaSalud/CrearCampanaSalud";
+import EditarCampanaSalud from "../../../features/servicios/campanaSalud/EditarCampanaSalud";
+import DetalleCampanaSalud from "../../../features/servicios/campanaSalud/DetalleCampanaSalud";
 
 import {
   Citas,
   CrearCita,
   EditarCita,
   DetalleCita,
-} from "../../../features/servicios/pages/cita";
+} from "../../../features/servicios/cita";
 
 import Roles from "../../../features/seguridad/pages/Roles";
 import CrearRol from "../../../features/seguridad/pages/roles/CrearRol";
