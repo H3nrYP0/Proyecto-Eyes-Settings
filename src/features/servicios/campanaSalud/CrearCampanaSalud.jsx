@@ -28,10 +28,10 @@ export default function CrearCampanaSalud() {
       );
       setEmpleados(empleadosActivos);
     } catch (error) {
-      console.error("Error cargando empleados:", error);
+      console.error("Error cargando campañas de salud:", error);
       setNotification({
         isVisible: true,
-        message: 'Error al cargar empleados',
+        message: 'Error al cargar campañas de salud',
         type: 'error'
       });
     } finally {
@@ -81,7 +81,7 @@ export default function CrearCampanaSalud() {
       <div className="crud-form-container">
         <div className="crud-form-content">
           <div style={{ textAlign: 'center', padding: '40px' }}>
-            Cargando empleados...
+            Cargando campañas de salud...
           </div>
         </div>
       </div>

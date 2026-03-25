@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import ProductoForm from "../components/ProductoForm";
 import ChatBotContainer from "../components/ChatBotContainer";
 import { ProductoData } from "../../../../../lib/data/productosData";
-import { MarcaData } from "../../../../../lib/data/marcasData";
-import { categoriasService } from "../../categoria";
+import { MarcaData } from "../../marca/services/marcasService";
+import { useCategoriaForm } from "../../categoria/hooks/useCategoriaForm" ;
+
 import CreateProductPresentational from "../Presentational/CreateProductPresentational";
 
 export default function CreateProductContainer() {
@@ -33,6 +34,27 @@ export default function CreateProductContainer() {
   const [refreshMarcas, setRefreshMarcas] = useState(0);
   const [refreshCategorias, setRefreshCategorias] = useState(0);
   const [formMode, setFormMode] = useState("create");
+
+   const {
+    formData: categoriaFormData,
+    errors: categoriaErrors,
+    nombreExists: categoriaNombreExists,
+    submitting: categoriaSubmitting,
+    handleChange: handleCategoriaChange,
+    handleSubmit: handleCategoriaSubmit,
+    resetForm: resetCategoriaForm,
+  } = useCategoriaForm({
+    mode: "create",
+    onSubmitSuccess: () => {
+      handleCloseCategoriaModal();
+      setRefreshCategorias(prev => prev + 1);
+      showNotification("Categoría creada exitosamente", "success");
+      resetCategoriaForm();
+    },
+    onError: (error) => {
+      showNotification(error, "error");
+    },
+  });
   
   const showNotification = (message, type = 'success') => {
     setNotification({ message, type, isVisible: true });
@@ -94,27 +116,16 @@ export default function CreateProductContainer() {
   };
 
   const handleOpenCategoriaModal = () => {
-    setCategoriaModal({ open: true, loading: false });
-  };
+  resetCategoriaForm(); 
+  setCategoriaModal({ open: true, loading: false });
+};
 
   const handleCloseCategoriaModal = () => {
     setCategoriaModal({ open: false, loading: false });
+    resetCategoriaForm();
   };
 
-  const handleCategoriaSubmit = async (data) => {
-    try {
-      setCategoriaModal(prev => ({ ...prev, loading: true }));
-      await CategoriaData.createCategoria(data);
-      setRefreshCategorias(prev => prev + 1);
-      handleCloseCategoriaModal();
-      showNotification("Categoría creada exitosamente", "success");
-    } catch (error) {
-      console.error("Error al crear categoría:", error);
-      showNotification("Error al crear la categoría", "error");
-    } finally {
-      setCategoriaModal(prev => ({ ...prev, loading: false }));
-    }
-  };
+  
     const handleOpenChatBot = () => setChatBotOpen(true);
   const handleCloseChatBot = () => setChatBotOpen(false);
 
@@ -145,14 +156,20 @@ export default function CreateProductContainer() {
       onNewProduct={handleNewProduct}
       formMode={formMode}
       
-      handleSubmit={handleSubmit}
-      handleOpenMarcaModal={handleOpenMarcaModal}
-      handleCloseMarcaModal={handleCloseMarcaModal}
-      handleMarcaSubmit={handleMarcaSubmit}
-      handleOpenCategoriaModal={handleOpenCategoriaModal}
-      handleCloseCategoriaModal={handleCloseCategoriaModal}
-      handleCategoriaSubmit={handleCategoriaSubmit}
-      navigate={navigate}
+     categoriaFormData={categoriaFormData}
+    categoriaErrors={categoriaErrors}
+    categoriaNombreExists={categoriaNombreExists}
+    categoriaSubmitting={categoriaSubmitting}
+    handleCategoriaChange={handleCategoriaChange}
+    handleCategoriaSubmit={handleCategoriaSubmit} 
+    
+    handleSubmit={handleSubmit}
+    handleOpenMarcaModal={handleOpenMarcaModal}
+    handleCloseMarcaModal={handleCloseMarcaModal}
+    handleMarcaSubmit={handleMarcaSubmit}
+    handleOpenCategoriaModal={handleOpenCategoriaModal}
+    handleCloseCategoriaModal={handleCloseCategoriaModal}
+    navigate={navigate}
     />
   );
 }

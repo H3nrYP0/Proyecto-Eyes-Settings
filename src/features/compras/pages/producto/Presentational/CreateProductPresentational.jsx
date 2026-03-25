@@ -4,7 +4,7 @@ import ProductoForm from "../components/ProductoForm";
 import ChatBotContainer from "../components/ChatBotContainer";
 import Modal from "../../../../../shared/components/ui/Modal";
 import MarcaForm from "../../marca/components/MarcasForm";
-import { CategoriaForm } from "../../categoria";
+import CategoriaForm from "../../categoria/components/CategoriaForm";
 import CrudNotification from "../../../../../shared/styles/components/notifications/CrudNotification";
 
 export default function CreateProductPresentational({
@@ -15,12 +15,20 @@ export default function CreateProductPresentational({
   refreshMarcas,
   refreshCategorias,
 
-   chatBotOpen,
+  chatBotOpen,
   onOpenChatBot,
   onCloseChatBot,
   onConfirmExisting,  
   formMode,
   onNewProduct,
+
+  // Recibir las props del formulario de categoría
+  categoriaFormData,
+  categoriaErrors,
+  categoriaNombreExists,
+  categoriaSubmitting,
+  handleCategoriaChange,
+  handleCategoriaSubmit,
 
   handleSubmit,
   handleOpenMarcaModal,
@@ -28,7 +36,6 @@ export default function CreateProductPresentational({
   handleMarcaSubmit,
   handleOpenCategoriaModal,
   handleCloseCategoriaModal,
-  handleCategoriaSubmit,
   navigate
 }) {
   return (
@@ -60,11 +67,11 @@ export default function CreateProductPresentational({
         refreshCategorias={refreshCategorias}
       />
       <ChatBotContainer
-      open={chatBotOpen}
-      onClose={onCloseChatBot}
-      onConfirmExisting={onConfirmExisting} 
-      onNewProduct={onNewProduct}
-    />
+        open={chatBotOpen}
+        onClose={onCloseChatBot}
+        onConfirmExisting={onConfirmExisting} 
+        onNewProduct={onNewProduct}
+      />
 
       <Modal
         open={marcaModal.open}
@@ -94,9 +101,9 @@ export default function CreateProductPresentational({
         open={categoriaModal.open}
         type="info"
         title="Crear Nueva Categoría"
-        confirmText={categoriaModal.loading ? "Guardando..." : "Guardar"}
+        confirmText={categoriaSubmitting ? "Guardando..." : "Guardar"}  // ← CAMBIADO
         cancelText="Cancelar"
-        showCancel={!categoriaModal.loading}
+        showCancel={!categoriaSubmitting}  // ← CAMBIADO
         onConfirm={() => {
           const formElement = document.getElementById("categoria-modal-form");
           if (formElement) {
@@ -108,7 +115,12 @@ export default function CreateProductPresentational({
         <CategoriaForm
           id="categoria-modal-form"
           mode="create"
-          onSubmit={handleCategoriaSubmit}
+          formData={categoriaFormData}           // ← AGREGADO
+          errors={categoriaErrors}               // ← AGREGADO
+          nombreExists={categoriaNombreExists}   // ← AGREGADO
+          submitting={categoriaSubmitting}       // ← AGREGADO
+          handleChange={handleCategoriaChange}   // ← AGREGADO
+          handleSubmit={handleCategoriaSubmit}   // ← AGREGADO
           onCancel={handleCloseCategoriaModal}
           embedded={true}
         />

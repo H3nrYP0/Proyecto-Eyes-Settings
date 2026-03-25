@@ -34,8 +34,9 @@ import EditarCompra from "../../../features/compras/pages/EditarCompra";
 import DetalleCompra from "../../../features/compras/pages/DetalleCompra";
 import CompraPDFView from "../../../features/compras/pages/CompraPDFView";
 
+import Marcas from "../../../features/compras/pages/marca/pages/Marcas";
+
 import { Categorias } from "../../../features/compras/pages/categoria";
-import Marcas from "../../../features/compras/pages/marca/Marcas";
 
 import Products from "../../../features/compras/pages/producto/Products";
 import CrearProducto from "../../../features/compras/pages/producto/CrearProducto";
@@ -47,10 +48,7 @@ import CrearProveedor from "../../../features/compras/pages/CrearProveedor";
 import EditarProveedor from "../../../features/compras/pages/EditarProveedor";
 import DetalleProveedor from "../../../features/compras/pages/DetalleProveedor";
 
-import Servicios from "../../../features/servicios/servicio/Servicios";
-import CrearServicio from "../../../features/servicios/servicio/CrearServicio";
-import EditarServicio from "../../../features/servicios/servicio/EditarServicio";
-import DetalleServicio from "../../../features/servicios/servicio/DetalleServicio";
+import Servicios from "../../../features/servicios/pages/servicio/pages/Servicios";
 
 import {
   Empleados,
@@ -192,16 +190,13 @@ export default function OpticaDashboardLayout({ user, setUser }) {
 
           <Route path="servicios">
             <Route index element={<Servicios />} />
-            <Route path="crear" element={<CrearServicio />} />
-            <Route path="editar/:id" element={<EditarServicio />} />
-            <Route path="detalle/:id" element={<DetalleServicio />} />
-
-          <Route path="citas">
-            <Route index element={<Citas />} />
-            <Route path="crear" element={<CrearCita />} />
-            <Route path="editar/:id" element={<EditarCita />} />
-            <Route path="detalle/:id" element={<DetalleCita />} />
-          </Route>
+      
+            <Route path="citas">
+              <Route index element={<Citas />} />
+              <Route path="crear" element={<CrearCita />} />
+              <Route path="editar/:id" element={<EditarCita />} />
+              <Route path="detalle/:id" element={<DetalleCita />} />
+            </Route>
 
             <Route path="empleados" element={<Empleados />} />
             <Route path="empleados/crear" element={<CrearEmpleado />} />

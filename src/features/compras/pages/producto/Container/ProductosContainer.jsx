@@ -9,8 +9,13 @@ import CrudNotification from "../../../../../shared/styles/components/notificati
 import { formatCOP } from "../../../../../shared/utils/formatCOP";
 import StockCell from "../components/StockCell";
 import { ProductoData } from "../../../../../lib/data/productosData";
-import { MarcaData } from "../../../../../lib/data/marcasData";
+
+import { MarcaData } from "../../marca/services/marcasService";
+
+
+
 import { getAllCategorias } from "../../categoria/services/categoriasService";
+
 import ProductosPresentational from "../Presentational/ProductosPresentational";
 
 const ESTADO_ACTIVA = "activa";
