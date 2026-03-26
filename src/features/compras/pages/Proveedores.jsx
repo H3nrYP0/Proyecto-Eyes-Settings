@@ -1,24 +1,17 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import CrudLayout from "../../../shared/components/layouts/CrudLayout";
-import CrudTable from "../../../shared/components/ui/CrudTable";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import CrudLayout from "../../../shared/components/crud/CrudLayout";
+import CrudTable from "../../../shared/components/crud/CrudTable";
 import Modal from "../../../shared/components/ui/Modal";
-import "../../../shared/styles/components/crud-table.css";
-import "../../../shared/styles/components/modal.css";
-
-// Importamos las funciones del backend
-import {
-  getAllProveedores,
-  deleteProveedor,
-  updateEstadoProveedor,
-} from "../../../lib/data/proveedoresData";
+import { ProveedoresData } from "../../../lib/data/proveedoresData";
 
 export default function Proveedores() {
   const navigate = useNavigate();
 
   const [proveedores, setProveedores] = useState([]);
-  const [search, setSearch] = useState('');
-  const [filterEstado, setFilterEstado] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [filterEstado, setFilterEstado] = useState("");
 
   const [modalDelete, setModalDelete] = useState({
     open: false,
@@ -26,150 +19,153 @@ export default function Proveedores() {
     razonSocial: "",
   });
 
-  // Cargar datos
   useEffect(() => {
-    const proveedoresData = getAllProveedores();
-    setProveedores(proveedoresData);
+    fetchProveedores();
   }, []);
 
-  // =============================
-  //    MODAL DE ELIMINACIÓN
-  // =============================
+  async function fetchProveedores() {
+    try {
+      setLoading(true);
+      const data = await ProveedoresData.getAllProveedores();
+      setProveedores(data.map((p) => ({
+        ...p,
+        estadosDisponibles: ["Activo", "Inactivo"],
+      })));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const handleDelete = (id, razonSocial) => {
-    setModalDelete({
-      open: true,
-      id,
-      razonSocial,
-    });
+    setModalDelete({ open: true, id, razonSocial });
   };
 
-  const confirmDelete = () => {
-    const updated = deleteProveedor(modalDelete.id);
-    setProveedores([...updated]);
-    setModalDelete({ open: false, id: null, razonSocial: "" });
+  const confirmDelete = async () => {
+    try {
+      await ProveedoresData.deleteProveedor(modalDelete.id);
+      setProveedores((prev) => prev.filter((p) => p.id !== modalDelete.id));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setModalDelete({ open: false, id: null, razonSocial: "" });
+    }
   };
 
-  // =============================
-  //    CAMBIAR ESTADO
-  // =============================
-  const toggleEstado = (id) => {
-    const updated = updateEstadoProveedor(id);
-    setProveedores([...updated]);
+  const handleChangeStatus = async (row, nuevoEstado) => {
+    try {
+      const nuevoEstadoBool = nuevoEstado === "Activo";
+      const response = await ProveedoresData.toggleEstadoProveedor(row.id, !nuevoEstadoBool);
+      setProveedores((prev) =>
+        prev.map((p) =>
+          p.id === response.id
+            ? { ...response, estadosDisponibles: ["Activo", "Inactivo"] }
+            : p
+        )
+      );
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  // =============================
-  //          BUSCADOR
-  // =============================
-  const filteredProveedores = proveedores.filter(proveedor => {
-    const matchesSearch = 
-      proveedor.razonSocial.toLowerCase().includes(search.toLowerCase()) ||
-      proveedor.nit.toLowerCase().includes(search.toLowerCase()) ||
-      proveedor.contacto.toLowerCase().includes(search.toLowerCase()) ||
-      proveedor.ciudad.toLowerCase().includes(search.toLowerCase()) ||
-      proveedor.correo.toLowerCase().includes(search.toLowerCase()) ||
-      proveedor.tipo.toLowerCase().includes(search.toLowerCase()) ||
-      proveedor.telefono.includes(search);
-    
-    const matchesFilter = !filterEstado || proveedor.estado === filterEstado;
-    
-    return matchesSearch && matchesFilter;
+  const filteredProveedores = proveedores.filter((p) => {
+    const matchesSearch =
+      (p.razonSocial || "").toLowerCase().includes(search.toLowerCase()) ||
+      (p.documento   || "").toLowerCase().includes(search.toLowerCase()) ||
+      (p.correo      || "").toLowerCase().includes(search.toLowerCase());
+
+    const matchesEstado = !filterEstado || p.estado === filterEstado;
+
+    return matchesSearch && matchesEstado;
   });
 
-  // FILTROS PARA PROVEEDORES
-  const searchFilters = [
-    { value: 'Activo', label: 'Activos' },
-    { value: 'Inactivo', label: 'Inactivos' }
+  const estadoFilters = [
+    { value: "",         label: "Todos"     },
+    { value: "Activo",   label: "Activos"   },
+    { value: "Inactivo", label: "Inactivos" },
   ];
 
-  // =============================
-  //          COLUMNAS
-  // =============================
   const columns = [
-    { 
-      field: "tipo", 
-      header: "Tipo",
-      render: (item) => (
-        <span className={`${item.tipo === "Persona Jurídica" ? 'juridica' : 'natural'}`}>
-          {item.tipo}
-        </span>
-      )
-    },
-    { field: "razonSocial", header: "Razón Social" },
-    { field: "ciudad", header: "Ciudad" },
     {
-      field: "estado",
-      header: "Estado",
+      field: "tipoProveedor",
+      header: "Tipo",
+      // Solo visible en md en adelante
+      headerSx: { display: { xs: "none", md: "table-cell" } },
+      cellSx:   { display: { xs: "none", md: "table-cell" } },
       render: (item) => (
-        <button
-          className={`estado-btn ${item.estado === "Activo" ? "activo" : "inactivo"}`}
-          onClick={() => toggleEstado(item.id)}
-        >
-          {item.estado === "Activo" ? "Activo" : "Inactivo"}
-        </button>
+        <span className={item.tipoProveedor === "Persona Jurídica" ? "juridica" : "natural"}>
+          {item.tipoProveedor}
+        </span>
       ),
     },
+    {
+      field: "razonSocial",
+      header: "Razón Social",
+      // Siempre visible
+      headerSx: {},
+      cellSx:   {},
+    },
+    {
+      field: "documento",
+      header: "Documento",
+      // Solo visible en sm en adelante
+      headerSx: { display: { xs: "none", sm: "table-cell" } },
+      cellSx:   { display: { xs: "none", sm: "table-cell" } },
+    },
+    {
+      field: "telefono",
+      header: "Teléfono",
+      // Solo visible en md en adelante
+      headerSx: { display: { xs: "none", md: "table-cell" } },
+      cellSx:   { display: { xs: "none", md: "table-cell" } },
+    },
   ];
 
-  // =============================
-  //          ACCIONES
-  // =============================
   const tableActions = [
     {
-      label: "Ver Detalles",
+      label: "Ver",
       type: "view",
-      onClick: (item) => navigate(`detalle/${item.id}`),
+      onClick: (row) => navigate(`detalle/${row.id}`),
     },
     {
       label: "Editar",
       type: "edit",
-      onClick: (item) => navigate(`editar/${item.id}`),
+      onClick: (row) => navigate(`editar/${row.id}`),
     },
     {
       label: "Eliminar",
       type: "delete",
-      onClick: (item) => handleDelete(item.id, item.razonSocial),
+      onClick: (row) => handleDelete(row.id, row.razonSocial),
     },
   ];
+
+  if (loading) return <div>Cargando proveedores...</div>;
 
   return (
     <CrudLayout
       title="Proveedores"
       onAddClick={() => navigate("crear")}
-      showSearch={true}
-      searchPlaceholder="Buscar por razón social, NIT, contacto..."
+      showSearch
+      searchPlaceholder="Buscar proveedor..."
       searchValue={search}
       onSearchChange={setSearch}
-      searchFilters={searchFilters}
+      searchFilters={estadoFilters}
       filterEstado={filterEstado}
       onFilterChange={setFilterEstado}
-      searchPosition="left"
     >
-      {/* Tabla */}
-      <CrudTable 
-        columns={columns} 
-        data={filteredProveedores} 
+      <CrudTable
+        columns={columns}
+        data={filteredProveedores}
         actions={tableActions}
+        onChangeStatus={handleChangeStatus}
         emptyMessage={
-          search || filterEstado ? 
-            'No se encontraron proveedores para los filtros aplicados' : 
-            'No hay proveedores registrados'
+          search || filterEstado
+            ? "No se encontraron proveedores"
+            : "No hay proveedores registrados"
         }
       />
 
-      {/* Botón para primer proveedor */}
-      {filteredProveedores.length === 0 && !search && !filterEstado && (
-        <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
-          <button 
-            onClick={() => navigate("crear")}
-            className="btn-primary"
-            style={{padding: 'var(--spacing-md) var(--spacing-lg)'}}
-          >
-            Agregar Primer Proveedor
-          </button>
-        </div>
-      )}
-
-      {/* Modal de Confirmación */}
       <Modal
         open={modalDelete.open}
         type="warning"
@@ -177,9 +173,11 @@ export default function Proveedores() {
         message={`Esta acción eliminará al proveedor "${modalDelete.razonSocial}" y no se puede deshacer.`}
         confirmText="Eliminar"
         cancelText="Cancelar"
-        showCancel={true}
+        showCancel
         onConfirm={confirmDelete}
-        onCancel={() => setModalDelete({ open: false, id: null, razonSocial: "" })}
+        onCancel={() =>
+          setModalDelete({ open: false, id: null, razonSocial: "" })
+        }
       />
     </CrudLayout>
   );

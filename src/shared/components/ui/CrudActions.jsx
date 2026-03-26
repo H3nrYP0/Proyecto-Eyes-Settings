@@ -1,15 +1,48 @@
-// src/shared/components/ui/CrudActions.jsx
-// Botonera de acciones reutilizable (texto). No la forzamos en la tabla por ahora,
-// pero puedes importarla si quieres usarla en otro componente.
+import { Stack, IconButton, Tooltip } from "@mui/material";
+import RemoveRedEyeOutlinedIcon from "@mui/icons-material/RemoveRedEyeOutlined";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 
-import React from 'react';
-
-export default function CrudActions({ onView, onEdit, onDelete }) {
+export default function CrudActions({ actions = [], item }) {
   return (
-    <div className="actions">
-      <button className="action-text" onClick={onView}>Ver Detalles</button>
-      <button className="action-text" onClick={onEdit}>Editar</button>
-      <button className="action-text danger" onClick={onDelete}>Eliminar</button>
-    </div>
+    <Stack direction="row" spacing={0.5} justifyContent="center">
+      {actions.map((action, index) => {
+        if (action.type === "view") {
+          return (
+            <Tooltip key={index} title={action.label || "Ver"}>
+              <IconButton size="small" onClick={() => action.onClick(item)}>
+                <RemoveRedEyeOutlinedIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          );
+        }
+
+        if (action.type === "edit") {
+          return (
+            <Tooltip key={index} title={action.label || "Editar"}>
+              <IconButton size="small" onClick={() => action.onClick(item)}>
+                <EditOutlinedIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          );
+        }
+
+        if (action.type === "delete") {
+          return (
+            <Tooltip key={index} title={action.label || "Eliminar"}>
+              <IconButton
+                size="small"
+                color="error"
+                onClick={() => action.onClick(item)}
+              >
+                <DeleteOutlineOutlinedIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          );
+        }
+
+        return null;
+      })}
+    </Stack>
   );
 }

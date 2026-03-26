@@ -1,14 +1,20 @@
+// HeroSection.jsx - VERSIÓN CORREGIDA
 import { useState, useEffect } from "react";
 import "/src/shared/styles/features/home/HeroSection.css";
+
+// Importar las imágenes directamente
+import gafasImage from "../../../../public/imagenes/carousel/gafas.jpg";
+import contacteyesImage from "../../../../public/imagenes/carousel/contacteyes.jpg";
+import menglasesImage from "../../../../public/imagenes/carousel/menglases.jpg";
 
 const HeroSection = ({ onGetStarted, user }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Imágenes del carrusel (puedes reemplazar con tus propias imágenes)
+  // Imágenes del carrusel IMPORTADAS DIRECTAMENTE
   const carouselImages = [
-    "/api/placeholder/1200/600", // Imagen 1 - Dashboard
-    "/api/placeholder/1200/600", // Imagen 2 - Gestión de clientes
-    "/api/placeholder/1200/600", // Imagen 3 - Control de inventario
+    gafasImage,        // Imagen 1 - Dashboard
+    contacteyesImage,  // Imagen 2 - Gestión de clientes
+    menglasesImage,    // Imagen 3 - Control de inventario
   ];
 
   const carouselTexts = [
@@ -26,14 +32,19 @@ const HeroSection = ({ onGetStarted, user }) => {
 
   return (
     <section className="hero-section">
-      {/* Carrusel de fondo */}
+      {/* Carrusel de fondo CON IMG EN LUGAR DE BACKGROUND-IMAGE */}
       <div className="hero-carousel">
         {carouselImages.map((image, index) => (
           <div
             key={index}
             className={`carousel-slide ${index === currentSlide ? 'active' : ''}`}
-            style={{ backgroundImage: `url(${image})` }}
           >
+            <img 
+              src={image} 
+              alt={`Slide ${index + 1}`}
+              className="slide-image"
+              style={{ opacity: index === currentSlide ? 1 : 0 }}
+            />
             <div className="slide-overlay"></div>
           </div>
         ))}
@@ -53,9 +64,9 @@ const HeroSection = ({ onGetStarted, user }) => {
       <div className="hero-container">
         <div className="hero-content">
           <h1 className="hero-title">
-            Optimiza tu 
-            <span className="gradient-text"> óptica</span> 
-            <br />con inteligencia
+            Calidad Y
+            <span className="blue-gradient-text"> Responsabilidad</span> 
+            <br />A Precio Justo
           </h1>
           
           <p className="hero-description">

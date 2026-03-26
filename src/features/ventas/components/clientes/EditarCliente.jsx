@@ -1,215 +1,67 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { getClienteById, updateCliente } from '../../../../lib/data/clientesData';
-import "../../../../shared/styles/components/crud-forms.css";
+import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import ClientsForm from "./ClientsForm";
+import { getClienteById, updateCliente } from "../../../../lib/data/clientesData";
 
 export default function EditarCliente() {
-  const navigate = useNavigate();
   const { id } = useParams();
-  
-  const [formData, setFormData] = useState(null);
+  const navigate = useNavigate();
+
+  const [cliente, setCliente] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const cliente = getClienteById(Number(id));
-    if (cliente) {
-      setFormData(cliente);
-    } else {
-      navigate('/admin/clientes');
+    const cargarCliente = async () => {
+      try {
+        const data = await getClienteById(Number(id));
+        console.log("Cliente cargado para edición:", data);
+        setCliente(data);
+      } catch (error) {
+        console.error("Error cargando cliente:", error);
+        setCliente(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarCliente();
+  }, [id]);
+
+  const handleSubmit = async (data) => {
+    try {
+      await updateCliente(Number(id), data);
+      navigate("/admin/ventas/clientes");
+    } catch (error) {
+      console.error("Error al actualizar cliente:", error);
+      alert("Error al actualizar el cliente. Por favor intente de nuevo.");
     }
-  }, [id, navigate]);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    // Actualizar en la base de datos
-    updateCliente(Number(id), formData);
-    navigate('/admin/clientes');
   };
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
+  if (loading) {
+    return <div style={{ padding: "2rem", textAlign: "center" }}>Cargando cliente...</div>;
+  }
 
-  if (!formData) {
-    return <div>Cargando...</div>;
+  if (!cliente) {
+    return (
+      <div style={{ padding: "2rem", textAlign: "center" }}>
+        <p>Cliente no encontrado</p>
+        <button 
+          className="crud-btn crud-btn-secondary" 
+          onClick={() => navigate("/admin/ventas/clientes")}
+        >
+          Volver
+        </button>
+      </div>
+    );
   }
 
   return (
-    <div className="crud-form-container">
-      <div className="crud-form-header">
-        <h1>Editando: {formData.nombre} {formData.apellido}</h1>
-      </div>
-      
-      <div className="crud-form-content">
-        <form onSubmit={handleSubmit}>
-          <div className="crud-form-section">
-            <div className="crud-form-row">
-              <div className="crud-form-group">
-                <label htmlFor="nombre">Nombre <span className="crud-required">*</span></label>
-                <input
-                  type="text"
-                  id="nombre"
-                  name="nombre"
-                  value={formData.nombre}
-                  onChange={handleChange}
-                  className="crud-input"
-                  required
-                />
-              </div>
-
-              <div className="crud-form-group">
-                <label htmlFor="apellido">Apellido <span className="crud-required">*</span></label>
-                <input
-                  type="text"
-                  id="apellido"
-                  name="apellido"
-                  value={formData.apellido}
-                  onChange={handleChange}
-                  className="crud-input"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="crud-form-row">
-              <div className="crud-form-group">
-                <label htmlFor="tipoDocumento">Tipo Documento <span className="crud-required">*</span></label>
-                <select
-                  id="tipoDocumento"
-                  name="tipoDocumento"
-                  value={formData.tipoDocumento}
-                  onChange={handleChange}
-                  className="crud-input"
-                  required
-                >
-                  <option value="cedula">Cédula</option>
-                  <option value="pasaporte">Pasaporte</option>
-                  <option value="cedula_extranjeria">Cédula Extranjería</option>
-                </select>
-              </div>
-
-              <div className="crud-form-group">
-                <label htmlFor="documento">Número Documento <span className="crud-required">*</span></label>
-                <input
-                  type="text"
-                  id="documento"
-                  name="documento"
-                  value={formData.documento}
-                  onChange={handleChange}
-                  className="crud-input"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="crud-form-row">
-              <div className="crud-form-group">
-                <label htmlFor="telefono">Teléfono <span className="crud-required">*</span></label>
-                <input
-                  type="tel"
-                  id="telefono"
-                  name="telefono"
-                  value={formData.telefono}
-                  onChange={handleChange}
-                  className="crud-input"
-                  required
-                />
-              </div>
-
-              <div className="crud-form-group">
-                <label htmlFor="correo">Correo Electrónico</label>
-                <input
-                  type="email"
-                  id="correo"
-                  name="correo"
-                  value={formData.correo || ''}
-                  onChange={handleChange}
-                  className="crud-input"
-                  placeholder="cliente@ejemplo.com"
-                />
-              </div>
-            </div>
-
-            <div className="crud-form-row">
-              <div className="crud-form-group">
-                <label htmlFor="fechaNacimiento">Fecha de Nacimiento <span className="crud-required">*</span></label>
-                <input
-                  type="date"
-                  id="fechaNacimiento"
-                  name="fechaNacimiento"
-                  value={formData.fechaNacimiento}
-                  onChange={handleChange}
-                  className="crud-input"
-                  required
-                />
-              </div>
-
-              <div className="crud-form-group">
-                <label htmlFor="genero">Género <span className="crud-required">*</span></label>
-                <select
-                  id="genero"
-                  name="genero"
-                  value={formData.genero}
-                  onChange={handleChange}
-                  className="crud-input"
-                  required
-                >
-                  <option value="masculino">Masculino</option>
-                  <option value="femenino">Femenino</option>
-                  <option value="otro">Otro</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="crud-form-row">
-              <div className="crud-form-group">
-                <label htmlFor="ciudad">Ciudad <span className="crud-required">*</span></label>
-                <input
-                  type="text"
-                  id="ciudad"
-                  name="ciudad"
-                  value={formData.ciudad}
-                  onChange={handleChange}
-                  className="crud-input"
-                  required
-                />
-              </div>
-
-              <div className="crud-form-group">
-                <label htmlFor="direccion">Dirección</label>
-                <input
-                  type="text"
-                  id="direccion"
-                  name="direccion"
-                  value={formData.direccion || ''}
-                  onChange={handleChange}
-                  className="crud-input"
-                  placeholder="Dirección completa"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="crud-form-actions">
-            <button 
-              type="button" 
-              onClick={() => navigate('/admin/ventas/clientes')}
-              className="crud-btn crud-btn-secondary"
-            >
-              Cancelar
-            </button>
-            <button 
-              type="submit" 
-              className="crud-btn crud-btn-primary"
-            >
-              Actualizar Cliente
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <ClientsForm
+      mode="edit"
+      title={`Editar Cliente: ${cliente.nombre} ${cliente.apellido}`}
+      initialData={cliente}
+      onSubmit={handleSubmit}
+      onCancel={() => navigate("/admin/ventas/clientes")}
+    />
   );
 }

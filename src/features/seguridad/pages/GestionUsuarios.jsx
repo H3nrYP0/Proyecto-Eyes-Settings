@@ -1,208 +1,231 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import CrudLayout from "../../../shared/components/layouts/CrudLayout";
-import CrudTable from "../../../shared/components/ui/CrudTable";
+import CrudLayout from "../../../shared/components/crud/CrudLayout";
+import CrudTable from "../../../shared/components/crud/CrudTable";
 import Modal from "../../../shared/components/ui/Modal";
-import "../../../shared/styles/components/crud-table.css";
-import "../../../shared/styles/components/modal.css";
+import Loading from "../../../shared/components/ui/Loading";
 
-// Importamos las funciones del backend
-import {
-  getAllUsuarios,
-  deleteUsuario,
-  updateEstadoUsuario,
-} from "../../../lib/data/usuariosData";
+import { UserData } from "../../../lib/data/usuariosData";
+import { getAllRoles } from "../../../lib/data/rolesData";
 
 export default function GestionUsuarios() {
   const navigate = useNavigate();
 
-  const [usuarios, setUsuarios] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [roles, setRoles] = useState([]);
   const [search, setSearch] = useState("");
-  const [filterEstado, setFilterEstado] = useState("");
-  const [filterRol, setFilterRol] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [modalDelete, setModalDelete] = useState({
+  // =============================
+  // MODAL ELIMINAR
+  // =============================
+  const [deleteModal, setDeleteModal] = useState({
     open: false,
     id: null,
-    nombre: "",
+    name: "",
   });
 
-  // Cargar datos
+  // =============================
+  // CARGAR USUARIOS DESDE BACKEND
+  // =============================
   useEffect(() => {
-    const usuariosData = getAllUsuarios();
-    setUsuarios(usuariosData);
+    loadUsers();
   }, []);
 
-  // =============================
-  //    MODAL DE ELIMINACIÓN
-  // =============================
-  const handleDelete = (id, nombre) => {
-    setModalDelete({
-      open: true,
-      id,
-      nombre,
-    });
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const [data, rolesData] = await Promise.all([
+        UserData.getAllUsers(),
+        getAllRoles(),
+      ]);
+
+      // ← Igual que Roles: normaliza estado booleano a string
+      const normalizados = data.map((u) => ({
+        ...u,
+        estado: u.estado ? "activo" : "inactivo",
+        estadosDisponibles: ["activo", "inactivo"],
+      }));
+
+      setUsers(normalizados);
+      setRoles(rolesData);
+
+    } catch (err) {
+      console.error(err);
+      setError("No se pudieron cargar los usuarios");
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const confirmDelete = () => {
-    const updated = deleteUsuario(modalDelete.id);
-    setUsuarios([...updated]);
-    setModalDelete({ open: false, id: null, nombre: "" });
+  // =============================
+  // ELIMINAR USUARIO
+  // =============================
+  const handleDelete = (id, name) => {
+    setDeleteModal({ open: true, id, name });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await UserData.deleteUser(deleteModal.id);
+      await loadUsers();
+      setDeleteModal({ open: false, id: null, name: "" });
+    } catch (error) {
+      console.error(error);
+      alert("Error al eliminar usuario");
+    }
   };
 
   // =============================
-  //       CAMBIAR ESTADO
+  // CAMBIAR ESTADO DEL USUARIO
+  // ← Igual que Roles: recibe (row, nuevoEstado)
   // =============================
-  const toggleEstado = (id) => {
-    const updated = updateEstadoUsuario(id);
-    setUsuarios([...updated]);
+  const handleChangeStatus = async (row, nuevoEstado) => {
+    try {
+      await UserData.toggleUserEstado(row, nuevoEstado);
+      await loadUsers();
+    } catch (error) {
+      console.error(error);
+      alert("Error al cambiar estado del usuario");
+    }
   };
 
   // =============================
-  //      BUSCADOR Y FILTRO
+  // FILTRAR USUARIOS
+  // ← Igual que Roles: compara strings "activo"/"inactivo"
   // =============================
-  const filteredUsuarios = usuarios.filter((usuario) => {
-    const matchesSearch = 
-      usuario.nombre.toLowerCase().includes(search.toLowerCase()) ||
-      usuario.email.toLowerCase().includes(search.toLowerCase()) ||
-      usuario.rol.toLowerCase().includes(search.toLowerCase());
-    
-    const matchesFilterEstado = !filterEstado || usuario.estado === filterEstado;
-    const matchesFilterRol = !filterRol || usuario.rol === filterRol;
-    
-    return matchesSearch && matchesFilterEstado && matchesFilterRol;
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
+      user.nombre?.toLowerCase().includes(search.toLowerCase()) ||
+      user.correo?.toLowerCase().includes(search.toLowerCase());
+
+    const matchesStatus = !filterStatus || user.estado === filterStatus;
+
+    return matchesSearch && matchesStatus;
   });
 
-  // FILTROS PARA USUARIOS
-  const searchFilters = [
-    { value: 'activo', label: 'Activos' },
-    { value: 'inactivo', label: 'Inactivos' }
-  ];
-
-  const rolFilters = [
-    { value: '', label: 'Todos los roles' },
-    { value: 'administrador', label: 'Administrador' },
-    { value: 'vendedor', label: 'Vendedor' },
-    { value: 'optometra', label: 'Optómetra' },
-    { value: 'tecnico', label: 'Técnico' }
-  ];
-
   // =============================
-  //          COLUMNAS
+  // COLUMNAS DE LA TABLA
   // =============================
   const columns = [
-    { field: "nombre", header: "Nombre" },
-    { 
-      field: "rol", 
-      header: "Rol",
-      render: (item) => (
-        <span className={`rol-badge ${item.rol.toLowerCase()}`}>
-          {item.rol}
-        </span>
-      )
+    {
+      field: "nombre",
+      header: "Nombre",
+      render: (item) => item.nombre,
     },
     {
-      field: "estado",
-      header: "Estado",
-      render: (item) => (
-        <button
-          className={`estado-btn ${item.estado === "activo" ? "activo" : "inactivo"}`}
-          onClick={() => toggleEstado(item.id)}
-        >
-          {item.estado === "activo" ? "Activo" : "Inactivo"}
-        </button>
-      ),
+      field: "correo",
+      header: "Correo",
+      render: (item) => item.correo,
+    },
+    {
+      field: "rol_id",
+      header: "Rol",
+      render: ({ rol_id }) => {
+        const rol = roles.find((r) => r.id === rol_id);
+        return rol?.nombre ?? "Sin rol";
+      },
     },
   ];
 
   // =============================
-  //          ACCIONES
+  // ACCIONES DE LA TABLA
+  // ← Sin toggle-status, igual que Roles
   // =============================
   const tableActions = [
     {
-      label: "Ver Detalles",
+      label: "Ver detalles",
       type: "view",
-      onClick: (item) => navigate(`detalle/${item.id}`),
+      onClick: (row) => navigate(`detalle/${row.id}`),
     },
     {
       label: "Editar",
       type: "edit",
-      onClick: (item) => navigate(`editar/${item.id}`),
+      onClick: (row) => navigate(`editar/${row.id}`),
     },
     {
       label: "Eliminar",
       type: "delete",
-      onClick: (item) => handleDelete(item.id, item.nombre),
+      onClick: (row) => handleDelete(row.id, row.nombre),
     },
   ];
 
-  // Función para manejar cambio de filtro de estado
-  const handleFilterEstadoChange = (value) => {
-    setFilterEstado(value);
-  };
+  // =============================
+  // FILTROS DE ESTADO
+  // =============================
+  const statusFilters = [
+    { value: "", label: "Todos los estados" },
+    { value: "activo", label: "Activos" },
+    { value: "inactivo", label: "Inactivos" },
+  ];
 
-  // Función para manejar cambio de filtro de rol
-  const handleFilterRolChange = (value) => {
-    setFilterRol(value);
-  };
+  // =============================
+  // LOADING INICIAL
+  // =============================
+  if (loading && users.length === 0) {
+    return (
+      <CrudLayout title="Gestión de Usuarios" showSearch>
+        <Loading message="Cargando usuarios..." />
+      </CrudLayout>
+    );
+  }
 
   return (
     <CrudLayout
       title="Gestión de Usuarios"
       onAddClick={() => navigate("crear")}
-      showSearch={true}
-      searchPlaceholder="Buscar por nombre, email, rol..."
+      showSearch
+      searchPlaceholder="Buscar por nombre o correo..."
       searchValue={search}
       onSearchChange={setSearch}
-      searchFilters={searchFilters}
-      filterEstado={filterEstado}
-      onFilterChange={handleFilterEstadoChange}
-      searchPosition="left"
-      additionalFilters={[
-        {
-          label: "Filtrar por rol",
-          value: filterRol,
-          onChange: handleFilterRolChange,
-          options: rolFilters
-        }
-      ]}
+      searchFilters={statusFilters}
+      filterEstado={filterStatus}
+      onFilterChange={setFilterStatus}
     >
-      {/* Tabla */}
-      <CrudTable 
-        columns={columns} 
-        data={filteredUsuarios} 
-        actions={tableActions}
-        emptyMessage={
-          search || filterEstado || filterRol ? 
-            'No se encontraron usuarios para los filtros aplicados' : 
-            'No hay usuarios registrados'
-        }
-      />
-
-      {/* Botón para primer usuario */}
-      {filteredUsuarios.length === 0 && !search && !filterEstado && !filterRol && (
-        <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
-          <button 
-            onClick={() => navigate("crear")}
-            className="btn-primary"
-            style={{padding: 'var(--spacing-md) var(--spacing-lg)'}}
-          >
-            Registrar Primer Usuario
-          </button>
+      {error && (
+        <div
+          style={{
+            padding: "16px",
+            backgroundColor: "#ffebee",
+            color: "#c62828",
+            borderRadius: "4px",
+            marginBottom: "16px",
+          }}
+        >
+          ⚠️ {error}
         </div>
       )}
 
-      {/* Modal de Confirmación */}
+      <CrudTable
+        columns={columns}
+        data={filteredUsers}
+        actions={tableActions}
+        onChangeStatus={handleChangeStatus}
+        emptyMessage={
+          search || filterStatus
+            ? "No se encontraron usuarios para los filtros aplicados"
+            : "No hay usuarios registrados"
+        }
+      />
+
+      {/* MODAL ELIMINAR */}
       <Modal
-        open={modalDelete.open}
+        open={deleteModal.open}
         type="warning"
         title="¿Eliminar Usuario?"
-        message={`Esta acción eliminará al usuario "${modalDelete.nombre}" y no se puede deshacer.`}
+        message={`Esta acción eliminará al usuario "${deleteModal.name}" y no se puede deshacer.`}
         confirmText="Eliminar"
         cancelText="Cancelar"
-        showCancel={true}
+        showCancel
         onConfirm={confirmDelete}
-        onCancel={() => setModalDelete({ open: false, id: null, nombre: "" })}
+        onCancel={() =>
+          setDeleteModal({ open: false, id: null, name: "" })
+        }
       />
     </CrudLayout>
   );

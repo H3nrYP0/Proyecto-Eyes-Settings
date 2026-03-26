@@ -1,110 +1,233 @@
-// Base de datos temporal de productos
-let productosDB = [
-  {
-    id: 1,
-    nombre: "Lente Solar Ray-Ban Aviator",
-    codigo: "RB-AV-001",
-    descripcion: "Lentes de sol clásicos estilo aviador",
-    precioVenta: 150000,
-    precioCompra: 90000,
-    stockActual: 25,
-    stockMinimo: 5,
-    categoria: "Lentes de Sol",
-    marca: "Ray-Ban",
-    estado: "activo",
-    imagenes: []
+import api from "../axios";
+
+export const ProductoData = {
+  async getAllProductos() {
+    try {
+      const response = await api.get('/productos');
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener productos:', error);
+      throw error;
+    }
   },
-  {
-    id: 2,
-    nombre: "Montura Acetato Negro",
-    codigo: "OK-MT-002",
-    descripcion: "Montura de acetato color negro clásico",
-    precioVenta: 80000,
-    precioCompra: 45000,
-    stockActual: 15,
-    stockMinimo: 3,
-    categoria: "Monturas",
-    marca: "Oakley",
-    estado: "activo",
-    imagenes: []
+
+  async getProductoById(id) {
+    try {
+      const response = await api.get(`/productos/${id}`);
+      const producto = response.data;
+      
+      let imagenes = [];
+      try {
+        const imagenesResponse = await api.get(`/imagen/producto/${id}`);
+        imagenes = imagenesResponse.data || [];
+      } catch (error) {
+        // No hay imágenes, continuamos con array vacío
+      }
+      
+      return {
+        id: producto.id,
+        nombre: producto.nombre,
+        codigo: producto.codigo || '',
+        descripcion: producto.descripcion || '',
+        precioVenta: producto.precio_venta,
+        precioCompra: producto.precio_compra,
+        stockActual: producto.stock,
+        stockMinimo: producto.stock_minimo,
+        categoria: producto.categoria_id?.toString(),
+        marca: producto.marca_id?.toString(),
+        estado: producto.estado ? 'activo' : 'inactivo',
+        imagenes: imagenes
+      };
+    } catch (error) {
+      console.error('Error al obtener producto:', error);
+      throw error;
+    }
   },
-  {
-    id: 3,
-    nombre: "Lentes de Contacto Diarios",
-    codigo: "JJ-LC-003",
-    descripcion: "Lentes de contacto de uso diario",
-    precioVenta: 120000,
-    precioCompra: 75000,
-    stockActual: 8,
-    stockMinimo: 10,
-    categoria: "Lentes de Contacto",
-    marca: "Johnson & Johnson",
-    estado: "bajo-stock",
-    imagenes: []
+
+  // Crear un nuevo producto
+  async createProducto(data) {
+    try {
+      const productoData = {
+        nombre: data.nombre,
+        codigo: data.codigo || '',
+        descripcion: data.descripcion || '',
+        precio_venta: data.precioVenta,
+        precio_compra: data.precioCompra,
+        stock: data.stockActual,
+        stock_minimo: data.stockMinimo,
+        categoria_id: parseInt(data.categoria, 10),
+        marca_id: parseInt(data.marca, 10),
+        estado: true
+      };
+
+      const response = await api.post('/productos', productoData);
+      const nuevoProducto = response.data.producto;
+
+      if (data.imagenes && data.imagenes.length > 0) {
+        const imagenesPromises = data.imagenes.map(img => 
+          api.post('/imagen', {
+            url: img.url,
+            producto_id: nuevoProducto.id
+          })
+        );
+        
+        await Promise.all(imagenesPromises);
+      }
+
+      return nuevoProducto;
+    } catch (error) {
+      console.error('Error al crear producto:', error);
+      throw error;
+    }
   },
-  {
-    id: 4,
-    nombre: "Estuche para Lentes",
-    codigo: "GN-AC-004",
-    descripcion: "Estuche protector para lentes",
-    precioVenta: 25000,
-    precioCompra: 12000,
-    stockActual: 30,
-    stockMinimo: 5,
-    categoria: "Accesorios",
-    marca: "Generic",
-    estado: "activo",
-    imagenes: []
-  }
-];
 
-// Obtener todos los productos
-export function getAllProductos() {
-  return [...productosDB];
-}
+  // Actualizar un producto
+  async updateProducto(id, data) {
+    try {
+      const productoData = {
+        nombre: data.nombre,
+        codigo: data.codigo || '',
+        descripcion: data.descripcion || '',
+        precio_venta: Number(data.precioVenta) || 0,
+        precio_compra: Number(data.precioCompra) || 0,
+        stock: Number(data.stockActual) || 0,
+        stock_minimo: Number(data.stockMinimo) || 0,
+        categoria_id: parseInt(data.categoria, 10),
+        marca_id: parseInt(data.marca, 10),
+         estado: data.estado === true || data.estado === 'activo' 
+      };
+      const response = await api.put(`/productos/${id}`, productoData);
+     
+      if (data.imagenes && data.imagenes.length > 0) {
+        const imagenesPromises = data.imagenes.map(img => 
+          api.post('/imagen', {
+            url: img.url,
+            producto_id: id
+          })
+        );
+        await Promise.all(imagenesPromises);
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error al actualizar producto:', error);
+      throw error;
+    }
+  },
 
-// Obtener por ID
-export function getProductoById(id) {
-  return productosDB.find((p) => p.id === id);
-}
+  // Eliminar un producto
+  async deleteProducto(id) {
+    try {
+      await api.delete(`/productos/${id}`);
+      return true;
+    } catch (error) {
+      console.error('Error al eliminar producto:', error);
+      throw error;
+    }
+  },
 
-// Crear producto
-export function createProducto(data) {
-  const newId = productosDB.length ? productosDB.at(-1).id + 1 : 1;
-  const nuevoProducto = { 
-    id: newId,
-    estado:"activo",
-    ...data 
-  };
-  
-  productosDB.push(nuevoProducto);
-  return nuevoProducto;
-}
+  // ============================
+  // Verificar si el producto tiene ventas asociadas
+  // ============================
+  async hasProductoVentasAsociadas(id) {
+    try {
+      const response = await api.get('/detalle-venta');
+      const detalles = response.data;
+      return detalles.some(detalle => detalle.producto_id === parseInt(id));
+    } catch (error) {
+      console.error('Error al verificar ventas asociadas:', error);
+      return false;
+    }
+  },
 
-// Actualizar producto
-export function updateProducto(id, updated) {
-  const index = productosDB.findIndex((p) => p.id === id);
-  if (index !== -1) {
-    productosDB[index] = { ...productosDB[index], ...updated };
-  }
-  return productosDB;
-}
+  // ============================
+  // Verificar si el producto tiene compras asociadas
+  // ============================
+  async hasProductoComprasAsociadas(id) {
+    try {
+      const response = await api.get('/detalle-compra');
+      const detalles = response.data;
+      return detalles.some(detalle => detalle.producto_id === parseInt(id));
+    } catch (error) {
+      console.error('Error al verificar compras asociadas:', error);
+      return false;
+    }
+  },
 
-// Eliminar producto
-export function deleteProducto(id) {
-  productosDB = productosDB.filter((p) => p.id !== id);
-  return productosDB;
-}
+  // ============================
+  // Verificar si el producto tiene pedidos asociados
+  // ============================
+  async hasProductoPedidosAsociados(id) {
+    try {
+      const response = await api.get('/detalle-pedido');
+      const detalles = response.data;
+      return detalles.some(detalle => detalle.producto_id === parseInt(id));
+    } catch (error) {
+      console.error('Error al verificar pedidos asociados:', error);
+      return false;
+    }
+  },
 
-// Cambiar estado
-export function updateEstadoProducto(id) {
-  productosDB = productosDB.map((p) =>
-    p.id === id
-      ? { 
-          ...p, 
-          estado: p.estado === "activo" ? "inactivo" : "activo" 
+  // ============================
+  // Verificación completa (ventas O compras O pedidos)
+  // ============================
+  async hasProductoAsociaciones(id) {
+    try {
+      const [tieneVentas, tieneCompras, tienePedidos] = await Promise.all([
+        this.hasProductoVentasAsociadas(id).catch(() => false),
+        this.hasProductoComprasAsociadas(id).catch(() => false),
+        this.hasProductoPedidosAsociados(id).catch(() => false)
+      ]);
+      
+      return {
+        tieneAsociaciones: tieneVentas || tieneCompras || tienePedidos,
+        detalles: {
+          ventas: tieneVentas,
+          compras: tieneCompras,
+          pedidos: tienePedidos
         }
-      : p
-  );
-  return productosDB;
-}
+      };
+    } catch (error) {
+      console.error('Error al verificar asociaciones del producto:', error);
+      return { tieneAsociaciones: false, detalles: { ventas: false, compras: false, pedidos: false } };
+    }
+  },
+
+  // ============================
+  // Cambiar estado del producto
+  // ============================
+  async updateEstadoProducto(id, nuevoEstado) {
+    const payload = {
+      estado: nuevoEstado  
+    };
+    
+    const res = await api.put(`/productos/${id}`, payload);
+    return res.data;
+  },
+
+  // Verificar si ya existe un producto con ese nombre
+  async checkProductoExists(nombre, excludeId = null) {
+    try {
+      const response = await api.get('/productos');
+      const productos = response.data;
+      const nombreTrimmed = nombre.trim().toLowerCase();
+      
+      return productos.some(producto => 
+        producto.nombre?.toLowerCase().trim() === nombreTrimmed &&
+        (excludeId ? producto.id !== excludeId : true)
+      );
+    } catch (error) {
+      console.error('Error al verificar producto:', error);
+      return false;
+    }
+  }
+};
+
+// Exportaciones individuales
+export const getAllProductos = () => ProductoData.getAllProductos();
+export const getProductoById = (id) => ProductoData.getProductoById(id);
+export const createProducto = (data) => ProductoData.createProducto(data);
+export const updateProducto = (id, data) => ProductoData.updateProducto(id, data);
+export const deleteProducto = (id) => ProductoData.deleteProducto(id);
+export const updateEstadoProducto = (id, nuevoEstado) => ProductoData.updateEstadoProducto(id, nuevoEstado);
+export const checkProductoExists = (nombre, excludeId) => ProductoData.checkProductoExists(nombre, excludeId);

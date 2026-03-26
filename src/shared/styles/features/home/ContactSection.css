@@ -1,8 +1,9 @@
 /* === CONTACT SECTION STYLES === */
 @import './landing-variables.css';
+
 .contact-section {
-  padding: var(--space-2xl) 0;
-  background: linear-gradient(135deg, var(--deep-teal) 0%, var(--emerald) 100%);
+  padding: var(--space-xl) 0;
+  background: linear-gradient(135deg, var(--deep-blue) 0%, var(--royal-blue) 100%);
   color: var(--pure-white);
 }
 
@@ -15,107 +16,131 @@
 .contact-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-2xl);
+  gap: var(--space-lg); /* REDUCIDO de xl a lg para menos espacio */
   align-items: start;
 }
 
 .contact-info {
   display: flex;
   flex-direction: column;
-  gap: var(--space-lg);
+  gap: var(--space-md);
 }
 
-.contact-info .section-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--pure-white);
-  margin: 0;
-}
-
+/* Nuevas clases para el título dentro de contact-description */
 .contact-description {
-  font-size: 1.125rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.contact-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--pure-white); /* Blanco como el contacto-description original */
+  margin: 0;
+  line-height: 1.2;
+}
+
+.contact-subtitle {
+  font-size: 1.1rem;
   line-height: 1.6;
   opacity: 0.9;
   margin: 0;
+  color: var(--pure-white); /* Asegurar que sea blanco */
+}
+
+/* Eliminar la regla vieja del section-title */
+.contact-info .section-title {
+  display: none; /* Ocultar si todavía existe */
 }
 
 .contact-details {
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
+  gap: var(--space-sm);
 }
 
 .contact-item {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
-  padding: var(--space-md);
-  background: rgba(255, 255, 255, 0.1);
+  gap: var(--space-sm);
+  padding: 0.875rem var(--space-md);
+  background: rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-lg);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: all var(--transition-fast);
+}
+
+.contact-item:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateX(5px);
 }
 
 .contact-icon {
-  font-size: 1.5rem;
-  width: 50px;
-  height: 50px;
+  font-size: 1.25rem;
+  width: 45px;
+  height: 45px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-md);
 }
 
 .contact-text {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.125rem;
 }
 
 .contact-text strong {
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: var(--pure-white);
+  font-weight: 600;
 }
 
 .contact-text span {
-  font-size: 0.875rem;
-  opacity: 0.8;
+  font-size: 0.85rem;
+  opacity: 0.9;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.5px;
 }
 
 /* Form Styles */
 .contact-form {
   background: var(--pure-white);
-  padding: var(--space-2xl);
+  padding: var(--space-xl);
   border-radius: var(--radius-xl);
   color: var(--text-dark);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
+  gap: var(--space-sm);
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: 0.25rem;
 }
 
 .form-group label {
   font-weight: 600;
   color: var(--text-dark);
-  font-size: 0.875rem;
+  font-size: 0.85rem;
 }
 
 .form-input,
 .form-textarea {
-  padding: 0.875rem 1rem;
+  padding: 0.75rem 1rem;
   border: 1px solid var(--medium-gray);
   border-radius: var(--radius-md);
   font-family: inherit;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   transition: all var(--transition-fast);
   background: var(--pure-white);
 }
@@ -123,43 +148,75 @@
 .form-input:focus,
 .form-textarea:focus {
   outline: none;
-  border-color: var(--emerald);
-  box-shadow: 0 0 0 3px rgba(2, 124, 104, 0.1);
+  border-color: var(--royal-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .form-textarea {
   resize: vertical;
-  min-height: 100px;
+  min-height: 80px;
 }
 
 .contact-form .btn-primary {
   margin-top: var(--space-sm);
+  padding: 0.875rem 1.5rem;
+  background: linear-gradient(135deg, var(--royal-blue) 0%, var(--bright-blue) 100%);
+  border: none;
+  color: white;
+  border-radius: var(--radius-lg);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.contact-form .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
 }
 
 /* Responsive */
 @media (max-width: 968px) {
   .contact-content {
     grid-template-columns: 1fr;
-    gap: var(--space-xl);
+    gap: var(--space-lg);
   }
   
-  .contact-info .section-title {
-    font-size: 2rem;
+  .contact-title {
+    font-size: 1.875rem;
+  }
+  
+  .contact-form {
+    padding: var(--space-lg);
   }
 }
 
 @media (max-width: 768px) {
-  .contact-form {
-    padding: var(--space-xl) var(--space-md);
+  .contact-section {
+    padding: var(--space-lg) 0;
+  }
+  
+  .contact-content {
+    gap: var(--space-md);
   }
   
   .contact-item {
-    flex-direction: column;
-    text-align: center;
+    padding: 0.75rem var(--space-sm);
+    flex-direction: row;
+    text-align: left;
     gap: var(--space-sm);
   }
   
-  .contact-text {
-    align-items: center;
+  .contact-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+  }
+  
+  .contact-text strong {
+    font-size: 0.9rem;
+  }
+  
+  .contact-text span {
+    font-size: 0.8rem;
   }
 }

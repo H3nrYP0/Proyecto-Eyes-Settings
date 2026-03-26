@@ -1,16 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import CrudLayout from "../../../shared/components/layouts/CrudLayout";
-import CrudTable from "../../../shared/components/ui/CrudTable";
+import CrudLayout from "../../../shared/components/crud/CrudLayout";
+import CrudTable from "../../../shared/components/crud/CrudTable";
 import Modal from "../../../shared/components/ui/Modal";
-import "../../../shared/styles/components/crud-table.css";
-import "../../../shared/styles/components/modal.css";
+import Loading from "../../../shared/components/ui/Loading";
 
-// Importamos las funciones CORRECTAS para roles
+// Backend
 import {
   getAllRoles,
   deleteRol,
-  updateEstadoRol
+  updateEstadoRol,
 } from "../../../lib/data/rolesData";
 
 export default function Roles() {
@@ -19,21 +18,51 @@ export default function Roles() {
   const [roles, setRoles] = useState([]);
   const [search, setSearch] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  // =============================
+  // MODAL ELIMINAR (SOLO ESTE)
+  // =============================
   const [modalDelete, setModalDelete] = useState({
     open: false,
     id: null,
     nombre: "",
   });
 
-  // Cargar datos
+  // =============================
+  // CARGA DE DATOS
+  // =============================
   useEffect(() => {
-    const rolesData = getAllRoles();
-    setRoles(rolesData);
+    cargarRoles();
   }, []);
 
+  const cargarRoles = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const data = await getAllRoles();
+
+      const normalizados = data.map((r) => ({
+        ...r,
+        estado: r.estado ? "activo" : "inactivo",
+        permisosCount: r.permisos?.length || 0,
+        estadosDisponibles: ["activo", "inactivo"],
+      }));
+
+      setRoles(normalizados);
+    } catch (error) {
+      console.error("Error cargando roles:", error);
+      setError("No se pudieron cargar los roles");
+      setRoles([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // =============================
-  //    MODAL DE ELIMINACIÓN
+  // ELIMINAR
   // =============================
   const handleDelete = (id, nombre) => {
     setModalDelete({
@@ -43,128 +72,145 @@ export default function Roles() {
     });
   };
 
-  const confirmDelete = () => {
-    const updated = deleteRol(modalDelete.id);
-    setRoles([...updated]);
-    setModalDelete({ open: false, id: null, nombre: "" });
+  const confirmDelete = async () => {
+    try {
+      await deleteRol(modalDelete.id);
+      await cargarRoles();
+      setModalDelete({ open: false, id: null, nombre: "" });
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+      alert("Error al eliminar el rol");
+    }
   };
 
   // =============================
-  //       CAMBIAR ESTADO
+  // CAMBIAR ESTADO (AHORA SOLO ESTA FUNCIÓN)
   // =============================
-  const toggleEstado = (id) => {
-    const updated = updateEstadoRol(id);
-    setRoles(updated); 
+  const handleChangeStatus = async (row, nuevoEstado) => {
+    try {
+      await updateEstadoRol(row.id, nuevoEstado);
+      await cargarRoles();
+    } catch (error) {
+      console.error("Error al cambiar estado:", error);
+      alert("Error al cambiar el estado del rol");
+    }
   };
 
   // =============================
-  //          BUSCADOR
+  // FILTROS
   // =============================
   const filteredRoles = roles.filter((rol) => {
-    const matchesSearch = 
+    const matchesSearch =
       rol.nombre.toLowerCase().includes(search.toLowerCase()) ||
-      (rol.descripcion && rol.descripcion.toLowerCase().includes(search.toLowerCase()));
-    
-    const matchesFilterEstado = !filterEstado || rol.estado === filterEstado;
-    
-    return matchesSearch && matchesFilterEstado;
+      (rol.descripcion &&
+        rol.descripcion.toLowerCase().includes(search.toLowerCase()));
+
+    const matchesEstado = !filterEstado || rol.estado === filterEstado;
+
+    return matchesSearch && matchesEstado;
   });
 
   // =============================
-  //          COLUMNAS
+  // COLUMNAS
   // =============================
   const columns = [
-    { 
-      field: "nombre", 
+    {
+      field: "nombre",
       header: "Nombre",
-      render: (item) => (
-        <div className="rol-info-cell">
-          <span className="rol-nombre">{item.nombre}</span>
-        </div>
-      )
-    },
-    { 
-      field: "permisos", 
-      header: "Permisos",
-      render: (item) => {
-        const totalPermisos = item.permisosCount || item.permisos?.length || 0;
-        return <span>{totalPermisos} permisos</span>;
-      }
+      render: (item) => item.nombre,
     },
     {
-      field: "estado",
-      header: "Estado",
-      render: (item) => (
-        <button
-          className={`estado-btn ${item.estado === "activo" ? "activo" : "inactivo"}`}
-          onClick={() => toggleEstado(item.id)}
-        >
-          {item.estado === "activo" ? "Activo" : "Inactivo"}
-        </button>
-      ),
+      field: "permisos",
+      header: "Permisos",
+      render: (item) => {
+        const totalPermisos =
+          item.permisosCount || item.permisos?.length || 0;
+        return `${totalPermisos} permisos`;
+      },
     },
   ];
 
   // =============================
-  //          ACCIONES
+  // ACCIONES (SIN CAMBIAR ESTADO)
   // =============================
   const tableActions = [
     {
-      label: "Editar",
-      type: "edit",
-      onClick: (item) => navigate(`editar/${item.id}`),
+      label: "Ver detalles",
+      type: "view",
+      onClick: (row) => navigate(`detalle/${row.id}`),
     },
     {
-      label: "Ver Detalles",
-      type: "view",
-      onClick: (item) => navigate(`detalle/${item.id}`),
+      label: "Editar",
+      type: "edit",
+      onClick: (row) => navigate(`editar/${row.id}`),
     },
     {
       label: "Eliminar",
       type: "delete",
-      onClick: (item) => handleDelete(item.id, item.nombre),
+      onClick: (row) => handleDelete(row.id, row.nombre),
     },
   ];
 
-  // Filtros para roles
+  // =============================
+  // FILTROS DE ESTADO
+  // =============================
   const estadoFilters = [
-    { value: '', label: 'Todos los estados' },
-    { value: 'activo', label: 'Activos' },
-    { value: 'inactivo', label: 'Inactivos' }
+    { value: "", label: "Todos los estados" },
+    { value: "activo", label: "Activos" },
+    { value: "inactivo", label: "Inactivos" },
   ];
+
+  // =============================
+  // LOADING INICIAL
+  // =============================
+  if (loading && roles.length === 0) {
+    return (
+      <CrudLayout title="Roles" showSearch>
+        <Loading message="Cargando roles..." />
+      </CrudLayout>
+    );
+  }
 
   return (
     <CrudLayout
       title="Roles"
       onAddClick={() => navigate("crear")}
-      showSearch={true}
+      showSearch
       searchPlaceholder="Buscar por nombre, descripción..."
       searchValue={search}
       onSearchChange={setSearch}
-      searchPosition="left"
-      showFilters={true}
-      filters={[
-        {
-          label: "Estado",
-          value: filterEstado,
-          onChange: setFilterEstado,
-          options: estadoFilters
-        }
-      ]}
+      searchFilters={estadoFilters}
+      filterEstado={filterEstado}
+      onFilterChange={setFilterEstado}
     >
-      {/* Tabla */}
-      <CrudTable 
-        columns={columns} 
-        data={filteredRoles} 
+      {error && (
+        <div
+          style={{
+            padding: "16px",
+            backgroundColor: "#ffebee",
+            color: "#c62828",
+            borderRadius: "4px",
+            marginBottom: "16px",
+          }}
+        >
+          ⚠️ {error}
+        </div>
+      )}
+
+      {/* TABLA */}
+      <CrudTable
+        columns={columns}
+        data={filteredRoles}
         actions={tableActions}
+        onChangeStatus={handleChangeStatus} 
         emptyMessage={
-          search || filterEstado ? 
-            'No se encontraron roles para los filtros aplicados' : 
-            'No hay roles configurados'
+          search || filterEstado
+            ? "No se encontraron roles para los filtros aplicados"
+            : "No hay roles configurados"
         }
       />
 
-      {/* Modal de Confirmación */}
+      {/* MODAL ELIMINAR (SOLO ESTE MODAL) */}
       <Modal
         open={modalDelete.open}
         type="warning"
@@ -172,9 +218,11 @@ export default function Roles() {
         message={`Esta acción eliminará el rol "${modalDelete.nombre}" y no se puede deshacer.`}
         confirmText="Eliminar"
         cancelText="Cancelar"
-        showCancel={true}
+        showCancel
         onConfirm={confirmDelete}
-        onCancel={() => setModalDelete({ open: false, id: null, nombre: "" })}
+        onCancel={() =>
+          setModalDelete({ open: false, id: null, nombre: "" })
+        }
       />
     </CrudLayout>
   );

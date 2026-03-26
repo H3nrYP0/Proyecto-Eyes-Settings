@@ -1,15 +1,16 @@
 /* === VARIABLES ESPECÍFICAS PARA LANDING PAGE === */
 :root {
-  /* Paleta de colores principal corregida */
-  --deep-teal: #003333;
-  --emerald: #027c68;
-  --mint: #b0e892;
-  --vibrant-green: #009933;
+  /* PALETA AZUL - NUEVA GAMA */
+  --deep-blue: #1e3a8a;
+  --royal-blue: #2563eb;
+  --bright-blue: #3b82f6;
+  --light-blue: #60a5fa;
+  --sky-blue: #93c5fd;
   
-  /* Nueva paleta complementaria */
-  --ocean-teal: #339999;
-  --sky-teal: #66cccc;
-  --warm-beige: #ebbda5;
+  /* Colores complementarios */
+  --navy-blue: #1e40af;
+  --ocean-blue: #0284c7;
+  --teal-blue: #0d9488;
   
   /* Sistema de colores neutros profesionales */
   --pure-white: #ffffff;
@@ -17,6 +18,20 @@
   --medium-gray: #e2e8f0;
   --text-dark: #1e293b;
   --text-light: #64748b;
+  
+  /* Gradientes de texto azules */
+  --blue-gradient-1: linear-gradient(135deg, var(--royal-blue) 0%, var(--light-blue) 100%);
+  --blue-gradient-2: linear-gradient(135deg, var(--deep-blue) 0%, var(--royal-blue) 100%);
+  --blue-gradient-3: linear-gradient(135deg, var(--sky-blue) 0%, var(--light-blue) 100%);
+  
+  /* Sombras 3D */
+  --shadow-3d-light: 0 20px 40px rgba(30, 58, 138, 0.15), 0 10px 20px rgba(30, 58, 138, 0.1);
+  --shadow-3d-medium: 0 30px 60px rgba(30, 58, 138, 0.2), 0 15px 30px rgba(30, 58, 138, 0.15);
+  --shadow-3d-strong: 0 40px 80px rgba(30, 58, 138, 0.25), 0 20px 40px rgba(30, 58, 138, 0.2);
+  
+  /* Bordes 3D */
+  --border-3d-light: 1px solid rgba(30, 58, 138, 0.1);
+  --border-3d-medium: 1px solid rgba(30, 58, 138, 0.2);
   
   /* Escala de espaciado consistente */
   --space-xs: 0.5rem;
@@ -38,7 +53,9 @@
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
   
-  /* Transiciones suaves */
+  /* Transiciones 3D */
+  --transition-3d: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-3d-fast: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);

@@ -1,302 +1,79 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { 
-  TextField, 
-  Select, 
-  MenuItem, 
-  InputLabel,
-  FormControl,
-  FormHelperText
-} from '@mui/material';
-import { getUsuarioById, updateUsuario } from '../../../../lib/data/usuariosData';
-import "../../../../shared/styles/components/crud-forms.css";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+
+import UsuarioForm from "./components/UserForm";
+import Loading from "../../../../shared/components/ui/Loading";
+
+import { UserData } from "../../../../lib/data/usuariosData";
+import { getAllRoles } from "../../../../lib/data/rolesData";
 
 export default function EditarUsuario() {
-  const navigate = useNavigate();
   const { id } = useParams();
-  
-  const [formData, setFormData] = useState(null);
-  const [errors, setErrors] = useState({});
+  const navigate = useNavigate();
+
+  const [usuario, setUsuario] = useState(null);
+  const [roles, setRoles] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const usuario = getUsuarioById(Number(id));
-    if (usuario) {
-      setFormData(usuario);
-    } else {
-      navigate('/admin/seguridad/usuarios');
-    }
-  }, [id, navigate]);
+    loadData();
+  }, []);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    // Validaciones
-    const newErrors = {};
-    
-    // Validar NOMBRE
-    const nombreRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{2,50}$/;
-    if (!formData.nombre.trim()) {
-      newErrors.nombre = 'El nombre completo es requerido';
-    } else if (!nombreRegex.test(formData.nombre.trim())) {
-      newErrors.nombre = 'Solo letras y espacios (2-50 caracteres)';
-    }
-    
-    // Validar EMAIL
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formData.email.trim()) {
-      newErrors.email = 'El correo electrónico es requerido';
-    } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = 'Formato de email inválido (ejemplo: usuario@dominio.com)';
-    }
-    
-    // Validar TELÉFONO
-    const telefonoRegex = /^[0-9]{7,15}$/;
-    if (formData.telefono && !telefonoRegex.test(formData.telefono.replace(/\s/g, ''))) {
-      newErrors.telefono = 'Teléfono inválido (7-15 dígitos, solo números)';
-    }
-    
-    // Validar NÚMERO DE DOCUMENTO
-    if (formData.numeroDocumento) {
-      const numDoc = formData.numeroDocumento.trim();
-      
-      switch(formData.tipoDocumento) {
-        case 'cedula':
-          if (!/^[0-9]{6,10}$/.test(numDoc)) {
-            newErrors.numeroDocumento = 'Cédula inválida (6-10 dígitos)';
-          }
-          break;
-        case 'cedula_extranjera':
-          if (!/^[0-9]{6,10}$/.test(numDoc)) {
-            newErrors.numeroDocumento = 'Cédula extranjería inválida (6-10 dígitos)';
-          }
-          break;
-        case 'pasaporte':
-          if (!/^[A-Za-z0-9]{6,12}$/.test(numDoc)) {
-            newErrors.numeroDocumento = 'Pasaporte inválido (6-12 caracteres alfanuméricos)';
-          }
-          break;
-        case 'ppt':
-          if (!/^[0-9]{6,10}$/.test(numDoc)) {
-            newErrors.numeroDocumento = 'PPT inválido (6-10 dígitos)';
-          }
-          break;
-      }
-    }
-    
-    // Validar CONTRASEÑA (si se cambia)
-    if (formData.password && formData.password.trim() !== '') {
-      const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{6,}$/;
-      if (formData.password.length < 6) {
-        newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
-      } else if (!passwordRegex.test(formData.password)) {
-        newErrors.password = 'Debe incluir al menos 1 mayúscula y 1 número';
-      }
-    }
-    
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-    
-    // Actualizar en la base de datos
-    updateUsuario(Number(id), formData);
-    navigate('/admin/seguridad/usuarios');
-  };
+  const loadData = async () => {
+    try {
+      const [data, rolesData] = await Promise.all([
+        UserData.getUserById(id),
+        getAllRoles(),
+      ]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-    
-    // Limpiar errores al cambiar
-    if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: ''
+      setUsuario({
+        ...data,
+        email: data.correo,
+        rol: data.rol_id,
       });
+
+      setRoles(rolesData);
+    } catch (error) {
+      console.error(error);
+      alert("Error al cargar usuario");
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (!formData) {
-    return <div>Cargando...</div>;
+  const handleEdit = async (data) => {
+    try {
+      const payload = {
+        nombre: data.nombre,
+        correo: data.email,
+        contrasenia: data.password,
+        rol_id: Number(data.rol),
+      };
+
+      await UserData.updateUser(id, payload);
+      navigate("/admin/seguridad/usuarios");
+    } catch (error) {
+      console.log("MENSAJE BACKEND:", error.response?.data);
+      alert("Error al editar usuario");
+    }
+  };
+
+  if (loading) {
+    return <Loading message="Cargando usuario..." />;
   }
 
-return (
-    <div className="crud-form-container">
-      <div className="crud-form-header">
-        <h1>Editando: {formData.nombre}</h1>
-      </div>
-      
-      <div className="crud-form-content">
-        <form onSubmit={handleSubmit}>
-          <div className="crud-form-section">
-            <div className="crud-form-group">
-              <TextField
-                fullWidth
-                label="Nombre Completo"
-                name="nombre"
-                value={formData.nombre}
-                onChange={handleChange}
-                placeholder="Ej: Juan Pérez García"
-                required
-                variant="outlined"
-                error={!!errors.nombre}
-                helperText={errors.nombre}
-              />
-            </div>
+  if (!usuario) {
+    return <div>No se encontró el usuario</div>;
+  }
 
-            <div className="crud-form-group">
-              <TextField
-                fullWidth
-                label="Fecha de Nacimiento"
-                name="fechaNacimiento"
-                type="date"
-                value={formData.fechaNacimiento || ''}
-                onChange={handleChange}
-                variant="outlined"
-                InputLabelProps={{ shrink: true }}
-                InputProps={{
-                  inputProps: { 
-                    max: new Date().toISOString().split('T')[0]
-                  }
-                }}
-              />
-            </div>
-
-            <div className="crud-form-group">
-              <FormControl fullWidth>
-                <InputLabel>Tipo de Documento</InputLabel>
-                <Select
-                  name="tipoDocumento"
-                  value={formData.tipoDocumento || 'cedula'}
-                  onChange={handleChange}
-                  label="Tipo de Documento"
-                >
-                  <MenuItem value="cedula">Cédula de Ciudadanía</MenuItem>
-                  <MenuItem value="cedula_extranjera">Cédula de Extranjería</MenuItem>
-                  <MenuItem value="pasaporte">Pasaporte</MenuItem>
-                  <MenuItem value="ppt">PPT (Permiso de Permanencia)</MenuItem>
-                </Select>
-              </FormControl>
-            </div>
-
-            <div className="crud-form-group">
-              <TextField
-                fullWidth
-                label="Número de Documento"
-                name="numeroDocumento"
-                value={formData.numeroDocumento || ''}
-                onChange={handleChange}
-                placeholder="Ej: 1234567890"
-                variant="outlined"
-                error={!!errors.numeroDocumento}
-                helperText={errors.numeroDocumento}
-              />
-            </div>
-
-            <div className="crud-form-group">
-              <TextField
-                fullWidth
-                label="Correo Electrónico"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="ejemplo@visualoutlet.com"
-                required
-                variant="outlined"
-                error={!!errors.email}
-                helperText={errors.email}
-              />
-            </div>
-
-            <div className="crud-form-group">
-              <TextField
-                fullWidth
-                label="Teléfono"
-                name="telefono"
-                value={formData.telefono || ''}
-                onChange={handleChange}
-                placeholder="Ej: 3001234567"
-                variant="outlined"
-                error={!!errors.telefono}
-                helperText={errors.telefono}
-              />
-            </div>
-
-            <div className="crud-form-group">
-              <FormControl fullWidth>
-                <InputLabel>Rol *</InputLabel>
-                <Select
-                  name="rol"
-                  value={formData.rol || 'vendedor'}
-                  onChange={handleChange}
-                  label="Rol *"
-                  required
-                >
-                  <MenuItem value="vendedor">Vendedor</MenuItem>
-                  <MenuItem value="administrador">Administrador</MenuItem>
-                  <MenuItem value="optometra">Optómetra</MenuItem>
-                  <MenuItem value="tecnico">Técnico</MenuItem>
-                </Select>
-              </FormControl>
-            </div>
-
-            <div className="crud-form-group">
-              <FormControl fullWidth>
-                <InputLabel>Estado</InputLabel>
-                <Select
-                  name="estado"
-                  value={formData.estado || 'activo'}
-                  onChange={handleChange}
-                  label="Estado"
-                >
-                  <MenuItem value="activo">Activo</MenuItem>
-                  <MenuItem value="inactivo">Inactivo</MenuItem>
-                  <MenuItem value="bloqueado">Bloqueado</MenuItem>
-                </Select>
-              </FormControl>
-            </div>
-
-            <div className="crud-form-group">
-              <TextField
-                fullWidth
-                label="Nueva Contraseña (opcional)"
-                name="password"
-                type="password"
-                value={formData.password || ''}
-                onChange={handleChange}
-                placeholder="Mínimo 6 caracteres, 1 mayúscula, 1 número"
-                variant="outlined"
-                error={!!errors.password}
-                helperText={errors.password}
-              />
-            </div>
-
-            <div className="crud-form-group" style={{ opacity: 0 }}>
-              <div style={{ height: '56px' }}></div>
-            </div>
-          </div>
-
-          <div className="crud-form-actions">
-            <button 
-              type="button" 
-              onClick={() => navigate('/admin/seguridad/usuarios')}
-              className="crud-btn crud-btn-secondary"
-            >
-              Cancelar
-            </button>
-            <button 
-              type="submit" 
-              className="crud-btn crud-btn-primary"
-            >
-              Actualizar Usuario
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+  return (
+    <UsuarioForm
+      mode="edit"
+      title={`Editar Usuario: ${usuario.nombre}`}
+      initialData={usuario}
+      rolesDisponibles={roles}
+      onSubmit={handleEdit}
+      onCancel={() => navigate("/admin/seguridad/usuarios")}
+    />
   );
 }

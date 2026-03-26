@@ -266,7 +266,7 @@
 
 /* Personalización del scrollbar */
 .nav-scroll-container::-webkit-scrollbar {
-  width: 4px;
+  width: 12px;
 }
 
 .nav-scroll-container::-webkit-scrollbar-track {

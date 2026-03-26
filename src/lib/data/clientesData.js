@@ -1,79 +1,105 @@
-// Base de datos temporal de clientes
-let clientesDB = [
-  {
-    id: 1,
-    nombre: "Juan",
-    apellido: "Pérez",
-    tipoDocumento: "cedula",
-    documento: "123456789",
-    telefono: "3001234567",
-    correo: "juan.perez@email.com",
-    ciudad: "Bogotá",
-    direccion: "Calle 123 #45-67",
-    fechaNacimiento: "1990-05-15",
-    genero: "masculino",
-  },
-  {
-    id: 2,
-    nombre: "María",
-    apellido: "González",
-    tipoDocumento: "cedula",
-    documento: "987654321",
-    telefono: "3109876543",
-    correo: "maria.gonzalez@email.com",
-    ciudad: "Medellín",
-    direccion: "Carrera 56 #78-90",
-    fechaNacimiento: "1985-08-22",
-    genero: "femenino",
-  },
-  {
-    id: 3,
-    nombre: "Carlos",
-    apellido: "Rodríguez",
-    tipoDocumento: "cedula",
-    documento: "456789123",
-    telefono: "3204567891",
-    correo: "carlos.rodriguez@email.com",
-    ciudad: "Cali",
-    direccion: "Avenida 7 #23-45",
-    fechaNacimiento: "1992-12-10",
-    genero: "masculino",
-  },
-];
+import api from "../axios";
 
+// ============================
 // Obtener todos los clientes
-export function getAllClientes() {
-  return [...clientesDB];
+// ============================
+export async function getAllClientes() {
+  const res = await api.get("/clientes");
+  return res.data;
 }
 
-// Obtener por ID
-export function getClienteById(id) {
-  return clientesDB.find((c) => c.id === id);
-}
-
-// Crear cliente
-export function createCliente(data) {
-  const newId = clientesDB.length ? clientesDB.at(-1).id + 1 : 1;
-  const nuevoCliente = { 
-    id: newId, 
-    ...data 
-  };
-  
-  clientesDB.push(nuevoCliente);
-  return nuevoCliente;
-}
-
-// Actualizar cliente
-export function updateCliente(id, updated) {
-  const index = clientesDB.findIndex((c) => c.id === id);
-  if (index !== -1) {
-    clientesDB[index] = { ...clientesDB[index], ...updated };
+// ============================
+// Obtener cliente por ID
+// ============================
+export async function getClienteById(id) {
+  try {
+    const res = await api.get(`/clientes/${id}`);
+    return res.data;
+  } catch (error) {
+    console.warn("Error al obtener cliente por ID, obteniendo de la lista completa");
+    const todos = await getAllClientes();
+    const cliente = todos.find(c => c.id === id);
+    return cliente || null;
   }
-  return clientesDB;
 }
 
+// ============================
+// Crear cliente
+// ============================
+export async function createCliente(data) {
+  // Mapeo correcto de campos con valores cortos para tipo_documento
+  const payload = {
+    nombre: data.nombre,
+    apellido: data.apellido,
+    // Mapear a valores cortos (máx 4 caracteres)
+    tipo_documento: data.tipoDocumento === "cedula" ? "CC" : 
+                    data.tipoDocumento === "cedula_extranjeria" ? "CE" : 
+                    data.tipoDocumento === "pasaporte" ? "PA" : "OTRO",
+    numero_documento: data.documento,
+    fecha_nacimiento: data.fechaNacimiento,
+    genero: data.genero,
+    telefono: data.telefono || "",
+    correo: data.correo || "",
+    municipio: data.ciudad,
+    direccion: data.direccion || "",
+    ocupacion: "",
+    telefono_emergencia: "",
+    estado: true
+  };
+
+  console.log("Enviando payload al backend:", payload);
+
+  const res = await api.post("/clientes", payload);
+  return res.data;
+}
+
+// ============================
+// Actualizar cliente
+// ============================
+export async function updateCliente(id, data) {
+  const payload = {
+    nombre: data.nombre,
+    apellido: data.apellido,
+    tipo_documento: data.tipoDocumento === "cedula" ? "CC" : 
+                    data.tipoDocumento === "cedula_extranjeria" ? "CE" : 
+                    data.tipoDocumento === "pasaporte" ? "PA" : "OTRO",
+    numero_documento: data.documento,
+    fecha_nacimiento: data.fechaNacimiento,
+    genero: data.genero,
+    telefono: data.telefono || "",
+    correo: data.correo || "",
+    municipio: data.ciudad,
+    direccion: data.direccion || "",
+    ocupacion: "",
+    telefono_emergencia: ""
+  };
+
+  console.log("Actualizando cliente con payload:", payload);
+
+  const res = await api.put(`/clientes/${id}`, payload);
+  return res.data;
+}
+
+// ============================
 // Eliminar cliente
-export function deleteCliente(id) {
-  clientesDB = clientesDB.filter((c) => c.id !== id);
-  return clientesDB;
+// ============================
+export async function deleteCliente(id) {
+  const res = await api.delete(`/clientes/${id}`);
+  return res.data;
+}
+
+// ============================
+// Cambiar estado cliente
+// ============================
+export async function updateEstadoCliente(id, nuevoEstado) {
+  const estadoBooleano = typeof nuevoEstado === "string" 
+    ? nuevoEstado === "activo" 
+    : nuevoEstado;
+
+  const payload = {
+    estado: estadoBooleano
+  };
+
+  const res = await api.put(`/clientes/${id}`, payload);
+  return res.data;
 }

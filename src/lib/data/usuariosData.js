@@ -1,127 +1,110 @@
-// Base de datos temporal de usuarios - VERSIÓN ACTUALIZADA
-let usuariosDB = [
-  {
-    id: 1,
-    nombre: "Juan Pérez",
-    email: "juan@visualoutlet.com",
-    password: "password123",
-    telefono: "3001234567",
-    fechaNacimiento: "1985-05-15",
-    tipoDocumento: "cedula",
-    numeroDocumento: "123456789",
-    rol: "Administrador",
-    fechaRegistro: "2024-01-15",
-    estado: "activo",
-  },
-  {
-    id: 2,
-    nombre: "María González",
-    email: "maria@visualoutlet.com",
-    password: "password123",
-    telefono: "3109876543",
-    fechaNacimiento: "1990-08-22",
-    tipoDocumento: "cedula",
-    numeroDocumento: "987654321",
-    rol: "Vendedor",
-    fechaRegistro: "2024-01-10",
-    estado: "activo",
-  },
-  {
-    id: 3,
-    nombre: "Dr. Carlos Méndez",
-    email: "carlos@visualoutlet.com",
-    password: "password123",
-    telefono: "3204567890",
-    fechaNacimiento: "1982-03-10",
-    tipoDocumento: "cedula",
-    numeroDocumento: "456789123",
-    rol: "Optómetra",
-    fechaRegistro: "2024-01-08",
-    estado: "activo",
-  },
-  {
-    id: 4,
-    nombre: "Técnico Javier López",
-    email: "javier@visualoutlet.com",
-    password: "password123",
-    telefono: "3157891234",
-    fechaNacimiento: "1988-11-30",
-    tipoDocumento: "cedula",
-    numeroDocumento: "654321987",
-    rol: "Técnico",
-    fechaRegistro: "2024-01-05",
-    estado: "inactivo",
-  },
-];
+import axios from "../axios";
 
-// Obtener todos los usuarios
-export function getAllUsuarios() {
-  return [...usuariosDB];
-}
+export const UserData = {
 
-// Obtener por ID
-export function getUsuarioById(id) {
-  return usuariosDB.find((u) => u.id === id);
-}
+  // ===============================
+  // OBTENER TODOS
+  // ===============================
+  async getAllUsers() {
+    try {
+      const response = await axios.get("/usuarios");
+      return response.data;
+    } catch (error) {
+      console.error("Error al obtener usuarios:", error);
+      throw error;
+    }
+  },
 
-// Crear usuario - VERSIÓN COMPLETA
-export function createUsuario(data) {
-  const newId = usuariosDB.length ? usuariosDB.at(-1).id + 1 : 1;
-  
-  // Estructura completa con todos los nuevos campos
-  const nuevoUsuario = {
-    id: newId,
-    nombre: data.nombre || '',
-    email: data.email || '',
-    password: data.password || '',
-    telefono: data.telefono || '',
-    fechaNacimiento: data.fechaNacimiento || '',
-    tipoDocumento: data.tipoDocumento || 'cedula',
-    numeroDocumento: data.numeroDocumento || '',
-    rol: 'Vendedor', // Rol por defecto
-    fechaRegistro: new Date().toISOString().split('T')[0],
-    estado: data.estado || 'activo'
-  };
-  
-  console.log('📝 Creando usuario completo:', nuevoUsuario);
-  
-  usuariosDB.push(nuevoUsuario);
-  
-  // Mostrar todos los usuarios para depuración
-  console.log('📋 Base de datos actual:', usuariosDB);
-  
-  return nuevoUsuario;
-}
+  // ===============================
+  // OBTENER POR ID
+  // ===============================
+  async getUserById(id) {
+    try {
+      const response = await axios.get(`/usuarios/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error al obtener usuario:", error);
+      throw error;
+    }
+  },
 
-// Actualizar usuario
-export function updateUsuario(id, updated) {
-  const index = usuariosDB.findIndex((u) => u.id === id);
-  if (index !== -1) {
-    usuariosDB[index] = { ...usuariosDB[index], ...updated };
+  // ===============================
+  // CREAR
+  // ===============================
+  async createUser(data) {
+    try {
+      const response = await axios.post("/usuarios", {
+        nombre: data.nombre,
+        correo: data.correo,
+        contrasenia: data.contrasenia,
+        rol_id: data.rol_id,
+        estado: true
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error("Error al crear usuario:", error);
+      throw error;
+    }
+  },
+
+  // ===============================
+  // ACTUALIZAR
+  // ===============================
+  async updateUser(id, data) {
+    try {
+      const response = await axios.put(`/usuarios/${id}`, {
+        nombre: data.nombre,
+        correo: data.correo,
+        contrasenia: data.contrasenia,
+        rol_id: data.rol_id
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error("Error al actualizar usuario:", error);
+      throw error;
+    }
+  },
+
+  // ===============================
+  // ELIMINAR
+  // ===============================
+  async deleteUser(id) {
+    try {
+      await axios.delete(`/usuarios/${id}`);
+      return true;
+    } catch (error) {
+      console.error("Error al eliminar usuario:", error);
+      throw error;
+    }
+  },
+
+  // ===============================
+  // TOGGLE ESTADO
+  // ===============================
+  async toggleUserEstado(usuario, nuevoEstado) {
+  try {
+    console.log("usuario recibido:", usuario);
+    console.log("nuevoEstado recibido:", nuevoEstado);
+    
+    const payload = {
+      nombre: usuario.nombre,
+      correo: usuario.correo,
+      contrasenia: usuario.contrasenia,
+      rol_id: usuario.rol_id,
+      estado: nuevoEstado === "activo"
+    };
+    
+    console.log("payload enviado:", payload);
+    
+    const response = await axios.put(`/usuarios/${usuario.id}`, payload);
+    console.log("respuesta backend:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error al cambiar estado:", error);
+    throw error;
   }
-  return usuariosDB;
 }
 
-// Eliminar usuario
-export function deleteUsuario(id) {
-  usuariosDB = usuariosDB.filter((u) => u.id !== id);
-  return usuariosDB;
-}
-
-// Cambiar estado
-export function updateEstadoUsuario(id) {
-  usuariosDB = usuariosDB.map((u) =>
-    u.id === id
-      ? { 
-          ...u, 
-          estado: u.estado === "activo" ? "inactivo" : "activo" 
-        }
-      : u
-  );
-  return usuariosDB;
-}
-
-// Buscar usuario por email (nueva función útil)
-export function getUsuarioByEmail(email) {
-  return usuariosDB.find((u) => u.email === email);
-}
+};

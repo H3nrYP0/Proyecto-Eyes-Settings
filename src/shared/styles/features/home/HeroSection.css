@@ -1,10 +1,11 @@
+/* HeroSection.css - VERSIÓN CORREGIDA */
 /* === HERO SECTION STYLES CON CARRUSEL === */
 @import './landing-variables.css';
 
 .hero-section {
   position: relative;
   padding: var(--space-2xl) 0;
-  background: linear-gradient(135deg, var(--deep-teal) 0%, var(--emerald) 50%, var(--vibrant-green) 100%);
+  background: linear-gradient(135deg, var(--deep-blue) 0%, var(--royal-blue) 50%, var(--bright-blue) 100%);
   overflow: hidden;
   min-height: 85vh;
   display: flex;
@@ -27,15 +28,23 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
   opacity: 0;
   transition: opacity 1s ease-in-out;
 }
 
 .carousel-slide.active {
   opacity: 1;
+}
+
+/* IMAGEN DEL CARRUSEL - NUEVO ESTILO */
+.slide-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: opacity 1s ease-in-out;
 }
 
 .slide-overlay {
@@ -46,10 +55,11 @@
   height: 100%;
   background: linear-gradient(
     135deg,
-    rgba(0, 51, 51, 0.8) 0%,
-    rgba(2, 124, 104, 0.7) 50%,
-    rgba(0, 153, 51, 0.6) 100%
+    rgba(30, 58, 138, 0.8) 0%,
+    rgba(37, 99, 235, 0.7) 50%,
+    rgba(59, 130, 246, 0.6) 100%
   );
+  z-index: 1;
 }
 
 /* Indicadores del carrusel */
@@ -108,12 +118,13 @@
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.gradient-text {
-  background: linear-gradient(135deg, var(--mint) 0%, var(--sky-teal) 100%);
+.blue-gradient-text {
+  background: linear-gradient(135deg, var(--sky-blue) 0%, var(--light-blue) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   text-shadow: none;
+  display: inline-block;
 }
 
 .hero-description {
@@ -169,7 +180,7 @@
 }
 
 .preview-dots span:first-child {
-  background: var(--emerald);
+  background: var(--royal-blue);
 }
 
 .preview-content {
@@ -190,7 +201,7 @@
 
 .chart-bar {
   flex: 1;
-  background: linear-gradient(to top, var(--emerald), var(--vibrant-green));
+  background: linear-gradient(to top, var(--royal-blue), var(--bright-blue));
   border-radius: 4px 4px 0 0;
   min-height: 20px;
   transition: height 0.3s ease;
@@ -224,7 +235,7 @@
 .floating-shape {
   position: absolute;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--mint) 0%, var(--sky-teal) 100%);
+  background: linear-gradient(135deg, var(--sky-blue) 0%, var(--light-blue) 100%);
   opacity: 0.1;
   animation: float 6s ease-in-out infinite;
 }

@@ -1,0 +1,297 @@
+// src/features/compras/pages/marca/hooks/useMarcas.js
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { MarcaData } from '../services/marcasService';
+
+export const useMarcas = () => {
+  const [marcas, setMarcas] = useState([]);
+  const [search, setSearch] = useState("");
+  const [filterEstado, setFilterEstado] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  const [notification, setNotification] = useState({
+    isVisible: false,
+    message: "",
+    type: "success"
+  });
+  
+
+  const submitButtonRef = useRef(null);
+
+  const [modalForm, setModalForm] = useState({
+    open: false,
+    mode: "create",
+    title: "",
+    initialData: null,
+  });
+  
+  const [modalDelete, setModalDelete] = useState({
+    open: false,
+    id: null,
+    nombre: "",
+  });
+
+  const showNotification = useCallback((message, type = "success") => {
+    setNotification({
+      isVisible: true,
+      message,
+      type
+    });
+  }, []);
+
+  const handleCloseNotification = useCallback(() => {
+    setNotification(prev => ({
+      ...prev,
+      isVisible: false
+    }));
+  }, []);
+
+  useEffect(() => {
+    if (notification.isVisible) {
+      const timer = setTimeout(() => {
+        handleCloseNotification();
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification.isVisible, handleCloseNotification]);
+
+  const limpiarAriaHidden = useCallback(() => {
+    setTimeout(() => {
+      const root = document.getElementById('root');
+      if (root && root.hasAttribute('aria-hidden')) {
+        root.removeAttribute('aria-hidden');
+      }
+      document.body.style.pointerEvents = 'auto';
+    }, 300);
+  }, []);
+
+  const loadMarcas = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await MarcaData.getAllMarcas();
+      const marcasTransformadas = data.map(marca => ({
+        id: marca.id,
+        nombre: marca.nombre,
+        estado: marca.estado ? 'activa' : 'inactiva'
+      }));
+      setMarcas(marcasTransformadas);
+      setError(null);
+    } catch (err) {
+      setError("No se pudieron cargar las marcas");
+      showNotification("Error al cargar las marcas", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [showNotification]);
+
+  const handleFormSubmit = useCallback(async (data) => {
+    try {
+      if (modalForm.mode === "create") {
+        await MarcaData.createMarca(data);
+        showNotification("Marca creada exitosamente", "success");
+      } else if (modalForm.mode === "edit") {
+        await MarcaData.updateMarca(modalForm.initialData.id, data);
+        showNotification("Marca actualizada exitosamente", "success");
+      }
+      handleCloseForm();
+      await loadMarcas();
+    } catch (error) {
+      showNotification("Error al guardar la marca", "error");
+    }
+  }, [modalForm.mode, modalForm.initialData, showNotification, loadMarcas]);
+
+  const handleDelete = useCallback((id, nombre) => {
+    setModalDelete({ open: true, id, nombre });
+  }, []);
+
+  const confirmDelete = useCallback(async () => {
+    try {
+      const tieneProductos = await MarcaData.hasMarcaProductosAsociados(modalDelete.id);
+      
+      if (tieneProductos) {
+        showNotification(
+          `No se puede eliminar la marca "${modalDelete.nombre}" porque tiene productos asociados`, 
+          "warning"
+        );
+        setModalDelete({ open: false, id: null, nombre: "" });
+        limpiarAriaHidden();
+        return;
+      }
+      
+      await MarcaData.deleteMarca(modalDelete.id);
+      await loadMarcas();
+      showNotification(`Marca "${modalDelete.nombre}" eliminada exitosamente`, "success");
+      setModalDelete({ open: false, id: null, nombre: "" });
+      limpiarAriaHidden();
+    } catch (err) {
+      showNotification("Error al eliminar la marca", "error");
+    }
+  }, [modalDelete.id, modalDelete.nombre, showNotification, loadMarcas, limpiarAriaHidden]);
+
+  const handleStatusChange = useCallback(async (row, newStatus) => {
+    try {
+      const estadoFinal = newStatus !== undefined 
+        ? newStatus 
+        : (row.estado === "activa" ? "inactiva" : "activa");
+
+      await MarcaData.toggleMarcaEstado(
+        row.id,
+        estadoFinal === "activa"
+      );
+
+      await loadMarcas();
+      
+      const mensaje = estadoFinal === "activa" 
+        ? `Marca "${row.nombre}" activada exitosamente`
+        : `Marca "${row.nombre}" desactivada exitosamente`;
+      
+      showNotification(mensaje, "success");
+    } catch (err) {
+      showNotification("Error al cambiar el estado de la marca", "error");
+    }
+  }, [showNotification, loadMarcas]);
+
+  const handleOpenCreate = useCallback(() => {
+    setModalForm({ 
+      open: true, 
+      mode: "create", 
+      title: "Crear Nueva Marca", 
+      initialData: null 
+    });
+    limpiarAriaHidden();
+  }, [limpiarAriaHidden]);
+
+  const handleOpenEdit = useCallback((item) => {
+    setModalForm({ 
+      open: true, 
+      mode: "edit", 
+      title: `Editar Marca: ${item.nombre}`, 
+      initialData: item 
+    });
+    limpiarAriaHidden();
+  }, [limpiarAriaHidden]);
+
+  const handleOpenView = useCallback((item) => {
+    setModalForm({ 
+      open: true, 
+      mode: "view", 
+      title: `Detalle de Marca: ${item.nombre}`, 
+      initialData: item 
+    });
+    limpiarAriaHidden();
+  }, [limpiarAriaHidden]);
+
+  const handleCloseForm = useCallback(() => {
+    setModalForm({ 
+      open: false, 
+      mode: "create", 
+      title: "", 
+      initialData: null 
+    });
+    limpiarAriaHidden();
+  }, [limpiarAriaHidden]);
+
+  const handleCancelDelete = useCallback(() => {
+    setModalDelete({ open: false, id: null, nombre: "" });
+    limpiarAriaHidden();
+  }, [limpiarAriaHidden]);
+
+  const filteredMarcas = useMemo(() => {
+    return marcas.filter((marca) => {
+      const matchesSearch = marca.nombre.toLowerCase().includes(search.toLowerCase());
+      const matchesFilter = !filterEstado || marca.estado === filterEstado;
+      return matchesSearch && matchesFilter;
+    });
+  }, [marcas, search, filterEstado]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const root = document.getElementById('root');
+      if (root && root.hasAttribute('aria-hidden')) {
+        const modalExists = document.querySelector('.MuiModal-root');
+        if (!modalExists) {
+          root.removeAttribute('aria-hidden');
+          document.body.style.pointerEvents = 'auto';
+        }
+      }
+    }, 400);
+
+    return () => clearTimeout(timeoutId);
+  }, [marcas]);
+
+  useEffect(() => {
+    loadMarcas();
+  }, [loadMarcas]);
+
+  const searchFilters = [
+    { value: '', label: 'Todos' },
+    { value: 'activa', label: 'Activas' },
+    { value: 'inactiva', label: 'Inactivas' }
+  ];
+
+  const columns = [
+    { field: "nombre", header: "Nombre" },
+  ];
+
+  const tableActions = [
+    {
+      label: "Cambiar estado",
+      type: "toggle-status",
+      onClick: (item) => handleStatusChange(item, undefined),
+    },
+    {
+      label: "Ver Detalles",
+      type: "view",
+      onClick: (item) => handleOpenView(item)
+    },
+    {
+      label: "Editar",
+      type: "edit",
+      onClick: (item) => handleOpenEdit(item)
+    },
+    {
+      label: "Eliminar",
+      type: "delete",
+      onClick: (item) => handleDelete(item.id, item.nombre)
+    },
+  ];
+
+  return {
+    marcas: filteredMarcas,
+    allMarcas: marcas,
+    loading,
+    error,
+    search,
+    filterEstado,
+    notification,
+    modalForm,
+    modalDelete,
+    submitButtonRef,
+    setSearch,
+    setFilterEstado,
+    loadMarcas,
+    handleFormSubmit,
+    handleDelete,
+    confirmDelete,
+    handleStatusChange,
+    handleOpenCreate,
+    handleOpenEdit,
+    handleOpenView,
+    handleCloseForm,
+    handleCancelDelete,
+    handleCloseNotification,
+    searchFilters,
+    columns,
+    tableActions,
+    handleModalConfirm: () => {
+        if (modalForm.mode === "view") {
+      handleCloseForm();
+    } else {
+      const formElement = document.getElementById("marca-form");
+      if (formElement) {
+        formElement.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+      }
+    }
+  }
+  };
+};

@@ -1,269 +1,90 @@
-// Base de datos temporal de roles
-let rolesDB = [
-  {
-    id: 1,
-    nombre: "Administrador",
-    descripcion: "Acceso total al sistema con todos los permisos disponibles para gestionar toda la óptica",
-    permisos: ['dashboard', 'categorias', 'compras', 'empleados', 'ventas', 'roles', 'productos', 'servicios', 'clientes', 'campanas_salud', 'usuarios', 'proveedores', 'agenda', 'pedidos'],
-    permisosCount: 14,
-    estado: "activo",
-  },
-  {
-    id: 2,
-    nombre: "Vendedor",
-    descripcion: "Gestiona ventas, clientes y procesos comerciales de la óptica",
-    permisos: ['ventas', 'clientes', 'productos', 'servicios', 'agenda', 'pedidos'],
-    permisosCount: 6,
-    estado: "activo",
-  },
-  {
-    id: 3,
-    nombre: "Optometrista",
-    descripcion: "Administra servicios médicos, agenda de citas y exámenes visuales",
-    permisos: ['servicios', 'clientes', 'campanas_salud', 'agenda'],
-    permisosCount: 4,
-    estado: "activo",
-  },
-  {
-    id: 4,
-    nombre: "Recepcionista",
-    descripcion: "Atención al cliente, gestión de citas y apoyo administrativo",
-    permisos: ['clientes', 'agenda', 'pedidos'],
-    permisosCount: 3,
-    estado: "activo",
-  },
-  {
-    id: 5,
-    nombre: "Técnico",
-    descripcion: "Manejo de inventario, ajuste de monturas y mantenimiento de equipos",
-    permisos: ['productos', 'compras'],
-    permisosCount: 2,
-    estado: "activo",
-  },
-];
+import api from "../axios";
 
-// =============================
-//      FUNCIONES CRUD
-// =============================
-
-// Obtener todos los roles
-export function getAllRoles() {
-  return [...rolesDB];
+// Obtener todos
+export async function getAllRoles() {
+  try {
+    const res = await api.get("/roles");
+    return res.data;
+  } catch (error) {
+    console.error("Error en getAllRoles:", error);
+    throw error;
+  }
 }
 
 // Obtener por ID
-export function getRolById(id) {
-  const idNum = typeof id === 'string' ? parseInt(id) : id;
-  return rolesDB.find((r) => r.id === idNum) || null;
-}
-
-// Crear rol
-export function createRol(data) {
-  // Encontrar el ID máximo actual
-  const maxId = rolesDB.length > 0 
-    ? Math.max(...rolesDB.map(r => r.id)) 
-    : 0;
-  const newId = maxId + 1;
-  
-  // Calcular contador de permisos
-  const permisosCount = data.permisos ? data.permisos.length : 0;
-  
-  const nuevoRol = { 
-    id: newId,
-    nombre: data.nombre || '',
-    descripcion: data.descripcion || '',
-    permisos: data.permisos || [],
-    permisosCount,
-    estado: data.estado || 'activo'
-  };
-  
-  rolesDB.push(nuevoRol);
-  return { ...nuevoRol };
-}
-
-// Actualizar rol
-export function updateRol(id, updated) {
-  const idNum = typeof id === 'string' ? parseInt(id) : id;
-  const index = rolesDB.findIndex((r) => r.id === idNum);
-  
-  if (index === -1) return null;
-  
-  // Calcular nuevo contador de permisos si se modifican
-  const permisosCount = updated.permisos 
-    ? updated.permisos.length 
-    : rolesDB[index].permisosCount;
-  
-  const rolActualizado = {
-    ...rolesDB[index],
-    ...updated,
-    permisosCount,
-    id: rolesDB[index].id // Mantener el ID original
-  };
-  
-  rolesDB[index] = rolActualizado;
-  return { ...rolActualizado };
-}
-
-// Eliminar rol
-export function deleteRol(id) {
-  const idNum = typeof id === 'string' ? parseInt(id) : id;
-  rolesDB = rolesDB.filter((r) => r.id !== idNum);
-  return [...rolesDB];
-}
-
-// Cambiar estado del rol (activo/inactivo)
-export function updateEstadoRol(id) {
-  const idNum = typeof id === 'string' ? parseInt(id) : id;
-  const index = rolesDB.findIndex((r) => r.id === idNum);
-  
-  if (index === -1) return [...rolesDB];
-  
-  const nuevoEstado = rolesDB[index].estado === "activo" ? "inactivo" : "activo";
-  
-  rolesDB[index] = { 
-    ...rolesDB[index], 
-    estado: nuevoEstado 
-  };
-  
-  return [...rolesDB];
-}
-
-// Buscar rol por nombre
-export function getRolByNombre(nombre) {
-  return rolesDB.find((r) => 
-    r.nombre.toLowerCase() === nombre.toLowerCase()
-  ) || null;
-}
-
-// Verificar si un rol tiene un permiso específico
-export function rolTienePermiso(rolId, permisoId) {
-  const rol = getRolById(rolId);
-  if (!rol || !rol.permisos) return false;
-  return rol.permisos.includes(permisoId);
-}
-
-// Obtener todos los permisos disponibles
-export function getPermisosDisponibles() {
-  const todosPermisos = rolesDB.flatMap(rol => rol.permisos || []);
-  return [...new Set(todosPermisos)]; // Eliminar duplicados
-}
-
-// =============================
-//      FUNCIONES DE VALIDACIÓN
-// =============================
-
-// Validar datos del rol antes de crear/actualizar
-export function validarDatosRol(data) {
-  const errors = [];
-  
-  if (!data.nombre || data.nombre.trim().length < 2) {
-    errors.push('El nombre del rol es requerido (mínimo 2 caracteres)');
+export async function getRolById(id) {
+  try {
+    const res = await api.get(`/roles/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error(`Error en getRolById(${id}):`, error);
+    throw error;
   }
-  
-  if (!data.descripcion || data.descripcion.trim().length < 5) {
-    errors.push('La descripción es requerida (mínimo 5 caracteres)');
+}
+
+// Crear
+export async function createRol(data) {
+  try {
+    const res = await api.post("/roles", data);
+    return res.data;
+  } catch (error) {
+    console.error("Error en createRol:", error);
+    throw error;
   }
-  
-  if (!data.permisos || !Array.isArray(data.permisos) || data.permisos.length === 0) {
-    errors.push('Debe asignar al menos un permiso al rol');
+}
+
+// Actualizar
+export async function updateRol(id, data) {
+  try {
+    const res = await api.put(`/roles/${id}`, data);
+    return res.data;
+  } catch (error) {
+    console.error(`Error en updateRol(${id}):`, error);
+    throw error;
   }
-  
-  return {
-    isValid: errors.length === 0,
-    errors
-  };
 }
 
-// Verificar si un nombre de rol ya existe (excepto para un ID específico)
-export function nombreRolExiste(nombre, excludeId = null) {
-  return rolesDB.some(rol => {
-    if (excludeId && rol.id === excludeId) return false;
-    return rol.nombre.toLowerCase() === nombre.toLowerCase();
-  });
+// Eliminar
+export async function deleteRol(id) {
+  try {
+    const res = await api.delete(`/roles/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error(`Error en deleteRol(${id}):`, error);
+    throw error;
+  }
 }
 
-// =============================
-//      FUNCIONES DE UTILIDAD
-// =============================
-
-// Obtener roles activos
-export function getRolesActivos() {
-  return rolesDB.filter(rol => rol.estado === "activo");
+// Cambiar estado (CORREGIDO - mantiene permisos)
+export async function updateEstadoRol(id, nuevoEstado) {
+  try {
+    // 1. Obtener el rol actual con sus permisos
+    const rolActual = await getRolById(id);
+    
+    // 2. Enviar TODOS los datos, no solo el estado
+    const res = await api.put(`/roles/${id}`, {
+      nombre: rolActual.nombre,
+      descripcion: rolActual.descripcion,
+      estado: nuevoEstado, // "activo" o "inactivo"
+      permisos: Array.isArray(rolActual.permisos) 
+        ? rolActual.permisos.map(p => p.id || p) // Mantener permisos
+        : []
+    });
+    
+    return res.data;
+  } catch (error) {
+    console.error("Error actualizando estado:", error);
+    throw error;
+  }
 }
 
-// Obtener roles inactivos
-export function getRolesInactivos() {
-  return rolesDB.filter(rol => rol.estado === "inactivo");
-}
-
-// Contar total de roles
-export function getTotalRoles() {
-  return rolesDB.length;
-}
-
-// Obtener estadísticas de roles
-export function getEstadisticasRoles() {
-  const total = rolesDB.length;
-  const activos = rolesDB.filter(r => r.estado === "activo").length;
-  const inactivos = total - activos;
-  
-  // Calcular promedio de permisos por rol
-  const totalPermisos = rolesDB.reduce((sum, rol) => sum + (rol.permisosCount || 0), 0);
-  const promedioPermisos = total > 0 ? (totalPermisos / total).toFixed(1) : 0;
-  
-  return {
-    total,
-    activos,
-    inactivos,
-    promedioPermisos,
-    totalPermisos
-  };
-}
-
-// Reiniciar base de datos (solo para desarrollo/testing)
-export function reiniciarBaseDeDatos() {
-  rolesDB = [
-    {
-      id: 1,
-      nombre: "Administrador",
-      descripcion: "Acceso total al sistema con todos los permisos disponibles para gestionar toda la óptica",
-      permisos: ['dashboard', 'categorias', 'compras', 'empleados', 'ventas', 'roles', 'productos', 'servicios', 'clientes', 'campanas_salud', 'usuarios', 'proveedores', 'agenda', 'pedidos'],
-      permisosCount: 14,
-      estado: "activo",
-    },
-    {
-      id: 2,
-      nombre: "Vendedor",
-      descripcion: "Gestiona ventas, clientes y procesos comerciales de la óptica",
-      permisos: ['ventas', 'clientes', 'productos', 'servicios', 'agenda', 'pedidos'],
-      permisosCount: 6,
-      estado: "activo",
-    },
-    {
-      id: 3,
-      nombre: "Optometrista",
-      descripcion: "Administra servicios médicos, agenda de citas y exámenes visuales",
-      permisos: ['servicios', 'clientes', 'campanas_salud', 'agenda'],
-      permisosCount: 4,
-      estado: "activo",
-    },
-    {
-      id: 4,
-      nombre: "Recepcionista",
-      descripcion: "Atención al cliente, gestión de citas y apoyo administrativo",
-      permisos: ['clientes', 'agenda', 'pedidos'],
-      permisosCount: 3,
-      estado: "activo",
-    },
-    {
-      id: 5,
-      nombre: "Técnico",
-      descripcion: "Manejo de inventario, ajuste de monturas y mantenimiento de equipos",
-      permisos: ['productos', 'compras'],
-      permisosCount: 2,
-      estado: "activo",
-    },
-  ];
-  
-  return [...rolesDB];
+// Permisos
+export async function getAllPermisos() {
+  try {
+    const res = await api.get("/permiso");
+    return res.data;
+  } catch (error) {
+    console.error("Error en getAllPermisos:", error);
+    throw error;
+  }
 }

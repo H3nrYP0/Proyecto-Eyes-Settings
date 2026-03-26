@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import CrudLayout from "../../../shared/components/layouts/CrudLayout";
-import CrudTable from "../../../shared/components/ui/CrudTable";
+import CrudLayout from "../../../shared/components/crud/CrudLayout";
+import CrudTable from "../../../shared/components/crud/CrudTable";
 import Modal from "../../../shared/components/ui/Modal";
 import "../../../shared/styles/components/crud-table.css";
 import "../../../shared/styles/components/modal.css";
 
-// Importamos las funciones del backend
+// Backend
 import {
   getAllPedidos,
   deletePedido,
-  marcarComoEntregado,
+  registrarAbono,
 } from "../../../lib/data/pedidosData";
 
 export default function Pedidos() {
@@ -19,7 +19,7 @@ export default function Pedidos() {
   const [pedidos, setPedidos] = useState([]);
   const [search, setSearch] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
-  const [filterTipo, setFilterTipo] = useState(""); // Nuevo filtro por tipo
+  const [filterTipo, setFilterTipo] = useState("");
 
   const [modalDelete, setModalDelete] = useState({
     open: false,
@@ -31,26 +31,23 @@ export default function Pedidos() {
     open: false,
     id: null,
     cliente: "",
+    total: 0,
+    abonoActual: 0,
     saldoPendiente: 0,
   });
 
   const [montoAbono, setMontoAbono] = useState("");
 
-  // Cargar datos
   useEffect(() => {
-    const pedidosData = getAllPedidos();
-    setPedidos(pedidosData);
+    cargarPedidos();
   }, []);
 
-  // =============================
-  //    MODAL DE ELIMINACIÓN
-  // =============================
+  const cargarPedidos = () => {
+    setPedidos(getAllPedidos());
+  };
+
   const handleDelete = (id, cliente) => {
-    setModalDelete({
-      open: true,
-      id,
-      cliente,
-    });
+    setModalDelete({ open: true, id, cliente });
   };
 
   const confirmDelete = () => {
@@ -59,249 +56,249 @@ export default function Pedidos() {
     setModalDelete({ open: false, id: null, cliente: "" });
   };
 
-  // =============================
-  //    MODAL DE ABONO
-  // =============================
-  const handleAbonar = (id, cliente, saldoPendiente) => {
-    setModalAbono({
-      open: true,
-      id,
-      cliente,
-      saldoPendiente,
+  const handleAbonar = (id, cliente, total, abono, saldoPendiente) => {
+    setModalAbono({ 
+      open: true, 
+      id, 
+      cliente, 
+      total,
+      abonoActual: abono || 0,
+      saldoPendiente: saldoPendiente || total 
     });
     setMontoAbono("");
   };
 
   const confirmAbono = () => {
     const monto = Number(montoAbono);
-    if (monto <= 0 || monto > modalAbono.saldoPendiente) {
-      alert("El monto del abono debe ser mayor a 0 y no puede exceder el saldo pendiente");
+    if (monto <= 0) {
+      alert("El monto del abono debe ser mayor a 0");
+      return;
+    }
+    if (monto > modalAbono.saldoPendiente) {
+      alert(`El abono no puede exceder el saldo pendiente de $${modalAbono.saldoPendiente.toLocaleString()}`);
       return;
     }
 
-    // Aquí iría la lógica para registrar el abono
-    alert(`Abono de $${monto.toLocaleString()} registrado para ${modalAbono.cliente}`);
+    const pedidoActualizado = registrarAbono(modalAbono.id, monto);
+    if (pedidoActualizado) {
+      cargarPedidos(); // Recargar la lista
+      alert(`✅ Abono de $${monto.toLocaleString()} registrado correctamente para ${modalAbono.cliente}`);
+    }
     
-    setModalAbono({ open: false, id: null, cliente: "", saldoPendiente: 0 });
+    setModalAbono({ open: false, id: null, cliente: "", total: 0, abonoActual: 0, saldoPendiente: 0 });
     setMontoAbono("");
   };
 
-  // =============================
-  //    MARCAR COMO ENTREGADO
-  // =============================
-  const handleEntregar = (id, cliente) => {
-    if (window.confirm(`¿Marcar como entregado el pedido de ${cliente}?`)) {
-      const updated = marcarComoEntregado(id);
-      setPedidos([...updated]);
-    }
-  };
-
-  // =============================
-  //          FILTRADO
-  // =============================
   const filteredPedidos = pedidos.filter((pedido) => {
-    const matchesSearch = 
-      pedido.cliente.toLowerCase().includes(search.toLowerCase()) ||
-      pedido.productoServicio.toLowerCase().includes(search.toLowerCase());
-    
-    const matchesEstado = filterEstado ? pedido.estado === filterEstado : true;
-    const matchesTipo = filterTipo ? pedido.tipo === filterTipo : true;
-    
+    const cliente = (pedido.cliente || "").toLowerCase();
+    const searchTerm = search.toLowerCase();
+
+    const matchesSearch = cliente.includes(searchTerm);
+    const matchesEstado = !filterEstado || pedido.estado === filterEstado;
+
+    let matchesTipo = true;
+    if (filterTipo === "Ventas") {
+      matchesTipo = pedido.estado === "Entregado";
+    } else if (filterTipo) {
+      matchesTipo = pedido.tipo?.includes(filterTipo) || false;
+    }
+
     return matchesSearch && matchesEstado && matchesTipo;
   });
 
-  // FILTROS PARA PEDIDOS
-  const searchFilters = [
-    { value: '', label: 'Todos los estados' },
-    { value: 'En proceso', label: 'En proceso' },
-    { value: 'Pendiente pago', label: 'Pendiente pago' },
-    { value: 'Pagado', label: 'Pagado' },
-    { value: 'Entregado', label: 'Entregado' }
+  const estadoFilters = [
+    { value: "", label: "Todos los estados" },
+    { value: "En proceso", label: "En proceso" },
+    { value: "Pendiente", label: "Pendiente" },
+    { value: "Pagado", label: "Pagado" },
+    { value: "Entregado", label: "Entregado" },
   ];
 
-  // FILTROS PARA TIPO
   const tipoFilters = [
-    { value: '', label: 'Todos los tipos' },
-    { value: 'Venta', label: 'Ventas' },
-    { value: 'Servicio', label: 'Servicios' }
+    { value: "", label: "Todos los pedidos" },
+    { value: "Ventas", label: "Ventas (Entregados)" },
+    { value: "Productos", label: "Solo Productos" },
+    { value: "Servicios", label: "Solo Servicios" },
+    { value: "Productos y Servicios", label: "Productos y Servicios" },
   ];
 
-  const formatCurrency = (amount) => {
-    return `$${amount.toLocaleString()}`;
+  const formatCurrency = (amount) => `$${(amount || 0).toLocaleString()}`;
+
+  const obtenerDescripcionItems = (pedido) => {
+    if (pedido.items && Array.isArray(pedido.items) && pedido.items.length > 0) {
+      const tieneProductos = pedido.items.some((item) => item.tipo === "producto");
+      const tieneServicios = pedido.items.some((item) => item.tipo === "servicio");
+      if (tieneProductos && tieneServicios) return "Productos y Servicios";
+      else if (tieneProductos) return "Productos";
+      else return "Servicios";
+    }
+    return pedido.tipo || "Productos";
   };
 
-  // =============================
-  //          COLUMNAS SIMPLIFICADAS
-  // =============================
+  const obtenerCantidadItems = (pedido) => {
+    if (pedido.items && Array.isArray(pedido.items) && pedido.items.length > 0) {
+      return pedido.items.reduce((sum, item) => sum + item.cantidad, 0);
+    }
+    return 1;
+  };
+
+  // ✅ COLUMNAS - SIN SALDO PENDIENTE
   const columns = [
-    { field: "cliente", header: "Cliente" },
-    { field: "productoServicio", header: "Producto/Servicio" },
     {
-      field: "estado",
-      header: "Estado",
-      render: (item) => (
-        <span className={`estado-pedido estado-${item.estado.toLowerCase().replace(' ', '-')}`}>
-          {item.estado}
-        </span>
-      ),
+      field: "cliente",
+      header: "Cliente",
+      render: (row) => row.cliente,
     },
     {
-      field: "tipo",
-      header: "Tipo",
-      render: (item) => (
-        <span className={`badge-${item.tipo === "Venta" ? 'venta' : 'servicio'}`}>
-          {item.tipo}
-        </span>
+      field: "productoServicio",
+      header: "Producto/Servicio",
+      render: (row) => {
+        const cantidad = obtenerCantidadItems(row);
+        const descripcion = obtenerDescripcionItems(row);
+        return `${cantidad} ${cantidad === 1 ? "ítem" : "ítems"} — ${descripcion}`;
+      },
+    },
+    {
+      field: "total",
+      header: "Total",
+      render: (row) => formatCurrency(row.total),
+    },
+    {
+      field: "abono",
+      header: "Abonar",
+      render: (row) => (
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <button
+            className="crud-btn crud-btn-primary"
+            style={{ padding: "4px 8px", fontSize: "0.8rem" }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleAbonar(row.id, row.cliente, row.total, row.abono, row.saldoPendiente);
+            }}
+            disabled={row.saldoPendiente <= 0}
+          >
+            Abonar
+          </button>
+        </div>
       ),
     },
   ];
 
-  // =============================
-  //          ACCIONES
-  // =============================
   const tableActions = [
     {
       label: "Ver Detalles",
       type: "view",
-      onClick: (item) => navigate(`detalle/${item.id}`),
-    },
-    {
-      label: "Abonar",
-      type: "primary",
-      onClick: (item) => handleAbonar(item.id, item.cliente, item.saldoPendiente),
-      disabled: (item) => item.saldoPendiente <= 0
-    },
-    {
-      label: "Entregar",
-      type: "success",
-      onClick: (item) => handleEntregar(item.id, item.cliente),
-      disabled: (item) => item.estado === "Entregado"
+      onClick: (row) => navigate(`detalle/${row.id}`),
     },
     {
       label: "Editar",
       type: "edit",
-      onClick: (item) => navigate(`editar/${item.id}`),
+      onClick: (row) => navigate(`editar/${row.id}`),
     },
     {
       label: "Eliminar",
       type: "delete",
-      onClick: (item) => handleDelete(item.id, item.cliente),
+      onClick: (row) => handleDelete(row.id, row.cliente),
     },
   ];
 
   return (
-    <CrudLayout
-      title="Pedidos"
-      onAddClick={() => navigate("crear")}
-      showSearch={true}
-      searchPlaceholder="Buscar por cliente, producto, estado..."
-      searchValue={search}
-      onSearchChange={setSearch}
-      searchFilters={searchFilters}
-      filterEstado={filterEstado}
-      onFilterChange={setFilterEstado}
-      searchPosition="left"
-      // Añadir filtro de tipo al layout
-      additionalFilters={
-        <div className="filter-group" style={{ marginLeft: '1rem' }}>
-          <select
-            value={filterTipo}
-            onChange={(e) => setFilterTipo(e.target.value)}
-            style={{
-              padding: 'var(--spacing-sm) var(--spacing-md)',
-              border: '1px solid var(--border-color)',
-              borderRadius: 'var(--border-radius-md)',
-              backgroundColor: 'var(--bg-color)',
-              color: 'var(--text-color)',
-              fontSize: '0.9rem',
-              cursor: 'pointer'
-            }}
-          >
-            {tipoFilters.map(filter => (
-              <option key={filter.value} value={filter.value}>
-                {filter.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      }
-    >
-      {/* Tabla */}
-      <CrudTable 
-        columns={columns} 
-        data={filteredPedidos} 
-        actions={tableActions}
-        emptyMessage={
-          search || filterEstado || filterTipo ? 
-            'No se encontraron pedidos para los filtros aplicados' : 
-            'No hay pedidos registrados'
-        }
-      />
+    <>
+      <style>
+        {`
+          tr.row-entregado td {
+            background-color: #e5e5e5 !important;
+            color: #888 !important;
+            opacity: 0.7;
+          }
+          .crud-btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+        `}
+      </style>
 
-      {/* Botón para primer pedido */}
-      {filteredPedidos.length === 0 && !search && !filterEstado && !filterTipo && (
-        <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
-          <button 
-            onClick={() => navigate("nuevo")}
-            className="btn-primary"
-            style={{padding: 'var(--spacing-md) var(--spacing-lg)'}}
-          >
-            Crear Primer Pedido
-          </button>
-        </div>
-      )}
+      <CrudLayout
+        title="Pedidos"
+        onAddClick={() => navigate("crear")}
+        showSearch
+        searchPlaceholder="Buscar por cliente..."
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchFilters={estadoFilters}
+        filterEstado={filterEstado}
+        onFilterChange={setFilterEstado}
+        searchPosition="left"
+      >
+        <CrudTable
+          columns={columns}
+          data={filteredPedidos}
+          actions={tableActions}
+          rowClassName={(row) =>
+            row.estado === "Entregado" ? "row-entregado" : ""
+          }
+          emptyMessage={
+            search || filterEstado || filterTipo
+              ? "No se encontraron pedidos para los filtros aplicados"
+              : "No hay pedidos registrados"
+          }
+        />
 
-      {/* Modal de Confirmación Eliminación */}
-      <Modal
-        open={modalDelete.open}
-        type="warning"
-        title="¿Eliminar Pedido?"
-        message={`Esta acción eliminará el pedido de "${modalDelete.cliente}" y no se puede deshacer.`}
-        confirmText="Eliminar"
-        cancelText="Cancelar"
-        showCancel={true}
-        onConfirm={confirmDelete}
-        onCancel={() => setModalDelete({ open: false, id: null, cliente: "" })}
-      />
+        <Modal
+          open={modalDelete.open}
+          type="warning"
+          title="¿Eliminar Pedido?"
+          message={`Esta acción eliminará el pedido de "${modalDelete.cliente}" y no se puede deshacer.`}
+          confirmText="Eliminar"
+          cancelText="Cancelar"
+          showCancel
+          onConfirm={confirmDelete}
+          onCancel={() =>
+            setModalDelete({ open: false, id: null, cliente: "" })
+          }
+        />
 
-      {/* Modal de Abono */}
-      <Modal
-        open={modalAbono.open}
-        type="info"
-        title="Registrar Abono"
-        message={
-          <div>
-            <p>Cliente: <strong>{modalAbono.cliente}</strong></p>
-            <p>Saldo pendiente: <strong>{formatCurrency(modalAbono.saldoPendiente)}</strong></p>
-            <div style={{ marginTop: '1rem' }}>
-              <label htmlFor="montoAbono" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                Monto del abono:
-              </label>
-              <input
-                id="montoAbono"
-                type="number"
-                value={montoAbono}
-                onChange={(e) => setMontoAbono(e.target.value)}
-                placeholder="Ingrese el monto"
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  fontSize: '1rem'
-                }}
-                min="0"
-                max={modalAbono.saldoPendiente}
-              />
+        <Modal
+          open={modalAbono.open}
+          type="info"
+          title="Registrar Abono"
+          message={
+            <div>
+              <p><strong>Cliente:</strong> {modalAbono.cliente}</p>
+              <p><strong>Total del pedido:</strong> {formatCurrency(modalAbono.total)}</p>
+              <p><strong>Abonado hasta ahora:</strong> {formatCurrency(modalAbono.abonoActual)}</p>
+              <p><strong>Saldo pendiente:</strong> {formatCurrency(modalAbono.saldoPendiente)}</p>
+              <div style={{ marginTop: "15px" }}>
+                <label htmlFor="montoAbono">Monto a abonar:</label>
+                <input
+                  id="montoAbono"
+                  type="number"
+                  min="1"
+                  max={modalAbono.saldoPendiente}
+                  value={montoAbono}
+                  onChange={(e) => setMontoAbono(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "8px",
+                    marginTop: "5px",
+                    border: "1px solid #ccc",
+                    borderRadius: "4px"
+                  }}
+                  placeholder="Ingrese el monto"
+                  autoFocus
+                />
+              </div>
             </div>
-          </div>
-        }
-        confirmText="Registrar Abono"
-        cancelText="Cancelar"
-        showCancel={true}
-        onConfirm={confirmAbono}
-        onCancel={() => setModalAbono({ open: false, id: null, cliente: "", saldoPendiente: 0 })}
-      />
-    </CrudLayout>
+          }
+          confirmText="Registrar Abono"
+          cancelText="Cancelar"
+          showCancel
+          onConfirm={confirmAbono}
+          onCancel={() =>
+            setModalAbono({ open: false, id: null, cliente: "", total: 0, abonoActual: 0, saldoPendiente: 0 })
+          }
+        />
+      </CrudLayout>
+    </>
   );
 }
