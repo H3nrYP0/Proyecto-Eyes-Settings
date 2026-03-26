@@ -9,7 +9,6 @@ import {
   Select,
   MenuItem,
   InputAdornment,
-  Paper,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
@@ -21,7 +20,6 @@ export default function CrudLayout({
   onAddClick,
   children,
 
-  // búsqueda y filtros
   showSearch = false,
   searchPlaceholder = "Buscar...",
   searchValue = "",
@@ -29,7 +27,6 @@ export default function CrudLayout({
   searchFilters = null,
   filterEstado = "",
   onFilterChange = null,
-  searchPosition = "left",
 }) {
   const [internalSearch, setInternalSearch] = useState("");
   const [internalFilter, setInternalFilter] = useState("");
@@ -48,58 +45,59 @@ export default function CrudLayout({
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3 }, overflow: "hidden" }}>
-      {/* HEADER */}
-      <Stack spacing={1} mb={3}>
-        <Typography variant="h4">{title}</Typography>
-        {description && (
-          <Typography color="text.secondary">{description}</Typography>
-        )}
-      </Stack>
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        alignItems={{ xs: "stretch", sm: "center" }}
+        gap={1.5}
+        mb={description ? 1 : 3}
+      >
+        {/* Título */}
+        <Typography
+          variant="h5"
+          sx={{ fontWeight: 600, flexShrink: 0 }}
+        >
+          {title}
+        </Typography>
 
-      {/* SEARCH + ACTIONS */}
-      {showSearch && (
-        <Paper sx={{ p: 2, mb: 3 }}>
-          <Stack direction="column" spacing={2}>
+        {/* Controles */}
+        {showSearch && (
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1.5}
+            alignItems={{ xs: "stretch", sm: "center" }}
+            sx={{ ml: { sm: "auto" } }}
+          >
+            {/* Buscador + filtro en la misma fila en móvil */}
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <TextField
+                size="small"
+                placeholder={searchPlaceholder}
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                sx={{ flex: 1, width: { sm: 200 } }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                  endAdornment: searchTerm ? (
+                    <InputAdornment position="end">
+                      <IconButton size="small" onClick={() => handleSearchChange("")}>
+                        <ClearIcon fontSize="small" />
+                      </IconButton>
+                    </InputAdornment>
+                  ) : null,
+                }}
+              />
 
-            {/* BUSCADOR — full width */}
-            <TextField
-              fullWidth
-              size="small"
-              placeholder={searchPlaceholder}
-              value={searchTerm}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon fontSize="small" />
-                  </InputAdornment>
-                ),
-                endAdornment: searchTerm ? (
-                  <InputAdornment position="end">
-                    <IconButton size="small" onClick={() => handleSearchChange("")}>
-                      <ClearIcon fontSize="small" />
-                    </IconButton>
-                  </InputAdornment>
-                ) : null,
-              }}
-            />
-
-            {/* FILTRO + BOTÓN en una misma fila */}
-            <Stack
-              direction="row"
-              spacing={2}
-              alignItems="center"
-              justifyContent="space-between"
-              flexWrap="wrap"
-              useFlexGap
-            >
               {searchFilters && (
                 <Select
                   value={filterValue}
                   onChange={(e) => handleFilterChange(e.target.value)}
                   displayEmpty
                   size="small"
-                  sx={{ flex: 1, minWidth: 140, maxWidth: { xs: "100%", sm: 220 } }}
+                  sx={{ flexShrink: 0, minWidth: 130 }}
                 >
                   {searchFilters.map((filter) => (
                     <MenuItem key={filter.value} value={filter.value}>
@@ -108,24 +106,33 @@ export default function CrudLayout({
                   ))}
                 </Select>
               )}
-
-              {onAddClick && (
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  onClick={onAddClick}
-                  sx={{ whiteSpace: "nowrap", flexShrink: 0 }}
-                >
-                  Agregar
-                </Button>
-              )}
             </Stack>
 
+            {/* Botón agregar — full width en móvil */}
+            {onAddClick && (
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={onAddClick}
+                fullWidth={false}
+                sx={{
+                  whiteSpace: "nowrap",
+                  width: { xs: "100%", sm: "auto" },
+                }}
+              >
+                Agregar
+              </Button>
+            )}
           </Stack>
-        </Paper>
+        )}
+      </Stack>
+
+      {description && (
+        <Typography color="text.secondary" sx={{ mb: 3 }}>
+          {description}
+        </Typography>
       )}
 
-      {/* CONTENT */}
       {children}
     </Box>
   );
