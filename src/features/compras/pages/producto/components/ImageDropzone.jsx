@@ -5,6 +5,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { useDropzone } from 'react-dropzone';
 import "../styles/ImageDropzone.css";
 
+
 export default function ImageDropzone({ onDrop, previews, onRemove, disabled, uploadingImages }) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,

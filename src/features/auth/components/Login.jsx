@@ -1,19 +1,17 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { 
+import {
   Box, Card, CardContent, TextField, FormControlLabel,
   Checkbox, Button, Typography, Container, Alert,
   InputAdornment, IconButton, CircularProgress
 } from "@mui/material";
-import { 
+import {
   VisibilityOutlined as VisibilityOutlinedIcon,
   VisibilityOffOutlined as VisibilityOffOutlinedIcon
 } from "@mui/icons-material";
-
-import authService from "../Services/authService";
+import authService from "../services/authService";
 
 export default function Login({ setUser }) {
-
   const navigate = useNavigate();
 
   const [correo, setCorreo] = useState("");
@@ -25,49 +23,49 @@ export default function Login({ setUser }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-
-    // ── Validaciones frontend ──
+    e.stopPropagation();
+    
     if (!correo.trim() || !contrasenia.trim()) {
       setError("Ingresa correo y contraseña para continuar");
       return;
     }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(correo)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
       setError("Ingresa un correo electrónico válido");
       return;
     }
-
     if (contrasenia.length < 6) {
       setError("La contraseña debe tener al menos 6 caracteres");
       return;
     }
 
     setLoading(true);
-
+    setError(""); // ← solo se limpia cuando pasa todas las validaciones y va al servidor
     try {
-      const usuario = await authService.login(correo.trim(), contrasenia);
+      const usuario = await authService.login(
+        correo.trim().toLowerCase(),
+        contrasenia,
+        rememberMe
+      );
 
-      // Guardar en estado global
       setUser(usuario);
 
-      // ── Redirección correcta con React Router ──
       if (authService.hasPermission(usuario, "dashboard")) {
         navigate("/admin/dashboard", { replace: true });
       } else {
-        navigate("/", { replace: true });
+        navigate("/productos", { replace: true });
       }
 
     } catch (err) {
-      const mensaje = err.response?.data?.error;
+      const status = err.response?.status;
+      const mensaje = err.response?.data?.error || err.message || "";
 
-      if (mensaje === "Tu cuenta está inactiva. Contacta al administrador.") {
-        setError(mensaje);
+      if (mensaje.includes("inactiva")) {
+        setError("Tu cuenta está inactiva. Contacta al administrador.");
+      } else if (status >= 500) {
+        setError("Error del servidor. Intenta más tarde.");
       } else {
         setError("Correo o contraseña incorrectos");
       }
-
     } finally {
       setLoading(false);
     }
@@ -84,11 +82,11 @@ export default function Login({ setUser }) {
       py: 2,
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif"
     }}>
-      
+
       {/* Logo */}
       <Box sx={{ textAlign: "center", mb: 1 }}>
         <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 2 }}>
-          <Box sx={{ 
+          <Box sx={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             width: 52, height: 52,
             background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
@@ -107,18 +105,11 @@ export default function Login({ setUser }) {
 
       <Container component="main" maxWidth="md"
         sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <Card elevation={2} sx={{
-          width: "100%",
-          maxWidth: 440,
-          p: 4,
-          borderRadius: 3,
-          fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif"
-        }}>
+        <Card elevation={2} sx={{ width: "100%", maxWidth: 440, p: 4, borderRadius: 3 }}>
           <CardContent sx={{ p: 1 }}>
 
             <Box sx={{ textAlign: "center", mb: 3 }}>
-              <Typography variant="h5" component="h2"
-                color="text.primary" fontWeight="600">
+              <Typography variant="h5" component="h2" color="text.primary" fontWeight="600">
                 Inicia sesión en tu cuenta
               </Typography>
             </Box>
@@ -129,11 +120,10 @@ export default function Login({ setUser }) {
               </Alert>
             )}
 
-            <Box component="form" onSubmit={handleSubmit}>
-
+            {/* noValidate desactiva validación HTML5 nativa — evita refresh */}
+            <Box component="form" onSubmit={handleSubmit} noValidate>
               <TextField
                 margin="normal"
-                required
                 fullWidth
                 label="Correo Electrónico"
                 autoComplete="email"
@@ -145,7 +135,6 @@ export default function Login({ setUser }) {
 
               <TextField
                 margin="normal"
-                required
                 fullWidth
                 label="Contraseña"
                 type={showPassword ? "text" : "password"}
@@ -171,7 +160,7 @@ export default function Login({ setUser }) {
                 }}
               />
 
-              <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 1 }}>
                 <FormControlLabel
                   control={
                     <Checkbox
@@ -181,9 +170,16 @@ export default function Login({ setUser }) {
                       disabled={loading}
                     />
                   }
-                  label="Recordarme"
+                  label={
+                    <Typography sx={{ fontSize: '0.875rem' }}>Recordarme</Typography>
+                  }
                 />
-                <Button component={Link} to="/forgot-password" size="small">
+                <Button
+                  component={Link}
+                  to="/forgot-password"
+                  size="small"
+                  sx={{ textTransform: 'none', fontSize: '0.85rem' }}
+                >
                   ¿Olvidaste tu contraseña?
                 </Button>
               </Box>
@@ -193,15 +189,36 @@ export default function Login({ setUser }) {
                 fullWidth
                 variant="contained"
                 disabled={loading}
-                sx={{ mt: 2 }}
+                sx={{
+                  mt: 2, mb: 1,
+                  py: 1.1,
+                  textTransform: 'none',
+                  fontSize: '0.95rem',
+                  fontWeight: '600',
+                  borderRadius: 2
+                }}
               >
                 {loading
                   ? <CircularProgress size={24} color="inherit" />
                   : "Iniciar sesión"}
               </Button>
-
             </Box>
           </CardContent>
+
+          <Box sx={{ textAlign: "center", mt: 1, pb: 1 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
+              ¿No tienes una cuenta?{" "}
+              <Button
+                component={Link}
+                to="/register"
+                variant="text"
+                size="small"
+                sx={{ textTransform: 'none', fontSize: '0.85rem', fontWeight: '600' }}
+              >
+                Regístrate aquí
+              </Button>
+            </Typography>
+          </Box>
         </Card>
       </Container>
     </Box>

@@ -1,457 +1,539 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  TextField,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Select,
-} from "@mui/material";
+import { useState, useEffect } from "react";
+import { Box, FormHelperText } from "@mui/material";
 
-import BaseFormLayout from "../../../shared/components/base/BaseFormLayout";
+import BaseFormLayout  from "../../../shared/components/base/BaseFormLayout";
 import BaseFormSection from "../../../shared/components/base/BaseFormSection";
-import BaseFormField from "../../../shared/components/base/BaseFormField";
+import BaseFormField   from "../../../shared/components/base/BaseFormField";
 import BaseFormActions from "../../../shared/components/base/BaseFormActions";
-import CrudNotification from "../../../shared/styles/components/notifications/CrudNotification";
+import BaseInputField  from "../../../shared/components/base/BaseInputField";
 
-import { createCompra } from "../../../lib/data/comprasData";
-import { getAllProductos } from "../../../lib/data/productosData";
-import { ProveedoresData } from "../../../lib/data/proveedoresData"; // ← corregido
+import { ProveedoresData } from "../../../lib/data/proveedoresData";
+import { ProductoData }    from "../../../lib/data/productosData";
+import { ComprasData }     from "../../../lib/data/comprasData";
 
-const viewFieldStyle = {
-  backgroundColor: "#f3f4f6",
-  color: "#6b7280",
-  pointerEvents: "none",
-  userSelect: "none",
+// ─────────────────────────────────────────────────────────────
+//  ComprasForm  —  create | edit | view
+// ─────────────────────────────────────────────────────────────
+
+const EMPTY_ROW = {
+  productoId:     "",
+  nombre:         "",
+  stock:          0,
+  cantidad:       1,
+  precioUnitario: 0,
+  total:          0,
 };
+
+const cellInput = (hasError) => ({
+  width: "100%",
+  padding: "5px 8px",
+  border: `1px solid ${hasError ? "#ef4444" : "#d1d5db"}`,
+  borderRadius: 4,
+  fontSize: "0.83rem",
+  outline: "none",
+  backgroundColor: "#fff",
+  boxSizing: "border-box",
+});
 
 export default function ComprasForm({
   mode = "create",
-  title = "Crear Compra",
+  title,
   initialData = null,
-  onCancel,
   onSubmit,
+  onCancel,
   onEdit,
   onPdf,
 }) {
-  const navigate = useNavigate();
-  const isView = mode === "view";
-  const isEdit = mode === "edit";
-
-  const [productos, setProductos] = useState([]);
-  const [proveedores, setProveedores] = useState([]);
+  const isView   = mode === "view";
+  const isCreate = mode === "create";
 
   const [formData, setFormData] = useState({
-    proveedorId: "",
-    proveedorNombre: "",
-    fecha: new Date().toISOString().split("T")[0],
-    productos: [],
+    proveedorId:   "",
+    observaciones: "",
+    productos:     [{ ...EMPTY_ROW }],
   });
+  const [errors,   setErrors]   = useState({});
+  const [proveedores, setProveedores] = useState([]);
+  const [catalogo,    setCatalogo]    = useState([]);
+  const [loadingData, setLoadingData] = useState(true);
+  const [saving,   setSaving]   = useState(false);
+  const [apiError, setApiError] = useState("");
 
-  const [productoActual, setProductoActual] = useState({
-    productoId: "",
-    nombre: "",
-    cantidad: 1,
-    precioUnitario: 0,
-  });
-
-  const [notification, setNotification] = useState({
-    isVisible: false,
-    message: "",
-    type: "success",
-  });
-
+  // ── Cargar datos remotos ─────────────────────────────────
   useEffect(() => {
-    if (!isView) {
-      // Productos (síncrono, sin cambios)
-      setProductos(getAllProductos().filter((p) => p.estado === "activo"));
-
-      // Proveedores — ahora es async
-      ProveedoresData.getAllProveedores()
-        .then((data) => {
-          // Filtramos solo los activos (estado booleano true)
-          setProveedores(data.filter((p) => p.estado === true));
-        })
-        .catch((err) => console.error("Error al cargar proveedores:", err));
+    async function load() {
+      try {
+        setLoadingData(true);
+        const [provRes, prodRes] = await Promise.all([
+          ProveedoresData.getProveedoresActivos(),
+          ProductoData.getAllProductos(),
+        ]);
+        setProveedores(provRes);
+        setCatalogo(
+          prodRes.map((p) => ({
+            id:     p.id,
+            nombre: p.nombre,
+            precio: Number(p.precio_compra ?? p.precioCompra ?? 0),
+            stock:  Number(p.stock ?? p.stockActual ?? 0),
+          }))
+        );
+      } catch (e) {
+        console.error("Error cargando datos:", e);
+        setApiError("No se pudieron cargar proveedores o productos.");
+      } finally {
+        setLoadingData(false);
+      }
     }
+    load();
+  }, []);
 
-    if (initialData) {
-      setFormData({
-        proveedorId:     initialData.proveedorId     || "",
-        proveedorNombre: initialData.proveedorNombre || "",
-        fecha:           initialData.fecha           || new Date().toISOString().split("T")[0],
-        productos:       initialData.productos       || [],
-      });
-    }
+  // ── Poblar en edit/view ──────────────────────────────────
+  useEffect(() => {
+    if (!initialData) return;
+    setFormData({
+      proveedorId:   initialData.proveedorId   ?? "",
+      observaciones: initialData.observaciones ?? "",
+      productos: initialData.productos?.length
+        ? initialData.productos.map((p) => ({
+            id:             p.id,
+            productoId:     p.productoId ?? "",
+            nombre:         p.nombre     ?? "",
+            stock:          p.stock      ?? 0,
+            cantidad:       p.cantidad,
+            precioUnitario: p.precioUnitario,
+            total:          p.total,
+          }))
+        : [{ ...EMPTY_ROW }],
+    });
   }, [initialData]);
 
-  const formatCurrency = (v) => `$${v.toLocaleString()}`;
-  const formatDate = (dateString) =>
-    new Date(dateString).toLocaleDateString("es-ES");
+  // ── Cálculos ─────────────────────────────────────────────
+  const subtotal = formData.productos.reduce((s, p) => s + (p.total || 0), 0);
+  const iva      = Math.round(subtotal * 0.19);
+  const total    = subtotal + iva;
+  const fmt      = (n) => `$${Number(n).toLocaleString("es-CO")}`;
 
-  const calcularTotales = () => {
-    if (isView && initialData) {
-      return {
-        subtotal: initialData.subtotal || 0,
-        iva:      initialData.iva      || 0,
-        total:    initialData.total    || 0,
-      };
-    }
-    const subtotal = formData.productos.reduce((s, p) => s + p.total, 0);
-    const iva = subtotal * 0.19;
-    return { subtotal, iva, total: subtotal + iva };
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const agregarProducto = () => {
-    if (!productoActual.productoId || productoActual.cantidad <= 0) return;
+  const handleProductoChange = (index, field, value) => {
+    setFormData((prev) => {
+      const productos = [...prev.productos];
+      const row       = { ...productos[index] };
 
-    setFormData((prev) => ({
-      ...prev,
-      productos: [
-        ...prev.productos,
-        {
-          itemId:        Date.now(),
-          productoId:    productoActual.productoId,
-          nombre:        productoActual.nombre,
-          cantidad:      Number(productoActual.cantidad),
-          precioUnitario: Number(productoActual.precioUnitario),
-          total:         Number(productoActual.cantidad) * Number(productoActual.precioUnitario),
-        },
-      ],
-    }));
+      if (field === "productoId") {
+        const found        = catalogo.find((p) => p.id === Number(value));
+        row.productoId     = value;
+        row.nombre         = found?.nombre ?? "";
+        row.stock          = found?.stock  ?? 0;
+        row.precioUnitario = found?.precio ?? 0;
+        row.cantidad       = Math.min(row.cantidad, found?.stock ?? row.cantidad) || 1;
+        row.total          = row.cantidad * row.precioUnitario;
+        setErrors((e) => ({ ...e, [`prod_${index}`]: "" }));
+      } else if (field === "cantidad") {
+        const max    = row.stock || Infinity;
+        const qty    = Math.max(1, Math.min(Number(value) || 1, max));
+        row.cantidad = qty;
+        row.total    = qty * row.precioUnitario;
+        setErrors((e) => ({ ...e, [`qty_${index}`]: "" }));
+      } else if (field === "precioUnitario") {
+        const precio       = Math.max(0, Number(value) || 0);
+        row.precioUnitario = precio;
+        row.total          = row.cantidad * precio;
+        setErrors((e) => ({ ...e, [`precio_${index}`]: "" }));
+      }
 
-    setProductoActual({ productoId: "", nombre: "", cantidad: 1, precioUnitario: 0 });
+      productos[index] = row;
+      return { ...prev, productos };
+    });
   };
 
-  const eliminarProducto = (itemId) => {
-    setFormData((prev) => ({
-      ...prev,
-      productos: prev.productos.filter((p) => p.itemId !== itemId),
-    }));
-  };
+  const addRow    = () =>
+    setFormData((prev) => ({ ...prev, productos: [...prev.productos, { ...EMPTY_ROW }] }));
+  const removeRow = (i) =>
+    setFormData((prev) => ({ ...prev, productos: prev.productos.filter((_, idx) => idx !== i) }));
 
-  const guardarCompra = () => {
-    if (!formData.proveedorId || formData.productos.length === 0) {
-      setNotification({
-        isVisible: true,
-        message: "Selecciona proveedor y agrega al menos un producto",
-        type: "error",
-      });
-      return;
-    }
-
-    const { subtotal, iva, total } = calcularTotales();
-    const payload = { ...formData, subtotal, iva, total, estado: "Completada" };
-
-    if (isEdit && onSubmit) {
-      onSubmit(payload);
+  const validate = () => {
+    const e = {};
+    if (!formData.proveedorId) e.proveedorId = "Selecciona un proveedor.";
+    if (!formData.productos.length) {
+      e.productos = "Agrega al menos un producto.";
     } else {
-      createCompra(payload);
-      navigate("/admin/compras");
+      formData.productos.forEach((p, i) => {
+        if (!p.productoId)                              e[`prod_${i}`]   = "Selecciona el producto.";
+        if (!p.cantidad       || p.cantidad       < 1)  e[`qty_${i}`]    = "Mínimo 1.";
+        if (!p.precioUnitario || p.precioUnitario <= 0) e[`precio_${i}`] = "Precio requerido.";
+      });
+    }
+    return e;
+  };
+
+  const handleSubmit = async () => {
+    setApiError("");
+    const e = validate();
+    if (Object.keys(e).length) { setErrors(e); return; }
+    setErrors({});
+    const payload = {
+      proveedorId:   Number(formData.proveedorId),
+      observaciones: formData.observaciones,
+      productos: formData.productos.map((p) => ({
+        id:             p.id,
+        productoId:     Number(p.productoId),
+        cantidad:       Number(p.cantidad),
+        precioUnitario: Number(p.precioUnitario),
+      })),
+    };
+    try {
+      setSaving(true);
+      if (onSubmit)       await onSubmit(payload);
+      else if (isCreate)  { await ComprasData.createCompra(payload); onCancel?.(); }
+      else                { await ComprasData.updateCompra(initialData.id, payload); onCancel?.(); }
+    } catch (err) {
+      console.error(err);
+      setApiError("Ocurrió un error al guardar. Intenta de nuevo.");
+    } finally {
+      setSaving(false);
     }
   };
 
-  const { subtotal, iva, total } = calcularTotales();
-
-  return (
-    <>
+  if (loadingData) {
+    return (
       <BaseFormLayout title={title}>
+        <Box sx={{ p: 4, textAlign: "center", color: "text.secondary" }}>Cargando datos…</Box>
+      </BaseFormLayout>
+    );
+  }
 
-        {/* INFORMACIÓN BÁSICA */}
-        <BaseFormSection title="Información de la Compra">
-          <BaseFormField>
+  const colsEdit = [
+    { label: "Producto",     align: "left",   width: "auto" },
+    { label: "Stock disp.",  align: "center", width: 88  },
+    { label: "Cantidad",     align: "center", width: 88  },
+    { label: "Precio Unit.", align: "right",  width: 116 },
+    { label: "Total",        align: "right",  width: 106 },
+    { label: "",             align: "center", width: 34  },
+  ];
+  const colsView = [
+    { label: "Producto",     align: "left",  width: "auto" },
+    { label: "Cantidad",     align: "right", width: 90  },
+    { label: "Precio Unit.", align: "right", width: 130 },
+    { label: "Total",        align: "right", width: 120 },
+  ];
+  const cols = isView ? colsView : colsEdit;
+
+  // ── RENDER ───────────────────────────────────────────────
+  return (
+    <BaseFormLayout title={title}>
+
+      {/* Error API */}
+      {apiError && (
+        <Box sx={{ mb: 2, p: "10px 14px", borderRadius: 1, backgroundColor: "#fef2f2", border: "1px solid #fca5a5", color: "#dc2626", fontSize: "0.88rem" }}>
+          {apiError}
+        </Box>
+      )}
+
+      {/* ── SECCIÓN 1: Información ── */}
+      <BaseFormSection title="Información de la Compra">
+
+        {/* Fila: Proveedor + Observaciones en la misma línea, misma altura */}
+        <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
+
+          {/* Proveedor */}
+          <Box sx={{ flex: "0 0 320px" }}>
             {isView ? (
-              <TextField
-                fullWidth
+              <BaseInputField
                 label="Proveedor"
-                value={formData.proveedorNombre}
-                InputProps={{ readOnly: true, style: viewFieldStyle }}
-                InputLabelProps={{ shrink: true }}
-              />
-            ) : (
-              <FormControl fullWidth>
-                <InputLabel>Proveedor</InputLabel>
-                <Select
-                  value={formData.proveedorId}
-                  onChange={(e) => {
-                    const p = proveedores.find((x) => x.id == e.target.value);
-                    setFormData({
-                      ...formData,
-                      proveedorId:     p.id,
-                      proveedorNombre: p.razonSocial, // ← campo correcto del _toUI
-                    });
-                  }}
-                >
-                  {proveedores.map((p) => (
-                    <MenuItem key={p.id} value={p.id}>
-                      {p.razonSocial} {/* ← campo correcto del _toUI */}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            )}
-          </BaseFormField>
-
-          <BaseFormField>
-            <TextField
-              fullWidth
-              type={isView ? "text" : "date"}
-              label="Fecha"
-              value={isView ? formatDate(formData.fecha) : formData.fecha}
-              InputLabelProps={{ shrink: true }}
-              InputProps={{
-                readOnly: isView,
-                style: isView ? viewFieldStyle : {},
-              }}
-              onChange={
-                !isView
-                  ? (e) => setFormData({ ...formData, fecha: e.target.value })
-                  : undefined
-              }
-            />
-          </BaseFormField>
-
-          {isView && (
-            <BaseFormField>
-              <TextField
-                fullWidth
-                label="Estado"
-                value={initialData?.estado || ""}
-                InputProps={{
-                  readOnly: true,
-                  style: {
-                    backgroundColor: "#f3f4f6",
-                    color: initialData?.estado === "Completada" ? "#10b981" : "#ef4444",
-                    pointerEvents: "none",
-                    userSelect: "none",
-                  },
-                }}
-                InputLabelProps={{ shrink: true }}
-              />
-            </BaseFormField>
-          )}
-        </BaseFormSection>
-
-        {/* SELECTOR DE PRODUCTO — solo en create y edit */}
-        {!isView && (
-          <BaseFormSection title="Agregar Producto">
-            <BaseFormField>
-              <FormControl fullWidth>
-                <InputLabel>Producto</InputLabel>
-                <Select
-                  value={productoActual.productoId}
-                  onChange={(e) => {
-                    const p = productos.find((x) => x.id == e.target.value);
-                    setProductoActual({
-                      productoId:     p.id,
-                      nombre:         p.nombre,
-                      cantidad:       1,
-                      precioUnitario: p.precioCompra,
-                    });
-                  }}
-                >
-                  {productos.map((p) => (
-                    <MenuItem key={p.id} value={p.id}>
-                      {p.nombre}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </BaseFormField>
-
-            <BaseFormField>
-              <TextField
-                fullWidth
-                label="Cantidad"
-                type="number"
-                value={productoActual.cantidad}
-                onChange={(e) =>
-                  setProductoActual({ ...productoActual, cantidad: e.target.value })
-                }
-              />
-            </BaseFormField>
-
-            <BaseFormField>
-              <TextField
-                fullWidth
-                label="Precio Unitario"
-                value={productoActual.precioUnitario}
+                value={initialData?.proveedorNombre ?? "—"}
                 disabled
               />
-            </BaseFormField>
-          </BaseFormSection>
+            ) : (
+              <BaseInputField
+                label="Proveedor"
+                name="proveedorId"
+                value={formData.proveedorId}
+                onChange={handleChange}
+                select
+                SelectProps={{ native: true }}
+                error={!!errors.proveedorId}
+                helperText={errors.proveedorId}
+              >
+                <option value="">-- Selecciona un proveedor --</option>
+                {proveedores.map((pv) => (
+                  <option key={pv.id} value={pv.id}>{pv.razonSocial}</option>
+                ))}
+              </BaseInputField>
+            )}
+          </Box>
+
+          {/* Observaciones — misma altura que el select, sin multiline */}
+          <Box sx={{ flex: "0 0 300px" }}>
+            <BaseInputField
+              label="Observaciones"
+              name="observaciones"
+              value={formData.observaciones}
+              onChange={handleChange}
+              disabled={isView}
+              placeholder="Notas adicionales…"
+              inputProps={{ style: { fontSize: "0.85rem" } }}
+            />
+          </Box>
+
+        </Box>
+
+        {/* Fecha + Estado — solo edit/view, debajo en fila separada */}
+        {!isCreate && (
+          <Box sx={{ display: "flex", gap: 2, mt: 1 }}>
+            <Box sx={{ flex: "0 0 180px" }}>
+              <BaseInputField
+                label="Fecha"
+                value={initialData?.fecha
+                  ? new Date(initialData.fecha).toLocaleDateString("es-ES")
+                  : "—"}
+                disabled
+              />
+            </Box>
+            <Box sx={{ flex: "0 0 180px" }}>
+              <BaseInputField
+                label="Estado"
+                value={initialData?.estado ?? "—"}
+                disabled
+                InputProps={{
+                  sx: {
+                    color:      initialData?.estado === "Completada" ? "#16a34a" : "#dc2626",
+                    fontWeight: 600,
+                  },
+                }}
+              />
+            </Box>
+          </Box>
         )}
 
-        {/* TABLA DE PRODUCTOS + TOTALES */}
-        {formData.productos.length > 0 && (
-          <BaseFormSection title={isView ? "Productos de la Compra" : "Resumen de la Compra"}>
-            <div
-              style={{
-                marginTop: 32,
-                display: "grid",
-                gridTemplateColumns: "1fr 240px",
-                gap: 32,
-                background: "#f9fafb",
-                padding: 28,
-                borderRadius: 16,
-                border: "1px solid #e5e7eb",
-              }}
-            >
-              {/* TABLA */}
-              <div>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: isView
-                      ? "4fr 1fr 1.5fr 1.5fr"
-                      : "4fr 1fr 1.5fr 1.5fr 40px",
-                    fontWeight: 600,
-                    paddingBottom: 12,
-                    borderBottom: "2px solid #e5e7eb",
-                    textAlign: "center",
-                    color: isView ? "#9ca3af" : "inherit",
-                    userSelect: isView ? "none" : "auto",
-                  }}
-                >
-                  <div style={{ textAlign: "left" }}>Producto</div>
-                  <div>Cantidad</div>
-                  <div style={{ textAlign: "right" }}>Precio</div>
-                  <div style={{ textAlign: "right" }}>Total</div>
-                  {!isView && <div />}
-                </div>
+      </BaseFormSection>
 
-                {formData.productos.map((p, index) => (
-                  <div
-                    key={p.itemId || p.id || index}
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: isView
-                        ? "4fr 1fr 1.5fr 1.5fr"
-                        : "4fr 1fr 1.5fr 1.5fr 40px",
-                      padding: "16px 12px",
-                      borderBottom: "1px solid #eee",
-                      alignItems: "center",
-                      textAlign: "center",
-                      backgroundColor: isView ? "#f3f4f6" : "transparent",
-                      color: isView ? "#6b7280" : "inherit",
-                      borderRadius: 6,
-                      marginBottom: 2,
-                      userSelect: isView ? "none" : "auto",
-                      pointerEvents: isView ? "none" : "auto",
-                    }}
-                  >
-                    <div style={{ textAlign: "left" }}>{p.nombre}</div>
-                    <div>{p.cantidad}</div>
-                    <div style={{ textAlign: "right" }}>
-                      {formatCurrency(p.precioUnitario)}
-                    </div>
-                    <div style={{ textAlign: "right", fontWeight: 600, color: isView ? "#6b7280" : "inherit" }}>
-                      {formatCurrency(p.total)}
-                    </div>
-                    {!isView && (
-                      <button
-                        className="crud-btn crud-btn-delete"
-                        onClick={() => eliminarProducto(p.itemId || p.id)}
-                      >
-                        🗑️
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
+      {/* ── Separación entre secciones ── */}
+      <Box sx={{ mt: 1 }} />
 
-              {/* TOTALES */}
-              <div
-                style={{
-                  background: isView ? "#f3f4f6" : "#ffffff",
-                  borderRadius: 14,
-                  padding: 18,
-                  border: "1px solid #e5e7eb",
-                  height: "fit-content",
-                  fontSize: 14,
-                  userSelect: isView ? "none" : "auto",
-                  pointerEvents: isView ? "none" : "auto",
+      {/* ── SECCIÓN 2: Productos — con margen lateral para uniformidad ── */}
+      <Box sx={{ px: 1 }}>
+        <BaseFormSection
+          title="Productos"
+          headerAction={
+            !isView && (
+              <Box
+                component="button"
+                type="button"
+                onClick={addRow}
+                sx={{
+                  background: "none",
+                  border: "1px solid",
+                  borderColor: "primary.main",
+                  color: "primary.main",
+                  borderRadius: "6px",
+                  px: 1.5, py: 0.4,
+                  cursor: "pointer",
+                  fontSize: "0.8rem",
+                  fontFamily: "inherit",
+                  "&:hover": { backgroundColor: "rgba(37,99,235,0.05)" },
                 }}
               >
-                <div style={{ marginBottom: 12 }}>
-                  <span style={{ color: "#9ca3af" }}>Subtotal</span>
-                  <strong style={{ float: "right", color: isView ? "#6b7280" : "inherit" }}>
-                    {formatCurrency(subtotal)}
-                  </strong>
-                </div>
-                <div style={{ marginBottom: 14 }}>
-                  <span style={{ color: "#9ca3af" }}>IVA (19%)</span>
-                  <strong style={{ float: "right", color: isView ? "#6b7280" : "inherit" }}>
-                    {formatCurrency(iva)}
-                  </strong>
-                </div>
-                <div
-                  style={{
-                    marginTop: 16,
-                    paddingTop: 14,
-                    borderTop: "2px solid #e5e7eb",
-                    fontSize: 16,
-                    color: isView ? "#6b7280" : "inherit",
-                  }}
-                >
-                  <span>Total</span>
-                  <strong style={{ float: "right", color: isView ? "#6b7280" : "inherit" }}>
-                    {formatCurrency(total)}
-                  </strong>
-                </div>
-              </div>
-            </div>
-          </BaseFormSection>
-        )}
-
-        {/* ACCIONES */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginTop: 36,
-          }}
+                + Agregar
+              </Box>
+            )
+          }
         >
-          {!isView ? (
-            <button className="crud-btn crud-btn-primary" onClick={agregarProducto}>
-              Agregar Producto
-            </button>
-          ) : (
-            <div />
+          {errors.productos && (
+            <FormHelperText error sx={{ mb: 1 }}>{errors.productos}</FormHelperText>
           )}
 
-          {isView ? (
-            <div style={{ display: "flex", gap: 12 }}>
-              <button className="crud-btn crud-btn-secondary" onClick={onCancel}>
-                Volver
-              </button>
-              {onPdf && (
-                <button className="crud-btn unified-btn-pdf" onClick={onPdf}>
-                  Generar PDF
-                </button>
-              )}
-              {onEdit && (
-                <button className="crud-btn crud-btn-primary" onClick={onEdit}>
-                  Editar
-                </button>
-              )}
-            </div>
-          ) : (
-            <BaseFormActions
-              onCancel={onCancel ?? (() => navigate("/admin/compras"))}
-              onSave={guardarCompra}
-              saveLabel={isEdit ? "Actualizar Compra" : "Guardar Compra"}
-              showSave
-            />
-          )}
-        </div>
-      </BaseFormLayout>
+          {/* Tabla */}
+          <Box sx={{ overflowX: "auto", width: "100%" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+              <thead>
+                <tr style={{ backgroundColor: "#f3f4f6" }}>
+                  {cols.map(({ label, align, width }) => (
+                    <th key={label} style={{
+                      border: "1px solid #d1d5db",
+                      padding: "8px 10px",
+                      textAlign: align,
+                      fontWeight: 600,
+                      fontSize: "0.82rem",
+                      color: "#374151",
+                      width,
+                      whiteSpace: "nowrap",
+                    }}>
+                      {label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {formData.productos.map((row, i) => (
+                  <tr key={i} style={{ backgroundColor: i % 2 === 0 ? "#fff" : "#f9fafb" }}>
 
-      <CrudNotification
-        {...notification}
-        onClose={() => setNotification((prev) => ({ ...prev, isVisible: false }))}
+                    {/* Producto */}
+                    <td style={{ border: "1px solid #e5e7eb", padding: "6px 10px" }}>
+                      {isView ? (
+                        <span style={{ fontWeight: 500 }}>{row.nombre}</span>
+                      ) : (
+                        <>
+                          <select
+                            value={row.productoId}
+                            onChange={(e) => handleProductoChange(i, "productoId", e.target.value)}
+                            style={cellInput(!!errors[`prod_${i}`])}
+                          >
+                            <option value="">-- Selecciona producto --</option>
+                            {catalogo.map((p) => (
+                              <option key={p.id} value={p.id}>{p.nombre}</option>
+                            ))}
+                          </select>
+                          {errors[`prod_${i}`] && (
+                            <FormHelperText error sx={{ mt: 0.3, fontSize: "0.75rem" }}>
+                              {errors[`prod_${i}`]}
+                            </FormHelperText>
+                          )}
+                        </>
+                      )}
+                    </td>
+
+                    {/* Stock disp. — solo edición */}
+                    {!isView && (
+                      <td style={{ border: "1px solid #e5e7eb", padding: "6px 10px", textAlign: "center" }}>
+                        {row.productoId ? (
+                          <Box component="span" sx={{
+                            display: "inline-block",
+                            px: 1, py: 0.25,
+                            borderRadius: "4px",
+                            fontSize: "0.78rem",
+                            fontWeight: 600,
+                            backgroundColor: row.stock > 0 ? "#dcfce7" : "#fee2e2",
+                            color:           row.stock > 0 ? "#16a34a" : "#dc2626",
+                          }}>
+                            {row.stock}
+                          </Box>
+                        ) : (
+                          <span style={{ color: "#9ca3af", fontSize: "0.78rem" }}>—</span>
+                        )}
+                      </td>
+                    )}
+
+                    {/* Cantidad */}
+                    <td style={{ border: "1px solid #e5e7eb", padding: "6px 10px", textAlign: "center" }}>
+                      {isView ? row.cantidad : (
+                        <>
+                          <input
+                            type="number"
+                            min={1}
+                            max={row.stock || undefined}
+                            value={row.cantidad}
+                            onChange={(e) => handleProductoChange(i, "cantidad", e.target.value)}
+                            disabled={!row.productoId}
+                            style={{
+                              ...cellInput(!!errors[`qty_${i}`]),
+                              textAlign: "center",
+                              opacity: row.productoId ? 1 : 0.4,
+                            }}
+                          />
+                          {row.productoId && row.stock > 0 && (
+                            <Box component="span" sx={{ display: "block", fontSize: "0.68rem", color: "#9ca3af", mt: 0.2 }}>
+                              máx. {row.stock}
+                            </Box>
+                          )}
+                          {errors[`qty_${i}`] && (
+                            <FormHelperText error sx={{ fontSize: "0.75rem" }}>{errors[`qty_${i}`]}</FormHelperText>
+                          )}
+                        </>
+                      )}
+                    </td>
+
+                    {/* Precio unit. — auto-relleno, editable */}
+                    <td style={{ border: "1px solid #e5e7eb", padding: "6px 10px", textAlign: "right" }}>
+                      {isView ? fmt(row.precioUnitario) : (
+                        <>
+                          <input
+                            type="number"
+                            min={0}
+                            value={row.precioUnitario}
+                            onChange={(e) => handleProductoChange(i, "precioUnitario", e.target.value)}
+                            disabled={!row.productoId}
+                            style={{
+                              ...cellInput(!!errors[`precio_${i}`]),
+                              textAlign: "right",
+                              opacity: row.productoId ? 1 : 0.4,
+                            }}
+                          />
+                          {errors[`precio_${i}`] && (
+                            <FormHelperText error sx={{ fontSize: "0.75rem" }}>{errors[`precio_${i}`]}</FormHelperText>
+                          )}
+                        </>
+                      )}
+                    </td>
+
+                    {/* Total fila */}
+                    <td style={{ border: "1px solid #e5e7eb", padding: "6px 10px", textAlign: "right", fontWeight: 600, color: "#111827" }}>
+                      {fmt(row.total || 0)}
+                    </td>
+
+                    {/* Eliminar */}
+                    {!isView && (
+                      <td style={{ border: "1px solid #e5e7eb", padding: "4px 6px", textAlign: "center" }}>
+                        <Box
+                          component="button"
+                          type="button"
+                          onClick={() => removeRow(i)}
+                          disabled={formData.productos.length === 1}
+                          sx={{
+                            background: "none", border: "none",
+                            cursor: formData.productos.length === 1 ? "not-allowed" : "pointer",
+                            color:  formData.productos.length === 1 ? "#d1d5db" : "#ef4444",
+                            fontSize: "1rem", lineHeight: 1, p: 0,
+                            "&:hover:not(:disabled)": { color: "#b91c1c" },
+                          }}
+                          title="Eliminar fila"
+                        >
+                          ✕
+                        </Box>
+                      </td>
+                    )}
+
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Box>
+
+          {/* Totales */}
+          <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1.5 }}>
+            <Box sx={{ width: 240, backgroundColor: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 1.5, p: "12px 16px", fontSize: "0.88rem" }}>
+              {[
+                { label: "Subtotal",  value: subtotal },
+                { label: "IVA (19%)", value: iva      },
+              ].map(({ label, value }) => (
+                <Box key={label} sx={{ display: "flex", justifyContent: "space-between", mb: 0.8, color: "text.secondary" }}>
+                  <span>{label}</span><span>{fmt(value)}</span>
+                </Box>
+              ))}
+              <Box sx={{ display: "flex", justifyContent: "space-between", borderTop: "2px solid #e5e7eb", pt: 1, mt: 0.5, fontWeight: 700, fontSize: "0.95rem", color: "primary.main" }}>
+                <span>TOTAL</span><span>{fmt(total)}</span>
+              </Box>
+            </Box>
+          </Box>
+
+        </BaseFormSection>
+      </Box>
+
+      {/* Acciones */}
+      <BaseFormActions
+        onCancel={onCancel}
+        onSave={handleSubmit}
+        onEdit={onEdit}
+        showSave={!isView}
+        showEdit={isView}
+        saveLabel={saving ? "Guardando…" : isCreate ? "Crear Compra" : "Guardar Cambios"}
+        disabled={saving}
       />
-    </>
+
+    </BaseFormLayout>
   );
 }
