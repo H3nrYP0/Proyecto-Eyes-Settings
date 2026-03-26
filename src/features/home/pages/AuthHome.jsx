@@ -1,58 +1,49 @@
-import { useNavigate } from "react-router-dom";
-import "/src/shared/styles/features/home/Home.css";
+// =============================================================
+// AuthHome.jsx
+// RESPONSABILIDAD: Contenedor visual de la página de inicio.
+//   - Usa el Navbar compartido con activePage="inicio"
+//   - Ensambla las secciones (Hero, Features, Services, etc.)
+//   - NO contiene lógica de negocio ni permisos
+//   - Todo handler y permiso llega como prop desde LandingPage
+// =============================================================
 
-const AuthHome = ({ user, setUser }) => {
-  const navigate = useNavigate();
+import Navbar from "./Navbar";
+import HeroSection from "../components/HeroSection";
+import FeaturesSection from "../components/FeaturesSection";
+import ServicesSection from "../components/ServicesSection";
+import ContactSection from "../components/ContactSection";
+import FooterCompact from "../components/FooterCompact";
+import "/src/shared/styles/features/home/LandingPage.css";
 
-  const handleLoginClick = () => {
-    navigate("/login");
-  };
+const AuthHome = ({
+  user,
+  puedeVerDashboard,
+  onNavigation,
+  onLogin,
+  onLogout,
+  onDashboard,
+}) => (
+  <div className="landing-page">
 
-  const handleLogout = () => {
-    setUser(null);
-  };
+    <Navbar
+      user={user}
+      activePage="inicio"
+      puedeVerDashboard={puedeVerDashboard}
+      onNavigation={onNavigation}
+      onLogin={onLogin}
+      onLogout={onLogout}
+      onDashboard={onDashboard}
+    />
 
-  const handleDashboardAccess = () => {
-    if (user) navigate("/admin/dashboard");
-    else navigate("/login");
-  };
-
-  return (
-    <div className="home">
-      <nav className="home-navbar">
-        <div className="navbar-brand">
-          <h1>Visual Outlet</h1>
-          <p>Sistema de Gestión para Ópticas</p>
-        </div>
-        <div className="nav-buttons">
-          {user ? (
-            <>
-              <span className="user-welcome">Hola, {user?.name}</span>
-              <button className="btn btn-danger" onClick={handleLogout}>
-                Cerrar sesión
-              </button>
-            </>
-          ) : (
-            <button className="btn btn-primary" onClick={handleLoginClick}>
-              Iniciar sesión
-            </button>
-          )}
-        </div>
-      </nav>
-
-      <main className="home-content">
-        <div className="hero-section">
-          <h2>Visual Outlet</h2>
-          <p>Sistema de gestión administrativa para ópticas</p>
-          <div className="hero-actions">
-            <button className="btn btn-primary btn-large" onClick={handleDashboardAccess}>
-              Acceder al Panel Admin
-            </button>
-          </div>
-        </div>
-      </main>
+    <div className="landing-content">
+      <HeroSection user={user} onGetStarted={onDashboard} />
+      <FeaturesSection />
+      <ServicesSection />
+      <ContactSection />
     </div>
-  );
-};
+
+    <FooterCompact />
+  </div>
+);
 
 export default AuthHome;
