@@ -1,6 +1,6 @@
 // src/features/compras/pages/productos/components/StockCell.jsx
 import { Chip, Box } from "@mui/material";
-import "../Products.css";
+import "../styles/Productos.css";
 
 export default function StockCell({ item }) {
   const isLowStock = item.stockActual <= item.stockMinimo;

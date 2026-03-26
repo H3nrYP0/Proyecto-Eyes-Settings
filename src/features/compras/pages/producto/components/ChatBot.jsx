@@ -1,4 +1,4 @@
-// src/features/compras/pages/productos/components/ChatBotPresentational.jsx
+// src/features/compras/pages/producto/components/ChatBot.jsx
 import { 
   Dialog, 
   DialogTitle, 
@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 
-export default function ChatBotPresentational({
+export default function ChatBot({
   open,
   step,
   onClose,
@@ -28,7 +28,7 @@ export default function ChatBotPresentational({
         {step === 1 && (
           <Box sx={{ py: 2 }}>
             <Typography variant="body1" gutterBottom>
-              🤖 ¿Este producto ya existe físicamente en tu inventario?
+              ¿Este producto ya existe físicamente en tu inventario?
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
               (Ej: Es un producto que ya tienes en la tienda, comprado anteriormente)
@@ -39,7 +39,7 @@ export default function ChatBotPresentational({
         {step === 2 && (
           <Box sx={{ py: 2 }}>
             <Typography variant="body1" gutterBottom>
-              ✅ Serás redirigido al formulario completo
+              Serás redirigido al formulario completo
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
               Podrás ingresar todos los datos del producto incluyendo stock, precios de compra y venta.

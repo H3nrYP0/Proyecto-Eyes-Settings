@@ -1,0 +1,91 @@
+/* src/features/compras/pages/producto/styles/ImageDropzone.css */
+.dropzone-area {
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+  min-height: 100px;
+  margin-bottom: 2px;
+}
+
+.dropzone-area.drag-active {
+  border-color: #1976d2 !important;
+  background-color: rgba(25, 118, 210, 0.04);
+}
+
+.dropzone-area:not(.drag-active):hover {
+  border-color: #1976d2 !important;
+}
+
+.uploading-indicator {
+  text-align: center;
+  margin-top: 18px;
+  padding: 16px;
+}
+
+.preview-grid {
+  margin-top: 24px;
+}
+
+.preview-item {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  max-height: 160px;
+}
+
+.preview-image-container {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 140px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.remove-button {
+  position: absolute !important;
+  top: 4px !important;
+  right: 4px !important;
+  background-color: rgba(211, 47, 47, 0.9) !important;
+  color: white !important;
+  width: 28px !important;
+  height: 28px !important;
+}
+
+.remove-button:hover {
+  background-color: #b71c1c !important;
+}
+
+@media (max-width: 1200px) {
+  .preview-item {
+    min-height: 100px;
+    max-height: 140px;
+  }
+  
+  .preview-image {
+    max-height: 120px;
+  }
+}
+
+@media (max-width: 900px) {
+  .preview-item {
+    min-height: 80px;
+    max-height: 120px;
+  }
+  
+  .preview-image {
+    max-height: 100px;
+  }
+}

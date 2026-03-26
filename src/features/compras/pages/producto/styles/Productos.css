@@ -1,8 +1,4 @@
-/* src/features/compras/pages/productos/Products.css */
-
-/* Solo estilos específicos de productos que NO existen en los componentes globales */
-
-/* Celda de stock (personalizada) */
+/* src/features/compras/pages/producto/styles/Productos.css */
 .stock-cell {
   display: flex;
   align-items: center;
@@ -22,7 +18,6 @@
   background-color: #f57c00 !important;
 }
 
-/* Estado vacío (personalizado) */
 .empty-state {
   text-align: center;
   margin-top: 24px;
@@ -40,7 +35,6 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Mensaje de error (personalizado) */
 .error-box {
   padding: 16px;
   background-color: #ffebee;
@@ -49,7 +43,6 @@
   margin-bottom: 16px;
 }
 
-/* Media queries específicas si son necesarias */
 @media (max-width: 768px) {
   .stock-cell {
     flex-direction: column;
