@@ -83,6 +83,7 @@ import EditarUsuario from "../../../features/seguridad/pages/usuario/EditarUsuar
 import DetalleUsuario from "../../../features/seguridad/pages/usuario/DetalleUsuario";
 
 import Configuracion from "../../../features/configuracion/Configuration";
+import authService from "../../../features/auth/Services/authService";
 
 const drawerWidth = 240;
 
@@ -104,7 +105,7 @@ export default function OpticaDashboardLayout({ user, setUser }) {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
+    authService.logout();              
     setUser(null);
     navigate("/login", { replace: true });
   };
