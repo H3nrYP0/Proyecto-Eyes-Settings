@@ -22,16 +22,17 @@ export default defineConfig({
       '@security': path.resolve(__dirname, './src/app/features/security'),
       '@seguridad': path.resolve(__dirname, './src/app/features/seguridad'),
       
-      // ========== OTROS MÓDULOS ==========
-      '@roles': path.resolve(__dirname, './src/app/roles'),
-      '@shared': path.resolve(__dirname, './src/shared'),
-      
       // ========== EJEMPLO PARA AGREGAR MÁS ALIAS ==========
       // Copia esta línea, cambia @nombre y la ruta:
       // '@nombre': path.resolve(__dirname, './src/ruta/hacia/la/carpeta'),
       //
       // Ejemplo: si quisieras agregar un alias para components:
       // '@components': path.resolve(__dirname, './src/app/components'),
+
+      
     }
   }
 })
+
+
+

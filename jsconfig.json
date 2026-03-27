@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      // ========== FEATURES ==========
+      "@auth/*": ["./src/app/features/auth/*"],
+      "@compras/*": ["./src/app/features/compras/*"],
+      "@configuracion/*": ["./src/app/features/configuración/*"],
+      "@dashboard/*": ["./src/app/features/dashboard/*"],
+      "@home/*": ["./src/app/features/home/*"],
+      "@purchases/*": ["./src/app/features/purchases/*"],
+      "@sales/*": ["./src/app/features/sales/*"],
+      "@security/*": ["./src/app/features/security/*"],
+      "@seguridad/*": ["./src/app/features/seguridad/*"],
+      
+      // ========== EJEMPLO PARA AGREGAR MÁS FEATURES ==========
+      // "@nombreFeature/*": ["./src/app/features/nombreFeature/*"],
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
