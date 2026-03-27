@@ -12,15 +12,25 @@ export default defineConfig({
   resolve: {
     alias: {
       // ========== FEATURES ==========
-      '@auth': path.resolve(__dirname, './src/app/features/auth'),
-      '@compras': path.resolve(__dirname, './src/app/features/compras'),
-      '@configuracion': path.resolve(__dirname, './src/app/features/configuración'),
-      '@dashboard': path.resolve(__dirname, './src/app/features/dashboard'),
-      '@home': path.resolve(__dirname, './src/app/features/home'),
-      '@purchases': path.resolve(__dirname, './src/app/features/purchases'),
-      '@sales': path.resolve(__dirname, './src/app/features/sales'),
-      '@security': path.resolve(__dirname, './src/app/features/security'),
-      '@seguridad': path.resolve(__dirname, './src/app/features/seguridad'),
+      '@auth': path.resolve(__dirname, './src/features/auth'),
+      '@compras': path.resolve(__dirname, './src/features/compras'),
+      '@configuracion': path.resolve(__dirname, './src/features/configuración'),
+      '@dashboard': path.resolve(__dirname, './src/features/dashboard'),
+      '@home': path.resolve(__dirname, './src/features/home'),
+      '@purchases': path.resolve(__dirname, './src/features/purchases'),
+      '@sales': path.resolve(__dirname, './src/features/sales'),
+      '@security': path.resolve(__dirname, './src/features/security'),
+      '@seguridad': path.resolve(__dirname, './src/features/seguridad'),
+      '@servicios': path.resolve(__dirname, './src/features/servicios'),
+
+      // ========== LIB ==========
+      '@lib': path.resolve(__dirname, './src/lib'),
+
+      // ========== SHARED ==========
+      '@shared': path.resolve(__dirname, './src/shared'),
+      
+      // ========== COMPONENTS ==========
+      '@components': path.resolve(__dirname, './src/components'),
       
       // ========== EJEMPLO PARA AGREGAR MÁS ALIAS ==========
       // Copia esta línea, cambia @nombre y la ruta:
