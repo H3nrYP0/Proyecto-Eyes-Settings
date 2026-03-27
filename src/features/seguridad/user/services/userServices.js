@@ -1,110 +1,82 @@
-import axios from "../axios";
+import api from '@lib/axios';
 
-export const UserData = {
-
-  // ===============================
-  // OBTENER TODOS
-  // ===============================
-  async getAllUsers() {
-    try {
-      const response = await axios.get("/usuarios");
-      return response.data;
-    } catch (error) {
-      console.error("Error al obtener usuarios:", error);
-      throw error;
-    }
-  },
-
-  // ===============================
-  // OBTENER POR ID
-  // ===============================
-  async getUserById(id) {
-    try {
-      const response = await axios.get(`/usuarios/${id}`);
-      return response.data;
-    } catch (error) {
-      console.error("Error al obtener usuario:", error);
-      throw error;
-    }
-  },
-
-  // ===============================
-  // CREAR
-  // ===============================
-  async createUser(data) {
-    try {
-      const response = await axios.post("/usuarios", {
-        nombre: data.nombre,
-        correo: data.correo,
-        contrasenia: data.contrasenia,
-        rol_id: data.rol_id,
-        estado: true
-      });
-
-      return response.data;
-    } catch (error) {
-      console.error("Error al crear usuario:", error);
-      throw error;
-    }
-  },
-
-  // ===============================
-  // ACTUALIZAR
-  // ===============================
-  async updateUser(id, data) {
-    try {
-      const response = await axios.put(`/usuarios/${id}`, {
-        nombre: data.nombre,
-        correo: data.correo,
-        contrasenia: data.contrasenia,
-        rol_id: data.rol_id
-      });
-
-      return response.data;
-    } catch (error) {
-      console.error("Error al actualizar usuario:", error);
-      throw error;
-    }
-  },
-
-  // ===============================
-  // ELIMINAR
-  // ===============================
-  async deleteUser(id) {
-    try {
-      await axios.delete(`/usuarios/${id}`);
-      return true;
-    } catch (error) {
-      console.error("Error al eliminar usuario:", error);
-      throw error;
-    }
-  },
-
-  // ===============================
-  // TOGGLE ESTADO
-  // ===============================
-  async toggleUserEstado(usuario, nuevoEstado) {
+// Obtiene todos los usuarios
+const getAllUsers = async () => {
   try {
-    console.log("usuario recibido:", usuario);
-    console.log("nuevoEstado recibido:", nuevoEstado);
-    
-    const payload = {
-      nombre: usuario.nombre,
-      correo: usuario.correo,
-      contrasenia: usuario.contrasenia,
-      rol_id: usuario.rol_id,
-      estado: nuevoEstado === "activo"
-    };
-    
-    console.log("payload enviado:", payload);
-    
-    const response = await axios.put(`/usuarios/${usuario.id}`, payload);
-    console.log("respuesta backend:", response.data);
-    return response.data;
+    const res = await api.get('/usuarios');
+    return res.data;
   } catch (error) {
-    console.error("Error al cambiar estado:", error);
+    console.error('Error en getAllUsers:', error);
     throw error;
   }
-}
+};
 
+// Obtiene un usuario por ID
+const getUserById = async (id) => {
+  try {
+    const res = await api.get(`/usuarios/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error(`Error en getUserById(${id}):`, error);
+    throw error;
+  }
+};
+
+// Crea un nuevo usuario
+const createUser = async (data) => {
+  try {
+    const res = await api.post('/usuarios', data);
+    return res.data;
+  } catch (error) {
+    console.error('Error en createUser:', error);
+    throw error;
+  }
+};
+
+// Actualiza un usuario existente
+const updateUser = async (id, data) => {
+  try {
+    const res = await api.put(`/usuarios/${id}`, data);
+    return res.data;
+  } catch (error) {
+    console.error(`Error en updateUser(${id}):`, error);
+    throw error;
+  }
+};
+
+// Elimina un usuario
+const deleteUser = async (id) => {
+  try {
+    const res = await api.delete(`/usuarios/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error(`Error en deleteUser(${id}):`, error);
+    throw error;
+  }
+};
+
+// Cambia el estado del usuario manteniendo sus datos actuales
+const toggleUserEstado = async (usuario, nuevoEstado) => {
+  try {
+    const res = await api.put(`/usuarios/${usuario.id}`, {
+      nombre:      usuario.nombre,
+      correo:      usuario.correo,
+      contrasenia: usuario.contrasenia,
+      rol_id:      usuario.rol_id,
+      estado:      nuevoEstado === 'activo',
+    });
+    return res.data;
+  } catch (error) {
+    console.error(`Error en toggleUserEstado(${usuario.id}):`, error);
+    throw error;
+  }
+};
+
+export {
+  getAllUsers,
+  getUserById,
+  createUser,
+  updateUser,
+  deleteUser,
+  toggleUserEstado,
 };
