@@ -3,7 +3,7 @@ import {
   PointOfSale as SalesIcon,
   ShoppingCart as PurchasesIcon,
   Build as ServicesIcon,
-  People as UsersIcon,
+  People as userIcon,
   Security as SecurityIcon,
   CalendarToday as CalendarIcon,
   AccessTime as AccessTimeIcon,
@@ -31,7 +31,7 @@ const iconMappings = {
 
   // ── Items del menú ──
   'home-icon':        { component: HomeIcon,              size: 15, opacity: 0.8 },
-  'users-icon':       { component: UsersIcon,             size: 15, opacity: 0.8 },
+  'user-icon':       { component: userIcon,             size: 15, opacity: 0.8 },
   'orders-icon':      { component: ReceiptIcon,           size: 15, opacity: 0.8 },
   'payment-icon':     { component: PaymentIcon,           size: 15, opacity: 0.8 },
   'purchase-icon':    { component: PurchasesIcon,         size: 15, opacity: 0.8 },
@@ -42,7 +42,7 @@ const iconMappings = {
   'services-icon':    { component: MedicalIcon,           size: 15, opacity: 0.8 },
   'appointments-icon':{ component: AppointmentIcon,       size: 15, opacity: 0.8 },
   'calendar-icon':    { component: CalendarIcon,          size: 15, opacity: 0.8 },
-  'employees-icon':   { component: UsersIcon,             size: 15, opacity: 0.8 },
+  'employees-icon':   { component: userIcon,             size: 15, opacity: 0.8 },
   'time-icon':        { component: AccessTimeIcon,        size: 15, opacity: 0.8 },
   'campaigns-icon':   { component: CampaignIcon,          size: 15, opacity: 0.8 },
   'roles-icon':       { component: AdminPanelSettingsIcon,size: 15, opacity: 0.8 },

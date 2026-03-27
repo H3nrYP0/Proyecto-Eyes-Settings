@@ -10,7 +10,7 @@ export const normalizeUser = (u) => ({
 });
 
 // Normaliza un array de usuarios
-export const normalizeUsers = (arr) => arr.map(normalizeUser);
+export const normalizeuser = (arr) => arr.map(normalizeUser);
 
 // Normaliza el initialData para el formulario
 export const normalizeUserInitialData = (data) => ({

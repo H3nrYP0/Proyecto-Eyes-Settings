@@ -1,5 +1,5 @@
 // Filtra usuarios por búsqueda de texto y estado
-export const filterUsers = (usuarios, { search = '', estado = '' }) =>
+export const filteruser = (usuarios, { search = '', estado = '' }) =>
   usuarios.filter((user) => {
     const matchSearch =
       user.nombre?.toLowerCase().includes(search.toLowerCase()) ||

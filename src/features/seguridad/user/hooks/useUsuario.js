@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 
-import { getUserById }             from '@security/users/services/userServices';
-import { getAllRoles }              from '@security/roles/services/rolServices';
-import { normalizeUserInitialData } from '@security/users/utils';
+import { getUserById, getAllRoles, normalizeUserInitialData } from '@seguridad';
 
 // Carga el usuario y los roles disponibles por ID
 export const useUsuario = (id) => {

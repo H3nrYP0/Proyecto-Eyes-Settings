@@ -3,18 +3,24 @@
     "baseUrl": ".",
     "paths": {
       // ========== FEATURES ==========
-      "@auth/*": ["./src/app/features/auth/*"],
-      "@compras/*": ["./src/app/features/compras/*"],
-      "@configuracion/*": ["./src/app/features/configuración/*"],
-      "@dashboard/*": ["./src/app/features/dashboard/*"],
-      "@home/*": ["./src/app/features/home/*"],
-      "@purchases/*": ["./src/app/features/purchases/*"],
-      "@sales/*": ["./src/app/features/sales/*"],
-      "@security/*": ["./src/app/features/security/*"],
-      "@seguridad/*": ["./src/app/features/seguridad/*"],
-      
-      // ========== EJEMPLO PARA AGREGAR MÁS FEATURES ==========
-      // "@nombreFeature/*": ["./src/app/features/nombreFeature/*"],
+      "@auth/*": ["./src/features/auth/*"],
+      "@compras/*": ["./src/features/compras/*"],
+      "@configuracion/*": ["./src/features/configuración/*"],
+      "@dashboard/*": ["./src/features/dashboard/*"],
+      "@home/*": ["./src/features/home/*"],
+      "@purchases/*": ["./src/features/purchases/*"],
+      "@sales/*": ["./src/features/sales/*"],
+      "@seguridad/*": ["./src/features/seguridad/*"],
+      "@servicios/*": ["./src/features/servicios/*"],
+
+      // ========== LIB ==========
+      "@lib/*": ["./src/lib/*"],
+
+      // ========== SHARED ==========
+      "@shared/*": ["./src/shared/*"],
+
+      // ========== COMPONENTS ==========
+      "@components/*": ["./src/components/*"],
     }
   },
   "include": ["src/**/*"],

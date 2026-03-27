@@ -9,6 +9,11 @@ export default defineConfig({
   server: {
     port: 5173
   },
+  esbuild: {
+    loader: 'jsx',
+    include: /src\/.*\.jsx?$/,
+    exclude: []
+  },
   resolve: {
     alias: {
       // ========== FEATURES ==========
@@ -20,7 +25,6 @@ export default defineConfig({
       '@home': path.resolve(__dirname, './src/features/home'),
       '@purchases': path.resolve(__dirname, './src/features/purchases'),
       '@sales': path.resolve(__dirname, './src/features/sales'),
-      '@security': path.resolve(__dirname, './src/features/security'),
       '@seguridad': path.resolve(__dirname, './src/features/seguridad'),
       '@servicios': path.resolve(__dirname, './src/features/servicios'),
 

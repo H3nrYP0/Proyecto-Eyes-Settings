@@ -19,7 +19,7 @@ export const PERMISSIONS = {
 };
 
 // Usuarios de prueba predefinidos
-export const TEST_USERS = {
+export const TEST_user = {
   SUPER_ADMIN: {
     email: "superadmin@visualoutlet.com",
     password: "SuperAdmin123!",
@@ -52,14 +52,14 @@ export const TEST_USERS = {
 
 // Verificar si un email pertenece a un usuario de prueba
 export const isTestUser = (email) => {
-  return Object.values(TEST_USERS).some(user => 
+  return Object.values(TEST_user).some(user => 
     user.email.toLowerCase() === email.toLowerCase()
   );
 };
 
 // Obtener usuario de prueba por email
 export const getTestUser = (email) => {
-  return Object.values(TEST_USERS).find(user => 
+  return Object.values(TEST_user).find(user => 
     user.email.toLowerCase() === email.toLowerCase()
   );
 };

@@ -6,9 +6,7 @@ import CrudTable  from '@shared/components/crud/CrudTable';
 import Modal      from '@shared/components/ui/Modal';
 import Loading    from '@shared/components/ui/Loading';
 
-import { getAllRoles, deleteRol, updateEstadoRol } from '../services/rolServices';
-import { normalizarRoles }                         from '../utils';
-import { filtrarRoles }                            from '../utils';
+import { getAllRoles, deleteRol, updateEstadoRol, normalizarRoles, filtrarRoles } from '@seguridad';
 
 // Opciones para el filtro de estado
 const ESTADO_OPTIONS = [

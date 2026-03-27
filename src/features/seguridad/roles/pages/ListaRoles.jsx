@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 
-import RolForm    from '@security/roles/components/RolForm';
-import { useRol } from '@security/roles/hooks/useRol';
+import RolForm    from '@seguridad/roles/components/RolForm';
+import { useRol } from '@seguridad/roles/hooks/useRol';
 
 export default function DetalleRol() {
   const { id } = useParams();
