@@ -1,47 +1,52 @@
-// =============================================================
 // ServicesPage.jsx
-// RESPONSABILIDAD: Página de servicios.
-//   - Usa el Navbar compartido con activePage="servicios"
-//   - Maneja su propio estado de UI (activeCards, appointmentData)
-//   - Calcula permisos con hasPermiso desde el archivo central
-// =============================================================
-
-import { useState } from "react";
+// Página de servicios — Las cards se cargan desde el backend real
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import FooterCompact from "../components/FooterCompact";
+import ServiceCard from "../components/Services/ServiceCard";
+import LoadingSpinner from "../components/Shared/LoadingSpinner";
 import { hasPermiso } from "../utils/permissions";
+import { getServiciosActivos } from "../components/Services/serviciosLandingData";
 import "../../../shared/styles/features/home/ServicesPage.css";
 
 const ServicesPage = ({ user, setUser }) => {
-  const navigate = useNavigate();
-
-  const [activeCards, setActiveCards] = useState({ consulta: false, campanas: false });
+  const navigate  = useNavigate();
+  const [servicios, setServicios]           = useState([]);
+  const [loadingServicios, setLoadingServicios] = useState(true);
   const [appointmentData, setAppointmentData] = useState({
-    name: "", email: "", phone: "", service: "", date: "", time: "", notes: ""
+    name: "", email: "", phone: "", service: "", date: "", time: "", notes: "",
   });
 
-  // --- Permisos ---
   const puedeVerDashboard = hasPermiso(user, "dashboard");
 
-  // --- Handlers ---
-  const handleNavigation = (path) => { 
-    navigate(path); 
-    window.scrollTo(0, 0); 
-  };
-  const handleLogin = () => navigate("/login");
-  const handleLogout = () => { 
-    setUser(null); 
-    navigate("/"); 
-  };
-  const handleDashboard = () => navigate(user ? "/admin/dashboard" : "/login");
+  // ── Cargar servicios desde la API ──────────────────────────────
+  useEffect(() => {
+    let mounted = true;
+    const fetchServicios = async () => {
+      try {
+        const data = await getServiciosActivos();
+        if (mounted) setServicios(data);
+      } catch (err) {
+        console.error("Error cargando servicios:", err);
+      } finally {
+        if (mounted) setLoadingServicios(false);
+      }
+    };
+    fetchServicios();
+    return () => { mounted = false; };
+  }, []);
 
-  const handleCardMouseEnter = (id) => setActiveCards((prev) => ({ ...prev, [id]: true }));
-  const handleCardMouseLeave = (id) => setActiveCards((prev) => ({ ...prev, [id]: false }));
+  // ── Handlers de navegación ─────────────────────────────────────
+  const handleNavigation = (path) => { navigate(path); window.scrollTo(0, 0); };
+  const handleLogin      = () => navigate("/login");
+  const handleLogout     = () => { setUser(null); navigate("/"); };
+  const handleDashboard  = () => navigate(user ? "/admin/dashboard" : "/login");
 
+  // ── Handlers de formulario ─────────────────────────────────────
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setAppointmentData((prev) => ({ ...prev, [name]: value }));
+    setAppointmentData(p => ({ ...p, [name]: value }));
   };
 
   const handleAppointmentSubmit = (e) => {
@@ -50,9 +55,13 @@ const ServicesPage = ({ user, setUser }) => {
     setAppointmentData({ name: "", email: "", phone: "", service: "", date: "", time: "", notes: "" });
   };
 
-  const formatCurrency = (amount) => `$${amount.toLocaleString()}`;
+  // ── Agendar desde ServiceCard ──────────────────────────────────
+  const handleAgendar = (servicio) => {
+    setAppointmentData(p => ({ ...p, service: servicio.nombre }));
+    document.getElementById("appointment-form")?.scrollIntoView({ behavior: "smooth" });
+  };
 
-  // Próximos 15 días laborables
+  // ── Próximos 15 días laborables ────────────────────────────────
   const getNextDays = () => {
     const days = [];
     const today = new Date();
@@ -62,7 +71,9 @@ const ServicesPage = ({ user, setUser }) => {
       if (date.getDay() !== 0 && date.getDay() !== 6) {
         days.push({
           date: date.toISOString().split("T")[0],
-          formatted: date.toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" }),
+          formatted: date.toLocaleDateString("es-ES", {
+            weekday: "short", day: "numeric", month: "short",
+          }),
         });
       }
     }
@@ -72,23 +83,8 @@ const ServicesPage = ({ user, setUser }) => {
   const nextDays = getNextDays();
   const availableTimes = ["8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM"];
 
-  const services = [
-    {
-      id: "consulta", title: "Consulta Optometra", icon: "👁️", color: "blue", price: 50000, duration: "30-45 min",
-      frontContent: { description: "Evaluación visual profesional", highlight: "Tecnología avanzada" },
-      backContent: { description: "Evaluación completa con equipos modernos", features: ["Refracción digital", "Examen de agudeza visual"] }
-    },
-    {
-      id: "campanas", title: "Campañas de SALUD", icon: "🩺", color: "green", price: 80000, duration: "Por proyecto",
-      frontContent: { description: "Programas preventivos para grupos", highlight: "Impacto social" },
-      backContent: { description: "Programas de prevención visual organizacional", features: ["Tamizaje grupal", "Charlas educativas"] }
-    }
-  ];
-
   return (
     <div className="services-page">
-
-      {/* Navbar compartido — active en "servicios" */}
       <Navbar
         user={user}
         activePage="servicios"
@@ -103,7 +99,9 @@ const ServicesPage = ({ user, setUser }) => {
       <section className="services-hero">
         <div className="services-container">
           <div className="hero-content">
-            <h1 className="hero-title">Nuestros <span className="glowing-text">Servicios</span></h1>
+            <h1 className="hero-title">
+              Nuestros <span className="glowing-text">Servicios</span>
+            </h1>
             <p className="hero-description">
               Servicios optométricos profesionales para el cuidado integral de tu salud visual
             </p>
@@ -118,81 +116,65 @@ const ServicesPage = ({ user, setUser }) => {
         </div>
         <div className="floating-particles">
           {[...Array(15)].map((_, i) => (
-            <div key={i} className="particle" style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${5 + Math.random() * 10}s`
-            }} />
+            <div
+              key={i}
+              className="particle"
+              style={{
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 5}s`,
+                animationDuration: `${5 + Math.random() * 10}s`,
+              }}
+            />
           ))}
         </div>
       </section>
 
-      {/* Servicios */}
-      <section className="services-section">
+      {/* Cards de servicios — datos reales del backend */}
+      <section className="services-section" style={{ padding: '4rem 0' }}>
         <div className="services-container">
-          <div className="section-header">
-            <h2 className="section-title">Servicios <span className="blue-gradient-text">Especializados</span></h2>
+          <div className="section-header" style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+            <h2 className="section-title">
+              Servicios <span className="blue-gradient-text">Especializados</span>
+            </h2>
             <p className="section-description">Atención personalizada y tecnología de vanguardia</p>
           </div>
 
-          <div className="services-grid-custom">
-            {services.map((service) => (
-              <div
-                key={service.id}
-                className={`service-card-custom ${service.color}`}
-                onMouseEnter={() => handleCardMouseEnter(service.id)}
-                onMouseLeave={() => handleCardMouseLeave(service.id)}
-              >
-                <div className="card-layer front-layer">
-                  <div className="front-content">
-                    <div className="icon-circle">{service.icon}</div>
-                    <h3>{service.title}</h3>
-                    <p className="description">{service.frontContent.description}</p>
-                    <div className="highlight">{service.frontContent.highlight}</div>
-                    <div className="service-meta-custom">
-                      <span className="service-duration-custom">{service.duration}</span>
-                      <span className="service-price-custom">{formatCurrency(service.price)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className={`card-layer back-layer ${activeCards[service.id] ? "active" : ""}`}>
-                  <div className="back-content">
-                    <div className="back-icon">{service.icon}</div>
-                    <h3 className="back-title">{service.title}</h3>
-                    <p className="back-description">{service.backContent.description}</p>
-                    <div className="features-grid">
-                      {service.backContent.features.map((feature, i) => (
-                        <div key={i} className="feature-item">
-                          <span className="feature-icon">✓</span>
-                          <span className="feature-text">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <button
-                      className="action-btn"
-                      onClick={() => {
-                        setAppointmentData((prev) => ({ ...prev, service: service.title }));
-                        document.getElementById("appointment-form")?.scrollIntoView({ behavior: "smooth" });
-                      }}
-                    >
-                      <span className="btn-icon">📅</span>
-                      <span>Agendar este servicio</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          {loadingServicios ? (
+            <LoadingSpinner mensaje="Cargando servicios..." />
+          ) : servicios.length === 0 ? (
+            <p style={{ textAlign: 'center', color: '#64748b' }}>
+              No hay servicios disponibles en este momento.
+            </p>
+          ) : (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+              gap: '1.5rem',
+              maxWidth: '900px',
+              margin: '0 auto',
+            }}>
+              {servicios.map(servicio => (
+                <ServiceCard
+                  key={servicio.id}
+                  servicio={servicio}
+                  onAgendar={handleAgendar}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
       {/* Formulario de cita */}
       <section id="appointment-form" className="appointment-section">
         <div className="services-container">
-          <div className="section-header">
-            <h2 className="section-title"><span className="blue-gradient-text">Agenda tu Cita</span></h2>
-            <p className="section-description">Selecciona fecha y hora. Te confirmaremos por WhatsApp.</p>
+          <div className="section-header" style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <h2 className="section-title">
+              <span className="blue-gradient-text">Agenda tu Cita</span>
+            </h2>
+            <p className="section-description">
+              Selecciona fecha y hora. Te confirmaremos por WhatsApp.
+            </p>
           </div>
 
           <div className="appointment-container">
@@ -208,7 +190,6 @@ const ServicesPage = ({ user, setUser }) => {
                     <input type="email" id="email" name="email" value={appointmentData.email} onChange={handleInputChange} placeholder="tu@email.com" required />
                   </div>
                 </div>
-
                 <div className="form-row">
                   <div className="form-group">
                     <label htmlFor="phone">Teléfono / WhatsApp *</label>
@@ -218,8 +199,9 @@ const ServicesPage = ({ user, setUser }) => {
                     <label htmlFor="service">Servicio *</label>
                     <select id="service" name="service" value={appointmentData.service} onChange={handleInputChange} required>
                       <option value="">Selecciona un servicio</option>
-                      <option value="Consulta Optometra">Consulta Optometra</option>
-                      <option value="Campañas de SALUD">Campañas de SALUD</option>
+                      {servicios.map(s => (
+                        <option key={s.id} value={s.nombre}>{s.nombre}</option>
+                      ))}
                       <option value="Otro servicio">Otro servicio</option>
                     </select>
                   </div>
@@ -232,7 +214,7 @@ const ServicesPage = ({ user, setUser }) => {
                       <button
                         key={i} type="button"
                         className={`calendar-day ${appointmentData.date === day.date ? "selected" : ""}`}
-                        onClick={() => setAppointmentData((prev) => ({ ...prev, date: day.date }))}
+                        onClick={() => setAppointmentData(p => ({ ...p, date: day.date }))}
                       >
                         <span className="day-week">{day.formatted.split(" ")[0]}</span>
                         <span className="day-date">{day.formatted.split(" ")[1]}</span>
@@ -249,7 +231,7 @@ const ServicesPage = ({ user, setUser }) => {
                       <button
                         key={i} type="button"
                         className={`time-slot ${appointmentData.time === time ? "selected" : ""}`}
-                        onClick={() => setAppointmentData((prev) => ({ ...prev, time }))}
+                        onClick={() => setAppointmentData(p => ({ ...p, time }))}
                       >
                         {time}
                       </button>
