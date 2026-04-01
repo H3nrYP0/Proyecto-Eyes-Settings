@@ -1,27 +1,27 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getPedidoById, updatePedido } from "../../../../lib/data/pedidosData";
+import { PedidosData } from "../../../../lib/data/pedidosData";
 import PedidosForm from "../../components/pedidos/PedidosForm";
 
 export default function EditarPedido() {
-  const navigate = useNavigate();
-  const { id } = useParams();
-
+  const navigate   = useNavigate();
+  const { id }     = useParams();
   const [pedido, setPedido] = useState(null);
 
   useEffect(() => {
-    const data = getPedidoById(Number(id));
-    setPedido(data);
+    PedidosData.getPedidoById(Number(id))
+      .then(setPedido)
+      .catch((err) => {
+        console.error("Error al cargar pedido:", err);
+        navigate(-1);
+      });
   }, [id]);
 
-  const handleUpdate = (data) => {
-    updatePedido(Number(id), data);
+  const handleUpdate = () => {
     navigate(-1);
   };
 
-  if (!pedido) {
-    return <div>Cargando...</div>;
-  }
+  if (!pedido) return <div style={{ padding: 40, color: "#9ca3af" }}>Cargando…</div>;
 
   return (
     <PedidosForm
