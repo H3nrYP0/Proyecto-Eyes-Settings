@@ -32,6 +32,7 @@ export function useCompraForm({ mode = "create", initialData = null, onSubmitSuc
           getProveedoresActivos(),
           getAllProductos(),
         ]);
+        
         setProveedores(proveedoresData);
         setCatalogo(
           productosData.map((p) => ({

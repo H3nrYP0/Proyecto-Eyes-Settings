@@ -9,11 +9,16 @@ export async function getAllProveedores() {
 }
 
 // ============================
-// Obtener proveedores activos
+// Obtener proveedores activos (para selects)
 // ============================
 export async function getProveedoresActivos() {
   const proveedores = await getAllProveedores();
-  return proveedores.filter(p => p.estado === true);
+  return proveedores
+    .filter(p => p.estado === true)
+    .map(p => ({
+      id: p.id,
+      razonSocial: p.razon_social_o_nombre || p.razonSocial || p.nombre || "Sin nombre",
+    }));
 }
 
 // ============================
