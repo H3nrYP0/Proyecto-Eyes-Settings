@@ -14,6 +14,7 @@ export const normalizeuser = (arr) => arr.map(normalizeUser);
 
 // Normaliza el initialData para el formulario
 export const normalizeUserInitialData = (data) => ({
+  id:              data.id,
   nombre:          data.nombre          ?? '',
   email:           data.correo          ?? '',
   telefono:        data.telefono        ?? '',
