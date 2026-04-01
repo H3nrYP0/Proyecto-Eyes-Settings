@@ -4,12 +4,12 @@ import RolForm    from '@seguridad/roles/components/RolForm';
 import { useRol } from '@seguridad/roles/hooks/useRol';
 
 export default function DetalleRol() {
-  const { id } = useParams();
+  const { id }   = useParams();
   const navigate = useNavigate();
   const { rol, permisosDisponibles, loading } = useRol(id);
 
-  if (loading) return null;
-
+  if (loading || !rol) return null; 
+  
   return (
     <RolForm
       mode="view"

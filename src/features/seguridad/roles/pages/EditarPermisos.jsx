@@ -1,24 +1,24 @@
 import { useNavigate, useParams } from 'react-router-dom';
 
-import RolForm         from '@seguridad/roles/components/RolForm';
-import { useRol }      from '@seguridad/roles/hooks/useRol';
-import { updateRol }   from '@seguridad/roles/services/rolServices';
+import RolForm       from '@seguridad/roles/components/RolForm';
+import { useRol }    from '@seguridad/roles/hooks/useRol';
+import { updateRol, prepararPayloadRol } from '@seguridad';
 
 export default function EditarPermisos() {
-  const { id } = useParams();
-  const navigate = useNavigate();
+  const { id }     = useParams();
+  const navigate   = useNavigate();
   const { rol, permisosDisponibles, loading } = useRol(id);
 
   const handleUpdate = async (data) => {
     try {
-      await updateRol(id, data);
+      await updateRol(id, prepararPayloadRol(data)); 
       navigate('/admin/seguridad/roles');
     } catch {
       alert('Error al actualizar el rol');
     }
   };
 
-  if (loading) return null;
+  if (loading || !rol) return null; 
 
   return (
     <RolForm
