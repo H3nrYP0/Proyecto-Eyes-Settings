@@ -1,3 +1,5 @@
+// ===== CrearPedido.jsx =====
+// Sin cambios en la lógica — PedidosForm ya maneja todo con el backend
 import { useNavigate } from "react-router-dom";
 import PedidosForm from "../../components/pedidos/PedidosForm";
 
