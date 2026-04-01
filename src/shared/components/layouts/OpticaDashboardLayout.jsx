@@ -28,25 +28,31 @@ import CrearPedido from "../../../features/ventas/components/pedidos/CrearPedido
 import DetallePedido from "../../../features/ventas/components/pedidos/DetallePedido";
 import EditarPedido from "../../../features/ventas/components/pedidos/EditarPedido";
 
-import Compras from "../../../features/compras/pages/Compras";
-import CrearCompra from "../../../features/compras/pages/CrearCompra";
-import EditarCompra from "../../../features/compras/pages/EditarCompra";
-import DetalleCompra from "../../../features/compras/pages/DetalleCompra";
-import CompraPDFView from "../../../features/compras/pages/CompraPDFView";
+import {
+  Compras,
+  CrearCompra,
+  EditarCompra,
+  DetalleCompra,
+  CompraPDFView,
+} from "../../../features/compras/compra";
 
-import Marcas from "../../../features/compras/pages/marca/pages/Marcas";
+import { Marcas } from "../../../features/compras/marca";
 
-import { Categorias } from "../../../features/compras/pages/categoria";
+import { Categorias } from "../../../features/compras/categoria";
 
-import Productos from "../../../features/compras/pages/producto/pages/Productos";
-import CrearProducto from "../../../features/compras/pages/producto/pages/CrearProducto";
-import DetalleProducto from "../../../features/compras/pages/producto/pages/DetalleProducto";
-import EditarProducto from "../../../features/compras/pages/producto/pages/EditarProducto";
+import {
+  Productos,
+  CrearProducto,
+  EditarProducto,
+  DetalleProducto,
+} from "../../../features/compras/producto";
 
-import Proveedores from "../../../features/compras/pages/Proveedores";
-import CrearProveedor from "../../../features/compras/pages/CrearProveedor";
-import EditarProveedor from "../../../features/compras/pages/EditarProveedor";
-import DetalleProveedor from "../../../features/compras/pages/DetalleProveedor";
+import {
+  Proveedores,
+  CrearProveedor,
+  EditarProveedor,
+  DetalleProveedor,
+} from "../../../features/compras/proveedor";
 
 import { Servicios } from "../../../features/servicios/servicio";
 
@@ -171,9 +177,11 @@ export default function OpticaDashboardLayout({ user, setUser }) {
             <Route path="editar/:id" element={<EditarCompra />} />
             <Route path="detalle/:id" element={<DetalleCompra />} />
             <Route path="detalle/:id/pdf" element={<CompraPDFView />} />
+
             <Route path="categorias">
               <Route index element={<Categorias />} />
             </Route>
+
             <Route path="marcas">
               <Route index element={<Marcas />} />
             </Route>
@@ -181,7 +189,7 @@ export default function OpticaDashboardLayout({ user, setUser }) {
             <Route path="productos/crear" element={<CrearProducto />} />
             <Route path="productos/editar/:id" element={<EditarProducto />} />
             <Route path="productos/detalle/:id" element={<DetalleProducto />} />
-                        <Route path="proveedores">
+            <Route path="proveedores">
               <Route index element={<Proveedores />} />
               <Route path="crear" element={<CrearProveedor />} />
               <Route path="editar/:id" element={<EditarProveedor />} />

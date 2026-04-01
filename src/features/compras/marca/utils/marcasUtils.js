@@ -1,0 +1,73 @@
+// ============================
+// Formatear nombre (primera letra mayúscula)
+// ============================
+export const formatNombre = (text) => {
+  if (!text) return '';
+  return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+};
+
+// ============================
+// Validar nombre de marca
+// ============================
+export const validateNombre = (nombre, nombreExists) => {
+  const trimmed = nombre?.trim() || '';
+  
+  if (!trimmed) {
+    return { isValid: false, message: "El nombre de la marca es requerido" };
+  }
+  if (trimmed.length < 2) {
+    return { isValid: false, message: "El nombre debe tener al menos 2 caracteres" };
+  }
+  if (trimmed.length > 23) {
+    return { isValid: false, message: "El nombre no puede exceder 23 caracteres" };
+  }
+  if (nombreExists) {
+    return { isValid: false, message: "Ya existe una marca con este nombre" };
+  }
+  
+  return { isValid: true, message: "" };
+};
+
+// ============================
+// Normalizar marca para formulario
+// ============================
+export const normalizeMarcaForForm = (marca) => ({
+  id: marca.id,
+  nombre: marca.nombre || "",
+  estado: typeof marca.estado === 'boolean' 
+    ? marca.estado 
+    : marca.estado === 'activa'
+});
+
+// ============================
+// Normalizar marca para listado
+// ============================
+export const normalizeMarcaForList = (marca) => ({
+  id: marca.id,
+  nombre: marca.nombre,
+  estado: marca.estado ? 'activa' : 'inactiva'
+});
+
+// ============================
+// Opciones de estado
+// ============================
+export const estadoOptions = [
+  { value: true, label: "Activa" },
+  { value: false, label: "Inactiva" }
+];
+
+// ============================
+// Opciones de filtro
+// ============================
+export const searchFilters = [
+  { value: '', label: 'Todos' },
+  { value: 'activa', label: 'Activas' },
+  { value: 'inactiva', label: 'Inactivas' }
+];
+
+// ============================
+// Columnas de tabla
+// ============================
+export const columns = [
+  { field: "nombre", header: "Nombre" }
+];
