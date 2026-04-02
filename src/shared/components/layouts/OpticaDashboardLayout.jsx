@@ -6,28 +6,26 @@ import Sidebar from "./Sidebar";
 import AppHeader from "./AppHeader";
 
 import Dashboard from "../../../features/dashboard/Dashboard";
-import Ventas from "../../../features/ventas/pages/Ventas";
-import Clientes from "../../../features/ventas/pages/Clientes";
-import Pedidos from "../../../features/ventas/pages/Pedidos";
-import Abonos from "../../../features/ventas/pages/Abonos";
 
-import NuevaVenta from "../../../features/ventas/components/ventas/NuevaVenta";
-import EditarVenta from "../../../features/ventas/components/ventas/EditarVenta";
-import DetalleVenta from "../../../features/ventas/components/ventas/DetalleVenta";
+// VENTAS
+import { Ventas, DetalleVenta, EditarVenta } from "../../../features/ventas/venta";
+import { 
+  Clientes, 
+  CrearCliente, 
+  EditarCliente, 
+  DetalleCliente, 
+  HistorialFormula 
+} from "../../../features/ventas/cliente";
+import { 
+  Pedidos, 
+  CrearPedido, 
+  EditarPedido, 
+  DetallePedido 
+} from "../../../features/ventas/pedido";
 
-import CrearCliente from "../../../features/ventas/components/clientes/CrearCliente";
-import EditarCliente from "../../../features/ventas/components/clientes/EditarCliente";
-import DetalleCliente from "../../../features/ventas/components/clientes/DetalleCliente";
-import HistorialFormula from "../../../features/ventas/components/clientes/HistorialFormula";
+// NOTA: Abonos ya NO tiene rutas separadas - está integrado como modal dentro de Pedidos
 
-import NuevoAbono from "../../../features/ventas/components/abonos/NuevoAbono";
-import DetalleAbono from "../../../features/ventas/components/abonos/DetalleAbono";
-import EditarAbono from "../../../features/ventas/components/abonos/EditarAbono";
-
-import CrearPedido from "../../../features/ventas/components/pedidos/CrearPedido";
-import DetallePedido from "../../../features/ventas/components/pedidos/DetallePedido";
-import EditarPedido from "../../../features/ventas/components/pedidos/EditarPedido";
-
+// ========== COMPRAS (sin cambios) ==========
 import {
   Compras,
   CrearCompra,
@@ -54,6 +52,7 @@ import {
   DetalleProveedor,
 } from "../../../features/compras/proveedor";
 
+// ========== SERVICIOS (sin cambios) ==========
 import { Servicios } from "../../../features/servicios/servicio";
 
 import {
@@ -63,14 +62,6 @@ import {
   DetalleEmpleado,
 } from "../../../features/servicios/empleado";
 
-import { Agenda } from "../../../features/servicios/agenda";
-import { Horarios } from "../../../features/servicios/horario";
-
-import CampanasSalud from "../../../features/servicios/campanaSalud/CampanasSalud";
-import CrearCampanaSalud from "../../../features/servicios/campanaSalud/CrearCampanaSalud";
-import EditarCampanaSalud from "../../../features/servicios/campanaSalud/EditarCampanaSalud";
-import DetalleCampanaSalud from "../../../features/servicios/campanaSalud/DetalleCampanaSalud";
-
 import {
   Citas,
   CrearCita,
@@ -78,6 +69,15 @@ import {
   DetalleCita,
 } from "../../../features/servicios/cita";
 
+import { Horarios } from "../../../features/servicios/horario";
+import { Agenda } from "../../../features/servicios/agenda";
+
+import CampanasSalud from "../../../features/servicios/campanaSalud/CampanasSalud";
+import CrearCampanaSalud from "../../../features/servicios/campanaSalud/CrearCampanaSalud";
+import EditarCampanaSalud from "../../../features/servicios/campanaSalud/EditarCampanaSalud";
+import DetalleCampanaSalud from "../../../features/servicios/campanaSalud/DetalleCampanaSalud";
+
+// ========== SEGURIDAD (sin cambios) ==========
 import Roles from "../../../features/seguridad/pages/Roles";
 import CrearRol from "../../../features/seguridad/pages/roles/CrearRol";
 import EditarPermisos from "../../../features/seguridad/pages/roles/EditarPermisos";
@@ -88,6 +88,7 @@ import CrearUsuario from "../../../features/seguridad/pages/usuario/CrearUsuario
 import EditarUsuario from "../../../features/seguridad/pages/usuario/EditarUsuario";
 import DetalleUsuario from "../../../features/seguridad/pages/usuario/DetalleUsuario";
 
+// ========== CONFIGURACIÓN ==========
 import Configuracion from "../../../features/configuracion/Configuration";
 import authService from "../../../features/auth/Services/authService";
 
@@ -145,8 +146,11 @@ export default function OpticaDashboardLayout({ user, setUser }) {
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
 
+          {/* ========== VENTAS ========== */}
           <Route path="ventas">
             <Route index element={<Ventas />} />
+            
+            {/* Clientes */}
             <Route path="clientes">
               <Route index element={<Clientes />} />
               <Route path="crear" element={<CrearCliente />} />
@@ -154,23 +158,24 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               <Route path="detalle/:id" element={<DetalleCliente />} />
               <Route path="historial-formula/:id" element={<HistorialFormula />} />
             </Route>
-            <Route path="abonos">
-              <Route index element={<Abonos />} />
-              <Route path="nuevo" element={<NuevoAbono />} />
-              <Route path="editar" element={<EditarAbono />} />
-              <Route path="detalle" element={<DetalleAbono />} />
-            </Route>
+
+            {/* Pedidos */}
             <Route path="pedidos">
               <Route index element={<Pedidos />} />
               <Route path="crear" element={<CrearPedido />} />
               <Route path="editar/:id" element={<EditarPedido />} />
               <Route path="detalle/:id" element={<DetallePedido />} />
             </Route>
-            <Route path="nueva" element={<NuevaVenta />} />
+
+            {/* Ventas (creación automática desde pedidos) */}
+            
             <Route path="detalle/:id" element={<DetalleVenta />} />
             <Route path="editar/:id" element={<EditarVenta />} />
+            
+            {/* NOTA: La ruta de Abonos ha sido eliminada porque ahora está integrada como modal dentro de Pedidos */}
           </Route>
 
+          {/* ========== COMPRAS ========== */}
           <Route path="compras">
             <Route index element={<Compras />} />
             <Route path="crear" element={<CrearCompra />} />
@@ -185,10 +190,12 @@ export default function OpticaDashboardLayout({ user, setUser }) {
             <Route path="marcas">
               <Route index element={<Marcas />} />
             </Route>
+
             <Route path="productos" element={<Productos />} />
             <Route path="productos/crear" element={<CrearProducto />} />
             <Route path="productos/editar/:id" element={<EditarProducto />} />
             <Route path="productos/detalle/:id" element={<DetalleProducto />} />
+
             <Route path="proveedores">
               <Route index element={<Proveedores />} />
               <Route path="crear" element={<CrearProveedor />} />
@@ -197,6 +204,7 @@ export default function OpticaDashboardLayout({ user, setUser }) {
             </Route>
           </Route>
 
+          {/* ========== SERVICIOS ========== */}
           <Route path="servicios">
             <Route index element={<Servicios />} />
       
@@ -211,18 +219,20 @@ export default function OpticaDashboardLayout({ user, setUser }) {
             <Route path="empleados/crear" element={<CrearEmpleado />} />
             <Route path="empleados/editar/:id" element={<EditarEmpleado />} />
             <Route path="empleados/detalle/:id" element={<DetalleEmpleado />} />
-
             <Route path="empleados/horarios/:id" element={<Horarios />} />
+
+            <Route path="horarios" element={<Horarios />} />
+
             <Route path="agenda" element={<Agenda />} />
             <Route path="agenda/horarios" element={<Horarios />} />
-            <Route path="horarios" element={<Horarios />} />
-            
+
             <Route path="campanas-salud" element={<CampanasSalud />} />
             <Route path="campanas-salud/crear" element={<CrearCampanaSalud />} />
             <Route path="campanas-salud/editar/:id" element={<EditarCampanaSalud />} />
             <Route path="campanas-salud/detalle/:id" element={<DetalleCampanaSalud />} />
           </Route>
 
+          {/* ========== SEGURIDAD ========== */}
           <Route path="seguridad">
             <Route index element={<Navigate to="usuarios" replace />} />
             <Route path="usuarios">
@@ -239,8 +249,10 @@ export default function OpticaDashboardLayout({ user, setUser }) {
             </Route>
           </Route>
 
+          {/* ========== CONFIGURACIÓN ========== */}
           <Route path="configuracion" element={<Configuracion user={user} />} />
 
+          {/* ========== 404 ========== */}
           <Route
             path="*"
             element={
