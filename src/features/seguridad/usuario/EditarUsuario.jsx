@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import UsuarioForm from "./components/UserForm";
-import Loading from "../../../../shared/components/ui/Loading";
+import Loading from "../../../shared/components/ui/Loading";
 
-import { UserData } from "../../../../lib/data/usuariosData";
-import { getAllRoles } from "../../../../lib/data/rolesData";
+import { UserData } from "../../../lib/data/usuariosData";
+import { getAllRoles } from "../../../lib/data/rolesData";
 
 export default function EditarUsuario() {
   const { id } = useParams();

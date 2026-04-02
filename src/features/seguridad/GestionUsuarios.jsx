@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import CrudLayout from "../../../shared/components/crud/CrudLayout";
-import CrudTable from "../../../shared/components/crud/CrudTable";
-import Modal from "../../../shared/components/ui/Modal";
-import Loading from "../../../shared/components/ui/Loading";
+import CrudLayout from "../../shared/components/crud/CrudLayout";
+import CrudTable from "../../shared/components/crud/CrudTable";
+import Modal from "../../shared/components/ui/Modal";
+import Loading from "../../shared/components/ui/Loading";
 
-import { UserData } from "../../../lib/data/usuariosData";
-import { getAllRoles } from "../../../lib/data/rolesData";
+import { UserData } from "../../lib/data/usuariosData";
+import { getAllRoles } from "../../lib/data/rolesData";
 
 export default function GestionUsuarios() {
   const navigate = useNavigate();

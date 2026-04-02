@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import RolForm from "./components/RolForm";
-import { createRol, getAllPermisos } from "../../../../lib/data/rolesData";
+import { createRol, getAllPermisos } from "../../../lib/data/rolesData";
 
 export default function CrearRol() {
 

@@ -78,15 +78,15 @@ import EditarCampanaSalud from "../../../features/servicios/campanaSalud/EditarC
 import DetalleCampanaSalud from "../../../features/servicios/campanaSalud/DetalleCampanaSalud";
 
 // ========== SEGURIDAD (sin cambios) ==========
-import Roles from "../../../features/seguridad/pages/Roles";
-import CrearRol from "../../../features/seguridad/pages/roles/CrearRol";
-import EditarPermisos from "../../../features/seguridad/pages/roles/EditarPermisos";
-import ListaRoles from "../../../features/seguridad/pages/roles/ListaRoles";
+import Roles from "../../../features/seguridad/Roles";
+import CrearRol from "../../../features/seguridad/roles/CrearRol";
+import EditarPermisos from "../../../features/seguridad/roles/EditarPermisos";
+import ListaRoles from "../../../features/seguridad/roles/ListaRoles";
 
-import GestionUsuarios from "../../../features/seguridad/pages/GestionUsuarios";
-import CrearUsuario from "../../../features/seguridad/pages/usuario/CrearUsuario";
-import EditarUsuario from "../../../features/seguridad/pages/usuario/EditarUsuario";
-import DetalleUsuario from "../../../features/seguridad/pages/usuario/DetalleUsuario";
+import GestionUsuarios from "../../../features/seguridad/GestionUsuarios";
+import CrearUsuario from "../../../features/seguridad/usuario/CrearUsuario";
+import EditarUsuario from "../../../features/seguridad/usuario/EditarUsuario";
+import DetalleUsuario from "../../../features/seguridad/usuario/DetalleUsuario";
 
 // ========== CONFIGURACIÓN ==========
 import Configuracion from "../../../features/configuracion/Configuration";

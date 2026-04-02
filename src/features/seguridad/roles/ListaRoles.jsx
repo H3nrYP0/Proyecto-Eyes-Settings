@@ -1,17 +1,17 @@
-import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import RolForm from "./components/RolForm";
+import { useEffect, useState } from "react";
 
 import {
   getRolById,
-  updateRol,
   getAllPermisos
-} from "../../../../lib/data/rolesData";
+} from "../../../lib/data/rolesData";
 
-export default function EditarPermisos() {
+import RolForm from "./components/RolForm";
 
-  const { id } = useParams();
+export default function DetalleRol() {
+
   const navigate = useNavigate();
+  const { id } = useParams();
 
   const [rol, setRol] = useState(null);
   const [permisosDisponibles, setPermisosDisponibles] = useState([]);
@@ -35,21 +35,18 @@ export default function EditarPermisos() {
     cargarDatos();
   }, [id, navigate]);
 
-  const handleUpdate = async (data) => {
-    await updateRol(id, data);
-    navigate("/admin/seguridad/roles");
-  };
-
-  if (loading) return null;
+  if (loading) return <div>Cargando...</div>;
 
   return (
     <RolForm
-      mode="edit"
-      title="Editar Rol"
+      mode="view"
+      title="Detalle del Rol"
       initialData={rol}
       permisosDisponibles={permisosDisponibles}
-      onSubmit={handleUpdate}
       onCancel={() => navigate("/admin/seguridad/roles")}
+      onEdit={() =>
+        navigate(`/admin/seguridad/roles/editar/${rol.id}`)
+      }
     />
   );
 }
