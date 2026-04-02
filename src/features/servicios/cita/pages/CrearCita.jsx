@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getAllEmpleados } from "../../empleado/services/empleadosService";
-import { getAllServicios } from "../../../../lib/data/serviciosData";
-import { getAllClientes } from "../../../../lib/data/clientesData";
+import { ServicioData } from "../../servicio/services/serviciosService";
+import { clientesService } from "../../../ventas/cliente/services/clientesService";
 import { getAllEstadosCita } from "../services/estadosCitaServices";
 import Loading from "../../../../shared/components/ui/Loading";
 import { useCitaForm } from "../hooks/useCitaForm";
@@ -18,15 +18,12 @@ export default function CrearCita() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ============================
-  // Cargar datos de dependencias
-  // ============================
   useEffect(() => {
     const cargarDatos = async () => {
       try {
         const [clientesData, serviciosData, empleadosData, estadosData] = await Promise.all([
-          getAllClientes(),
-          getAllServicios(),
+          clientesService.getAllClientes(),
+          ServicioData.getAllServicios(),
           getAllEmpleados(),
           getAllEstadosCita()
         ]);
@@ -50,9 +47,6 @@ export default function CrearCita() {
     cargarDatos();
   }, []);
 
-  // ============================
-  // Form hook
-  // ============================
   const {
     formData,
     errors,
@@ -60,14 +54,12 @@ export default function CrearCita() {
     verificando,
     disponibilidad,
     errorDisponibilidad,
-    isAvailable,
     horariosEmpleado,
-    diasActivos,                     // 👈 agregar
+    diasActivos,
     handleChange,
     handleDateChange,
     handleTimeChange,
     handleSubmit,
-    setFormData,
   } = useCitaForm({
     mode: "create",
     clientes,
@@ -112,7 +104,8 @@ export default function CrearCita() {
       servicios={servicios}
       empleados={empleados}
       estadosCita={estadosCita}
-      horariosEmpleado={horariosEmpleado}     // 👈 agregado
+      horariosEmpleado={horariosEmpleado}
+      diasActivos={diasActivos}
       formData={formData}
       errors={errors}
       submitting={submitting}
@@ -123,7 +116,6 @@ export default function CrearCita() {
       handleDateChange={handleDateChange}
       handleTimeChange={handleTimeChange}
       handleSubmit={handleSubmit}
-      diasActivos={diasActivos} 
     />
   );
 }

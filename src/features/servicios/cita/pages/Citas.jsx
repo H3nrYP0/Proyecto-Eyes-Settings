@@ -25,9 +25,6 @@ export default function Citas() {
     closeDeleteModal,
   } = useCitas();
 
-  // ============================
-  // Eliminar
-  // ============================
   const confirmDelete = async () => {
     const result = await eliminarCita(modalDelete.id);
     if (result.success) {
@@ -37,9 +34,6 @@ export default function Citas() {
     }
   };
 
-  // ============================
-  // Cambiar estado
-  // ============================
   const handleChangeStatus = async (row, nuevoEstado) => {
     const result = await cambiarEstado(row.id, nuevoEstado);
     if (!result.success) {
@@ -47,9 +41,6 @@ export default function Citas() {
     }
   };
 
-  // ============================
-  // Columnas
-  // ============================
   const columns = [
     { field: "cliente_nombre", header: "Cliente" },
     { field: "servicio_nombre", header: "Servicio" },
@@ -57,9 +48,6 @@ export default function Citas() {
     { field: "hora_formateada", header: "Hora" },
   ];
 
-  // ============================
-  // Acciones
-  // ============================
   const tableActions = [
     {
       label: "Ver detalles",
@@ -78,9 +66,6 @@ export default function Citas() {
     },
   ];
 
-  // ============================
-  // Loading
-  // ============================
   if (loading && citas.length === 0) {
     return (
       <CrudLayout title="Citas" showSearch>
@@ -129,7 +114,6 @@ export default function Citas() {
         />
       </CrudLayout>
 
-      {/* Modal Eliminar */}
       <Modal
         open={modalDelete.open}
         type="warning"

@@ -1,13 +1,12 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getCitaById } from "../services/citasService";
-import { getAllClientes } from "../../../../lib/data/clientesData";
-import { getAllServicios } from "../../../../lib/data/serviciosData";
+import { clientesService } from "../../../ventas/cliente/services/clientesService";
+import { ServicioData } from "../../servicio/services/serviciosService";
 import { getAllEmpleados } from "../../empleado/services/empleadosService";
 import { normalizeCitaForForm } from "../utils/citasUtils";
 import Loading from "../../../../shared/components/ui/Loading";
 import CitaForm from "../components/CitaForm";
-// Agrega esta importación
 import { getAllEstadosCita } from "../services/estadosCitaServices";
 
 export default function DetalleCita() {
@@ -22,16 +21,13 @@ export default function DetalleCita() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ============================
-  // Cargar datos
-  // ============================
   useEffect(() => {
     const cargarDatos = async () => {
       try {
         const [citaData, clientesData, serviciosData, empleadosData, estadosData] = await Promise.all([
           getCitaById(Number(id)),
-          getAllClientes(),
-          getAllServicios(),
+          clientesService.getAllClientes(),
+          ServicioData.getAllServicios(),
           getAllEmpleados(),
           getAllEstadosCita()
         ]);
@@ -61,9 +57,6 @@ export default function DetalleCita() {
     cargarDatos();
   }, [id, navigate]);
 
-  // ============================
-  // Handlers dummy para modo view
-  // ============================
   const handleChange = () => {};
   const handleDateChange = () => {};
   const handleTimeChange = () => {};
