@@ -77,20 +77,19 @@ import CrearCampanaSalud from "../../../features/servicios/campanaSalud/CrearCam
 import EditarCampanaSalud from "../../../features/servicios/campanaSalud/EditarCampanaSalud";
 import DetalleCampanaSalud from "../../../features/servicios/campanaSalud/DetalleCampanaSalud";
 
-// ========== SEGURIDAD (sin cambios) ==========
-import Roles from "../../../features/seguridad/Roles";
-import CrearRol from "../../../features/seguridad/roles/CrearRol";
-import EditarPermisos from "../../../features/seguridad/roles/EditarPermisos";
-import ListaRoles from "../../../features/seguridad/roles/ListaRoles";
+import Roles from "@seguridad/roles/pages/Roles";
+import CrearRol from "@seguridad/roles/pages/CrearRol";
+import EditarPermisos from "@seguridad/roles/pages/EditarPermisos";
+import ListaRoles from "@seguridad/roles/pages/ListaRoles";
 
-import GestionUsuarios from "../../../features/seguridad/GestionUsuarios";
-import CrearUsuario from "../../../features/seguridad/usuario/CrearUsuario";
-import EditarUsuario from "../../../features/seguridad/usuario/EditarUsuario";
-import DetalleUsuario from "../../../features/seguridad/usuario/DetalleUsuario";
+import GestionUsuarios from "@seguridad/user/pages/GestionUsuarios";
+import CrearUsuario from "@seguridad/user/pages/CrearUsuario";
+import EditarUsuario from "@seguridad/user/pages/EditarUsuario";
+import DetalleUsuario from "@seguridad/user/pages/DetalleUsuario";
 
 // ========== CONFIGURACIÓN ==========
 import Configuracion from "../../../features/configuracion/Configuration";
-import authService from "../../../features/auth/Services/authService";
+import authService from "@auth/authService";
 
 const drawerWidth = 240;
 

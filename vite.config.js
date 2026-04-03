@@ -18,7 +18,6 @@ export default defineConfig({
     extensions: ['.jsx', '.js', '.json'],
     alias: {
       // ========== FEATURES ==========
-<<<<<<< HEAD
       '@auth': path.resolve(__dirname, './src/features/auth'),
       '@compras': path.resolve(__dirname, './src/features/compras'),
       '@configuracion': path.resolve(__dirname, './src/features/configuración'),
@@ -37,21 +36,6 @@ export default defineConfig({
       
       // ========== COMPONENTS ==========
       '@components': path.resolve(__dirname, './src/components'),
-=======
-      '@auth': path.resolve(__dirname, './src/app/features/auth'),
-      '@compras': path.resolve(__dirname, './src/app/features/compras'),
-      '@configuracion': path.resolve(__dirname, './src/app/features/configuración'),
-      '@dashboard': path.resolve(__dirname, './src/app/features/dashboard'),
-      '@home': path.resolve(__dirname, './src/app/features/home'),
-      '@purchases': path.resolve(__dirname, './src/app/features/purchases'),
-      '@sales': path.resolve(__dirname, './src/app/features/sales'),
-      '@security': path.resolve(__dirname, './src/app/features/security'),
-      '@seguridad': path.resolve(__dirname, './src/app/features/seguridad'),
-      
-      // ========== OTROS MÓDULOS ==========
-      '@roles': path.resolve(__dirname, './src/app/roles'),
-      '@shared': path.resolve(__dirname, './src/shared'),
->>>>>>> 1c0c792 (Organizacion alias)
       
       // ========== EJEMPLO PARA AGREGAR MÁS ALIAS ==========
       // Copia esta línea, cambia @nombre y la ruta:
@@ -59,11 +43,8 @@ export default defineConfig({
       //
       // Ejemplo: si quisieras agregar un alias para components:
       // '@components': path.resolve(__dirname, './src/app/components'),
-<<<<<<< HEAD
 
       
-=======
->>>>>>> 1c0c792 (Organizacion alias)
     }
   }
 })
