@@ -1,16 +1,16 @@
-import authService from '../services/authService';
+import authServices from '../services/authServices';
 
 export const useAuth = () => {
-  const user = authService.getUser();
+  const user = authServices.getUser();
 
   const isAdmin = () =>
     user?.rol === 'admin' || user?.rol === 'superadmin';
 
   const hasPermiso = (permiso) =>
-    authService.hasPermission(user, permiso);
+    authServices.hasPermission(user, permiso);
 
   const hasRol = (rol) =>
-    authService.hasRole(user, rol);
+    authServices.hasRole(user, rol);
 
   return {
     user,

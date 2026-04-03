@@ -89,7 +89,7 @@ import DetalleUsuario from "@seguridad/user/pages/DetalleUsuario";
 
 // ========== CONFIGURACIÓN ==========
 import Configuracion from "../../../features/configuracion/Configuration";
-import authService from "@auth/authService";
+import authServices from "@auth/services/authServices";
 
 const drawerWidth = 240;
 
@@ -111,7 +111,7 @@ export default function OpticaDashboardLayout({ user, setUser }) {
   };
 
   const handleLogout = () => {
-    authService.logout();              
+    authServices.logout();              
     setUser(null);
     navigate("/login", { replace: true });
   };

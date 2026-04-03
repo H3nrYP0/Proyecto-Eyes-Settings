@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import RolForm from '@security/roles/components/RolForm';
-import { getRolById, updateRol, getAllPermisos } from '@security/roles/services/rolServices';
+import RolForm from '@seguridad/roles/components/RolForm';
+import { getRolById, updateRol, getAllPermisos } from '@seguridad/roles/services/rolServices';
 
 export default function EditarPermisos() {
   const { id } = useParams();

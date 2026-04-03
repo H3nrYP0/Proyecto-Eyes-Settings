@@ -15,7 +15,7 @@ import {
   Settings,
   Palette,
   Description,
-  Security,
+  seguridad,
   Code
 } from "@mui/icons-material";
 
@@ -93,7 +93,7 @@ const Configuration = ({ user }) => {
       { 
         label: "Privacidad", 
         component: <PoliticaPrivacidad canEdit={canEditGlobal} userRole={user?.role} />,
-        icon: <Security />,
+        icon: <seguridad />,
         roles: [ROLES.SUPER_ADMIN, ROLES.ADMIN] // Solo admins
       },
       { 

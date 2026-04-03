@@ -9,7 +9,7 @@ import {
   Paper,
   Divider
 } from "@mui/material";
-import { Security, Save, PictureAsPdf } from "@mui/icons-material";
+import { seguridad, Save, PictureAsPdf } from "@mui/icons-material";
 
 const PoliticaPrivacidad = ({ canEdit = false }) => {
   const [politica, setPolitica] = useState({
@@ -61,7 +61,7 @@ Implementamos medidas de seguridad para proteger su información contra accesos 
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-        <Security color="primary" />
+        <seguridad color="primary" />
         <Typography variant="h6" component="h2">
           Política de Privacidad
         </Typography>
