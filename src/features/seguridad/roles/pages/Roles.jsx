@@ -6,7 +6,9 @@ import CrudTable  from '@shared/components/crud/CrudTable';
 import Modal      from '@shared/components/ui/Modal';
 import Loading    from '@shared/components/ui/Loading';
 
-import { getAllRoles, deleteRol, updateEstadoRol, normalizarRoles, filtrarRoles } from '@seguridad';
+import { getAllRoles, deleteRol, updateEstadoRol } from '../services/rolServices';
+import { normalizarRoles }                         from '../utils';
+import { filtrarRoles }                            from '../utils';
 
 // Opciones para el filtro de estado
 const ESTADO_OPTIONS = [
@@ -48,7 +50,7 @@ export default function Roles() {
   };
 
   const handleDelete = (id, nombre) =>
-    setModalDelete({ open: true, id, nombre });
+    setModalDelete({ open: false, id, nombre });
 
   const confirmDelete = async () => {
     try {
@@ -72,8 +74,8 @@ export default function Roles() {
   const rolesVisibles = filtrarRoles(roles, { search, estado: filterEstado });
 
   const tableActions = [
-    { label: 'Ver detalles', type: 'view',   onClick: (row) => navigate(`/admin/seguridad/roles/detalle/${row.id}`) },
-    { label: 'Editar',       type: 'edit',   onClick: (row) => navigate(`/admin/seguridad/roles/editar/${row.id}`) },
+    { label: 'Ver detalles', type: 'view',   onClick: (row) => navigate(`detalle/${row.id}`) },
+    { label: 'Editar',       type: 'edit',   onClick: (row) => navigate(`editar/${row.id}`) },
     { label: 'Eliminar',     type: 'delete', onClick: (row) => handleDelete(row.id, row.nombre) },
   ];
 

@@ -1,33 +1,46 @@
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import RolForm       from '@seguridad/roles/components/RolForm';
-import { useRol }    from '@seguridad/roles/hooks/useRol';
-import { updateRol, prepararPayloadRol } from '@seguridad';
+import RolForm from '@security/roles/components/RolForm';
+import { getRolById, getAllPermisos } from '@security/roles/services/rolServices';
 
-export default function EditarPermisos() {
-  const { id }     = useParams();
-  const navigate   = useNavigate();
-  const { rol, permisosDisponibles, loading } = useRol(id);
+export default function DetalleRol() {
+  const { id } = useParams();
+  const navigate = useNavigate();
 
-  const handleUpdate = async (data) => {
-    try {
-      await updateRol(id, prepararPayloadRol(data)); 
-      navigate('/admin/seguridad/roles');
-    } catch {
-      alert('Error al actualizar el rol');
-    }
-  };
+  const [rol, setRol]                      = useState(null);
+  const [permisosDisponibles, setPermisos] = useState([]);
+  const [loading, setLoading]              = useState(true);
 
-  if (loading || !rol) return null; 
+  useEffect(() => {
+    const cargarDatos = async () => {
+      const [rolData, permisosData] = await Promise.all([
+        getRolById(id),
+        getAllPermisos(),
+      ]);
+
+      if (!rolData) {
+        navigate('/admin/seguridad/roles');
+        return;
+      }
+
+      setRol(rolData);
+      setPermisos(permisosData || []);
+      setLoading(false);
+    };
+    cargarDatos();
+  }, [id, navigate]);
+
+  if (loading) return null;
 
   return (
     <RolForm
-      mode="edit"
-      title="Editar Rol"
+      mode="view"
+      title="Detalle del Rol"
       initialData={rol}
       permisosDisponibles={permisosDisponibles}
-      onSubmit={handleUpdate}
       onCancel={() => navigate('/admin/seguridad/roles')}
+      onEdit={() => navigate(`/admin/seguridad/roles/editar/${rol.id}`)}
     />
   );
 }
