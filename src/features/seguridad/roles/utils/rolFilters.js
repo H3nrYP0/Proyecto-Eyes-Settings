@@ -1,26 +1,15 @@
-// Convierte el estado booleano a string
-export const normalizarEstado = (estado) =>
-  estado === true ? 'activo' : 'inactivo';
+// Función para filtrar roles por nombre
+export const filtrarRoles = (roles, search) => {
+  // Forzamos que term sea un string. Si search es undefined/null, usamos ""
+  const term = (search || "").toString().toLowerCase();
 
-// Extrae los IDs de los permisos (por si vienen como objetos)
-export const normalizarPermisosIds = (permisos = []) =>
-  permisos.map((p) => p.id ?? p);
+  // Si roles no es un array (por si acaso), devolvemos un array vacío
+  if (!Array.isArray(roles)) return [];
 
-// Normaliza el initialData antes de cargarlo al formulario
-export const normalizarInitialData = (data) => ({
-  nombre:      data.nombre      ?? '',
-  descripcion: data.descripcion ?? '',
-  estado:      normalizarEstado(data.estado),
-  permisos:    normalizarPermisosIds(data.permisos),
-});
-
-// Normaliza un rol de la lista
-export const normalizarRol = (r) => ({
-  ...r,
-  estado:              normalizarEstado(r.estado),
-  permisosCount:       r.permisos?.length ?? 0,
-  estadosDisponibles:  ['activo', 'inactivo'],
-});
-
-// Normaliza un array de roles
-export const normalizarRoles = (arr) => arr.map(normalizarRol);
+  return roles.filter((rol) => {
+    // Validamos que rol.nombre exista antes de usar toLowerCase
+    const nombreRol = (rol.nombre || "").toString().toLowerCase();
+    
+    return nombreRol.includes(term);
+  });
+};

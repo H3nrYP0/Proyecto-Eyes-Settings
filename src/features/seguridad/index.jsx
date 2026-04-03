@@ -13,6 +13,7 @@ export { default as DetalleUsuario }  from './user/pages/DetalleUsuario';
 
 // ==================== SERVICIOS ====================
 export * from './roles/services/rolServices';
+export * from './user/services/userServices';
 
 // ==================== HOOKS ====================
 export * from './roles/hooks/useRol';

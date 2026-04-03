@@ -1,16 +1,20 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import CrudLayout from "../../shared/components/crud/CrudLayout";
-import CrudTable from "../../shared/components/crud/CrudTable";
-import Modal from "../../shared/components/ui/Modal";
-import Loading from "../../shared/components/ui/Loading";
 
-import { UserData } from "../../lib/data/usuariosData";
-import { getAllRoles } from "../../lib/data/rolesData";
+import CrudLayout from "@shared/components/crud/CrudLayout";
+import CrudTable  from "@shared/components/crud/CrudTable";
+import Modal      from "@shared/components/ui/Modal";
+import Loading    from "@shared/components/ui/Loading";
+
+import { 
+  getAllUsers, 
+  deleteUser, 
+  updateUser, 
+  getAllRoles 
+} from "@seguridad";
 
 export default function GestionUsuarios() {
   const navigate = useNavigate();
-
   const [users, setUsers] = useState([]);
   const [roles, setRoles] = useState([]);
   const [search, setSearch] = useState("");
@@ -18,18 +22,8 @@ export default function GestionUsuarios() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // =============================
-  // MODAL ELIMINAR
-  // =============================
-  const [deleteModal, setDeleteModal] = useState({
-    open: false,
-    id: null,
-    name: "",
-  });
+  const [deleteModal, setDeleteModal] = useState({ open: false, id: null, name: "" });
 
-  // =============================
-  // CARGAR USUARIOS DESDE BACKEND
-  // =============================
   useEffect(() => {
     loadUsers();
   }, []);
@@ -40,11 +34,10 @@ export default function GestionUsuarios() {
       setError(null);
 
       const [data, rolesData] = await Promise.all([
-        UserData.getAllUsers(),
+        getAllUsers(),
         getAllRoles(),
       ]);
 
-      // ← Igual que Roles: normaliza estado booleano a string
       const normalizados = data.map((u) => ({
         ...u,
         estado: u.estado ? "activo" : "inactivo",
@@ -53,26 +46,25 @@ export default function GestionUsuarios() {
 
       setUsers(normalizados);
       setRoles(rolesData);
-
     } catch (err) {
       console.error(err);
       setError("No se pudieron cargar los usuarios");
-      setUsers([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // =============================
-  // ELIMINAR USUARIO
-  // =============================
   const handleDelete = (id, name) => {
-    setDeleteModal({ open: true, id, name });
+    setDeleteModal({
+      open: true,
+      id: id,
+      name: name
+    });
   };
 
   const confirmDelete = async () => {
     try {
-      await UserData.deleteUser(deleteModal.id);
+      await deleteUser(deleteModal.id);
       await loadUsers();
       setDeleteModal({ open: false, id: null, name: "" });
     } catch (error) {
@@ -81,17 +73,13 @@ export default function GestionUsuarios() {
     }
   };
 
-  // =============================
-  // CAMBIAR ESTADO DEL USUARIO
-  // ← Igual que Roles: recibe (row, nuevoEstado)
-  // =============================
   const handleChangeStatus = async (row, nuevoEstado) => {
     try {
-      await UserData.toggleUserEstado(row, nuevoEstado);
+      await updateUser(row, nuevoEstado);
       await loadUsers();
     } catch (error) {
       console.error(error);
-      alert("Error al cambiar estado del usuario");
+      alert("Error al cambiar estado");
     }
   };
 

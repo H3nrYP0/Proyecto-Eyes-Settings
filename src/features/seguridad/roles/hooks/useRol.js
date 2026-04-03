@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate }         from 'react-router-dom';
 
-import { getRolById, getAllPermisos } from '@seguridad/roles/services/rolServices';
-import { normalizarInitialData }      from '@seguridad/roles/utils';
+import { normalizarRolInitialData, getRolById, getAllPermisos } from '@seguridad';
 
 // Carga el rol y los permisos disponibles por ID
 export const useRol = (id) => {
@@ -25,7 +24,7 @@ export const useRol = (id) => {
           return;
         }
 
-        setRol(normalizarInitialData(rolData));
+        setRol(normalizarRolInitialData(rolData));
         setPermisos(permisosData || []);
       } catch {
         navigate('/admin/seguridad/roles');

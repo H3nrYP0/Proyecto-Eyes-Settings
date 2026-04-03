@@ -3,7 +3,7 @@ import {
   FormControlLabel, FormHelperText, Chip, Button, Paper,
 } from '@mui/material';
 
-import { areAllSelected, togglePermiso, toggleSelectAll } from '../utils';
+import { areAllSelected, togglePermiso, toggleSelectAll } from '@seguridad';
 
 export default function PermisosSelector({
   permisosDisponibles = [],

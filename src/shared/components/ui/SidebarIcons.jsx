@@ -4,7 +4,7 @@ import {
   ShoppingCart as PurchasesIcon,
   Build as ServicesIcon,
   People as userIcon,
-  seguridad as seguridadIcon,
+  Security as seguridadIcon,
   CalendarToday as CalendarIcon,
   AccessTime as AccessTimeIcon,
   Campaign as CampaignIcon,
@@ -27,7 +27,7 @@ const iconMappings = {
   ventas:      { component: SalesIcon,              size: 19, opacity: 0.9 },
   compras:     { component: PurchasesIcon,          size: 19, opacity: 0.9 },
   servicios:   { component: ServicesIcon,           size: 19, opacity: 0.9 },
-  seguridad:   { component: seguridadIcon,           size: 19, opacity: 0.9 },
+  seguridad:   { component: seguridadIcon,          size: 19, opacity: 0.9 },
 
   // ── Items del menú ──
   'home-icon':        { component: HomeIcon,              size: 15, opacity: 0.8 },
