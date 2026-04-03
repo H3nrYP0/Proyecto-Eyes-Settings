@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      // ========== FEATURES ==========
+      "@auth/*": ["./src/features/auth/*"],
+      "@compras/*": ["./src/features/compras/*"],
+      "@configuracion/*": ["./src/features/configuración/*"],
+      "@dashboard/*": ["./src/features/dashboard/*"],
+      "@home/*": ["./src/features/home/*"],
+      "@purchases/*": ["./src/features/purchases/*"],
+      "@sales/*": ["./src/features/sales/*"],
+      "@seguridad/*": ["./src/features/seguridad/*"],
+      "@servicios/*": ["./src/features/servicios/*"],
+
+      // ========== LIB ==========
+      "@lib/*": ["./src/lib/*"],
+
+      // ========== SHARED ==========
+      "@shared/*": ["./src/shared/*"],
+
+      // ========== COMPONENTS ==========
+      "@components/*": ["./src/components/*"],
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

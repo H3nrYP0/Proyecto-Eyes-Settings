@@ -1,6 +1,6 @@
 import api from "../../../lib/axios";
 
-const authService = {
+const authServices = {
 
   async login(correo, contrasenia, recordarme = false) {
     const response = await api.post("/auth/login", { correo, contrasenia });
@@ -64,4 +64,4 @@ const authService = {
   }
 };
 
-export default authService;
+export default authServices;

@@ -1,73 +1,37 @@
-import { useState, useEffect } from "react";
 import {
-  Box,
-  Typography,
-  Grid,
-  Checkbox,
-  FormControlLabel,
-  FormHelperText,
-  Chip,
-  Button,
-  Paper
-} from "@mui/material";
+  Box, Typography, Grid, Checkbox,
+  FormControlLabel, FormHelperText, Chip, Button, Paper,
+} from '@mui/material';
+
+import { areAllSelected, togglePermiso, toggleSelectAll } from '@seguridad';
 
 export default function PermisosSelector({
   permisosDisponibles = [],
   value = [],
   onChange,
   error,
-  disabled = false
+  disabled = false,
 }) {
-
-  const [todosSeleccionados, setTodosSeleccionados] = useState(false);
-
-  useEffect(() => {
-    setTodosSeleccionados(
-      value.length === permisosDisponibles.length &&
-      permisosDisponibles.length > 0
-    );
-  }, [value, permisosDisponibles]);
+  const allSelected = areAllSelected(value, permisosDisponibles);
 
   const handlePermisoChange = (permisoId) => {
     if (disabled) return;
-
-    const existe = value.includes(permisoId);
-
-    const nuevosPermisos = existe
-      ? value.filter((id) => id !== permisoId)
-      : [...value, permisoId];
-
-    onChange(nuevosPermisos);
+    onChange(togglePermiso(value, permisoId));
   };
 
-  const toggleSeleccionarTodos = () => {
+  const handleToggleAll = () => {
     if (disabled) return;
-
-    if (todosSeleccionados) {
-      onChange([]);
-    } else {
-      const todosIds = permisosDisponibles.map((p) => p.id);
-      onChange(todosIds);
-    }
+    onChange(toggleSelectAll(value, permisosDisponibles));
   };
 
   return (
     <Box>
-
-      {/* Header */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 2
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+      {/* Encabezado con contador y botón */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Typography variant="subtitle1" fontWeight={600}>
             Permisos
           </Typography>
-
           <Chip
             label={`${value.length} de ${permisosDisponibles.length}`}
             size="small"
@@ -77,14 +41,8 @@ export default function PermisosSelector({
         </Box>
 
         {!disabled && (
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={toggleSeleccionarTodos}
-          >
-            {todosSeleccionados
-              ? "Deseleccionar todos"
-              : "Seleccionar todos"}
+          <Button variant="outlined" size="small" onClick={handleToggleAll}>
+            {allSelected ? 'Deseleccionar todos' : 'Seleccionar todos'}
           </Button>
         )}
       </Box>
@@ -93,10 +51,10 @@ export default function PermisosSelector({
       <Paper
         variant="outlined"
         sx={{
-          p: .5,
+          p: 0.5,
           maxHeight: 280,
-          overflowY: "auto",
-          borderColor: error ? "error.main" : "divider"
+          overflowY: 'auto',
+          borderColor: error ? 'error.main' : 'divider',
         }}
       >
         <Grid container spacing={2}>
@@ -111,11 +69,7 @@ export default function PermisosSelector({
                     disabled={disabled}
                   />
                 }
-                label={
-                  <Typography variant="body2">
-                    {permiso.nombre}
-                  </Typography>
-                }
+                label={<Typography variant="body2">{permiso.nombre}</Typography>}
               />
             </Grid>
           ))}

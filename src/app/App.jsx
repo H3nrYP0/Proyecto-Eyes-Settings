@@ -4,18 +4,18 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import LandingPage from "../features/home/pages/LandingPage";
 import ProductsPage from "../features/home/pages/ProductsPage";
 import ServicesPage from "../features/home/pages/ServicesPage";
-import Login from "../features/auth/components/Login";
-import Register from "../features/auth/components/Register";
-import ForgotPassword from "../features/auth/components/ForgotPassword";
+import Login from "../features/auth/pages/Login";
+import Register from "../features/auth/pages/Register";
+import ForgotPassword from "../features/auth/pages/ForgotPassword";
 import OpticaDashboardLayout from "../shared/components/layouts/OpticaDashboardLayout";
 import ProtectedRoute from "../shared/components/ProtectedRoute";
-import authService from "../features/auth/services/authService";
+import authServices from "../features/auth/services/authServices";
 
 export default function App() {
-  const [user, setUser] = useState(() => authService.getUser());
+  const [user, setUser] = useState(() => authServices.getUser());
 
   const handleLogout = () => {
-    authService.logout();
+    authServices.logout();
     setUser(null);
   };
 
@@ -30,7 +30,7 @@ export default function App() {
           path="/login"
           element={
             user
-              ? authService.hasPermission(user, "dashboard")
+              ? authServices.hasPermission(user, "dashboard")
                 ? <Navigate to="/admin/dashboard" replace />
                 : <Navigate to="/productos" replace />
               : <Login key="login-page" setUser={setUser} /> 

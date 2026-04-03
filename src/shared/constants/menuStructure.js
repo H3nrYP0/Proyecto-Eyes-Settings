@@ -41,7 +41,7 @@ export const menuStructure = [
     icon: "ventas",
     permisos: ["ventas", "clientes", "pedidos"],
     items: [
-      { name: "Clientes", path: "/admin/ventas/clientes", icon: "users-icon" },
+      { name: "Clientes", path: "/admin/ventas/clientes", icon: "user-icon" },
       { name: "Pedidos", path: "/admin/ventas/pedidos", icon: "orders-icon" },
     ]
   },
@@ -51,7 +51,7 @@ export const menuStructure = [
     icon: "seguridad",
     permisos: ["usuarios", "roles"],
     items: [
-      { name: "Usuarios", path: "/admin/seguridad/usuarios", icon: "users-icon" },
+      { name: "Usuarios", path: "/admin/seguridad/usuarios", icon: "user-icon" },
       { name: "Roles", path: "/admin/seguridad/roles", icon: "roles-icon" }
     ]
   },
