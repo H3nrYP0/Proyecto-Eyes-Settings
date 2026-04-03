@@ -1,22 +1,16 @@
 import { useState, useEffect } from 'react';
-import { useNavigate }         from 'react-router-dom';
 
-import { getUserById, getAllRoles, normalizeUserInitialData } from '@seguridad';
+import { getUserById }             from '@security/users/services/userServices';
+import { getAllRoles }              from '@security/roles/services/rolServices';
+import { normalizeUserInitialData } from '@security/users/utils';
 
+// Carga el usuario y los roles disponibles por ID
 export const useUsuario = (id) => {
-  const navigate = useNavigate();
-
   const [usuario, setUsuario] = useState(null);
   const [roles, setRoles]     = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Si no hay id válido, no hace la llamada
-    if (!id || id === 'undefined') {
-      setLoading(false);
-      return;
-    }
-
     const loadData = async () => {
       try {
         const [data, rolesData] = await Promise.all([
@@ -26,14 +20,13 @@ export const useUsuario = (id) => {
         setUsuario(normalizeUserInitialData(data));
         setRoles(rolesData);
       } catch {
-        navigate('/admin/seguridad/usuarios');
+        alert('Error al cargar usuario');
       } finally {
         setLoading(false);
       }
     };
-
     loadData();
-  }, [id, navigate]);
+  }, [id]);
 
   return { usuario, roles, loading };
 };

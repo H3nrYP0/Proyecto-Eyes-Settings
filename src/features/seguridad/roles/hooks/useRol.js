@@ -1,21 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useNavigate }         from 'react-router-dom';
 
-import { getRolById, getAllPermisos, normalizarInitialData } from '@seguridad';
+import { getRolById, getAllPermisos } from '@security/roles/services/rolServices';
+import { normalizarInitialData }      from '@security/roles/utils';
 
+// Carga el rol y los permisos disponibles por ID
 export const useRol = (id) => {
   const navigate = useNavigate();
 
-  const [rol, setRol]                      = useState(null);
-  const [permisosDisponibles, setPermisos] = useState([]);
-  const [loading, setLoading]              = useState(true);
+  const [rol, setRol]                             = useState(null);
+  const [permisosDisponibles, setPermisos]        = useState([]);
+  const [loading, setLoading]                     = useState(true);
 
   useEffect(() => {
-    if (!id || id === 'undefined') {
-      setLoading(false);
-      return;
-    }
-
     const loadData = async () => {
       try {
         const [rolData, permisosData] = await Promise.all([
@@ -36,7 +33,6 @@ export const useRol = (id) => {
         setLoading(false);
       }
     };
-
     loadData();
   }, [id, navigate]);
 
