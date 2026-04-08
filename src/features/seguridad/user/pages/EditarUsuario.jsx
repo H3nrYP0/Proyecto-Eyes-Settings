@@ -1,49 +1,67 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import UsuarioForm from "../components/UserForm";
 import Loading     from "@shared/components/ui/Loading";
 
-import { getUserById, updateUser, getAllRoles } from "@seguridad";
+import {
+  getUserById,
+  updateUser,
+  getAllRoles,
+  normalizeUserInitialData,
+  buildUpdatePayload
+} from "@seguridad";
+
+import { useUser }     from "../hooks/useUsuario";
+import { useUserForm } from "../hooks/useUserForm";
 
 export default function EditarUsuario() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [usuario, setUsuario] = useState(null);
-  const [roles, setRoles] = useState([]);
-  const [loading, setLoading] = useState(true);
 
+  // Carga de datos del usuario y roles
+  const { user, roles, loading } = useUser(id);
+
+  // Formulario inicializado con los datos del usuario
+  const {
+    formData,
+    errors,
+    isSubmitting,
+    setIsSubmitting,
+    handleChange,
+    handleTelefonoChange,
+    handleNumeroDocumentoChange,
+    validate,
+    setFieldError,
+    setFormData
+  } = useUserForm(user, 'edit');
+
+  // Sincronizar formData cuando lleguen los datos del usuario
   useEffect(() => {
-    loadData();
-  }, [id]);
-
-  const loadData = async () => {
-    try {
-      const [data, rolesData] = await Promise.all([
-        getUserById(id),
-        getAllRoles(),
-      ]);
-      setUsuario({ ...data, email: data.correo, rol: data.rol_id });
-      setRoles(rolesData);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
+    if (user) {
+      setFormData(user);
     }
-  };
+  }, [user]);
 
-  const handleEdit = async (data) => {
+  const handleSubmit = async () => {
+    if (!validate()) return;
+
+    setIsSubmitting(true);
     try {
-      const payload = {
-        nombre: data.nombre,
-        correo: data.email,
-        contrasenia: data.password,
-        rol_id: Number(data.rol),
-      };
+      // Incluye contraseña solo si el usuario la escribió
+      const includePassword = !!formData.password;
+      const payload = buildUpdatePayload(formData, includePassword);
       await updateUser(id, payload);
       navigate("/admin/seguridad/usuarios");
     } catch (error) {
-      alert("Error al editar usuario");
+      console.error(error);
+      if (error.message?.includes("correo")) {
+        setFieldError("email", error.message);
+      } else {
+        alert(error.message || "Error al editar usuario");
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -52,11 +70,16 @@ export default function EditarUsuario() {
   return (
     <UsuarioForm
       mode="edit"
-      title={`Editar Usuario: ${usuario?.nombre}`}
-      initialData={usuario}
+      title={`Editar Usuario: ${formData?.nombre}`}
+      initialData={formData}
       rolesDisponibles={roles}
-      onSubmit={handleEdit}
+      errors={errors}
+      onChange={handleChange}
+      onTelefonoChange={handleTelefonoChange}
+      onNumeroDocumentoChange={handleNumeroDocumentoChange}
+      onSubmit={handleSubmit}
       onCancel={() => navigate("/admin/seguridad/usuarios")}
+      isSubmitting={isSubmitting}
     />
   );
 }

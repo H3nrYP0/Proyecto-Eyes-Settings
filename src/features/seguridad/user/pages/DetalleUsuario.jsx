@@ -4,8 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import UsuarioForm from "../components/UserForm";
 import Loading     from "@shared/components/ui/Loading";
 
-// Servicios desde el barril
-import { getUserById, getAllRoles } from "@seguridad";
+import { getUserById, getAllRoles, normalizeUserInitialData } from "@seguridad";
 
 export default function DetalleUsuario() {
   const { id } = useParams();
@@ -24,7 +23,8 @@ export default function DetalleUsuario() {
         getUserById(id),
         getAllRoles(),
       ]);
-      setUsuario({ ...data, email: data.correo, rol: data.rol_id });
+      // normalizeUserInitialData convierte correo→email, rol_id→rol, etc.
+      setUsuario(normalizeUserInitialData(data));
       setRoles(rolesData);
     } catch (error) {
       console.error(error);
