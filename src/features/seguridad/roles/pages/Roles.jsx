@@ -9,14 +9,12 @@ import Loading    from '@shared/components/ui/Loading';
 import { getAllRoles, deleteRol, updateEstadoRol } from "@seguridad";
 import { normalizarRoles, filtrarRoles } from '@seguridad';
 
-// Opciones para el filtro de estado
 const ESTADO_OPTIONS = [
   { value: '',         label: 'Todos los estados' },
   { value: 'activo',   label: 'Activos' },
   { value: 'inactivo', label: 'Inactivos' },
 ];
 
-// Columnas de la tabla
 const COLUMNS = [
   { field: 'nombre',   header: 'Nombre',   render: (item) => item.nombre },
   { field: 'permisos', header: 'Permisos', render: (item) => `${item.permisosCount} permisos` },
@@ -49,15 +47,16 @@ export default function Roles() {
   };
 
   const handleDelete = (id, nombre) =>
-    setModalDelete({ open: false, id, nombre });
+    setModalDelete({ open: true, id, nombre });
 
   const confirmDelete = async () => {
     try {
       await deleteRol(modalDelete.id);
       await cargarRoles();
       setModalDelete({ open: false, id: null, nombre: '' });
-    } catch {
-      alert('Error al eliminar el rol');
+    } catch (err) {
+      const msg = err?.response?.data?.error || 'Error al eliminar el rol';
+      alert(msg);
     }
   };
 
@@ -65,8 +64,9 @@ export default function Roles() {
     try {
       await updateEstadoRol(row.id, nuevoEstado);
       await cargarRoles();
-    } catch {
-      alert('Error al cambiar el estado del rol');
+    } catch (err) {
+      const msg = err?.response?.data?.error || 'Error al cambiar el estado del rol';
+      alert(msg);
     }
   };
 

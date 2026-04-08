@@ -43,8 +43,8 @@ export default function GestionUsuarios() {
       setUsers(normalizeUsers(data));
       setRoles(rolesData);
     } catch (err) {
-      console.error(err);
-      setError("No se pudieron cargar los usuarios");
+      const msg = err?.response?.data?.error || "No se pudieron cargar los usuarios";
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -59,9 +59,9 @@ export default function GestionUsuarios() {
       await deleteUser(deleteModal.id);
       await loadUsers();
       setDeleteModal({ open: false, id: null, name: "" });
-    } catch (error) {
-      console.error(error);
-      alert("Error al eliminar usuario");
+    } catch (err) {
+      const msg = err?.response?.data?.error || "Error al eliminar usuario";
+      alert(msg);
     }
   };
 
@@ -69,9 +69,9 @@ export default function GestionUsuarios() {
     try {
       await updateEstadoUser(row.id, nuevoEstado);
       await loadUsers();
-    } catch (error) {
-      console.error(error);
-      alert("Error al cambiar estado");
+    } catch (err) {
+      const msg = err?.response?.data?.error || 'Error al cambiar el estado del usuario';
+      alert(msg);
     }
   };
 
