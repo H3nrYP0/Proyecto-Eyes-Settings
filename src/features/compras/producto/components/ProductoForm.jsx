@@ -35,6 +35,54 @@ export default function ProductoForm({
   removeImage,
   handleSubmit
 }) {
+  // Determinar si el campo debe ser de solo lectura
+  // En modo edición (edit), los campos principales son solo lectura
+  const isEditMode = mode === "edit";
+  
+  const getCategoriaOptions = () => {
+    const options = [
+      { value: "", label: "-- Seleccionar categoría --" },
+      ...categorias.map(cat => ({
+        value: cat.id.toString(),
+        label: cat.nombre
+      }))
+    ];
+
+    if (!isCreate && formData.categoria && formData.categoriaNombre) {
+      const categoriaExiste = categorias.some(c => c.id.toString() === formData.categoria);
+      if (!categoriaExiste) {
+        options.unshift({
+          value: formData.categoria,
+          label: `${formData.categoriaNombre} (Inactiva)`
+        });
+      }
+    }
+
+    return options;
+  };
+
+  const getMarcaOptions = () => {
+    const options = [
+      { value: "", label: "-- Seleccionar marca --" },
+      ...marcas.map(m => ({
+        value: m.id.toString(),
+        label: m.nombre
+      }))
+    ];
+
+    if (!isCreate && formData.marca && formData.marcaNombre) {
+      const marcaExiste = marcas.some(m => m.id.toString() === formData.marca);
+      if (!marcaExiste) {
+        options.unshift({
+          value: formData.marca,
+          label: `${formData.marcaNombre} (Inactiva)`
+        });
+      }
+    }
+
+    return options;
+  };
+
   return (
     <BaseFormLayout title={title}>
       <FormRow spacing={2}>
@@ -44,7 +92,7 @@ export default function ProductoForm({
             name="nombre"
             value={formData.nombre}
             onChange={handleChange}
-            disabled={isView}
+            disabled={isView || isEditMode}
             required
             error={!!errors.nombre || nombreExists}
             helperText={errors.nombre || (nombreExists ? "Ya existe un producto con este nombre" : "")}
@@ -60,13 +108,7 @@ export default function ProductoForm({
                 value={formData.categoria}
                 onChange={handleChange}
                 select
-                options={[
-                  { value: "", label: "-- Seleccionar categoría --" },
-                  ...categorias.map(cat => ({
-                    value: cat.id.toString(),
-                    label: cat.nombre
-                  }))
-                ]}
+                options={getCategoriaOptions()}
                 disabled={isView}
                 required
                 error={!!errors.categoria}
@@ -95,13 +137,7 @@ export default function ProductoForm({
                 value={formData.marca}
                 onChange={handleChange}
                 select
-                options={[
-                  { value: "", label: "-- Seleccionar marca --" },
-                  ...marcas.map(m => ({
-                    value: m.id.toString(),
-                    label: m.nombre
-                  }))
-                ]}
+                options={getMarcaOptions()}
                 disabled={isView}
                 required
                 error={!!errors.marca}
@@ -152,7 +188,7 @@ export default function ProductoForm({
               name="precioCompra"
               value={formData.precioCompra}
               onChange={handleChange}
-              disabled={isView}
+              disabled={isView || isEditMode}
               required
               error={!!errors.precioCompra}
               helperText={errors.precioCompra}
@@ -171,7 +207,7 @@ export default function ProductoForm({
               name="precioVenta"
               value={formData.precioVenta}
               onChange={handleChange}
-              disabled={isView}
+              disabled={isView || isEditMode}
               required
               error={!!errors.precioVenta}
               helperText={errors.precioVenta}
@@ -190,14 +226,13 @@ export default function ProductoForm({
               name="stockActual"
               value={formData.stockActual}
               onChange={handleChange}
-              disabled={isView || (isCreate && !isFullCreate)}
+              disabled={isView || isEditMode || (isCreate && !isFullCreate)}
               required
               error={!!errors.stockActual}
               helperText={errors.stockActual}
               inputProps={{ 
                 inputMode: "numeric",
-                pattern: "[0-9]*",
-                readOnly: isView || (isCreate && !isFullCreate)
+                pattern: "[0-9]*"
               }}
             />
           </FormCol>

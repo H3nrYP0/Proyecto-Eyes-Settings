@@ -1,3 +1,4 @@
+// src/features/compras/pages/producto/hooks/useProductos.js
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { ProductoData } from "../services/productosService";
 import { marcasService as MarcaData } from "../../marca/services/marcasService";
@@ -37,6 +38,12 @@ export const useProductos = () => {
     setNotification(prev => ({ ...prev, isVisible: false }));
   }, []);
 
+  const ordenarProductos = (productosArray) => {
+    return [...productosArray].sort((a, b) => {
+      return a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' });
+    });
+  };
+
   const loadData = useCallback(async () => {
     if (initialLoadDone) return;
     
@@ -69,7 +76,9 @@ export const useProductos = () => {
         };
       });
 
-      setProductos(productosConNombres);
+      const productosOrdenados = ordenarProductos(productosConNombres);
+
+      setProductos(productosOrdenados);
       setMarcas(marcasData.filter(m => m.estado === true));
       setCategorias(categoriasData.filter(c => c.estado === true));
       setError(null);
@@ -112,7 +121,9 @@ export const useProductos = () => {
         };
       });
 
-      setProductos(productosConNombres);
+      const productosOrdenados = ordenarProductos(productosConNombres);
+
+      setProductos(productosOrdenados);
       setMarcas(marcasData.filter(m => m.estado === true));
       setCategorias(categoriasData.filter(c => c.estado === true));
       setError(null);

@@ -1,7 +1,8 @@
 import api from "../../../../lib/axios";
 
+let pendingRequests = new Map();
+
 export const marcasService = {
-  // Obtener todas las marcas
   async getAllMarcas() {
     try {
       const response = await api.get('/marcas');
@@ -12,8 +13,10 @@ export const marcasService = {
     }
   },
 
-  // Obtener una marca por ID
   async getMarcaById(id) {
+    if (!id) {
+      throw new Error('ID de marca no proporcionado');
+    }
     try {
       const response = await api.get(`/marcas/${id}`);
       return response.data;
@@ -23,9 +26,15 @@ export const marcasService = {
     }
   },
 
-  // Crear una marca
   async createMarca(data) {
+    const requestKey = JSON.stringify({ url: '/marcas', data });
+    
+    if (pendingRequests.has(requestKey)) {
+      throw new Error('Ya hay una solicitud de creación en proceso');
+    }
+    
     try {
+      pendingRequests.set(requestKey, true);
       const response = await api.post('/marcas', {
         nombre: data.nombre,
         estado: true
@@ -34,10 +43,11 @@ export const marcasService = {
     } catch (error) {
       console.error('Error al crear marca:', error);
       throw error;
+    } finally {
+      pendingRequests.delete(requestKey);
     }
   },
 
-  // Verificar si ya existe una marca con ese nombre
   async checkMarcaExists(nombre) {
     try {
       const response = await api.get('/marcas');
@@ -50,8 +60,10 @@ export const marcasService = {
     }
   },
 
-  // Actualizar una marca
   async updateMarca(id, data) {
+    if (!id) {
+      throw new Error('ID de marca no proporcionado');
+    }
     try {
       const response = await api.put(`/marcas/${id}`, {
         nombre: data.nombre,
@@ -64,34 +76,45 @@ export const marcasService = {
     }
   },
 
-  // Eliminar una marca
   async deleteMarca(id) {
+    if (!id) {
+      return true;
+    }
+    
     try {
       await api.delete(`/marcas/${id}`);
       return true;
     } catch (error) {
+      if (error.response?.status === 404) {
+        return true;
+      }
       console.error('Error al eliminar marca:', error);
       throw error;
     }
   },
 
-  // Verificar si una marca tiene productos asociados
   async hasMarcaProductosAsociados(id) {
+    if (!id) {
+      return false;
+    }
     try {
       const response = await api.get('/productos');
       const productos = response.data;
       return productos.some(producto => producto.marca_id === parseInt(id));
     } catch (error) {
       console.error('Error al verificar productos asociados:', error);
-      throw error;
+      return false;
     }
   },
 
-  // Cambiar estado (activar/desactivar)
   async toggleMarcaEstado(id, nuevoEstado) {
+    if (!id) {
+      throw new Error('ID de marca no proporcionado');
+    }
     try {
+      const estadoBooleano = nuevoEstado === true || nuevoEstado === "true" || nuevoEstado === "activa";
       const response = await api.put(`/marcas/${id}`, {
-        estado: nuevoEstado
+        estado: estadoBooleano
       });
       return response.data;
     } catch (error) {
@@ -100,7 +123,6 @@ export const marcasService = {
     }
   },
 
-  // Utilidades
   getEstadoTexto(estado) {
     return estado ? 'Activa' : 'Inactiva';
   },

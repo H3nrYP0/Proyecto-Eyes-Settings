@@ -18,8 +18,8 @@ export const validateNombre = (nombre, nombreExists) => {
   if (trimmed.length < 2) {
     return { isValid: false, message: "El nombre debe tener al menos 2 caracteres" };
   }
-  if (trimmed.length > 23) {
-    return { isValid: false, message: "El nombre no puede exceder 23 caracteres" };
+  if (trimmed.length > 50) {
+    return { isValid: false, message: "El nombre no puede exceder 50 caracteres" };
   }
   if (nombreExists) {
     return { isValid: false, message: "Ya existe una marca con este nombre" };
