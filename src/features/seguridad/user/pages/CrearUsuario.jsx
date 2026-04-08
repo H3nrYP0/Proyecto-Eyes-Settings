@@ -1,17 +1,28 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useUserForm } from "../hooks/useUserForm";
+import { createUser } from "../services/userServices";
+import { getAllRoles } from "@seguridad/roles/services/rolServices";
+import { buildCreatePayload } from "../utils/userNormalizer";
+import Loading from "@shared/components/ui/Loading";
+import UserForm from "../components/UserForm";
 
-// Ruta relativa corregida para componente local
-import UsuarioForm from "../components/UserForm";
-import Loading     from "@shared/components/ui/Loading";
-
-// Servicios desde el barril
-import { createUser, getAllRoles } from "@seguridad";
-
-export default function CrearUsuario() {
+export default function CrearUser() {
   const navigate = useNavigate();
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  const {
+    formData,
+    errors,
+    isSubmitting,
+    setIsSubmitting,
+    handleChange,
+    handleTelefonoChange,
+    handleNumeroDocumentoChange,
+    validate,
+    setFieldError
+  } = useUserForm(null, 'create');
 
   useEffect(() => {
     const loadRoles = async () => {
@@ -27,31 +38,44 @@ export default function CrearUsuario() {
     loadRoles();
   }, []);
 
-  const handleCreate = async (data) => {
+  const handleSubmit = async () => {
+    if (!validate()) return;
+    
+    setIsSubmitting(true);
+    
     try {
-      const payload = {
-        nombre: data.nombre,
-        correo: data.email,
-        contrasenia: data.password,
-        rol_id: Number(data.rol),
-        estado: true,
-      };
+      const payload = buildCreatePayload(formData);
       await createUser(payload);
       navigate("/admin/seguridad/usuarios");
     } catch (error) {
-      alert("Error al crear usuario");
+      console.error(error);
+      if (error.message.includes("correo")) {
+        setFieldError("email", error.message);
+      } else if (error.message.includes("contraseña")) {
+        setFieldError("password", error.message);
+      } else {
+        alert(error.message || "Error al crear usuario");
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   if (loading) return <Loading message="Cargando roles..." />;
 
   return (
-    <UsuarioForm
+    <UserForm
       mode="create"
       title="Crear Nuevo Usuario"
+      initialData={formData}
       rolesDisponibles={roles}
-      onSubmit={handleCreate}
+      errors={errors}
+      onChange={handleChange}
+      onTelefonoChange={handleTelefonoChange}
+      onNumeroDocumentoChange={handleNumeroDocumentoChange}
+      onSubmit={handleSubmit}
       onCancel={() => navigate("/admin/seguridad/usuarios")}
+      isSubmitting={isSubmitting}
     />
   );
 }

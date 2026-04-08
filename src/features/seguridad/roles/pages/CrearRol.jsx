@@ -1,50 +1,43 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
-import RolForm from '@seguridad/roles/components/RolForm';
-import { getRolById, updateRol, getAllPermisos } from '@seguridad/roles/services/rolServices';
+import RolForm   from '@seguridad/roles/components/RolForm';
+import Loading   from '@shared/components/ui/Loading';
+import { createRol, getAllPermisos } from '@seguridad/roles/services/rolServices';
 
-export default function EditarPermisos() {
-  const { id } = useParams();
+export default function CrearRol() {
   const navigate = useNavigate();
 
-  const [rol, setRol]                             = useState(null);
-  const [permisosDisponibles, setPermisos]        = useState([]);
-  const [loading, setLoading]                     = useState(true);
+  const [permisosDisponibles, setPermisos] = useState([]);
+  const [loading, setLoading]              = useState(true);
 
   useEffect(() => {
-    const cargarDatos = async () => {
-      const [rolData, permisosData] = await Promise.all([
-        getRolById(id),
-        getAllPermisos(),
-      ]);
-
-      if (!rolData) {
-        navigate('/admin/seguridad/roles');
-        return;
+    const cargarPermisos = async () => {
+      try {
+        const data = await getAllPermisos();
+        setPermisos(data || []);
+      } catch (err) {
+        console.error('Error al cargar permisos:', err);
+      } finally {
+        setLoading(false);
       }
-
-      setRol(rolData);
-      setPermisos(permisosData || []);
-      setLoading(false);
     };
-    cargarDatos();
-  }, [id, navigate]);
+    cargarPermisos();
+  }, []);
 
-  const handleUpdate = async (data) => {
-    await updateRol(id, data);
+  const handleCreate = async (data) => {
+    await createRol(data);
     navigate('/admin/seguridad/roles');
   };
 
-  if (loading) return null;
+  if (loading) return <Loading message="Cargando permisos..." />;
 
   return (
     <RolForm
-      mode="edit"
-      title="Editar Rol"
-      initialData={rol}
+      mode="create"
+      title="Crear Rol"
       permisosDisponibles={permisosDisponibles}
-      onSubmit={handleUpdate}
+      onSubmit={handleCreate}
       onCancel={() => navigate('/admin/seguridad/roles')}
     />
   );
