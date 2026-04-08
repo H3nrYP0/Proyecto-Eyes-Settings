@@ -7,13 +7,15 @@ export default function MarcaForm({
   initialData,
   onSubmit,
   onCancel,
-  id
+  id,
+  buttonRef
 }) {
   const {
     formData,
     errors,
     nombreExists,
     isView,
+    submitting,
     handleChange,
     handleSubmit,
     handleCancel
@@ -30,7 +32,7 @@ export default function MarcaForm({
             onChange={handleChange}
             disabled={isView}
             placeholder="Ej: Ray-Ban, Oakley, etc."
-            inputProps={{ maxLength: 23 }}
+            inputProps={{ maxLength: 50 }}
             fullWidth
             required
             error={!!errors.nombre || nombreExists}
@@ -66,6 +68,13 @@ export default function MarcaForm({
           </Box>
         )}
       </Box>
+      
+      <button 
+        type="submit" 
+        ref={buttonRef} 
+        style={{ display: 'none' }}
+        disabled={submitting}
+      />
     </form>
   );
 }

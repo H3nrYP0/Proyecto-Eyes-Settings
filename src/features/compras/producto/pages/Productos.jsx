@@ -1,7 +1,8 @@
 // src/features/compras/pages/producto/pages/Productos.jsx
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box } from "@mui/material";
+import { Box, Button, Stack, Select, MenuItem } from "@mui/material";
+import ClearIcon from '@mui/icons-material/Clear';
 import CrudLayout from "../../../../shared/components/crud/CrudLayout";
 import CrudTable from "../../../../shared/components/crud/CrudTable";
 import Modal from "../../../../shared/components/ui/Modal";
@@ -10,7 +11,6 @@ import Loading from "../../../../shared/components/ui/Loading/Loading";
 import { useProductos } from "../hooks/useProductos";
 import StockCell from "../components/StockCell";
 import { formatCOP } from "../../../../shared/utils/formatCOP";
-import "../styles/Productos.css";
 
 export default function Productos() {
   const navigate = useNavigate();
@@ -39,6 +39,17 @@ export default function Productos() {
     handleCancelDelete,
     handleDelete
   } = useProductos();
+
+  // Funcion para limpiar todos los filtros
+  const limpiarFiltros = () => {
+    setSearch("");
+    setFilterEstado("");
+    setFilterMarca("");
+    setFilterCategoria("");
+  };
+
+  // Verificar si hay filtros activos
+  const hayFiltrosActivos = search !== "" || filterEstado !== "" || filterMarca !== "" || filterCategoria !== "";
 
   useEffect(() => {
     const savedNotification = localStorage.getItem('productoNotification');
@@ -116,32 +127,62 @@ export default function Productos() {
         filterEstado={filterEstado}
         onFilterChange={setFilterEstado}
       >
-        <div className="unified-search-container">
-          <select
+        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2, flexWrap: 'wrap' }}>
+          {/* Filtro de marca - mismo estilo que CrudLayout */}
+          <Select
             value={filterMarca}
             onChange={(e) => setFilterMarca(e.target.value)}
-            className="unified-filter-select"
+            displayEmpty
+            size="small"
+            sx={{ minWidth: 150 }}
           >
-            {marcaFilters.map(f => (
-              <option key={f.value} value={f.value}>{f.label}</option>
+            {marcaFilters.map((filter) => (
+              <MenuItem key={filter.value} value={filter.value}>
+                {filter.label}
+              </MenuItem>
             ))}
-          </select>
+          </Select>
 
-          <select
+          {/* Filtro de categoría - mismo estilo que CrudLayout */}
+          <Select
             value={filterCategoria}
             onChange={(e) => setFilterCategoria(e.target.value)}
-            className="unified-filter-select"
+            displayEmpty
+            size="small"
+            sx={{ minWidth: 150 }}
           >
-            {categoriaFilters.map(f => (
-              <option key={f.value} value={f.value}>{f.label}</option>
+            {categoriaFilters.map((filter) => (
+              <MenuItem key={filter.value} value={filter.value}>
+                {filter.label}
+              </MenuItem>
             ))}
-          </select>
-        </div>
+          </Select>
+
+          {/* Boton de limpiar filtros - mismo estilo que CrudLayout */}
+          {hayFiltrosActivos && (
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<ClearIcon />}
+              onClick={limpiarFiltros}
+              color="error"
+              sx={{ height: 40 }}
+            >
+              Limpiar filtros
+            </Button>
+          )}
+        </Stack>
 
         {error && (
-          <div className="error-box">
+          <Box sx={{ 
+            p: 2, 
+            bgcolor: '#ffebee', 
+            color: '#c62828', 
+            borderRadius: 1,
+            mb: 2 
+          }}>
             {error}
-          </div>
+          </Box>
         )}
 
         <CrudTable
@@ -158,14 +199,15 @@ export default function Productos() {
         />
 
         {showEmptyState && (
-          <div className="empty-state">
-            <button 
+          <Box sx={{ textAlign: 'center', mt: 3 }}>
+            <Button 
               onClick={onCreateClick}
-              className="btn-primary create-button"
+              variant="contained"
+              color="primary"
             >
               Crear Primer Producto
-            </button>
-          </div>
+            </Button>
+          </Box>
         )}
 
         <Modal
