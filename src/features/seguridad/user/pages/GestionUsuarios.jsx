@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 import CrudLayout from "@shared/components/crud/CrudLayout";
@@ -6,23 +6,25 @@ import CrudTable  from "@shared/components/crud/CrudTable";
 import Modal      from "@shared/components/ui/Modal";
 import Loading    from "@shared/components/ui/Loading";
 
-import { 
-  getAllUsers, 
-  deleteUser, 
-  updateUser, 
-  getAllRoles 
+import {
+  getAllUsers,
+  deleteUser,
+  updateEstadoUser,
+  getAllRoles,
+  normalizeUsers,
+  filtrarUsuarios
 } from "@seguridad";
 
 export default function GestionUsuarios() {
   const navigate = useNavigate();
-  const [users, setUsers] = useState([]);
-  const [roles, setRoles] = useState([]);
-  const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  const [deleteModal, setDeleteModal] = useState({ open: false, id: null, name: "" });
+  const [users, setUsers]               = useState([]);
+  const [roles, setRoles]               = useState([]);
+  const [search, setSearch]             = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [loading, setLoading]           = useState(true);
+  const [error, setError]               = useState(null);
+  const [deleteModal, setDeleteModal]   = useState({ open: false, id: null, name: "" });
 
   useEffect(() => {
     loadUsers();
@@ -38,28 +40,18 @@ export default function GestionUsuarios() {
         getAllRoles(),
       ]);
 
-      const normalizados = data.map((u) => ({
-        ...u,
-        estado: u.estado ? "activo" : "inactivo",
-        estadosDisponibles: ["activo", "inactivo"],
-      }));
-
-      setUsers(normalizados);
+      setUsers(normalizeUsers(data));
       setRoles(rolesData);
     } catch (err) {
-      console.error(err);
-      setError("No se pudieron cargar los usuarios");
+      const msg = err?.response?.data?.error || "No se pudieron cargar los usuarios";
+      setError(msg);
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = (id, name) => {
-    setDeleteModal({
-      open: true,
-      id: id,
-      name: name
-    });
+    setDeleteModal({ open: true, id, name });
   };
 
   const confirmDelete = async () => {
@@ -67,39 +59,27 @@ export default function GestionUsuarios() {
       await deleteUser(deleteModal.id);
       await loadUsers();
       setDeleteModal({ open: false, id: null, name: "" });
-    } catch (error) {
-      console.error(error);
-      alert("Error al eliminar usuario");
+    } catch (err) {
+      const msg = err?.response?.data?.error || "Error al eliminar usuario";
+      alert(msg);
     }
   };
 
   const handleChangeStatus = async (row, nuevoEstado) => {
     try {
-      await updateUser(row, nuevoEstado);
+      await updateEstadoUser(row.id, nuevoEstado);
       await loadUsers();
-    } catch (error) {
-      console.error(error);
-      alert("Error al cambiar estado");
+    } catch (err) {
+      const msg = err?.response?.data?.error || 'Error al cambiar el estado del usuario';
+      alert(msg);
     }
   };
 
-  // =============================
-  // FILTRAR USUARIOS
-  // ← Igual que Roles: compara strings "activo"/"inactivo"
-  // =============================
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      user.nombre?.toLowerCase().includes(search.toLowerCase()) ||
-      user.correo?.toLowerCase().includes(search.toLowerCase());
+  const filteredUsers = useMemo(
+    () => filtrarUsuarios(users, search, filterStatus),
+    [users, search, filterStatus]
+  );
 
-    const matchesStatus = !filterStatus || user.estado === filterStatus;
-
-    return matchesSearch && matchesStatus;
-  });
-
-  // =============================
-  // COLUMNAS DE LA TABLA
-  // =============================
   const columns = [
     {
       field: "nombre",
@@ -121,10 +101,6 @@ export default function GestionUsuarios() {
     },
   ];
 
-  // =============================
-  // ACCIONES DE LA TABLA
-  // ← Sin toggle-status, igual que Roles
-  // =============================
   const tableActions = [
     {
       label: "Ver detalles",
@@ -143,18 +119,12 @@ export default function GestionUsuarios() {
     },
   ];
 
-  // =============================
-  // FILTROS DE ESTADO
-  // =============================
   const statusFilters = [
-    { value: "", label: "Todos los estados" },
-    { value: "activo", label: "Activos" },
-    { value: "inactivo", label: "Inactivos" },
+    { value: "",         label: "Todos los estados" },
+    { value: "activo",   label: "Activos"           },
+    { value: "inactivo", label: "Inactivos"         },
   ];
 
-  // =============================
-  // LOADING INICIAL
-  // =============================
   if (loading && users.length === 0) {
     return (
       <CrudLayout title="Gestión de Usuarios" showSearch>
@@ -201,7 +171,6 @@ export default function GestionUsuarios() {
         }
       />
 
-      {/* MODAL ELIMINAR */}
       <Modal
         open={deleteModal.open}
         type="warning"
@@ -211,9 +180,7 @@ export default function GestionUsuarios() {
         cancelText="Cancelar"
         showCancel
         onConfirm={confirmDelete}
-        onCancel={() =>
-          setDeleteModal({ open: false, id: null, name: "" })
-        }
+        onCancel={() => setDeleteModal({ open: false, id: null, name: "" })}
       />
     </CrudLayout>
   );
