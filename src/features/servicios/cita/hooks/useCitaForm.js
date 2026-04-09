@@ -6,6 +6,7 @@ import {
   validateFecha,
   validateDuracion,
   validateHora,
+  validateHoraConFecha,
   getBackendDay,
   diasSemanaMap
 } from "../utils/citasUtils";
@@ -66,6 +67,17 @@ export function useCitaForm({
     isView,
   });
 
+  // Función para crear fecha sin zona horaria
+  const createLocalDate = (fechaStr) => {
+    if (!fechaStr) return null;
+    if (typeof fechaStr === 'string' && fechaStr.includes('-')) {
+      const [year, month, day] = fechaStr.split('-');
+      return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    }
+    if (fechaStr instanceof Date) return fechaStr;
+    return new Date(fechaStr);
+  };
+
   // Cargar datos iniciales
   useEffect(() => {
     if (!initialData) return;
@@ -76,7 +88,7 @@ export function useCitaForm({
       empleado_id: initialData.empleado_id || "",
       estado_cita_id: initialData.estado_cita_id || "",
       metodo_pago: initialData.metodo_pago || "",
-      fecha: initialData.fecha ? new Date(initialData.fecha) : null,
+      fecha: initialData.fecha ? createLocalDate(initialData.fecha) : null,
       hora: initialData.hora && typeof initialData.hora === 'string'
         ? (() => {
             const [h, m] = initialData.hora.split(":");
@@ -109,7 +121,7 @@ export function useCitaForm({
     }
   }, [estadosCita, mode, formData.estado_cita_id]);
 
-  // Resetear fecha y hora al cambiar empleado (solo si realmente cambió)
+  // Resetear fecha y hora al cambiar empleado
   const prevEmpleadoIdRef = useRef();
   useEffect(() => {
     if (formData.empleado_id !== prevEmpleadoIdRef.current) {
@@ -141,7 +153,17 @@ export function useCitaForm({
     resetDisponibilidad();
   }, [errors, resetDisponibilidad]);
 
-  // Validaciones (incluye día laborable)
+  // Obtener horario del empleado para la fecha seleccionada
+  const getHorarioDelDia = useCallback(() => {
+    if (!formData.fecha || !horariosEmpleado.length) return null;
+    
+    const backendDay = getBackendDay(formData.fecha);
+    const horarioDia = horariosEmpleado.find(h => h.dia === backendDay && h.activo === true);
+    
+    return horarioDia;
+  }, [formData.fecha, horariosEmpleado]);
+
+  // Validaciones
   const validate = useCallback(() => {
     const newErrors = {};
 
@@ -155,9 +177,9 @@ export function useCitaForm({
     if (!fechaValidation.isValid) {
       newErrors.fecha = fechaValidation.message;
     } else if (formData.fecha) {
-      const dayIndex = getBackendDay(formData.fecha);
+      const backendDay = getBackendDay(formData.fecha);
       const horariosActivos = horariosEmpleado.filter(h => h.activo === true);
-      const tieneHorario = horariosActivos.some(h => h.dia === dayIndex);
+      const tieneHorario = horariosActivos.some(h => h.dia === backendDay);
       if (!tieneHorario && horariosActivos.length > 0) {
         const diasDisponibles = horariosActivos.map(h => diasSemanaMap[h.dia]).join(", ");
         newErrors.fecha = `El empleado no trabaja este día. Días disponibles: ${diasDisponibles}`;
@@ -166,7 +188,7 @@ export function useCitaForm({
       }
     }
 
-    const horaValidation = validateHora(formData.hora);
+    const horaValidation = validateHoraConFecha(formData.fecha, formData.hora);
     if (!horaValidation.isValid) newErrors.hora = horaValidation.message;
 
     const duracionValidation = validateDuracion(formData.duracion);
@@ -180,15 +202,29 @@ export function useCitaForm({
     return Object.keys(newErrors).length === 0;
   }, [formData, isView, disponibilidad, errorDisponibilidad, horariosEmpleado]);
 
-  // Submit
+  // Submit - ACTUALIZADO para asegurar duración del servicio
   const handleSubmit = useCallback(async () => {
     if (!validate()) return;
 
     setSubmitting(true);
     try {
+      // Obtener la duración del servicio seleccionado
+      const servicio = servicios.find(s => s.id === parseInt(formData.servicio_id));
+      const duracionDelServicio = servicio?.duracion_min || 30;
+
+      // Formatear fecha correctamente sin zona horaria
+      let fechaFormateada = null;
+      if (formData.fecha) {
+        const year = formData.fecha.getFullYear();
+        const month = String(formData.fecha.getMonth() + 1).padStart(2, '0');
+        const day = String(formData.fecha.getDate()).padStart(2, '0');
+        fechaFormateada = `${year}-${month}-${day}`;
+      }
+
       const datosEnvio = {
         ...formData,
-        fecha: formData.fecha ? formData.fecha.toISOString().split("T")[0] : null,
+        duracion: duracionDelServicio, // Usar duración del servicio
+        fecha: fechaFormateada,
         hora: formData.hora ? `${formData.hora.getHours().toString().padStart(2, "0")}:${formData.hora.getMinutes().toString().padStart(2, "0")}` : null,
       };
 
@@ -214,7 +250,7 @@ export function useCitaForm({
     } finally {
       setSubmitting(false);
     }
-  }, [formData, mode, initialData, validate, onSubmitSuccess, onError]);
+  }, [formData, mode, initialData, validate, onSubmitSuccess, onError, servicios]);
 
   const resetForm = useCallback(() => {
     setFormData({
@@ -247,5 +283,6 @@ export function useCitaForm({
     handleSubmit,
     resetForm,
     setFormData,
+    getHorarioDelDia,
   };
 }

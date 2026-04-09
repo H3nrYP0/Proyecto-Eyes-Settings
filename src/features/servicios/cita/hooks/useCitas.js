@@ -32,16 +32,16 @@ export function useCitas() {
         ...c,
         fecha_formateada: formatFecha(c.fecha),
         hora_formateada: formatHora(c.hora),
-        // Campo requerido por CrudTable para mostrar el estado actual
         estado: c.estado_nombre,
-        // Array con los nombres de los estados posibles para el desplegable
         estadosDisponibles: estadosData.map((e) => e.nombre),
       }));
 
       setCitas(citasNormalizadas);
     } catch (err) {
-      console.error(err);
-      setError("No se pudieron cargar las citas");
+      console.error("Error cargando citas:", err);
+      // Extraer mensaje específico si existe
+      const errorMsg = err.response?.data?.message || err.message || "No se pudieron cargar las citas";
+      setError(errorMsg);
       setCitas([]);
     } finally {
       setLoading(false);
@@ -55,7 +55,8 @@ export function useCitas() {
       return { success: true };
     } catch (error) {
       console.error("Error al eliminar:", error);
-      return { success: false, error: "Error al eliminar la cita" };
+      const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message || "Error desconocido al eliminar la cita";
+      return { success: false, error: errorMsg };
     }
   }, [cargarCitas]);
 
@@ -63,14 +64,15 @@ export function useCitas() {
     try {
       const estado = estadosCita.find((e) => e.nombre === nuevoEstadoNombre);
       if (!estado) {
-        return { success: false, error: "Estado no encontrado" };
+        return { success: false, error: `El estado "${nuevoEstadoNombre}" no existe en el sistema` };
       }
       await updateCitaStatus(id, estado.id);
       await cargarCitas();
       return { success: true };
     } catch (error) {
       console.error("Error al cambiar estado:", error);
-      return { success: false, error: "Error al cambiar el estado" };
+      const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message || "Error desconocido al cambiar el estado";
+      return { success: false, error: errorMsg };
     }
   }, [estadosCita, cargarCitas]);
 

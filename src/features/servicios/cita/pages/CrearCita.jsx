@@ -60,6 +60,7 @@ export default function CrearCita() {
     handleDateChange,
     handleTimeChange,
     handleSubmit,
+    getHorarioDelDia,
   } = useCitaForm({
     mode: "create",
     clientes,
@@ -116,6 +117,7 @@ export default function CrearCita() {
       handleDateChange={handleDateChange}
       handleTimeChange={handleTimeChange}
       handleSubmit={handleSubmit}
+      getHorarioDelDia={getHorarioDelDia}
     />
   );
 }
