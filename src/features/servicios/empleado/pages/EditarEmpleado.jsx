@@ -4,20 +4,29 @@ import { useEmpleadoForm } from "../hooks/useEmpleadoForm";
 import { getEmpleadoById } from "../services/empleadosService";
 import { normalizeEmpleadoForForm } from "../utils/empleadosUtils";
 import EmpleadoForm from "../components/EmpleadoForm";
-import Loading from "../../../../shared/components/ui/Loading";
+import Loading from "@shared/components/ui/Loading";
+import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 
 export default function EditarEmpleado() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [notification, setNotification] = useState({ visible: false, message: "", type: "error" });
 
   const [empleado, setEmpleado] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const showNotification = (message, type = "error") => {
+    setNotification({ visible: true, message, type });
+    setTimeout(() => setNotification(prev => ({ ...prev, visible: false })), 5000);
+  };
+
   const {
     formData,
     errors,
     submitting,
+    documentoExists,
+    emailExists,
     handleChange,
     handleSubmit,
     setFormData,
@@ -28,25 +37,20 @@ export default function EditarEmpleado() {
       navigate("/admin/servicios/empleados");
     },
     onError: (error) => {
-      alert(error);
+      showNotification(error, "error");
     },
   });
 
-  // ============================
-  // Cargar empleado
-  // ============================
   useEffect(() => {
     const cargarEmpleado = async () => {
       try {
         setLoading(true);
         setError(null);
         const data = await getEmpleadoById(Number(id));
-
         if (!data) {
           navigate("/admin/servicios/empleados");
           return;
         }
-
         const normalizado = normalizeEmpleadoForForm(data);
         setEmpleado(normalizado);
         setFormData(normalizado);
@@ -57,56 +61,45 @@ export default function EditarEmpleado() {
         setLoading(false);
       }
     };
-
     cargarEmpleado();
   }, [id, navigate, setFormData]);
 
-  if (loading) {
-    return (
-      <div style={{ padding: "40px" }}>
-        <Loading message="Cargando información del empleado..." />
-      </div>
-    );
-  }
-
+  if (loading) return <Loading message="Cargando información del empleado..." />;
   if (error) {
     return (
-      <div
-        style={{
-          padding: "40px",
-          textAlign: "center",
-          color: "#c62828",
-        }}
-      >
-        ⚠️ {error}
+      <div style={{ padding: "40px", textAlign: "center" }}>
+        <CrudNotification message={error} type="error" isVisible={true} onClose={() => {}} />
         <div style={{ marginTop: "20px" }}>
-          <button
-            onClick={() => navigate("/admin/servicios/empleados")}
-            className="btn-primary"
-          >
+          <button onClick={() => navigate("/admin/servicios/empleados")} className="btn-primary">
             Volver a Empleados
           </button>
         </div>
       </div>
     );
   }
-
-  if (!empleado) {
-    return null;
-  }
+  if (!empleado) return null;
 
   return (
-    <EmpleadoForm
-      mode="edit"
-      title="Editar Empleado"
-      initialData={empleado}
-      onSubmit={() => navigate("/admin/servicios/empleados")}
-      onCancel={() => navigate("/admin/servicios/empleados")}
-      formData={formData}
-      errors={errors}
-      submitting={submitting}
-      handleChange={handleChange}
-      handleSubmit={handleSubmit}
-    />
+    <>
+      <CrudNotification
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.visible}
+        onClose={() => setNotification(prev => ({ ...prev, visible: false }))}
+      />
+      <EmpleadoForm
+        mode="edit"
+        title="Editar Empleado"
+        onSubmit={() => navigate("/admin/servicios/empleados")}
+        onCancel={() => navigate("/admin/servicios/empleados")}
+        formData={formData}
+        errors={errors}
+        submitting={submitting}
+        documentoExists={documentoExists}
+        emailExists={emailExists}
+        handleChange={handleChange}
+        handleSubmit={handleSubmit}
+      />
+    </>
   );
 }
