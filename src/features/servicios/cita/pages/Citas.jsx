@@ -117,13 +117,13 @@ export default function Citas() {
           onClose={closeNotification}
         />
 
-        {/* Error de carga de datos (si existe) - más específico */}
+        {/* Error de carga de datos (mensaje claro) */}
         {error && (
           <CrudNotification
             message={`⚠️ Error al cargar datos: ${error}`}
             type="error"
             isVisible={true}
-            onClose={() => {}}
+            onClose={() => {}} // Se puede dejar vacío o agregar lógica para limpiar el error si se desea
           />
         )}
 

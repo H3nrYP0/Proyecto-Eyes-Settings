@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { FormHelperText, Alert, Box, Chip } from "@mui/material";
+import { FormHelperText, Box, Chip } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -69,16 +69,16 @@ export default function CitaForm({
   const getServiciosActivos = () => servicios.filter(s => s.estado === true);
   const getEmpleadosActivos = () => empleados.filter(e => e.estado === true || e.estado === "activo");
 
-  // Obtener duración del servicio seleccionado (NO editable)
+  // Obtener duración del servicio seleccionado (sin valor por defecto)
   const duracionActual = useMemo(() => {
-    if (!formData.servicio_id) return 30;
+    if (!formData.servicio_id) return null;
     const servicio = servicios.find(s => s.id === parseInt(formData.servicio_id));
-    return servicio?.duracion_min || 30;
+    return servicio?.duracion_min || null;
   }, [formData.servicio_id, servicios]);
 
   // Verificar si la hora seleccionada permite completar el servicio
   const validarHoraCompletaServicio = (horaSeleccionada) => {
-    if (!formData.fecha || !formData.empleado_id || !horaSeleccionada) return false;
+    if (!formData.fecha || !formData.empleado_id || !horaSeleccionada || !duracionActual) return false;
     
     const horarioDia = getHorarioDelDia ? getHorarioDelDia() : null;
     if (!horarioDia) return false;
@@ -193,7 +193,7 @@ export default function CitaForm({
     return !diaActivo;
   };
 
-  // Deshabilitar horas según duración del servicio - ACTUALIZADO
+  // Deshabilitar horas según duración del servicio
   const shouldDisableTime = (timeValue) => {
     if (!formData.fecha || !formData.empleado_id) return true;
 
@@ -230,27 +230,27 @@ export default function CitaForm({
     // Fuera del horario laboral
     if (minutosSeleccionados < minutosInicio || minutosSeleccionados >= minutosFin) return true;
 
-    // ----- NUEVA VALIDACIÓN POR DURACIÓN -----
-    // Si la duración del servicio es mayor a 0, redondear la hora de inicio a múltiplos de la duración
-    if (duracionActual > 0) {
-      // Calculamos el minuto base desde el inicio de la jornada (minutosInicio)
+    // Validación por duración (solo si hay duración)
+    if (duracionActual && duracionActual > 0) {
       const minutosDesdeInicio = minutosSeleccionados - minutosInicio;
-      // Permitir solo si el resto de dividir por duracionActual es 0
       if (minutosDesdeInicio % duracionActual !== 0) {
         return true;
       }
     }
 
     // Verificar si alcanza a terminar el servicio
-    let minutosFinServicio = minutoSeleccionado + duracionActual;
-    let horasFinServicio = horaSeleccionada;
-    while (minutosFinServicio >= 60) {
-      minutosFinServicio -= 60;
-      horasFinServicio++;
+    if (duracionActual) {
+      let minutosFinServicio = minutoSeleccionado + duracionActual;
+      let horasFinServicio = horaSeleccionada;
+      while (minutosFinServicio >= 60) {
+        minutosFinServicio -= 60;
+        horasFinServicio++;
+      }
+      const minutosTotalesFinServicio = horasFinServicio * 60 + minutosFinServicio;
+      if (minutosTotalesFinServicio > minutosFin) return true;
     }
-    const minutosTotalesFinServicio = horasFinServicio * 60 + minutosFinServicio;
 
-    return minutosTotalesFinServicio > minutosFin;
+    return false;
   };
 
   const getPickerDate = () => {
@@ -259,12 +259,12 @@ export default function CitaForm({
     return null;
   };
 
-  const isSaveDisabled = submitting || verificando || (disponibilidad && !disponibilidad.disponible) || horaInvalida || !formData.hora || !formData.fecha || !formData.empleado_id;
+  const isSaveDisabled = submitting || verificando || (disponibilidad && !disponibilidad.disponible) || horaInvalida || !formData.hora || !formData.fecha || !formData.empleado_id || !formData.servicio_id;
 
   const getHoraErrorMessage = () => {
     if (!formData.hora) return "";
     if (!validarHoraEnRango(formData.hora)) return "Hora fuera del horario laboral";
-    if (!validarHoraCompletaServicio(formData.hora)) {
+    if (duracionActual && !validarHoraCompletaServicio(formData.hora)) {
       return `⚠️ El servicio dura ${duracionActual} minutos. Debe terminar antes del fin de la jornada (${getHorarioDelDia?.()?.hora_final?.substring(0,5)}).`;
     }
     if (!validarHoraNoAnterior(formData.hora)) return "La hora no puede ser anterior a la hora actual";
@@ -279,8 +279,7 @@ export default function CitaForm({
       <BaseFormLayout title={title}>
         <BaseFormSection title="Información de la Cita">
           <Box sx={{ minHeight: 70, mb: 2 }}>
-            {verificando && <Alert severity="info">Verificando disponibilidad...</Alert>}
-            {horaInvalida && formData.hora && <Alert severity="warning" sx={{ mb: 1 }}>{getHoraErrorMessage()}</Alert>}
+            {/* SOLO CrudNotification - Eliminados los Alert */}
             <CrudNotification message={successNotification.message} type="success" isVisible={successNotification.visible} onClose={closeSuccessNotification} />
             <CrudNotification message={errorNotification.message} type="error" isVisible={errorNotification.visible} onClose={closeErrorNotification} />
           </Box>
@@ -308,7 +307,7 @@ export default function CitaForm({
               value={formData.servicio_id}
               onChange={handleChange}
               disabled={isDisabled}
-              options={[{ value: "", label: "-- Seleccione --" }, ...getServiciosActivos().map(s => ({ value: s.id, label: `${s.nombre} (${s.duracion_min} min)` }))]}
+              options={[{ value: "", label: "-- Seleccione --" }, ...getServiciosActivos().map(s => ({ value: s.id, label: `${s.nombre}` }))]}
               required error={!!errors.servicio_id} helperText={errors.servicio_id}
             />
           </BaseFormField>
@@ -355,17 +354,16 @@ export default function CitaForm({
             />
           </BaseFormField>
 
-          {/* Duración - DESHABILITADA, solo lectura */}
+          {/* Duración - Solo lectura, sin valor por defecto */}
           <BaseFormField>
             <BaseInputField
               label="Duración (minutos)"
               name="duracion"
               type="number"
-              value={duracionActual}
+              value={duracionActual === null ? "" : duracionActual}
               disabled={true}
               required
-              helperText={servicioSeleccionado ? `Duración del servicio: ${servicioSeleccionado.nombre}` : "Seleccione un servicio primero"}
-              inputProps={{ min: 15, max: 180, step: 5 }}
+              helperText={servicioSeleccionado ? `` : "Seleccione un servicio para ver la duración"}
             />
           </BaseFormField>
 
@@ -398,13 +396,11 @@ export default function CitaForm({
               {errors.hora || getHoraErrorMessage() || (!formData.fecha && "Primero seleccione una fecha") || (!formData.servicio_id && "Primero seleccione un servicio") || " "}
             </FormHelperText>
           </BaseFormField>
-
         </BaseFormSection>
 
         <BaseFormActions
           onCancel={onCancel}
           onSave={async () => {
-            // Asegurar que la duración sea la del servicio antes de guardar
             const result = await handleSubmit();
             if (result.success && onSubmit) onSubmit(result.data);
           }}

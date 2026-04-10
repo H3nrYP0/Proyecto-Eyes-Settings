@@ -3,6 +3,27 @@ import { getAllCitas, deleteCita, updateCitaStatus } from "../services/citasServ
 import { getAllEstadosCita } from "../services/estadosCitaServices";
 import { formatFecha, formatHora } from "../utils/citasUtils";
 
+// Función auxiliar para obtener mensaje de error amigable
+const getErrorMessage = (error) => {
+  // Error de red o servidor no disponible
+  if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+    return "No se pudo conectar con el servidor. Verifique su conexión a internet o intente más tarde.";
+  }
+  // Timeout
+  if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+    return "El servidor tardó demasiado en responder. Intente nuevamente.";
+  }
+  // Respuesta del backend con mensaje personalizado
+  if (error.response?.data?.message) {
+    return error.response.data.message;
+  }
+  if (error.response?.data?.error) {
+    return error.response.data.error;
+  }
+  // Otro error inesperado
+  return error.message || "Ocurrió un error inesperado.";
+};
+
 export function useCitas() {
   const [citas, setCitas] = useState([]);
   const [estadosCita, setEstadosCita] = useState([]);
@@ -39,8 +60,7 @@ export function useCitas() {
       setCitas(citasNormalizadas);
     } catch (err) {
       console.error("Error cargando citas:", err);
-      // Extraer mensaje específico si existe
-      const errorMsg = err.response?.data?.message || err.message || "No se pudieron cargar las citas";
+      const errorMsg = getErrorMessage(err);
       setError(errorMsg);
       setCitas([]);
     } finally {
@@ -55,7 +75,7 @@ export function useCitas() {
       return { success: true };
     } catch (error) {
       console.error("Error al eliminar:", error);
-      const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message || "Error desconocido al eliminar la cita";
+      const errorMsg = getErrorMessage(error);
       return { success: false, error: errorMsg };
     }
   }, [cargarCitas]);
@@ -71,7 +91,7 @@ export function useCitas() {
       return { success: true };
     } catch (error) {
       console.error("Error al cambiar estado:", error);
-      const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message || "Error desconocido al cambiar el estado";
+      const errorMsg = getErrorMessage(error);
       return { success: false, error: errorMsg };
     }
   }, [estadosCita, cargarCitas]);
