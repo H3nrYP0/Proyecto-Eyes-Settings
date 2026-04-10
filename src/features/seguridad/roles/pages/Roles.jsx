@@ -31,11 +31,8 @@ export default function Roles() {
   const [error, setError]             = useState(null);
   const [modalDelete, setModalDelete] = useState({ open: false, id: null, nombre: '' });
 
-  // ── Notificación ──────────────────────────────────────────────
   const [notification, setNotification] = useState({
-    isVisible: false,
-    message: '',
-    type: 'success',
+    isVisible: false, message: '', type: 'success',
   });
 
   const showNotification = (message, type = 'success') =>
@@ -43,7 +40,16 @@ export default function Roles() {
 
   const handleCloseNotification = () =>
     setNotification((prev) => ({ ...prev, isVisible: false }));
-  // ──────────────────────────────────────────────────────────────
+
+  // Lee notificaciones pendientes dejadas por Crear / Editar
+  useEffect(() => {
+    const pending = sessionStorage.getItem('crudNotification');
+    if (pending) {
+      const { message, type } = JSON.parse(pending);
+      sessionStorage.removeItem('crudNotification');
+      showNotification(message, type);
+    }
+  }, []);
 
   useEffect(() => { cargarRoles(); }, []);
 
@@ -68,11 +74,11 @@ export default function Roles() {
     const nombre = modalDelete.nombre;
     try {
       await deleteRol(modalDelete.id);
-      await cargarRoles();
       setModalDelete({ open: false, id: null, nombre: '' });
+      await cargarRoles();
       showNotification(`Rol "${nombre}" eliminado correctamente`);
     } catch (err) {
-      const msg = err?.response?.data?.error || 'Error al eliminar el rol';
+      const msg = err?.response?.data?.error || err?.message || 'Error al eliminar el rol';
       setModalDelete({ open: false, id: null, nombre: '' });
       showNotification(msg, 'error');
     }
@@ -85,7 +91,7 @@ export default function Roles() {
       const label = nuevoEstado === 'activo' ? 'activado' : 'desactivado';
       showNotification(`Rol "${row.nombre}" ${label} correctamente`);
     } catch (err) {
-      const msg = err?.response?.data?.error || 'Error al cambiar el estado del rol';
+      const msg = err?.response?.data?.error || err?.message || 'Error al cambiar el estado del rol';
       showNotification(msg, 'error');
     }
   };
