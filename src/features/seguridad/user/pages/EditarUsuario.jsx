@@ -1,17 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import UsuarioForm from "../components/UserForm";
-import Loading     from "@shared/components/ui/Loading";
+import UsuarioForm      from "../components/UserForm";
+import Loading          from "@shared/components/ui/Loading";
+import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 
-import {
-  getUserById,
-  updateUser,
-  getAllRoles,
-  normalizeUserInitialData,
-  buildUpdatePayload
-} from "@seguridad";
-
+import { updateUser, buildUpdatePayload } from "@seguridad";
 import { useUser }     from "../hooks/useUsuario";
 import { useUserForm } from "../hooks/useUserForm";
 
@@ -19,28 +13,24 @@ export default function EditarUsuario() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // Carga de datos del usuario y roles
+  const [notification, setNotification] = useState({
+    isVisible: false, message: "", type: "success",
+  });
+  const showNotification = (message, type = "success") =>
+    setNotification({ isVisible: true, message, type });
+  const handleCloseNotification = () =>
+    setNotification((prev) => ({ ...prev, isVisible: false }));
+
   const { user, roles, loading } = useUser(id);
 
-  // Formulario inicializado con los datos del usuario
   const {
-    formData,
-    errors,
-    isSubmitting,
-    setIsSubmitting,
-    handleChange,
-    handleTelefonoChange,
-    handleNumeroDocumentoChange,
-    validate,
-    setFieldError,
-    setFormData
-  } = useUserForm(user, 'edit');
+    formData, errors, isSubmitting, setIsSubmitting,
+    handleChange, handleTelefonoChange, handleNumeroDocumentoChange,
+    validate, setFieldError, setFormData,
+  } = useUserForm(user, "edit");
 
-  // Sincronizar formData cuando lleguen los datos del usuario
   useEffect(() => {
-    if (user) {
-      setFormData(user);
-    }
+    if (user) setFormData(user);
   }, [user]);
 
   const handleSubmit = async () => {
@@ -48,17 +38,20 @@ export default function EditarUsuario() {
 
     setIsSubmitting(true);
     try {
-      // Incluye contraseña solo si el usuario la escribió
       const includePassword = !!formData.password;
       const payload = buildUpdatePayload(formData, includePassword);
       await updateUser(id, payload);
+      sessionStorage.setItem(
+        "crudNotification",
+        JSON.stringify({ message: `Usuario "${formData.nombre}" actualizado correctamente`, type: "success" })
+      );
       navigate("/admin/seguridad/usuarios");
     } catch (error) {
-      console.error(error);
+      const msg = error.message || "Error al editar usuario";
       if (error.message?.includes("correo")) {
         setFieldError("email", error.message);
       } else {
-        alert(error.message || "Error al editar usuario");
+        showNotification(msg, "error");
       }
     } finally {
       setIsSubmitting(false);
@@ -68,18 +61,27 @@ export default function EditarUsuario() {
   if (loading) return <Loading message="Cargando..." />;
 
   return (
-    <UsuarioForm
-      mode="edit"
-      title={`Editar Usuario: ${formData?.nombre}`}
-      initialData={formData}
-      rolesDisponibles={roles}
-      errors={errors}
-      onChange={handleChange}
-      onTelefonoChange={handleTelefonoChange}
-      onNumeroDocumentoChange={handleNumeroDocumentoChange}
-      onSubmit={handleSubmit}
-      onCancel={() => navigate("/admin/seguridad/usuarios")}
-      isSubmitting={isSubmitting}
-    />
+    <>
+      <UsuarioForm
+        mode="edit"
+        title={`Editar Usuario: ${formData?.nombre}`}
+        initialData={formData}
+        rolesDisponibles={roles}
+        errors={errors}
+        onChange={handleChange}
+        onTelefonoChange={handleTelefonoChange}
+        onNumeroDocumentoChange={handleNumeroDocumentoChange}
+        onSubmit={handleSubmit}
+        onCancel={() => navigate("/admin/seguridad/usuarios")}
+        isSubmitting={isSubmitting}
+      />
+
+      <CrudNotification
+        isVisible={notification.isVisible}
+        message={notification.message}
+        type={notification.type}
+        onClose={handleCloseNotification}
+      />
+    </>
   );
 }
