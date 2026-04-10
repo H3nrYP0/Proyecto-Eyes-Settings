@@ -61,6 +61,14 @@ export default function CrearCita() {
     handleTimeChange,
     handleSubmit,
     getHorarioDelDia,
+    duracionActual,
+    getClientesActivos,
+    getServiciosActivos,
+    getEmpleadosActivos,
+    horaInvalida,
+    getHoraErrorMessage,
+    shouldDisableDate,
+    shouldDisableTime,
   } = useCitaForm({
     mode: "create",
     clientes,
@@ -105,7 +113,6 @@ export default function CrearCita() {
       servicios={servicios}
       empleados={empleados}
       estadosCita={estadosCita}
-      horariosEmpleado={horariosEmpleado}
       diasActivos={diasActivos}
       formData={formData}
       errors={errors}
@@ -117,7 +124,14 @@ export default function CrearCita() {
       handleDateChange={handleDateChange}
       handleTimeChange={handleTimeChange}
       handleSubmit={handleSubmit}
-      getHorarioDelDia={getHorarioDelDia}
+      duracionActual={duracionActual}
+      getClientesActivos={getClientesActivos}
+      getServiciosActivos={getServiciosActivos}
+      getEmpleadosActivos={getEmpleadosActivos}
+      horaInvalida={horaInvalida}
+      getHoraErrorMessage={getHoraErrorMessage}
+      shouldDisableDate={shouldDisableDate}
+      shouldDisableTime={shouldDisableTime}
     />
   );
 }

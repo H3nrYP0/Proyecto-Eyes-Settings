@@ -6,8 +6,21 @@ import { ServicioData } from "../../servicio/services/serviciosService";
 import { getAllEmpleados } from "../../empleado/services/empleadosService";
 import { normalizeCitaForForm } from "../utils/citasUtils";
 import Loading from "../../../../shared/components/ui/Loading";
+import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
 import CitaForm from "../components/CitaForm";
 import { getAllEstadosCita } from "../services/estadosCitaServices";
+
+const getErrorMessage = (error) => {
+  if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+    return "No se pudo conectar con el servidor. Verifique su conexión a internet o intente más tarde.";
+  }
+  if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+    return "El servidor tardó demasiado en responder. Intente nuevamente.";
+  }
+  if (error.response?.data?.message) return error.response.data.message;
+  if (error.response?.data?.error) return error.response.data.error;
+  return error.message || "Ocurrió un error inesperado.";
+};
 
 export default function DetalleCita() {
   const navigate = useNavigate();
@@ -46,9 +59,10 @@ export default function DetalleCita() {
         setEmpleados(empleadosNormalizados);
         
         setEstadosCita(Array.isArray(estadosData) ? estadosData : []);
-      } catch (error) {
-        console.error("Error cargando datos:", error);
-        setError("Error al cargar datos");
+      } catch (err) {
+        console.error("Error cargando datos:", err);
+        const errorMsg = getErrorMessage(err);
+        setError(errorMsg);
       } finally {
         setLoading(false);
       }
@@ -57,10 +71,21 @@ export default function DetalleCita() {
     cargarDatos();
   }, [id, navigate]);
 
+  // Handlers dummy para modo vista
   const handleChange = () => {};
   const handleDateChange = () => {};
   const handleTimeChange = () => {};
   const handleSubmit = async () => ({ success: true });
+
+  // Funciones dummy para modo vista (no se usan pero son requeridas)
+  const getClientesActivos = () => clientes;
+  const getServiciosActivos = () => servicios;
+  const getEmpleadosActivos = () => empleados;
+  const getHoraErrorMessage = () => "";
+  const shouldDisableDate = () => false;
+  const shouldDisableTime = () => false;
+  const duracionActual = cita?.duracion || null;
+  const horaInvalida = false;
 
   if (loading) {
     return <Loading message="Cargando detalles de la cita..." />;
@@ -68,8 +93,8 @@ export default function DetalleCita() {
 
   if (error) {
     return (
-      <div style={{ padding: "40px", textAlign: "center", color: "#c62828" }}>
-        ⚠️ {error}
+      <div style={{ padding: "40px", textAlign: "center" }}>
+        <CrudNotification message={error} type="error" isVisible={true} onClose={() => {}} />
         <div style={{ marginTop: "20px" }}>
           <button
             onClick={() => navigate("/admin/servicios/citas")}
@@ -94,13 +119,13 @@ export default function DetalleCita() {
     <CitaForm
       mode="view"
       title={titulo}
-      initialData={cita}
       onCancel={() => navigate("/admin/servicios/citas")}
       onEdit={() => navigate(`/admin/servicios/citas/editar/${cita.id}`)}
       clientes={clientes}
       servicios={servicios}
       empleados={empleados}
       estadosCita={estadosCita}
+      diasActivos={[]}
       formData={cita}
       errors={{}}
       submitting={false}
@@ -111,6 +136,14 @@ export default function DetalleCita() {
       handleDateChange={handleDateChange}
       handleTimeChange={handleTimeChange}
       handleSubmit={handleSubmit}
+      duracionActual={duracionActual}
+      getClientesActivos={getClientesActivos}
+      getServiciosActivos={getServiciosActivos}
+      getEmpleadosActivos={getEmpleadosActivos}
+      horaInvalida={horaInvalida}
+      getHoraErrorMessage={getHoraErrorMessage}
+      shouldDisableDate={shouldDisableDate}
+      shouldDisableTime={shouldDisableTime}
     />
   );
 }

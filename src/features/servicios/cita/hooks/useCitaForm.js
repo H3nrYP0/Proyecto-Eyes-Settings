@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { createCita, updateCita } from "../services/citasService";
 import { useDisponibilidad } from "./useDisponibilidad";
 import { useHorariosEmpleado } from "./useHorariosEmpleado";
@@ -37,6 +37,7 @@ export function useCitaForm({
 
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [horaInvalida, setHoraInvalida] = useState(false);
 
   // Horarios del empleado seleccionado
   const { horarios: horariosEmpleado } = useHorariosEmpleado(formData.empleado_id);
@@ -77,6 +78,230 @@ export function useCitaForm({
     if (fechaStr instanceof Date) return fechaStr;
     return new Date(fechaStr);
   };
+
+  // Obtener duración del servicio seleccionado
+  const duracionActual = useMemo(() => {
+    if (!formData.servicio_id) return null;
+    const servicio = servicios.find(s => s.id === parseInt(formData.servicio_id));
+    return servicio?.duracion_min || null;
+  }, [formData.servicio_id, servicios]);
+
+  // Obtener horario del empleado para la fecha seleccionada
+  const getHorarioDelDia = useCallback(() => {
+    if (!formData.fecha || !horariosEmpleado.length) return null;
+    
+    const backendDay = getBackendDay(formData.fecha);
+    const horarioDia = horariosEmpleado.find(h => h.dia === backendDay && h.activo === true);
+    
+    return horarioDia;
+  }, [formData.fecha, horariosEmpleado]);
+
+  // Verificar si la hora está dentro del rango laboral
+  const validarHoraEnRango = useCallback((horaSeleccionada) => {
+    if (isView) return true;
+    if (!formData.fecha || !formData.empleado_id || !horaSeleccionada) return false;
+    
+    const horarioDia = getHorarioDelDia();
+    if (!horarioDia) return false;
+    
+    const horaInicio = horarioDia.hora_inicio;
+    const horaFin = horarioDia.hora_final;
+    
+    if (!horaInicio || !horaFin) return false;
+    
+    const [inicioH, inicioM] = horaInicio.split(':').map(Number);
+    const [finH, finM] = horaFin.split(':').map(Number);
+    
+    let horas, minutos;
+    if (horaSeleccionada instanceof Date) {
+      horas = horaSeleccionada.getHours();
+      minutos = horaSeleccionada.getMinutes();
+    } else {
+      return false;
+    }
+    
+    const minutosSeleccionados = horas * 60 + minutos;
+    const minutosInicio = inicioH * 60 + inicioM;
+    const minutosFin = finH * 60 + finM;
+    
+    return minutosSeleccionados >= minutosInicio && minutosSeleccionados < minutosFin;
+  }, [formData.fecha, formData.empleado_id, getHorarioDelDia, isView]);
+
+  // Verificar si la hora seleccionada permite completar el servicio
+  const validarHoraCompletaServicio = useCallback((horaSeleccionada) => {
+    if (isView) return true;
+    if (!formData.fecha || !formData.empleado_id || !horaSeleccionada || !duracionActual) return false;
+    
+    const horarioDia = getHorarioDelDia();
+    if (!horarioDia) return false;
+    
+    const horaFin = horarioDia.hora_final;
+    if (!horaFin) return false;
+    
+    const [finH, finM] = horaFin.split(':').map(Number);
+    
+    let horas, minutos;
+    if (horaSeleccionada instanceof Date) {
+      horas = horaSeleccionada.getHours();
+      minutos = horaSeleccionada.getMinutes();
+    } else {
+      return false;
+    }
+    
+    let minutosFinServicio = minutos + duracionActual;
+    let horasFinServicio = horas;
+    while (minutosFinServicio >= 60) {
+      minutosFinServicio -= 60;
+      horasFinServicio++;
+    }
+    
+    const minutosTotalesFinServicio = horasFinServicio * 60 + minutosFinServicio;
+    const minutosTotalesFinJornada = finH * 60 + finM;
+    
+    return minutosTotalesFinServicio <= minutosTotalesFinJornada;
+  }, [formData.fecha, formData.empleado_id, duracionActual, getHorarioDelDia, isView]);
+
+  // Verificar si la hora es anterior a la actual (si es hoy)
+  const validarHoraNoAnterior = useCallback((horaSeleccionada) => {
+    if (isView) return true;
+    if (!formData.fecha || !horaSeleccionada) return true;
+    
+    const hoy = new Date();
+    const fechaSeleccionada = new Date(formData.fecha);
+    fechaSeleccionada.setHours(0, 0, 0, 0);
+    hoy.setHours(0, 0, 0, 0);
+    
+    const esHoy = fechaSeleccionada.getTime() === hoy.getTime();
+    
+    if (esHoy && horaSeleccionada instanceof Date) {
+      const ahora = new Date();
+      const horaSeleccionadaMs = new Date(fechaSeleccionada);
+      horaSeleccionadaMs.setHours(horaSeleccionada.getHours(), horaSeleccionada.getMinutes(), 0, 0);
+      
+      return horaSeleccionadaMs >= ahora;
+    }
+    
+    return true;
+  }, [formData.fecha, isView]);
+
+  // Validar hora completa
+  const esHoraValida = useMemo(() => {
+    if (isView) return true;
+    if (!formData.hora) return false;
+    const enRango = validarHoraEnRango(formData.hora);
+    const noAnterior = validarHoraNoAnterior(formData.hora);
+    const alcanzaServicio = validarHoraCompletaServicio(formData.hora);
+    return enRango && noAnterior && alcanzaServicio;
+  }, [formData.hora, validarHoraEnRango, validarHoraNoAnterior, validarHoraCompletaServicio, isView]);
+
+  // Actualizar estado de hora inválida
+  useEffect(() => {
+    if (isView) {
+      setHoraInvalida(false);
+    } else {
+      setHoraInvalida(formData.hora && !esHoraValida);
+    }
+  }, [formData.hora, esHoraValida, isView]);
+
+  // Obtener mensaje de error de hora
+  const getHoraErrorMessage = useCallback(() => {
+    if (isView) return "";
+    if (!formData.hora) return "";
+    if (!validarHoraEnRango(formData.hora)) return "Hora fuera del horario laboral";
+    if (duracionActual && !validarHoraCompletaServicio(formData.hora)) {
+      return `El servicio dura ${duracionActual} minutos. Debe terminar antes del fin de la jornada.`;
+    }
+    if (!validarHoraNoAnterior(formData.hora)) return "La hora no puede ser anterior a la hora actual";
+    return "";
+  }, [formData.hora, duracionActual, validarHoraEnRango, validarHoraCompletaServicio, validarHoraNoAnterior, isView]);
+
+  // Deshabilitar horas según duración del servicio
+  const shouldDisableTime = useCallback((timeValue) => {
+    if (isView) return false;
+    if (!formData.fecha || !formData.empleado_id) return true;
+
+    const horaSeleccionada = timeValue.getHours();
+    const minutoSeleccionado = timeValue.getMinutes();
+
+    const hoy = new Date();
+    const fechaSeleccionada = new Date(formData.fecha);
+    fechaSeleccionada.setHours(0, 0, 0, 0);
+    hoy.setHours(0, 0, 0, 0);
+    const esHoy = fechaSeleccionada.getTime() === hoy.getTime();
+    if (esHoy) {
+      const ahora = new Date();
+      const horaActual = ahora.getHours();
+      const minutoActual = ahora.getMinutes();
+      if (horaSeleccionada < horaActual) return true;
+      if (horaSeleccionada === horaActual && minutoSeleccionado < minutoActual) return true;
+    }
+
+    const horarioDia = getHorarioDelDia();
+    if (!horarioDia) return true;
+    const horaInicio = horarioDia.hora_inicio;
+    const horaFin = horarioDia.hora_final;
+    if (!horaInicio || !horaFin) return true;
+
+    const [inicioH, inicioM] = horaInicio.split(':').map(Number);
+    const [finH, finM] = horaFin.split(':').map(Number);
+    const minutosSeleccionados = horaSeleccionada * 60 + minutoSeleccionado;
+    const minutosInicio = inicioH * 60 + inicioM;
+    const minutosFin = finH * 60 + finM;
+
+    if (minutosSeleccionados < minutosInicio || minutosSeleccionados >= minutosFin) return true;
+
+    if (duracionActual && duracionActual > 0) {
+      const minutosDesdeInicio = minutosSeleccionados - minutosInicio;
+      if (minutosDesdeInicio % duracionActual !== 0) {
+        return true;
+      }
+    }
+
+    if (duracionActual) {
+      let minutosFinServicio = minutoSeleccionado + duracionActual;
+      let horasFinServicio = horaSeleccionada;
+      while (minutosFinServicio >= 60) {
+        minutosFinServicio -= 60;
+        horasFinServicio++;
+      }
+      const minutosTotalesFinServicio = horasFinServicio * 60 + minutosFinServicio;
+      if (minutosTotalesFinServicio > minutosFin) return true;
+    }
+
+    return false;
+  }, [formData.fecha, formData.empleado_id, duracionActual, getHorarioDelDia, isView]);
+
+  // Deshabilitar fechas
+  const shouldDisableDate = useCallback((date) => {
+    if (isView) return false;
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    const fechaComparar = new Date(date);
+    fechaComparar.setHours(0, 0, 0, 0);
+    
+    if (fechaComparar < hoy) return true;
+    
+    if (!formData.empleado_id) return false;
+    if (!diasActivos || diasActivos.length === 0) return false;
+    
+    const backendDay = getBackendDay(date);
+    const diaActivo = diasActivos.find(d => d.dia === backendDay);
+    
+    return !diaActivo;
+  }, [formData.empleado_id, diasActivos, isView]);
+
+  // Filtros
+  const getClientesActivos = useCallback(() => {
+    return clientes.filter(c => c.estado === true || c.estado === "activo");
+  }, [clientes]);
+
+  const getServiciosActivos = useCallback(() => {
+    return servicios.filter(s => s.estado === true);
+  }, [servicios]);
+
+  const getEmpleadosActivos = useCallback(() => {
+    return empleados.filter(e => e.estado === true || e.estado === "activo");
+  }, [empleados]);
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -153,16 +378,6 @@ export function useCitaForm({
     resetDisponibilidad();
   }, [errors, resetDisponibilidad]);
 
-  // Obtener horario del empleado para la fecha seleccionada
-  const getHorarioDelDia = useCallback(() => {
-    if (!formData.fecha || !horariosEmpleado.length) return null;
-    
-    const backendDay = getBackendDay(formData.fecha);
-    const horarioDia = horariosEmpleado.find(h => h.dia === backendDay && h.activo === true);
-    
-    return horarioDia;
-  }, [formData.fecha, horariosEmpleado]);
-
   // Validaciones
   const validate = useCallback(() => {
     const newErrors = {};
@@ -202,17 +417,15 @@ export function useCitaForm({
     return Object.keys(newErrors).length === 0;
   }, [formData, isView, disponibilidad, errorDisponibilidad, horariosEmpleado]);
 
-  // Submit - ACTUALIZADO para asegurar duración del servicio
+  // Submit
   const handleSubmit = useCallback(async () => {
     if (!validate()) return;
 
     setSubmitting(true);
     try {
-      // Obtener la duración del servicio seleccionado
       const servicio = servicios.find(s => s.id === parseInt(formData.servicio_id));
       const duracionDelServicio = servicio?.duracion_min || 30;
 
-      // Formatear fecha correctamente sin zona horaria
       let fechaFormateada = null;
       if (formData.fecha) {
         const year = formData.fecha.getFullYear();
@@ -223,7 +436,7 @@ export function useCitaForm({
 
       const datosEnvio = {
         ...formData,
-        duracion: duracionDelServicio, // Usar duración del servicio
+        duracion: duracionDelServicio,
         fecha: fechaFormateada,
         hora: formData.hora ? `${formData.hora.getHours().toString().padStart(2, "0")}:${formData.hora.getMinutes().toString().padStart(2, "0")}` : null,
       };
@@ -284,5 +497,15 @@ export function useCitaForm({
     resetForm,
     setFormData,
     getHorarioDelDia,
+    // Nuevas exportaciones
+    duracionActual,
+    getClientesActivos,
+    getServiciosActivos,
+    getEmpleadosActivos,
+    horaInvalida,
+    getHoraErrorMessage,
+    shouldDisableDate,
+    shouldDisableTime,
+    esHoraValida,
   };
 }
