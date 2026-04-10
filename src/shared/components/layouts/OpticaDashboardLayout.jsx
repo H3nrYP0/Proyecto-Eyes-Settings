@@ -68,6 +68,8 @@ import {
   EditarCita,
   DetalleCita,
 } from "../../../features/servicios/cita";
+import { CitaDataProvider } from '../../../features/servicios/cita/context/CitaDataContext';
+import { Outlet } from 'react-router-dom';
 
 import { Horarios } from "../../../features/servicios/horario";
 import { Agenda } from "../../../features/servicios/agenda";
@@ -208,10 +210,12 @@ export default function OpticaDashboardLayout({ user, setUser }) {
             <Route index element={<Servicios />} />
       
             <Route path="citas">
-              <Route index element={<Citas />} />
-              <Route path="crear" element={<CrearCita />} />
-              <Route path="editar/:id" element={<EditarCita />} />
-              <Route path="detalle/:id" element={<DetalleCita />} />
+              <Route element={<CitaDataProvider><Outlet /></CitaDataProvider>}>
+                <Route index element={<Citas />} />
+                <Route path="crear" element={<CrearCita />} />
+                <Route path="editar/:id" element={<EditarCita />} />
+                <Route path="detalle/:id" element={<DetalleCita />} />
+              </Route>
             </Route>
 
             <Route path="empleados" element={<Empleados />} />

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CrudLayout from "../../../../shared/components/crud/CrudLayout";
-import CrudTable from "../../../../shared/components/crud/CrudTable";
+import UnifiedCrudTable from "@shared/components/crud/CrudTable";
 import Modal from "../../../../shared/components/ui/Modal";
 import Loading from "../../../../shared/components/ui/Loading";
 import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
@@ -13,6 +13,11 @@ export default function Citas() {
   const navigate = useNavigate();
   const {
     citas,
+    totalCitas,
+    page,
+    setPage,
+    perPage,
+    setPerPage,
     loading,
     error,
     search,
@@ -63,6 +68,15 @@ export default function Citas() {
     }
   };
 
+  const handlePageChange = (event, newPage) => {
+    setPage(newPage + 1);
+  };
+
+  const handleRowsPerPageChange = (event) => {
+    setPerPage(parseInt(event.target.value, 10));
+    setPage(1);
+  };
+
   const columns = [
     { field: "cliente_nombre", header: "Cliente" },
     { field: "servicio_nombre", header: "Servicio" },
@@ -109,7 +123,6 @@ export default function Citas() {
         filterEstado={filterEstado}
         onFilterChange={setFilterEstado}
       >
-        {/* Notificación global para acciones */}
         <CrudNotification
           message={notificacion.message}
           type={notificacion.type}
@@ -117,21 +130,25 @@ export default function Citas() {
           onClose={closeNotification}
         />
 
-        {/* Error de carga de datos (mensaje claro) */}
         {error && (
           <CrudNotification
             message={`⚠️ Error al cargar datos: ${error}`}
             type="error"
             isVisible={true}
-            onClose={() => {}} // Se puede dejar vacío o agregar lógica para limpiar el error si se desea
+            onClose={() => {}}
           />
         )}
 
-        <CrudTable
+        <UnifiedCrudTable
           columns={columns}
           data={citas}
           actions={tableActions}
           onChangeStatus={handleChangeStatus}
+          totalCount={totalCitas}
+          page={page - 1}
+          onPageChange={handlePageChange}
+          rowsPerPage={perPage}
+          onRowsPerPageChange={handleRowsPerPageChange}
           emptyMessage={
             search || filterEstado
               ? "No se encontraron citas para los filtros aplicados"

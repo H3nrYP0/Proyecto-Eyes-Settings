@@ -1,10 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getCitaById } from "../services/citasService";
-import { clientesService } from "../../../ventas/cliente/services/clientesService";
-import { ServicioData } from "../../servicio/services/serviciosService";
-import { getAllEmpleados } from "../../empleado/services/empleadosService";
-import { getAllEstadosCita } from "../services/estadosCitaServices";
+import { useCitaData } from '../context/CitaDataContext';
 import { normalizeCitaForForm } from "../utils/citasUtils";
 import Loading from "../../../../shared/components/ui/Loading";
 import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
@@ -27,11 +24,8 @@ export default function EditarCita() {
   const navigate = useNavigate();
   const { id } = useParams();
 
+  const { clientes, servicios, empleados, estadosCita, loading: dataLoading } = useCitaData();
   const [cita, setCita] = useState(null);
-  const [clientes, setClientes] = useState([]);
-  const [servicios, setServicios] = useState([]);
-  const [empleados, setEmpleados] = useState([]);
-  const [estadosCita, setEstadosCita] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [notificacion, setNotificacion] = useState({ visible: false, message: "", type: "success" });
@@ -44,41 +38,24 @@ export default function EditarCita() {
   const closeNotification = () => setNotificacion(prev => ({ ...prev, visible: false }));
 
   useEffect(() => {
-    const cargarDatos = async () => {
+    const cargarCita = async () => {
       try {
-        const [citaData, clientesData, serviciosData, empleadosData, estadosData] = await Promise.all([
-          getCitaById(Number(id)),
-          clientesService.getAllClientes(),
-          ServicioData.getAllServicios(),
-          getAllEmpleados(),
-          getAllEstadosCita()
-        ]);
-
+        const citaData = await getCitaById(Number(id));
         if (!citaData) {
           navigate("/admin/servicios/citas");
           return;
         }
-
         setCita(normalizeCitaForForm(citaData));
-        setClientes(Array.isArray(clientesData) ? clientesData : []);
-        setServicios(Array.isArray(serviciosData) ? serviciosData : []);
-        
-        const empleadosNormalizados = (Array.isArray(empleadosData) ? empleadosData : [])
-          .map(e => ({ ...e, estado: e.estado === true ? "activo" : "inactivo" }));
-        setEmpleados(empleadosNormalizados);
-        
-        setEstadosCita(Array.isArray(estadosData) ? estadosData : []);
       } catch (err) {
-        console.error("Error cargando datos:", err);
-        const errorMsg = getErrorMessage(err);
-        setError(errorMsg);
+        setError(getErrorMessage(err));
       } finally {
         setLoading(false);
       }
     };
-
-    cargarDatos();
-  }, [id, navigate]);
+    if (!dataLoading) {
+      cargarCita();
+    }
+  }, [id, navigate, dataLoading]);
 
   const {
     formData,

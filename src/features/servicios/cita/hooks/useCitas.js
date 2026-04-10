@@ -26,6 +26,9 @@ const getErrorMessage = (error) => {
 
 export function useCitas() {
   const [citas, setCitas] = useState([]);
+  const [totalCitas, setTotalCitas] = useState(0);
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
   const [estadosCita, setEstadosCita] = useState([]);
   const [search, setSearch] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
@@ -42,14 +45,14 @@ export function useCitas() {
       setLoading(true);
       setError(null);
 
-      const [citasData, estadosData] = await Promise.all([
-        getAllCitas(),
+      const [result, estadosData] = await Promise.all([
+        getAllCitas(page, perPage),
         getAllEstadosCita(),
       ]);
 
       setEstadosCita(Array.isArray(estadosData) ? estadosData : []);
 
-      const citasNormalizadas = (Array.isArray(citasData) ? citasData : []).map((c) => ({
+      const citasNormalizadas = (Array.isArray(result.data) ? result.data : []).map((c) => ({
         ...c,
         fecha_formateada: formatFecha(c.fecha),
         hora_formateada: formatHora(c.hora),
@@ -58,15 +61,17 @@ export function useCitas() {
       }));
 
       setCitas(citasNormalizadas);
+      setTotalCitas(result.total || 0);
     } catch (err) {
       console.error("Error cargando citas:", err);
       const errorMsg = getErrorMessage(err);
       setError(errorMsg);
       setCitas([]);
+      setTotalCitas(0);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, perPage]);
 
   const eliminarCita = useCallback(async (id) => {
     try {
@@ -96,6 +101,7 @@ export function useCitas() {
     }
   }, [estadosCita, cargarCitas]);
 
+  // Aplicar filtros locales sobre las citas ya paginadas
   const citasFiltradas = citas.filter((cita) => {
     const matchesSearch =
       (cita.cliente_nombre?.toLowerCase() || "").includes(search.toLowerCase()) ||
@@ -130,6 +136,11 @@ export function useCitas() {
 
   return {
     citas: citasFiltradas,
+    totalCitas,
+    page,
+    setPage,
+    perPage,
+    setPerPage,
     loading,
     error,
     search,

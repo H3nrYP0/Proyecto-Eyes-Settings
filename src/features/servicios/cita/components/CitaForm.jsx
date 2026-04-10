@@ -131,18 +131,20 @@ export default function CitaForm({
           </BaseFormField>
 
           {/* Estado */}
-          <BaseFormField>
-            <BaseInputField
-              label="Estado"
-              name="estado_cita_id"
-              select
-              value={formData.estado_cita_id}
-              onChange={handleChange}
-              disabled={isDisabled}
-              options={[{ value: "", label: "-- Seleccione --" }, ...estadosCita.map(e => ({ value: e.id, label: e.nombre }))]}
-              required error={!!errors.estado_cita_id} helperText={errors.estado_cita_id}
-            />
-          </BaseFormField>
+          {mode !== "create" && (
+            <BaseFormField>
+              <BaseInputField
+                label="Estado"
+                name="estado_cita_id"
+                select
+                value={formData.estado_cita_id}
+                onChange={handleChange}
+                disabled={isDisabled}
+                options={[{ value: "", label: "-- Seleccione --" }, ...estadosCita.map(e => ({ value: e.id, label: e.nombre }))]}
+                required error={!!errors.estado_cita_id} helperText={errors.estado_cita_id}
+              />
+            </BaseFormField>
+          )}
 
           {/* Método de Pago */}
           <BaseFormField>
@@ -167,8 +169,11 @@ export default function CitaForm({
               value={duracionActual === null ? "" : duracionActual}
               disabled={true}
               required
-              helperText={servicioSeleccionado ? `` : "Seleccione un servicio"}
+
             />
+            <FormHelperText error>
+              {servicioSeleccionado ? `` : "Seleccione un servicio"}
+            </FormHelperText>
           </BaseFormField>
 
           {/* Fecha */}

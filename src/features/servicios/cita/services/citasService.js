@@ -1,20 +1,24 @@
 import api from "../../../../lib/axios";
 
 // ============================
-// Obtener todas las citas
+// Obtener todas las citas (paginado)
 // ============================
-export async function getAllCitas() {
-  const res = await api.get("/citas");
-  return res.data;
+export async function getAllCitas(page = 1, perPage = 10) {
+  const res = await api.get(`/citas?page=${page}&per_page=${perPage}`);
+  return res.data;  // { data, total, page, per_page, total_pages }
 }
 
 // ============================
-// Obtener cita por ID
+// Obtener cita por ID (endpoint específico)
 // ============================
 export async function getCitaById(id) {
-  const res = await api.get("/citas");
-  const citas = res.data || [];
-  return citas.find((c) => c.id === id);
+  try {
+    const res = await api.get(`/citas/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error("Error al obtener cita por ID:", error);
+    return null;
+  }
 }
 
 // ============================
@@ -110,6 +114,9 @@ export async function updateCita(id, data) {
 // ============================
 export async function updateCitaStatus(id, estado_cita_id) {
   const citaActual = await getCitaById(id);
+  if (!citaActual) {
+    throw new Error("No se pudo obtener la cita actual");
+  }
   
   const payload = {
     cliente_id: citaActual.cliente_id,
