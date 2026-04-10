@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import RolForm  from '@seguridad/roles/components/RolForm';
-import Loading  from '@shared/components/ui/Loading';
+import RolForm          from '@seguridad/roles/components/RolForm';
+import Loading          from '@shared/components/ui/Loading';
+import CrudNotification from '@shared/styles/components/notifications/CrudNotification';
 import { getRolById, updateRol, getAllPermisos } from '@seguridad/roles/services/rolServices';
 import { normalizarRolInitialData } from '@seguridad/roles/utils/rolNormalizer';
 
@@ -13,6 +14,14 @@ export default function EditarPermisos() {
   const [rol, setRol]                      = useState(null);
   const [permisosDisponibles, setPermisos] = useState([]);
   const [loading, setLoading]              = useState(true);
+
+  const [notification, setNotification] = useState({
+    isVisible: false, message: '', type: 'success',
+  });
+  const showNotification = (message, type = 'success') =>
+    setNotification({ isVisible: true, message, type });
+  const handleCloseNotification = () =>
+    setNotification((prev) => ({ ...prev, isVisible: false }));
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -40,20 +49,38 @@ export default function EditarPermisos() {
   }, [id, navigate]);
 
   const handleUpdate = async (data) => {
-    await updateRol(id, data);
-    navigate('/admin/seguridad/roles');
+    try {
+      await updateRol(id, data);
+      sessionStorage.setItem(
+        'crudNotification',
+        JSON.stringify({ message: `Rol "${data.nombre}" actualizado correctamente`, type: 'success' })
+      );
+      navigate('/admin/seguridad/roles');
+    } catch (err) {
+      const msg = err?.response?.data?.error || err?.message || 'Error al actualizar el rol';
+      showNotification(msg, 'error');
+    }
   };
 
   if (loading) return <Loading message="Cargando rol..." />;
 
   return (
-    <RolForm
-      mode="edit"
-      title="Editar Rol"
-      initialData={rol}
-      permisosDisponibles={permisosDisponibles}
-      onSubmit={handleUpdate}
-      onCancel={() => navigate('/admin/seguridad/roles')}
-    />
+    <>
+      <RolForm
+        mode="edit"
+        title="Editar Rol"
+        initialData={rol}
+        permisosDisponibles={permisosDisponibles}
+        onSubmit={handleUpdate}
+        onCancel={() => navigate('/admin/seguridad/roles')}
+      />
+
+      <CrudNotification
+        isVisible={notification.isVisible}
+        message={notification.message}
+        type={notification.type}
+        onClose={handleCloseNotification}
+      />
+    </>
   );
 }
