@@ -88,6 +88,18 @@ export default function CitaForm({
             <CrudNotification message={errorNotification.message} type="error" isVisible={errorNotification.visible} onClose={closeErrorNotification} />
           </Box>
 
+          {/* Mostrar error de disponibilidad si existe */}
+          {errorDisponibilidad && (
+            <Box sx={{ mb: 2 }}>
+              <CrudNotification
+                message={errorDisponibilidad}
+                type="error"
+                isVisible={true}
+                onClose={() => {}}
+              />
+            </Box>
+          )}
+
           {/* Cliente */}
           <BaseFormField>
             <BaseInputField
@@ -175,7 +187,7 @@ export default function CitaForm({
             </FormHelperText>
           </BaseFormField>
 
-          {/* Precio del servicio (NUEVO) */}
+          {/* Precio del servicio */}
           <BaseFormField>
             <BaseInputField
               label="Precio"
@@ -222,7 +234,7 @@ export default function CitaForm({
           onCancel={onCancel}
           onSave={async () => {
             const result = await handleSubmit();
-            if (result.success && onSubmit) onSubmit(result.data);
+            if (result && result.success && onSubmit) onSubmit(result.data);
           }}
           onEdit={onEdit}
           showSave={mode !== "view"}

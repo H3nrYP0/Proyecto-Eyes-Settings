@@ -6,8 +6,6 @@ export default function HorarioForm({
   mode = "create",
   initialData,
   empleados = [],
-  onSubmit,
-  onCancel,
   id,
   formData,
   errors,
@@ -20,18 +18,12 @@ export default function HorarioForm({
 
   const onSubmitForm = async (e) => {
     if (e) e.preventDefault();
-    const result = await handleSubmit();
-    if (result.success && onSubmit) {
-      onSubmit(result.data);
-    }
+    await handleSubmit();
   };
 
   const empleadoOptions = [
     { value: "", label: "-- Seleccione empleado --" },
-    ...empleados.map((emp) => ({
-      value: emp.id,
-      label: emp.nombre,
-    })),
+    ...empleados.map((emp) => ({ value: emp.id, label: emp.nombre })),
   ];
 
   const diaOptions = [
@@ -42,7 +34,6 @@ export default function HorarioForm({
   return (
     <form id={id} onSubmit={onSubmitForm}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        {/* Empleado */}
         <Box>
           <BaseInputField
             label="Empleado"
@@ -61,7 +52,6 @@ export default function HorarioForm({
           )}
         </Box>
 
-        {/* Día */}
         <Box>
           <BaseInputField
             label="Día de la semana"
@@ -80,7 +70,6 @@ export default function HorarioForm({
           )}
         </Box>
 
-        {/* Hora inicio */}
         <Box>
           <BaseInputField
             label="Hora Inicio"
@@ -99,7 +88,6 @@ export default function HorarioForm({
           )}
         </Box>
 
-        {/* Hora final */}
         <Box>
           <BaseInputField
             label="Hora Final"

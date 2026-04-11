@@ -94,13 +94,17 @@ export function useHorarioForm({ mode = "create", initialData = null, onSubmitSu
       if (mode === "create") {
         result = await createHorario(payload);
       } else {
-        result = await updateHorario(initialData.id, payload);
+        result = await updateHorario(initialData?.id, payload);
       }
 
-      onSubmitSuccess?.(result);
-      return { success: true, data: result };
+      if (result.success) {
+        onSubmitSuccess?.(result.data);
+        return { success: true, data: result.data };
+      } else {
+        onError?.(result.error);
+        return { success: false, error: result.error };
+      }
     } catch (error) {
-      console.error("Error al guardar horario:", error);
       const errorMessage = error.response?.data?.message || "Error al guardar el horario";
       onError?.(errorMessage);
       return { success: false, error: errorMessage };

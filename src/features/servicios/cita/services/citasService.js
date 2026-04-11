@@ -26,20 +26,47 @@ export async function getCitaById(id) {
 // ============================
 export async function verificarDisponibilidad(empleadoId, fecha, hora, duracion = 30, excludeCitaId = null) {
   try {
+    // Formatear fecha a YYYY-MM-DD
+    let fechaFormateada;
+    if (fecha instanceof Date) {
+      const year = fecha.getFullYear();
+      const month = String(fecha.getMonth() + 1).padStart(2, '0');
+      const day = String(fecha.getDate()).padStart(2, '0');
+      fechaFormateada = `${year}-${month}-${day}`;
+    } else {
+      fechaFormateada = fecha;
+    }
+
+    // Formatear hora a HH:MM (sin segundos ni zona horaria)
+    let horaFormateada;
+    if (hora instanceof Date) {
+      const hours = String(hora.getHours()).padStart(2, '0');
+      const minutes = String(hora.getMinutes()).padStart(2, '0');
+      horaFormateada = `${hours}:${minutes}`;
+    } else if (typeof hora === 'string' && hora.includes('T')) {
+      // Si viene en formato ISO, extraer HH:MM
+      const dateObj = new Date(hora);
+      const hours = String(dateObj.getHours()).padStart(2, '0');
+      const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+      horaFormateada = `${hours}:${minutes}`;
+    } else {
+      horaFormateada = hora;
+    }
+
     const params = {
       empleado_id: empleadoId,
-      fecha: fecha,
-      hora: hora,
+      fecha: fechaFormateada,
+      hora: horaFormateada,
       duracion: duracion
     };
-    if (excludeCitaId) {
-      params.exclude_cita_id = excludeCitaId;
-    }
+    if (excludeCitaId) params.exclude_cita_id = excludeCitaId;
+    
     const res = await api.get("/verificar-disponibilidad", { params });
-    return res.data;
+    return { success: true, data: res.data };
   } catch (error) {
     console.error("Error verificando disponibilidad:", error);
-    return { disponible: false, mensaje: "Error al verificar disponibilidad" };
+    const errorMsg = error.response?.data?.mensaje || error.response?.data?.error || "Error al verificar disponibilidad";
+    return { success: false, error: errorMsg };
   }
 }
 

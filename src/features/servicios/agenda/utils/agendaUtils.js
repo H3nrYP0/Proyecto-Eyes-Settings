@@ -12,13 +12,25 @@ export const COLORES_ESTADO = {
 };
 
 // ============================
-// CREAR FECHA PARA EVENTO
+// CREAR FECHA PARA EVENTO (sin zona horaria)
 // ============================
 export const crearFechaEvento = (fecha, hora) => {
   try {
-    const fechaStr = fecha.includes('T') ? fecha.split('T')[0] : fecha;
-    return new Date(`${fechaStr}T${hora}`);
-  } catch {
+    // fecha viene como "YYYY-MM-DD"
+    // hora puede venir como "HH:MM:SS" o "HH:MM"
+    const [year, month, day] = fecha.split('-');
+    let hours, minutes;
+    if (hora.includes(':')) {
+      const parts = hora.split(':');
+      hours = parseInt(parts[0], 10);
+      minutes = parseInt(parts[1], 10);
+    } else {
+      return null;
+    }
+    // Crear fecha local (sin UTC)
+    return new Date(year, month-1, day, hours, minutes);
+  } catch (error) {
+    console.error("Error creando fecha evento:", error);
     return null;
   }
 };

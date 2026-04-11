@@ -9,7 +9,7 @@ export function useAgenda() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedEmpleado, setSelectedEmpleado] = useState('todos');
-  const [errorModal, setErrorModal] = useState({ open: false, message: '' }); // lo mantendremos para errores de horarios/citas
+  const [errorModal, setErrorModal] = useState({ open: false, message: '' });
 
   const cargarDatos = useCallback(async () => {
     try {
@@ -21,8 +21,14 @@ export function useAgenda() {
         getCitasAgenda(),
       ]);
 
-      const horarios = horariosRes.status === 'fulfilled' && Array.isArray(horariosRes.value) ? horariosRes.value : [];
-      const citas = citasRes.status === 'fulfilled' && Array.isArray(citasRes.value) ? citasRes.value : [];
+      // Extraer arrays (citasRes.value ya es el array gracias a la modificación)
+      const horarios = horariosRes.status === 'fulfilled' && Array.isArray(horariosRes.value) 
+        ? horariosRes.value 
+        : [];
+      
+      const citas = citasRes.status === 'fulfilled' && Array.isArray(citasRes.value) 
+        ? citasRes.value 
+        : [];
 
       const errores = [];
       if (horariosRes.status === 'rejected') errores.push('horarios');
@@ -40,13 +46,13 @@ export function useAgenda() {
       
       setEvents([...horariosEventos, ...citasEventos]);
     } catch (err) {
+      console.error(err);
       setError('Error al cargar la agenda');
     } finally {
       setLoading(false);
     }
   }, [empleados, estadosCita]);
 
-  // Filtrar eventos por empleado
   const eventosFiltrados = selectedEmpleado === 'todos' 
     ? events 
     : events.filter(e => e.extendedProps?.empleado_id === parseInt(selectedEmpleado));

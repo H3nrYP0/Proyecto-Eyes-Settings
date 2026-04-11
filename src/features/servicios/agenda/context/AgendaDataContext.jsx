@@ -20,6 +20,7 @@ export function AgendaDataProvider({ children }) {
         setEmpleados(Array.isArray(empleadosData) ? empleadosData : []);
         setEstadosCita(Array.isArray(estadosData) ? estadosData : []);
       } catch (err) {
+        console.error(err);
         setError('Error al cargar datos de la agenda');
       } finally {
         setLoading(false);
