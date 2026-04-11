@@ -1,18 +1,15 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
-import CrudLayout from "@shared/components/crud/CrudLayout";
-import CrudTable  from "@shared/components/crud/CrudTable";
-import Modal      from "@shared/components/ui/Modal";
-import Loading    from "@shared/components/ui/Loading";
+import CrudLayout       from "@shared/components/crud/CrudLayout";
+import CrudTable        from "@shared/components/crud/CrudTable";
+import Modal            from "@shared/components/ui/Modal";
+import Loading          from "@shared/components/ui/Loading";
+import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 
 import {
-  getAllUsers,
-  deleteUser,
-  updateEstadoUser,
-  getAllRoles,
-  normalizeUsers,
-  filtrarUsuarios
+  getAllUsers, deleteUser, updateEstadoUser,
+  getAllRoles, normalizeUsers, filtrarUsuarios,
 } from "@seguridad";
 
 export default function GestionUsuarios() {
@@ -26,20 +23,33 @@ export default function GestionUsuarios() {
   const [error, setError]               = useState(null);
   const [deleteModal, setDeleteModal]   = useState({ open: false, id: null, name: "" });
 
+  const [notification, setNotification] = useState({
+    isVisible: false, message: "", type: "success",
+  });
+
+  const showNotification = (message, type = "success") =>
+    setNotification({ isVisible: true, message, type });
+
+  const handleCloseNotification = () =>
+    setNotification((prev) => ({ ...prev, isVisible: false }));
+
+  // Lee notificaciones pendientes dejadas por Crear / Editar
   useEffect(() => {
-    loadUsers();
+    const pending = sessionStorage.getItem("crudNotification");
+    if (pending) {
+      const { message, type } = JSON.parse(pending);
+      sessionStorage.removeItem("crudNotification");
+      showNotification(message, type);
+    }
   }, []);
+
+  useEffect(() => { loadUsers(); }, []);
 
   const loadUsers = async () => {
     try {
       setLoading(true);
       setError(null);
-
-      const [data, rolesData] = await Promise.all([
-        getAllUsers(),
-        getAllRoles(),
-      ]);
-
+      const [data, rolesData] = await Promise.all([getAllUsers(), getAllRoles()]);
       setUsers(normalizeUsers(data));
       setRoles(rolesData);
     } catch (err) {
@@ -50,18 +60,20 @@ export default function GestionUsuarios() {
     }
   };
 
-  const handleDelete = (id, name) => {
+  const handleDelete = (id, name) =>
     setDeleteModal({ open: true, id, name });
-  };
 
   const confirmDelete = async () => {
+    const name = deleteModal.name;
     try {
       await deleteUser(deleteModal.id);
-      await loadUsers();
       setDeleteModal({ open: false, id: null, name: "" });
+      await loadUsers();
+      showNotification(`Usuario "${name}" eliminado correctamente`);
     } catch (err) {
-      const msg = err?.response?.data?.error || "Error al eliminar usuario";
-      alert(msg);
+      const msg = err?.response?.data?.error || err?.message || "Error al eliminar usuario";
+      setDeleteModal({ open: false, id: null, name: "" });
+      showNotification(msg, "error");
     }
   };
 
@@ -69,9 +81,11 @@ export default function GestionUsuarios() {
     try {
       await updateEstadoUser(row.id, nuevoEstado);
       await loadUsers();
+      const label = nuevoEstado === "activo" ? "activado" : "desactivado";
+      showNotification(`Usuario "${row.nombre}" ${label} correctamente`);
     } catch (err) {
-      const msg = err?.response?.data?.error || 'Error al cambiar el estado del usuario';
-      alert(msg);
+      const msg = err?.response?.data?.error || err?.message || "Error al cambiar el estado del usuario";
+      showNotification(msg, "error");
     }
   };
 
@@ -81,16 +95,8 @@ export default function GestionUsuarios() {
   );
 
   const columns = [
-    {
-      field: "nombre",
-      header: "Nombre",
-      render: (item) => item.nombre,
-    },
-    {
-      field: "correo",
-      header: "Correo",
-      render: (item) => item.correo,
-    },
+    { field: "nombre", header: "Nombre", render: (item) => item.nombre },
+    { field: "correo", header: "Correo",  render: (item) => item.correo },
     {
       field: "rol_id",
       header: "Rol",
@@ -102,21 +108,9 @@ export default function GestionUsuarios() {
   ];
 
   const tableActions = [
-    {
-      label: "Ver detalles",
-      type: "view",
-      onClick: (row) => navigate(`detalle/${row.id}`),
-    },
-    {
-      label: "Editar",
-      type: "edit",
-      onClick: (row) => navigate(`editar/${row.id}`),
-    },
-    {
-      label: "Eliminar",
-      type: "delete",
-      onClick: (row) => handleDelete(row.id, row.nombre),
-    },
+    { label: "Ver detalles", type: "view",   onClick: (row) => navigate(`detalle/${row.id}`) },
+    { label: "Editar",       type: "edit",   onClick: (row) => navigate(`editar/${row.id}`) },
+    { label: "Eliminar",     type: "delete", onClick: (row) => handleDelete(row.id, row.nombre) },
   ];
 
   const statusFilters = [
@@ -134,54 +128,58 @@ export default function GestionUsuarios() {
   }
 
   return (
-    <CrudLayout
-      title="Gestión de Usuarios"
-      onAddClick={() => navigate("crear")}
-      showSearch
-      searchPlaceholder="Buscar por nombre o correo..."
-      searchValue={search}
-      onSearchChange={setSearch}
-      searchFilters={statusFilters}
-      filterEstado={filterStatus}
-      onFilterChange={setFilterStatus}
-    >
-      {error && (
-        <div
-          style={{
-            padding: "16px",
-            backgroundColor: "#ffebee",
-            color: "#c62828",
-            borderRadius: "4px",
-            marginBottom: "16px",
-          }}
-        >
-          ⚠️ {error}
-        </div>
-      )}
+    <>
+      <CrudLayout
+        title="Gestión de Usuarios"
+        onAddClick={() => navigate("crear")}
+        showSearch
+        searchPlaceholder="Buscar por nombre o correo..."
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchFilters={statusFilters}
+        filterEstado={filterStatus}
+        onFilterChange={setFilterStatus}
+      >
+        {error && (
+          <div style={{
+            padding: "16px", backgroundColor: "#ffebee",
+            color: "#c62828", borderRadius: "4px", marginBottom: "16px",
+          }}>
+            ⚠️ {error}
+          </div>
+        )}
 
-      <CrudTable
-        columns={columns}
-        data={filteredUsers}
-        actions={tableActions}
-        onChangeStatus={handleChangeStatus}
-        emptyMessage={
-          search || filterStatus
-            ? "No se encontraron usuarios para los filtros aplicados"
-            : "No hay usuarios registrados"
-        }
-      />
+        <CrudTable
+          columns={columns}
+          data={filteredUsers}
+          actions={tableActions}
+          onChangeStatus={handleChangeStatus}
+          emptyMessage={
+            search || filterStatus
+              ? "No se encontraron usuarios para los filtros aplicados"
+              : "No hay usuarios registrados"
+          }
+        />
 
-      <Modal
-        open={deleteModal.open}
-        type="warning"
-        title="¿Eliminar Usuario?"
-        message={`Esta acción eliminará al usuario "${deleteModal.name}" y no se puede deshacer.`}
-        confirmText="Eliminar"
-        cancelText="Cancelar"
-        showCancel
-        onConfirm={confirmDelete}
-        onCancel={() => setDeleteModal({ open: false, id: null, name: "" })}
+        <Modal
+          open={deleteModal.open}
+          type="warning"
+          title="¿Eliminar Usuario?"
+          message={`Esta acción eliminará al usuario "${deleteModal.name}" y no se puede deshacer.`}
+          confirmText="Eliminar"
+          cancelText="Cancelar"
+          showCancel
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteModal({ open: false, id: null, name: "" })}
+        />
+      </CrudLayout>
+
+      <CrudNotification
+        isVisible={notification.isVisible}
+        message={notification.message}
+        type={notification.type}
+        onClose={handleCloseNotification}
       />
-    </CrudLayout>
+    </>
   );
 }

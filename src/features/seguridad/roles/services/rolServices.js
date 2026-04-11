@@ -18,6 +18,7 @@ const getRolById = async (id) => {
     return res.data;
   } catch (error) {
     console.error(`Error en getRolById(${id}):`, error);
+    if (error.response?.data?.error) throw new Error(error.response.data.error);
     throw error;
   }
 };
@@ -29,6 +30,7 @@ const createRol = async (data) => {
     return res.data;
   } catch (error) {
     console.error('Error en createRol:', error);
+    if (error.response?.data?.error) throw new Error(error.response.data.error);
     throw error;
   }
 };
@@ -40,6 +42,7 @@ const updateRol = async (id, data) => {
     return res.data;
   } catch (error) {
     console.error(`Error en updateRol(${id}):`, error);
+    if (error.response?.data?.error) throw new Error(error.response.data.error);
     throw error;
   }
 };
@@ -51,6 +54,7 @@ const deleteRol = async (id) => {
     return res.data;
   } catch (error) {
     console.error(`Error en deleteRol(${id}):`, error);
+    if (error.response?.data?.error) throw new Error(error.response.data.error);
     throw error;
   }
 };
@@ -70,6 +74,7 @@ const updateEstadoRol = async (id, nuevoEstado) => {
     return res.data;
   } catch (error) {
     console.error(`Error en updateEstadoRol(${id}):`, error);
+    if (error.response?.data?.error) throw new Error(error.response.data.error);
     throw error;
   }
 };
@@ -81,6 +86,7 @@ const getAllPermisos = async () => {
     return res.data;
   } catch (error) {
     console.error('Error en getAllPermisos:', error);
+    if (error.response?.data?.error) throw new Error(error.response.data.error);
     throw error;
   }
 };
