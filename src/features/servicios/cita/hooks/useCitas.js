@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { getAllCitas, deleteCita, updateCitaStatus } from "../services/citasService";
 import { getAllEstadosCita } from "../services/estadosCitaServices";
-import { formatFecha, formatHora } from "../utils/citasUtils";
+import { formatFecha, formatHora, formatPrice } from "../utils/citasUtils";
 
 // Función auxiliar para obtener mensaje de error amigable
 const getErrorMessage = (error) => {
@@ -57,6 +57,7 @@ export function useCitas() {
         fecha_formateada: formatFecha(c.fecha),
         hora_formateada: formatHora(c.hora),
         estado: c.estado_nombre,
+        precio_formateado: formatPrice(c.servicio_precio),
         estadosDisponibles: estadosData.map((e) => e.nombre),
       }));
 

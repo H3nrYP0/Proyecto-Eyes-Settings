@@ -1,9 +1,11 @@
-import { useNavigate } from "react-router-dom";
-import { useAgenda } from "../hooks/useAgenda";
-import AgendaCalendar from "../components/AgendaCalendar";
-import Modal from "../../../../shared/components/ui/Modal";
-import Loading from "../../../../shared/components/ui/Loading";
-import "../../../../shared/styles/features/agenda-calendar.css";
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAgenda } from '../hooks/useAgenda';
+import AgendaCalendar from '../components/AgendaCalendar';
+import Loading from '@shared/components/ui/Loading';
+import CrudNotification from '@shared/styles/components/notifications/CrudNotification';
+import { CircularProgress, Box } from '@mui/material';
+import '../../../../shared/styles/features/agenda-calendar.css';
 
 export default function Agenda() {
   const navigate = useNavigate();
@@ -18,9 +20,26 @@ export default function Agenda() {
     setErrorModal,
   } = useAgenda();
 
-  // ============================
-  // Handlers
-  // ============================
+  const [notification, setNotification] = useState({ visible: false, message: '', type: 'error' });
+  const [filterLoading, setFilterLoading] = useState(false);
+
+  const showNotification = (message, type = 'error') => {
+    setNotification({ visible: true, message, type });
+    setTimeout(() => setNotification(prev => ({ ...prev, visible: false })), 5000);
+  };
+
+  const handleCloseNotification = () => {
+    setNotification(prev => ({ ...prev, visible: false }));
+  };
+
+  // Mostrar errores del modal como notificación
+  useEffect(() => {
+    if (errorModal.open && errorModal.message) {
+      showNotification(errorModal.message, 'error');
+      setErrorModal({ open: false, message: '' });
+    }
+  }, [errorModal]);
+
   const handleEventClick = (info) => {
     const props = info.event.extendedProps;
     if (props?.tipo === 'cita') {
@@ -30,26 +49,43 @@ export default function Agenda() {
     }
   };
 
+  // Spinner al cambiar filtro
+  const handleFilterChange = (e) => {
+    setFilterLoading(true);
+    setSelectedEmpleado(e.target.value);
+    setTimeout(() => setFilterLoading(false), 300); // pequeño delay visual
+  };
+
   if (loading) {
     return <Loading message="Cargando agenda..." />;
   }
 
   return (
     <div className="agenda-container">
-      {/* Header */}
+      <CrudNotification
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.visible}
+        onClose={handleCloseNotification}
+      />
+
       <div className="agenda-header">
         <h1>Agenda</h1>
         <div className="agenda-controls">
-          <select 
-            className="agenda-filter"
-            value={selectedEmpleado}
-            onChange={(e) => setSelectedEmpleado(e.target.value)}
-          >
-            <option value="todos">Todos los empleados</option>
-            {empleados.map(emp => (
-              <option key={emp.id} value={emp.id}>{emp.nombre}</option>
-            ))}
-          </select>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <select 
+              className="agenda-filter"
+              value={selectedEmpleado}
+              onChange={handleFilterChange}
+              disabled={filterLoading}
+            >
+              <option value="todos">Todos los empleados</option>
+              {empleados.map(emp => (
+                <option key={emp.id} value={emp.id}>{emp.nombre}</option>
+              ))}
+            </select>
+            {filterLoading && <CircularProgress size={20} />}
+          </div>
           <button
             className="agenda-btn agenda-btn-secondary"
             onClick={() => navigate('horarios')}
@@ -59,7 +95,6 @@ export default function Agenda() {
         </div>
       </div>
 
-      {/* Leyenda */}
       <div className="agenda-legend">
         <div className="legend-section">
           <div className="legend-subtitle">Horarios</div>
@@ -82,7 +117,6 @@ export default function Agenda() {
 
       {error && <div className="agenda-error">⚠️ {error}</div>}
 
-      {/* Calendario */}
       <div className="agenda-calendar-wrapper">
         <AgendaCalendar
           events={events}
@@ -90,16 +124,6 @@ export default function Agenda() {
           height="100%"
         />
       </div>
-
-      <Modal
-        open={errorModal.open}
-        type="warning"
-        title="Atención"
-        message={errorModal.message}
-        confirmText="Aceptar"
-        showCancel={false}
-        onConfirm={() => setErrorModal({ open: false, message: '' })}
-      />
     </div>
   );
 }

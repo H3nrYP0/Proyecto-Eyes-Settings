@@ -13,7 +13,7 @@ import BaseFormActions from "@shared/components/base/BaseFormActions";
 import BaseInputField from "@shared/components/base/BaseInputField";
 import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 
-import { metodoPagoOptions } from "../utils/citasUtils";
+import { metodoPagoOptions, formatPrice } from "../utils/citasUtils";
 
 export default function CitaForm({
   mode = "create",
@@ -169,10 +169,21 @@ export default function CitaForm({
               value={duracionActual === null ? "" : duracionActual}
               disabled={true}
               required
-
             />
             <FormHelperText error>
               {servicioSeleccionado ? `` : "Seleccione un servicio"}
+            </FormHelperText>
+          </BaseFormField>
+
+          {/* Precio del servicio (NUEVO) */}
+          <BaseFormField>
+            <BaseInputField
+              label="Precio"
+              value={servicioSeleccionado ? formatPrice(servicioSeleccionado.precio) : "Seleccione un servicio"}
+              disabled={true}
+            />
+            <FormHelperText>
+              {servicioSeleccionado ? "Precio del servicio seleccionado" : "El precio se obtiene del servicio"}
             </FormHelperText>
           </BaseFormField>
 

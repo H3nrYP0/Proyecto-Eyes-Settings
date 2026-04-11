@@ -50,6 +50,18 @@ export const formatHora = (hora) => {
 };
 
 // ============================
+// Formatear precio (COP)
+// ============================
+export const formatPrice = (price) => {
+  if (price === undefined || price === null) return "N/A";
+  return new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: "COP",
+    minimumFractionDigits: 0,
+  }).format(price);
+};
+
+// ============================
 // Mapeo de días
 // Backend: 0=Lunes, 1=Martes, 2=Miércoles, 3=Jueves, 4=Viernes, 5=Sábado, 6=Domingo
 // JavaScript: 0=Domingo, 1=Lunes, 2=Martes, 3=Miércoles, 4=Jueves, 5=Viernes, 6=Sábado
