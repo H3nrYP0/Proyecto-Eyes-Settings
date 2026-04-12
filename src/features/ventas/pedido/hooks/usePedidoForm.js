@@ -1,30 +1,30 @@
-// src/features/ventas/pedido/hooks/usePedidoForm.js
-
 import { useState, useEffect } from "react";
 import { pedidosService } from "../services/pedidosService";
 import { ESTADOS_PEDIDO, METODOS_PAGO, METODOS_ENTREGA, formatCurrency } from "../utils/pedidosUtils";
 
 export function usePedidoForm({ mode = "create", initialData = null, onSuccess, onError }) {
-  const isView = mode === "view";
-  const isEdit = mode === "edit";
+  const isView   = mode === "view";
+  const isEdit   = mode === "edit";
   const isCreate = mode === "create";
 
-  const [clientes, setClientes] = useState([]);
-  const [productos, setProductos] = useState([]);
+  const [clientes,      setClientes]      = useState([]);
+  const [productos,     setProductos]     = useState([]);
   const [catalogLoading, setCatalogLoading] = useState(true);
-  const [abonosInfo, setAbonosInfo] = useState(null);
+  const [abonosInfo,    setAbonosInfo]    = useState(null);
+
   const [formData, setFormData] = useState({
-    cliente_id: "",
-    metodo_pago: "efectivo",
-    metodo_entrega: "tienda",
-    direccion_entrega: "",
+    cliente_id:              "",
+    metodo_pago:             "efectivo",
+    metodo_entrega:          "tienda",
+    direccion_entrega:       "",
     transferencia_comprobante: "",
-    estado: "pendiente",
+    estado:                  "pendiente",
   });
   const [itemsSeleccionados, setItemsSeleccionados] = useState([]);
   const [notification, setNotification] = useState({ isVisible: false, message: "", type: "success" });
   const [saving, setSaving] = useState(false);
 
+  // Cargar catálogos
   useEffect(() => {
     const cargar = async () => {
       try {
@@ -43,22 +43,25 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
     cargar();
   }, []);
 
+  // Cargar datos iniciales
   useEffect(() => {
     if (initialData) {
       setFormData({
-        cliente_id: initialData.cliente_id ?? "",
-        metodo_pago: initialData.metodo_pago ?? "efectivo",
-        metodo_entrega: initialData.metodo_entrega ?? "tienda",
-        direccion_entrega: initialData.direccion_entrega ?? "",
+        cliente_id:              initialData.cliente_id ?? "",
+        // El backend devuelve estado_nombre mapeado a estado por _toUI
+        metodo_pago:             initialData.metodo_pago             ?? "efectivo",
+        metodo_entrega:          initialData.metodo_entrega          ?? "tienda",
+        direccion_entrega:       initialData.direccion_entrega       ?? "",
         transferencia_comprobante: initialData.transferencia_comprobante ?? "",
-        estado: initialData.estado ?? "pendiente",
+        estado:                  initialData.estado                  ?? "pendiente",
       });
 
       if (Array.isArray(initialData.items) && initialData.items.length > 0) {
         setItemsSeleccionados(initialData.items);
       }
 
-      if (isView && initialData.id && initialData.estado === "entregado") {
+      // Cargar abonos en vista (cualquier estado)
+      if (isView && initialData.id) {
         pedidosService.getInfoAbonos(initialData.id, initialData.total ?? 0)
           .then((info) => { if (info.abonos.length > 0) setAbonosInfo(info); })
           .catch(() => {});
@@ -82,11 +85,11 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
         ...itemsSeleccionados,
         {
           producto_id: producto.id,
-          nombre: producto.nombre,
+          nombre:      producto.nombre,
           descripcion: producto.descripcion,
-          precio: producto.precio,
-          cantidad: 1,
-          tipo: "producto",
+          precio:      producto.precio,
+          cantidad:    1,
+          tipo:        "producto",
         },
       ]);
     }
@@ -129,10 +132,52 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
 
     setSaving(true);
     try {
-      const payload = { ...formData, items: itemsSeleccionados, total: calcularTotal() };
+      const payload = { ...formData, items: itemsSeleccionados };
 
       if (isEdit && initialData?.id) {
-        await pedidosService.updatePedido(initialData.id, payload);
+        // 1. Actualizar datos del pedido (sin items ni total)
+        await pedidosService.updatePedido(initialData.id, {
+          metodo_pago:               payload.metodo_pago,
+          metodo_entrega:            payload.metodo_entrega,
+          direccion_entrega:         payload.direccion_entrega,
+          transferencia_comprobante: payload.transferencia_comprobante,
+          estado:                    payload.estado,
+        });
+
+        // 2. Sincronizar items: comparar originales vs actuales
+        const itemsOriginales = initialData.items ?? [];
+
+        // Items eliminados: estaban en original pero ya no están
+        for (const orig of itemsOriginales) {
+          const aun = itemsSeleccionados.find((i) => i.id === orig.id);
+          if (!aun) {
+            await pedidosService.deleteDetallePedido(orig.id);
+          }
+        }
+
+        // Items modificados: mismo id pero distinta cantidad
+        for (const item of itemsSeleccionados) {
+          if (!item.id) continue; // item nuevo, no tiene id del backend
+          const orig = itemsOriginales.find((o) => o.id === item.id);
+          if (orig && orig.cantidad !== item.cantidad) {
+            await pedidosService.updateDetallePedido(item.id, {
+              cantidad: item.cantidad,
+              precio_unitario: item.precio,
+            });
+          }
+        }
+
+        // Items nuevos: están en actuales pero no tienen id (se agregaron en el form)
+        for (const item of itemsSeleccionados) {
+          if (item.id) continue; // ya existe en el backend
+          await pedidosService.createDetallePedido({
+            pedido_id:      initialData.id,
+            producto_id:    item.producto_id,
+            cantidad:       item.cantidad,
+            precio_unitario: item.precio,
+          });
+        }
+
         setNotification({ isVisible: true, message: "Pedido actualizado correctamente.", type: "success" });
         if (onSuccess) onSuccess(payload);
       } else {
@@ -155,33 +200,13 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
   const mostrarTabla = itemsSeleccionados.length > 0;
 
   return {
-    // Estados
-    clientes,
-    productos,
-    catalogLoading,
-    abonosInfo,
-    formData,
-    setFormData,
-    itemsSeleccionados,
-    notification,
-    setNotification,
-    saving,
-    isView,
-    isEdit,
-    isCreate,
-    // Computed
-    clienteNombreVisible,
-    mostrarTabla,
-    calcularTotal,
-    formatCurrency,
-    // Acciones
-    agregarItem,
-    removerItem,
-    actualizarCantidad,
-    guardarPedido,
-    // Constantes
-    ESTADOS_PEDIDO,
-    METODOS_PAGO,
-    METODOS_ENTREGA,
+    clientes, productos, catalogLoading,
+    abonosInfo, formData, setFormData,
+    itemsSeleccionados, notification, setNotification,
+    saving, isView, isEdit, isCreate,
+    clienteNombreVisible, mostrarTabla,
+    calcularTotal, formatCurrency,
+    agregarItem, removerItem, actualizarCantidad, guardarPedido,
+    ESTADOS_PEDIDO, METODOS_PAGO, METODOS_ENTREGA,
   };
 }

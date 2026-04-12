@@ -22,7 +22,7 @@ export default function EditarPedido() {
   return (
     <PedidoForm
       mode="edit"
-      title={`Editar Pedido #${pedido.id}`}
+      title="Editar Pedido"
       initialData={pedido}
       onCancel={() => navigate(-1)}
       onSuccess={() => navigate(-1)}
