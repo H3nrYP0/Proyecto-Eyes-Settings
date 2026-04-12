@@ -1,21 +1,18 @@
 // ServicesList.jsx
 // Lista de servicios con datos reales desde la API
-// Usa serviciosLandingData.js para la conexión al backend
 
 import { useState, useEffect } from "react";
 import ServiceCard from "./ServiceCard";
 import LoadingSpinner from "../Shared/LoadingSpinner";
-import PageHeader from "../Shared/PageHeader";
 import { getServiciosActivos } from "../Services/serviciosLandingData";
 
 const ServicesList = () => {
   const [servicios, setServicios] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState(null);
 
   useEffect(() => {
     let mounted = true;
-
     const fetchServicios = async () => {
       try {
         setLoading(true);
@@ -31,18 +28,15 @@ const ServicesList = () => {
         if (mounted) setLoading(false);
       }
     };
-
     fetchServicios();
     return () => { mounted = false; };
   }, []);
 
   const handleAgendar = (servicio) => {
-    // Scroll al formulario de cita en ServicesPage
     const form = document.getElementById("appointment-form");
     if (form) {
       form.scrollIntoView({ behavior: "smooth" });
     } else {
-      // Si no hay formulario en la página actual, ir a /servicios
       const mensaje = `Hola, me interesa agendar: *${servicio.nombre}*`;
       window.open(`https://wa.me/573006139449?text=${encodeURIComponent(mensaje)}`, "_blank");
     }
@@ -51,37 +45,67 @@ const ServicesList = () => {
   return (
     <section id="services" className="services-section">
       <div className="services-container">
-        <PageHeader
-          titulo="Servicios"
-          acento="Especializados"
-          subtitulo="Atención personalizada con tecnología de vanguardia para el cuidado de tu visión."
-        />
+
+        {/* Encabezado — teal hardcoded, sin PageHeader */}
+        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+          <h2 style={{
+            fontSize: "clamp(1.75rem, 4vw, 2.5rem)",
+            fontWeight: 700,
+            marginBottom: "0.6rem",
+            lineHeight: 1.2,
+            background: "linear-gradient(135deg, #0d2e2e, #1a4a4a)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+          }}>
+            Servicios{" "}
+            <span style={{
+              background: "linear-gradient(135deg, #1a4a4a, #3d8080)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}>
+              Especializados
+            </span>
+          </h2>
+          <p style={{
+            color: "#4e6e6e",
+            fontSize: "1rem",
+            maxWidth: "600px",
+            margin: "0 auto",
+            lineHeight: 1.6,
+          }}>
+            Atención personalizada con tecnología de vanguardia para el cuidado de tu visión.
+          </p>
+          <div style={{
+            width: "44px",
+            height: "3px",
+            background: "linear-gradient(90deg, #1a4a4a, #3d8080)",
+            borderRadius: "4px",
+            margin: "0.875rem auto 0",
+          }} />
+        </div>
 
         {loading && <LoadingSpinner mensaje="Cargando servicios..." />}
 
         {error && !loading && (
           <div style={{
-            textAlign: 'center',
-            padding: '2rem',
-            background: '#fef2f2',
-            border: '1px solid #fecaca',
-            borderRadius: '0.75rem',
-            color: '#dc2626',
-            fontSize: '0.9rem',
-            maxWidth: '500px',
-            margin: '0 auto',
+            textAlign: "center",
+            padding: "1.5rem 2rem",
+            background: "#f3f8f8",
+            border: "1px solid #d4e6e6",
+            borderRadius: "0.75rem",
+            color: "#4e6e6e",
+            fontSize: "0.9rem",
+            maxWidth: "500px",
+            margin: "0 auto",
           }}>
             {error}
           </div>
         )}
 
         {!loading && !error && servicios.length === 0 && (
-          <div style={{
-            textAlign: 'center',
-            padding: '3rem',
-            color: '#64748b',
-            fontSize: '0.95rem',
-          }}>
+          <div style={{ textAlign: "center", padding: "3rem", color: "#4e6e6e", fontSize: "0.95rem" }}>
             No hay servicios disponibles en este momento.
           </div>
         )}

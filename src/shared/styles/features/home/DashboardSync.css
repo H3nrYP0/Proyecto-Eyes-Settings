@@ -1,4 +1,4 @@
-/* === DASHBOARD SYNC STYLES === */
+/* === DASHBOARD SYNC STYLES — paleta teal Visual Outlet === */
 .dashboard-sync-container {
   background: var(--pure-white);
   border: 1px solid var(--medium-gray);
@@ -80,7 +80,7 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
+  0%   { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 
@@ -92,7 +92,7 @@
     gap: var(--space-md);
     text-align: center;
   }
-  
+
   .sync-button {
     justify-content: center;
   }
