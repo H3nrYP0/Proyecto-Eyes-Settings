@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import CrudLayout from '@shared/components/crud/CrudLayout';
-import CrudTable  from '@shared/components/crud/CrudTable';
-import Modal      from '@shared/components/ui/Modal';
-import Loading    from '@shared/components/ui/Loading';
+import CrudLayout       from '@shared/components/crud/CrudLayout';
+import CrudTable        from '@shared/components/crud/CrudTable';
+import Modal            from '@shared/components/ui/Modal';
+import Loading          from '@shared/components/ui/Loading';
+import CrudNotification from '@shared/styles/components/notifications/CrudNotification';
 
-import { getAllRoles, deleteRol, updateEstadoRol } from "@seguridad";
-import { normalizarRoles, filtrarRoles } from '@seguridad';
+import { getAllRoles, deleteRol, updateEstadoRol } from '@seguridad';
+import { normalizarRoles, filtrarRoles }           from '@seguridad';
 
 const ESTADO_OPTIONS = [
   { value: '',         label: 'Todos los estados' },
-  { value: 'activo',   label: 'Activos' },
-  { value: 'inactivo', label: 'Inactivos' },
+  { value: 'activo',   label: 'Activos'           },
+  { value: 'inactivo', label: 'Inactivos'         },
 ];
 
 const COLUMNS = [
@@ -29,6 +30,26 @@ export default function Roles() {
   const [loading, setLoading]         = useState(true);
   const [error, setError]             = useState(null);
   const [modalDelete, setModalDelete] = useState({ open: false, id: null, nombre: '' });
+
+  const [notification, setNotification] = useState({
+    isVisible: false, message: '', type: 'success',
+  });
+
+  const showNotification = (message, type = 'success') =>
+    setNotification({ isVisible: true, message, type });
+
+  const handleCloseNotification = () =>
+    setNotification((prev) => ({ ...prev, isVisible: false }));
+
+  // Lee notificaciones pendientes dejadas por Crear / Editar
+  useEffect(() => {
+    const pending = sessionStorage.getItem('crudNotification');
+    if (pending) {
+      const { message, type } = JSON.parse(pending);
+      sessionStorage.removeItem('crudNotification');
+      showNotification(message, type);
+    }
+  }, []);
 
   useEffect(() => { cargarRoles(); }, []);
 
@@ -50,13 +71,16 @@ export default function Roles() {
     setModalDelete({ open: true, id, nombre });
 
   const confirmDelete = async () => {
+    const nombre = modalDelete.nombre;
     try {
       await deleteRol(modalDelete.id);
-      await cargarRoles();
       setModalDelete({ open: false, id: null, nombre: '' });
+      await cargarRoles();
+      showNotification(`Rol "${nombre}" eliminado correctamente`);
     } catch (err) {
-      const msg = err?.response?.data?.error || 'Error al eliminar el rol';
-      alert(msg);
+      const msg = err?.response?.data?.error || err?.message || 'Error al eliminar el rol';
+      setModalDelete({ open: false, id: null, nombre: '' });
+      showNotification(msg, 'error');
     }
   };
 
@@ -64,9 +88,11 @@ export default function Roles() {
     try {
       await updateEstadoRol(row.id, nuevoEstado);
       await cargarRoles();
+      const label = nuevoEstado === 'activo' ? 'activado' : 'desactivado';
+      showNotification(`Rol "${row.nombre}" ${label} correctamente`);
     } catch (err) {
-      const msg = err?.response?.data?.error || 'Error al cambiar el estado del rol';
-      alert(msg);
+      const msg = err?.response?.data?.error || err?.message || 'Error al cambiar el estado del rol';
+      showNotification(msg, 'error');
     }
   };
 
@@ -87,46 +113,55 @@ export default function Roles() {
   }
 
   return (
-    <CrudLayout
-      title="Roles"
-      onAddClick={() => navigate('crear')}
-      showSearch
-      searchPlaceholder="Buscar por nombre, descripción..."
-      searchValue={search}
-      onSearchChange={setSearch}
-      searchFilters={ESTADO_OPTIONS}
-      filterEstado={filterEstado}
-      onFilterChange={setFilter}
-    >
-      {error && (
-        <div style={{ padding: '16px', backgroundColor: '#ffebee', color: '#c62828', borderRadius: '4px', marginBottom: '16px' }}>
-          ⚠️ {error}
-        </div>
-      )}
+    <>
+      <CrudLayout
+        title="Roles"
+        onAddClick={() => navigate('crear')}
+        showSearch
+        searchPlaceholder="Buscar por nombre, descripción..."
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchFilters={ESTADO_OPTIONS}
+        filterEstado={filterEstado}
+        onFilterChange={setFilter}
+      >
+        {error && (
+          <div style={{ padding: '16px', backgroundColor: '#ffebee', color: '#c62828', borderRadius: '4px', marginBottom: '16px' }}>
+            ⚠️ {error}
+          </div>
+        )}
 
-      <CrudTable
-        columns={COLUMNS}
-        data={rolesVisibles}
-        actions={tableActions}
-        onChangeStatus={handleChangeStatus}
-        emptyMessage={
-          search || filterEstado
-            ? 'No se encontraron roles para los filtros aplicados'
-            : 'No hay roles configurados'
-        }
-      />
+        <CrudTable
+          columns={COLUMNS}
+          data={rolesVisibles}
+          actions={tableActions}
+          onChangeStatus={handleChangeStatus}
+          emptyMessage={
+            search || filterEstado
+              ? 'No se encontraron roles para los filtros aplicados'
+              : 'No hay roles configurados'
+          }
+        />
 
-      <Modal
-        open={modalDelete.open}
-        type="warning"
-        title="¿Eliminar Rol?"
-        message={`Esta acción eliminará el rol "${modalDelete.nombre}" y no se puede deshacer.`}
-        confirmText="Eliminar"
-        cancelText="Cancelar"
-        showCancel
-        onConfirm={confirmDelete}
-        onCancel={() => setModalDelete({ open: false, id: null, nombre: '' })}
+        <Modal
+          open={modalDelete.open}
+          type="warning"
+          title="¿Eliminar Rol?"
+          message={`Esta acción eliminará el rol "${modalDelete.nombre}" y no se puede deshacer.`}
+          confirmText="Eliminar"
+          cancelText="Cancelar"
+          showCancel
+          onConfirm={confirmDelete}
+          onCancel={() => setModalDelete({ open: false, id: null, nombre: '' })}
+        />
+      </CrudLayout>
+
+      <CrudNotification
+        isVisible={notification.isVisible}
+        message={notification.message}
+        type={notification.type}
+        onClose={handleCloseNotification}
       />
-    </CrudLayout>
+    </>
   );
 }

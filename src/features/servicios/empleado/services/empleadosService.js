@@ -16,10 +16,8 @@ export async function getEmpleadoById(id) {
     const res = await api.get(`/empleados/${id}`);
     return res.data;
   } catch (error) {
-    console.warn("Error al obtener empleado por ID, obteniendo de la lista completa");
-    const todos = await getAllEmpleados();
-    const empleado = todos.find(e => e.id === id);
-    return empleado || null;
+    console.error("Error al obtener empleado por ID:", error);
+    return null;
   }
 }
 
@@ -39,8 +37,13 @@ export async function createEmpleado(data) {
     estado: data.estado === "activo"
   };
 
-  const res = await api.post("/empleados", payload);
-  return res.data;
+  try {
+    const res = await api.post("/empleados", payload);
+    return res.data;
+  } catch (error) {
+    const mensaje = error.response?.data?.error || error.response?.data?.message || "Error al crear el empleado";
+    throw new Error(mensaje);
+  }
 }
 
 // ============================
@@ -59,16 +62,26 @@ export async function updateEmpleado(id, data) {
     estado: data.estado === "activo"
   };
 
-  const res = await api.put(`/empleados/${id}`, payload);
-  return res.data;
+  try {
+    const res = await api.put(`/empleados/${id}`, payload);
+    return res.data;
+  } catch (error) {
+    const mensaje = error.response?.data?.error || error.response?.data?.message || "Error al actualizar el empleado";
+    throw new Error(mensaje);
+  }
 }
 
 // ============================
 // Eliminar empleado
 // ============================
 export async function deleteEmpleado(id) {
-  const res = await api.delete(`/empleados/${id}`);
-  return res.data;
+  try {
+    const res = await api.delete(`/empleados/${id}`);
+    return res.data;
+  } catch (error) {
+    const mensaje = error.response?.data?.error || error.response?.data?.message || "Error al eliminar el empleado";
+    throw new Error(mensaje);
+  }
 }
 
 // ============================
@@ -79,8 +92,13 @@ export async function updateEstadoEmpleado(id, nuevoEstado) {
     estado: nuevoEstado === "activo"
   };
 
-  const res = await api.put(`/empleados/${id}`, payload);
-  return res.data;
+  try {
+    const res = await api.put(`/empleados/${id}`, payload);
+    return res.data;
+  } catch (error) {
+    const mensaje = error.response?.data?.error || error.response?.data?.message || "Error al cambiar el estado del empleado";
+    throw new Error(mensaje);
+  }
 }
 
 // ============================

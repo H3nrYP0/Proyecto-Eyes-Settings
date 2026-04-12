@@ -1,51 +1,22 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getAllEmpleados } from "../../empleado/services/empleadosService";
-import { ServicioData } from "../../servicio/services/serviciosService";
-import { clientesService } from "../../../ventas/cliente/services/clientesService";
-import { getAllEstadosCita } from "../services/estadosCitaServices";
+import { useCitaData } from '../context/CitaDataContext';
 import Loading from "../../../../shared/components/ui/Loading";
 import { useCitaForm } from "../hooks/useCitaForm";
 import CitaForm from "../components/CitaForm";
 
 export default function CrearCita() {
   const navigate = useNavigate();
-
-  const [clientes, setClientes] = useState([]);
-  const [servicios, setServicios] = useState([]);
-  const [empleados, setEmpleados] = useState([]);
-  const [estadosCita, setEstadosCita] = useState([]);
+  const { clientes, servicios, empleados, estadosCita, loading: dataLoading } = useCitaData();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Ya no necesitas cargar los datos maestros aquí, solo esperar a que el contexto termine
   useEffect(() => {
-    const cargarDatos = async () => {
-      try {
-        const [clientesData, serviciosData, empleadosData, estadosData] = await Promise.all([
-          clientesService.getAllClientes(),
-          ServicioData.getAllServicios(),
-          getAllEmpleados(),
-          getAllEstadosCita()
-        ]);
-
-        setClientes(Array.isArray(clientesData) ? clientesData : []);
-        setServicios(Array.isArray(serviciosData) ? serviciosData : []);
-        
-        const empleadosNormalizados = (Array.isArray(empleadosData) ? empleadosData : [])
-          .map(e => ({ ...e, estado: e.estado === true ? "activo" : "inactivo" }));
-        setEmpleados(empleadosNormalizados);
-        
-        setEstadosCita(Array.isArray(estadosData) ? estadosData : []);
-      } catch (error) {
-        console.error("Error cargando datos:", error);
-        setError("Error al cargar datos necesarios");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    cargarDatos();
-  }, []);
+    if (!dataLoading) {
+      setLoading(false);
+    }
+  }, [dataLoading]);
 
   const {
     formData,
@@ -60,6 +31,15 @@ export default function CrearCita() {
     handleDateChange,
     handleTimeChange,
     handleSubmit,
+    getHorarioDelDia,
+    duracionActual,
+    getClientesActivos,
+    getServiciosActivos,
+    getEmpleadosActivos,
+    horaInvalida,
+    getHoraErrorMessage,
+    shouldDisableDate,
+    shouldDisableTime,
   } = useCitaForm({
     mode: "create",
     clientes,
@@ -104,7 +84,6 @@ export default function CrearCita() {
       servicios={servicios}
       empleados={empleados}
       estadosCita={estadosCita}
-      horariosEmpleado={horariosEmpleado}
       diasActivos={diasActivos}
       formData={formData}
       errors={errors}
@@ -116,6 +95,14 @@ export default function CrearCita() {
       handleDateChange={handleDateChange}
       handleTimeChange={handleTimeChange}
       handleSubmit={handleSubmit}
+      duracionActual={duracionActual}
+      getClientesActivos={getClientesActivos}
+      getServiciosActivos={getServiciosActivos}
+      getEmpleadosActivos={getEmpleadosActivos}
+      horaInvalida={horaInvalida}
+      getHoraErrorMessage={getHoraErrorMessage}
+      shouldDisableDate={shouldDisableDate}
+      shouldDisableTime={shouldDisableTime}
     />
   );
 }

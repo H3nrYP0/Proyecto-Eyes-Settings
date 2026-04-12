@@ -25,17 +25,47 @@ export default function UnifiedCrudTable({
   loading = false,
   emptyMessage = "No hay registros.",
   onChangeStatus,
+  // Nuevas props para paginación externa (opcionales)
+  totalCount = null,
+  page = 0,
+  onPageChange = null,
+  rowsPerPage = 10,
+  onRowsPerPageChange = null,
 }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
   const [newStatus, setNewStatus] = useState(null);
   const [openModal, setOpenModal] = useState(false);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  // Estados internos (usados solo si no hay paginación externa)
+  const [internalPage, setInternalPage] = useState(0);
+  const [internalRowsPerPage, setInternalRowsPerPage] = useState(10);
 
   const scrollRef = useRef(null);
 
-  // Scroll horizontal con la rueda del mouse
+  // Determinar si se usa paginación externa
+  const useExternalPagination = totalCount !== null && onPageChange !== null;
+
+  const activePage = useExternalPagination ? page : internalPage;
+  const activeRowsPerPage = useExternalPagination ? rowsPerPage : internalRowsPerPage;
+
+  const handleChangePage = (event, newPage) => {
+    if (useExternalPagination) {
+      onPageChange(event, newPage);
+    } else {
+      setInternalPage(newPage);
+    }
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    const newRows = parseInt(event.target.value, 10);
+    if (useExternalPagination) {
+      onRowsPerPageChange(event);
+    } else {
+      setInternalRowsPerPage(newRows);
+      setInternalPage(0);
+    }
+  };
+
   const handleWheel = (e) => {
     if (!scrollRef.current) return;
     const el = scrollRef.current;
@@ -86,15 +116,6 @@ export default function UnifiedCrudTable({
     setNewStatus(null);
   };
 
-  const handleChangePage = (_, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (e) => {
-    setRowsPerPage(parseInt(e.target.value, 10));
-    setPage(0);
-  };
-
   const getStatusColor = (estado) => {
     switch (estado?.toLowerCase()) {
       case "activo":
@@ -116,17 +137,17 @@ export default function UnifiedCrudTable({
     }
   };
 
-  // Datos paginados
-  const paginatedData = data.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
+  // Datos a mostrar: si hay paginación externa, no se aplica slice (ya vienen paginados del backend)
+  // Si no, se aplica slice para paginación interna
+  const displayData = useExternalPagination
+    ? data
+    : data.slice(activePage * activeRowsPerPage, activePage * activeRowsPerPage + activeRowsPerPage);
+
+  const totalItems = useExternalPagination ? totalCount : data.length;
 
   return (
     <>
       <Paper sx={{ width: "100%", overflow: "hidden" }}>
-
-        {/* Contenedor con scroll horizontal + rueda del mouse */}
         <Box
           ref={scrollRef}
           onWheel={handleWheel}
@@ -176,7 +197,7 @@ export default function UnifiedCrudTable({
                   </TableCell>
                 </TableRow>
               ) : (
-                paginatedData.map((row) => (
+                displayData.map((row) => (
                   <TableRow key={row.id} hover>
                     {visibleColumns.map((col) => (
                       <TableCell key={col.field}>
@@ -215,14 +236,14 @@ export default function UnifiedCrudTable({
           </Table>
         </Box>
 
-        {/* Paginación */}
-        {data.length > 0 && (
+        {/* Paginación siempre visible dentro del Paper */}
+        {totalItems > 0 && (
           <TablePagination
             component="div"
-            count={data.length}
-            page={page}
+            count={totalItems}
+            page={activePage}
             onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
+            rowsPerPage={activeRowsPerPage}
             onRowsPerPageChange={handleChangeRowsPerPage}
             rowsPerPageOptions={[10, 25, 50]}
             labelRowsPerPage="Filas por página:"

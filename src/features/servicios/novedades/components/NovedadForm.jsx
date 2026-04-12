@@ -1,16 +1,17 @@
+import { useState, useEffect } from "react";
 import { FormHelperText, Box } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import esLocale from "date-fns/locale/es";
 import BaseInputField from "../../../../shared/components/base/BaseInputField";
 import BaseFormField from "../../../../shared/components/base/BaseFormField";
-import { diasSemanaOptions } from "../utils/horariosUtils";
-import { useEffect } from "react";
+import { tiposNovedad } from "../utils/novedadesUtils";
+import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
 
-export default function HorarioForm({
+export default function NovedadForm({
   mode = "create",
-  initialData,
   empleados = [],
   id,
   formData,
@@ -18,17 +19,10 @@ export default function HorarioForm({
   submitting,
   handleChange,
   handleSubmit,
-  resetForm,
+  submitError,
 }) {
   const isView = mode === "view";
   const isDisabled = isView || submitting;
-
-  // Limpiar formulario al abrir en modo crear
-  useEffect(() => {
-    if (mode === "create" && resetForm) {
-      resetForm();
-    }
-  }, [mode, resetForm]);
 
   const onSubmitForm = async (e) => {
     if (e) e.preventDefault();
@@ -40,12 +34,6 @@ export default function HorarioForm({
     ...empleados.map((emp) => ({ value: emp.id, label: emp.nombre })),
   ];
 
-  const diaOptions = [
-    { value: "", label: "-- Seleccione día --" },
-    ...diasSemanaOptions,
-  ];
-
-  // Opciones para el estado (activo/inactivo)
   const estadoOptions = [
     { value: "activo", label: "Activo" },
     { value: "inactivo", label: "Inactivo" },
@@ -58,7 +46,23 @@ export default function HorarioForm({
     handleChange({ target: { name: "activo", value: nuevoEstado } });
   };
 
-  // Convertir string "HH:MM" a objeto Date para TimePicker
+  // Convertir string "YYYY-MM-DD" a objeto Date
+  const getDateFromString = (dateStr) => {
+    if (!dateStr) return null;
+    const [year, month, day] = dateStr.split("-");
+    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  };
+
+  // Convertir objeto Date a string "YYYY-MM-DD"
+  const formatDateToString = (date) => {
+    if (!date) return "";
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  // Convertir string "HH:MM" a objeto Date (hora actual + minutos)
   const getTimeFromString = (timeStr) => {
     if (!timeStr) return null;
     const [hours, minutes] = timeStr.split(":");
@@ -75,7 +79,11 @@ export default function HorarioForm({
     return `${hours}:${minutes}`;
   };
 
-  // Handler para TimePicker
+  // Handlers para DatePicker y TimePicker
+  const handleDateChange = (name, date) => {
+    handleChange({ target: { name, value: formatDateToString(date) } });
+  };
+
   const handleTimeChange = (name, time) => {
     handleChange({ target: { name, value: formatTimeToString(time) } });
   };
@@ -84,6 +92,15 @@ export default function HorarioForm({
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={esLocale}>
       <form id={id} onSubmit={onSubmitForm}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          {submitError && (
+            <CrudNotification
+              message={submitError}
+              type="error"
+              isVisible={true}
+              onClose={() => {}}
+            />
+          )}
+
           {/* Empleado */}
           <BaseFormField>
             <BaseInputField
@@ -101,52 +118,88 @@ export default function HorarioForm({
             {errors.empleado_id && <FormHelperText error>{errors.empleado_id}</FormHelperText>}
           </BaseFormField>
 
-          {/* Día de la semana */}
+          {/* Tipo */}
           <BaseFormField>
             <BaseInputField
-              label="Día de la semana"
-              name="dia"
+              label="Tipo de novedad"
+              name="tipo"
               select
-              value={formData.dia}
+              value={formData.tipo}
               onChange={handleChange}
               disabled={isDisabled}
-              options={diaOptions}
+              options={[{ value: "", label: "-- Seleccione tipo --" }, ...tiposNovedad]}
               required
-              error={!!errors.dia}
+              error={!!errors.tipo}
               fullWidth
             />
-            {errors.dia && <FormHelperText error>{errors.dia}</FormHelperText>}
+            {errors.tipo && <FormHelperText error>{errors.tipo}</FormHelperText>}
           </BaseFormField>
 
-          {/* Hora Inicio */}
+          {/* Fecha Inicio (DatePicker) */}
+          <BaseFormField>
+            <DatePicker
+              label="Fecha Inicio"
+              value={getDateFromString(formData.fecha_inicio)}
+              onChange={(date) => handleDateChange("fecha_inicio", date)}
+              disabled={isDisabled}
+              slotProps={{ textField: { fullWidth: true, size: "small", error: !!errors.fecha_inicio, required: true } }}
+            />
+            <FormHelperText error>{errors.fecha_inicio || " "}</FormHelperText>
+          </BaseFormField>
+
+          {/* Fecha Fin (DatePicker) */}
+          <BaseFormField>
+            <DatePicker
+              label="Fecha Fin"
+              value={getDateFromString(formData.fecha_fin)}
+              onChange={(date) => handleDateChange("fecha_fin", date)}
+              disabled={isDisabled}
+              slotProps={{ textField: { fullWidth: true, size: "small", error: !!errors.fecha_fin, required: true } }}
+            />
+            <FormHelperText error>{errors.fecha_fin || " "}</FormHelperText>
+          </BaseFormField>
+
+          {/* Hora Inicio (TimePicker) */}
           <BaseFormField>
             <TimePicker
-              label="Hora Inicio"
+              label="Hora Inicio (opcional)"
               value={getTimeFromString(formData.hora_inicio)}
               onChange={(time) => handleTimeChange("hora_inicio", time)}
               disabled={isDisabled}
               ampm={true}
               ampmInClock={true}
-              slotProps={{ textField: { fullWidth: true, size: "small", error: !!errors.hora_inicio, required: true } }}
+              slotProps={{ textField: { fullWidth: true, size: "small", error: !!errors.hora_inicio } }}
             />
             <FormHelperText error>{errors.hora_inicio || " "}</FormHelperText>
           </BaseFormField>
 
-          {/* Hora Final */}
+          {/* Hora Fin (TimePicker) */}
           <BaseFormField>
             <TimePicker
-              label="Hora Final"
-              value={getTimeFromString(formData.hora_final)}
-              onChange={(time) => handleTimeChange("hora_final", time)}
+              label="Hora Fin (opcional)"
+              value={getTimeFromString(formData.hora_fin)}
+              onChange={(time) => handleTimeChange("hora_fin", time)}
               disabled={isDisabled}
               ampm={true}
               ampmInClock={true}
-              slotProps={{ textField: { fullWidth: true, size: "small", error: !!errors.hora_final, required: true } }}
+              slotProps={{ textField: { fullWidth: true, size: "small", error: !!errors.hora_fin } }}
             />
-            <FormHelperText error>{errors.hora_final || " "}</FormHelperText>
+            <FormHelperText error>{errors.hora_fin || " "}</FormHelperText>
           </BaseFormField>
 
-          {/* Estado (solo en edición o vista) */}
+          {/* Motivo */}
+          <BaseFormField>
+            <BaseInputField
+              label="Motivo"
+              name="motivo"
+              value={formData.motivo}
+              onChange={handleChange}
+              disabled={isDisabled}
+              fullWidth
+            />
+          </BaseFormField>
+
+          {/* Estado (solo en edición/vista) */}
           {mode !== "create" && (
             <BaseFormField>
               <BaseInputField

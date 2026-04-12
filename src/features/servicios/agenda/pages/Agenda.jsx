@@ -1,9 +1,11 @@
-import { useNavigate } from "react-router-dom";
-import { useAgenda } from "../hooks/useAgenda";
-import AgendaCalendar from "../components/AgendaCalendar";
-import Modal from "../../../../shared/components/ui/Modal";
-import Loading from "../../../../shared/components/ui/Loading";
-import "../../../../shared/styles/features/agenda-calendar.css";
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAgenda } from '../hooks/useAgenda';
+import AgendaCalendar from '../components/AgendaCalendar';
+import Loading from '@shared/components/ui/Loading';
+import CrudNotification from '@shared/styles/components/notifications/CrudNotification';
+import CrudLayout from '@shared/components/crud/CrudLayout';
+import '../../../../shared/styles/features/agenda-calendar.css';
 
 export default function Agenda() {
   const navigate = useNavigate();
@@ -18,9 +20,24 @@ export default function Agenda() {
     setErrorModal,
   } = useAgenda();
 
-  // ============================
-  // Handlers
-  // ============================
+  const [notification, setNotification] = useState({ visible: false, message: '', type: 'error' });
+
+  const showNotification = (message, type = 'error') => {
+    setNotification({ visible: true, message, type });
+    setTimeout(() => setNotification(prev => ({ ...prev, visible: false })), 5000);
+  };
+
+  const handleCloseNotification = () => {
+    setNotification(prev => ({ ...prev, visible: false }));
+  };
+
+  useEffect(() => {
+    if (errorModal.open && errorModal.message) {
+      showNotification(errorModal.message, 'error');
+      setErrorModal({ open: false, message: '' });
+    }
+  }, [errorModal]);
+
   const handleEventClick = (info) => {
     const props = info.event.extendedProps;
     if (props?.tipo === 'cita') {
@@ -30,76 +47,110 @@ export default function Agenda() {
     }
   };
 
+  // Filtros para CrudLayout
+  const empleadoFilters = [
+    { value: 'todos', label: 'Todos los empleados' },
+    ...empleados.map(emp => ({ value: emp.id.toString(), label: emp.nombre }))
+  ];
+
+  const handleFilterChange = (value) => {
+    setSelectedEmpleado(value);
+  };
+
   if (loading) {
-    return <Loading message="Cargando agenda..." />;
+    return (
+      <CrudLayout title="Agenda" onAddClick={() => navigate('/admin/servicios/citas/crear')}>
+        <Loading message="Cargando agenda..." />
+      </CrudLayout>
+    );
   }
 
   return (
-    <div className="agenda-container">
-      {/* Header */}
-      <div className="agenda-header">
-        <h1>Agenda</h1>
-        <div className="agenda-controls">
-          <select 
-            className="agenda-filter"
-            value={selectedEmpleado}
-            onChange={(e) => setSelectedEmpleado(e.target.value)}
-          >
-            <option value="todos">Todos los empleados</option>
-            {empleados.map(emp => (
-              <option key={emp.id} value={emp.id}>{emp.nombre}</option>
-            ))}
-          </select>
-          <button
-            className="agenda-btn agenda-btn-secondary"
-            onClick={() => navigate('horarios')}
-          >
-            Ver Horarios
-          </button>
-        </div>
-      </div>
-
-      {/* Leyenda */}
-      <div className="agenda-legend">
-        <div className="legend-section">
-          <div className="legend-subtitle">Horarios</div>
-          <div className="legend-item">
-            <span className="legend-color disponible"></span>
-            <span>Disponibilidad</span>
-          </div>
-        </div>
-        
-        <div className="legend-section">
-          <div className="legend-subtitle">Citas</div>
-          <div className="legend-items-grid">
-            <div className="legend-item"><span className="legend-color pendiente"></span>Pendiente</div>
-            <div className="legend-item"><span className="legend-color confirmada"></span>Confirmada</div>
-            <div className="legend-item"><span className="legend-color completada"></span>Completada</div>
-            <div className="legend-item"><span className="legend-color cancelada"></span>Cancelada</div>
-          </div>
-        </div>
-      </div>
-
-      {error && <div className="agenda-error">⚠️ {error}</div>}
-
-      {/* Calendario */}
-      <div className="agenda-calendar-wrapper">
-        <AgendaCalendar
-          events={events}
-          onEventClick={handleEventClick}
-          height="100%"
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <CrudLayout
+        title="Agenda"
+        onAddClick={() => navigate('/admin/servicios/citas/crear')}
+        showSearch={false}
+        searchFilters={empleadoFilters}
+        filterEstado={selectedEmpleado}
+        onFilterChange={handleFilterChange}
+      >
+        <CrudNotification
+          message={notification.message}
+          type={notification.type}
+          isVisible={notification.visible}
+          onClose={handleCloseNotification}
         />
-      </div>
 
-      <Modal
-        open={errorModal.open}
-        type="warning"
-        title="Atención"
-        message={errorModal.message}
-        confirmText="Aceptar"
-        showCancel={false}
-        onConfirm={() => setErrorModal({ open: false, message: '' })}
-      />
+        {error && (
+          <CrudNotification
+            message={`⚠️ Error al cargar datos: ${error}`}
+            type="error"
+            isVisible={true}
+            onClose={() => {}}
+          />
+        )}
+
+        <div className="agenda-two-columns">
+          <div className="agenda-calendar-wrapper">
+            <AgendaCalendar
+              events={events}
+              onEventClick={handleEventClick}
+              height="100%"
+            />
+          </div>
+
+          <aside className="agenda-legend-sidebar">
+            <div className="legend-section">
+              <div className="legend-subtitle">Horarios</div>
+              <div className="legend-item">
+                <span className="legend-color disponible"></span>
+                <span>Disponibilidad</span>
+              </div>
+            </div>
+
+            <div className="legend-section">
+            <div className="legend-subtitle">Novedades</div>
+            <div className="legend-item">
+              <span className="legend-color novedad"></span>
+              <span>Vacaciones / Incapacidades</span>
+            </div>
+          </div>
+            
+            <div className="legend-section">
+              <div className="legend-subtitle">Citas</div>
+              <div className="legend-items-grid">
+                <div className="legend-item">
+                  <span className="legend-color pendiente"></span>
+                  <span>Pendiente</span>
+                </div>
+                <div className="legend-item">
+                  <span className="legend-color confirmada"></span>
+                  <span>Confirmada</span>
+                </div>
+                <div className="legend-item">
+                  <span className="legend-color completada"></span>
+                  <span>Completada</span>
+                </div>
+                <div className="legend-item">
+                  <span className="legend-color cancelada"></span>
+                  <span>Cancelada</span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              className="agenda-btn"
+              onClick={() => navigate('/admin/servicios/horarios')}
+            >
+              Ver Horarios
+            </button>
+            <button className="agenda-btn" style={{ marginTop: '8px' }} onClick={() => navigate('/admin/servicios/citas/novedades')}>
+              Ver Novedades
+            </button>
+          </aside>
+        </div>
+      </CrudLayout>
     </div>
   );
 }

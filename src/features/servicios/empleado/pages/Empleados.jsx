@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import CrudLayout from "../../../../shared/components/crud/CrudLayout";
 import CrudTable from "../../../../shared/components/crud/CrudTable";
 import Modal from "../../../../shared/components/ui/Modal";
 import Loading from "../../../../shared/components/ui/Loading";
 import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
 import { useEmpleados } from "../hooks/useEmpleados";
-import EmpleadoForm from "../components/EmpleadoForm";
 import "../../../../shared/styles/components/crud-table.css";
 import "../../../../shared/styles/components/modal.css";
 
 export default function Empleados() {
+  const navigate = useNavigate();
   const {
     empleados,
     loading,
@@ -26,94 +27,41 @@ export default function Empleados() {
     recargar,
   } = useEmpleados();
 
-  // Estado para modales de formulario
-  const [modalForm, setModalForm] = useState({
-    open: false,
-    mode: "create", // create, edit, view
-    title: "",
-    initialData: null,
-  });
-
-  // Estado para notificaciones
+  // Estado para notificaciones (solo para acciones en el listado)
   const [notification, setNotification] = useState({
     isVisible: false,
     message: "",
     type: "success"
   });
 
-  // Función para mostrar notificaciones
   const showNotification = (message, type = "success") => {
-    setNotification({
-      isVisible: true,
-      message,
-      type
-    });
+    setNotification({ isVisible: true, message, type });
   };
 
-  // Cerrar notificación
   const handleCloseNotification = () => {
-    setNotification({
-      ...notification,
-      isVisible: false
-    });
+    setNotification(prev => ({ ...prev, isVisible: false }));
   };
 
-  // Auto-cerrar notificación después de 5 segundos
   useEffect(() => {
     if (notification.isVisible) {
-      const timer = setTimeout(() => {
-        handleCloseNotification();
-      }, 5000);
+      const timer = setTimeout(() => handleCloseNotification(), 5000);
       return () => clearTimeout(timer);
     }
   }, [notification.isVisible]);
 
   // ============================
-  // Handlers de modales de formulario
+  // Handlers de navegación (reemplazan modales)
   // ============================
   const handleOpenCreate = () => {
-    setModalForm({
-      open: true,
-      mode: "create",
-      title: "Registrar Nuevo Empleado",
-      initialData: null
-    });
+    navigate("/admin/servicios/empleados/crear");
   };
 
   const handleOpenEdit = (item) => {
-    setModalForm({
-      open: true,
-      mode: "edit",
-      title: `Editar Empleado: ${item.nombre}`,
-      initialData: item
-    });
+    navigate(`/admin/servicios/empleados/editar/${item.id}`);
   };
 
   const handleOpenView = (item) => {
-    setModalForm({
-      open: true,
-      mode: "view",
-      title: `Detalle del Empleado: ${item.nombre}`,
-      initialData: item
-    });
-  };
-
-  const handleCloseForm = () => {
-    setModalForm({
-      open: false,
-      mode: "create",
-      title: "",
-      initialData: null
-    });
-  };
-
-  // ============================
-  // Handler de submit del formulario
-  // ============================
-  const handleFormSubmit = async (data) => {
-    // Recargar la lista después de crear/editar
-    await recargar();
-    handleCloseForm();
+    navigate(`/admin/servicios/empleados/detalle/${item.id}`);
   };
 
   // ============================
@@ -133,7 +81,6 @@ export default function Empleados() {
   // Cambiar estado
   // ============================
   const handleChangeStatus = async (row, nuevoEstado) => {
-    // Determinar el nuevo estado si no se especifica
     const estadoFinal = nuevoEstado !== undefined 
       ? nuevoEstado 
       : (row.estado === "activo" ? "inactivo" : "activo");
@@ -159,18 +106,12 @@ export default function Empleados() {
     { value: "inactivo", label: "Inactivos" },
   ];
 
-  // ============================
-  // Columnas
-  // ============================
   const columns = [
     { field: "nombre", header: "Nombre" },
     { field: "cargo", header: "Cargo" },
     { field: "correo", header: "Correo Electrónico" },
   ];
 
-  // ============================
-  // Acciones de la tabla
-  // ============================
   const tableActions = [
     {
       label: "Cambiar estado",
@@ -194,9 +135,6 @@ export default function Empleados() {
     },
   ];
 
-  // ============================
-  // Loading
-  // ============================
   if (loading && empleados.length === 0) {
     return (
       <CrudLayout title="Empleados" showSearch>
@@ -219,15 +157,7 @@ export default function Empleados() {
         onFilterChange={setFilterEstado}
       >
         {error && (
-          <div
-            style={{
-              padding: "16px",
-              backgroundColor: "#ffebee",
-              color: "#c62828",
-              borderRadius: "4px",
-              marginBottom: "16px",
-            }}
-          >
+          <div style={{ padding: "16px", backgroundColor: "#ffebee", color: "#c62828", borderRadius: "4px", marginBottom: "16px" }}>
             ⚠️ {error}
           </div>
         )}
@@ -245,7 +175,7 @@ export default function Empleados() {
         />
       </CrudLayout>
 
-      {/* MODAL ELIMINAR */}
+      {/* MODAL ELIMINAR (se conserva) */}
       <Modal
         open={modalDelete.open}
         type="warning"
@@ -257,33 +187,6 @@ export default function Empleados() {
         onConfirm={confirmDelete}
         onCancel={closeDeleteModal}
       />
-
-      {/* MODAL FORMULARIO (Crear/Editar/Ver) */}
-      <Modal
-        open={modalForm.open}
-        type="info"
-        title={modalForm.title}
-        confirmText={modalForm.mode === "view" ? "Cerrar" : "Guardar"}
-        cancelText="Cancelar"
-        showCancel={modalForm.mode !== "view"}
-        onConfirm={() => {
-          // Disparar submit del formulario
-          const formElement = document.getElementById("empleado-form");
-          if (formElement) {
-            formElement.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
-          }
-        }}
-        onCancel={handleCloseForm}
-      >
-        <EmpleadoForm
-          id="empleado-form"
-          mode={modalForm.mode}
-          initialData={modalForm.initialData}
-          onSubmit={handleFormSubmit}
-          onCancel={handleCloseForm}
-          embedded={true}
-        />
-      </Modal>
 
       {/* NOTIFICACIONES */}
       <CrudNotification

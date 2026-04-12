@@ -1,67 +1,44 @@
-import { useState, useEffect, useCallback } from "react";
-import { verificarDisponibilidad } from "../services/citasService";
+import { useState, useEffect, useCallback } from 'react';
+import { verificarDisponibilidad } from '../services/citasService';
 
-export function useDisponibilidad({ empleadoId, fecha, hora, duracion = 30, excludeCitaId = null, isView = false }) {
+export function useDisponibilidad({ empleadoId, fecha, hora, duracion, excludeCitaId, isView = false }) {
   const [verificando, setVerificando] = useState(false);
   const [disponibilidad, setDisponibilidad] = useState(null);
-  const [errorDisponibilidad, setErrorDisponibilidad] = useState("");
+  const [errorDisponibilidad, setErrorDisponibilidad] = useState(null);
+  const [isAvailable, setIsAvailable] = useState(false);
 
   const verificar = useCallback(async () => {
     if (isView) return;
-    if (!empleadoId || !fecha || !hora) {
-      setDisponibilidad(null);
-      setErrorDisponibilidad("");
-      return;
-    }
-
+    if (!empleadoId || !fecha || !hora) return;
     setVerificando(true);
-    setErrorDisponibilidad("");
-
-    try {
-      const fechaStr = fecha.toISOString().split("T")[0];
-      const horaStr = `${hora.getHours().toString().padStart(2, "0")}:${hora.getMinutes().toString().padStart(2, "0")}`;
-
-      const resultado = await verificarDisponibilidad(
-        empleadoId,
-        fechaStr,
-        horaStr,
-        duracion,
-        excludeCitaId
-      );
-
-      setDisponibilidad(resultado);
-      if (!resultado.disponible) {
-        setErrorDisponibilidad(resultado.mensaje);
-      }
-    } catch (error) {
-      console.error("Error verificando disponibilidad:", error);
-      setErrorDisponibilidad("Error al verificar disponibilidad");
-    } finally {
-      setVerificando(false);
+    const result = await verificarDisponibilidad(empleadoId, fecha, hora, duracion, excludeCitaId);
+    if (result.success) {
+      setDisponibilidad(result.data);
+      setErrorDisponibilidad(null);
+      setIsAvailable(result.data.disponible);
+    } else {
+      setDisponibilidad(null);
+      setErrorDisponibilidad(result.error);
+      setIsAvailable(false);
     }
+    setVerificando(false);
   }, [empleadoId, fecha, hora, duracion, excludeCitaId, isView]);
 
-  useEffect(() => {
-    const timeoutId = setTimeout(verificar, 500);
-    return () => clearTimeout(timeoutId);
-  }, [verificar]);
+  const resetDisponibilidad = useCallback(() => {
+    setDisponibilidad(null);
+    setErrorDisponibilidad(null);
+    setIsAvailable(false);
+  }, []);
 
   useEffect(() => {
-    if (empleadoId) {
-      setDisponibilidad(null);
-      setErrorDisponibilidad("");
-    }
-  }, [empleadoId]);
+    verificar();
+  }, [verificar]);
 
   return {
     verificando,
     disponibilidad,
     errorDisponibilidad,
-    isAvailable: disponibilidad?.disponible === true,
-    horario: disponibilidad?.horario,
-    resetDisponibilidad: () => {
-      setDisponibilidad(null);
-      setErrorDisponibilidad("");
-    },
+    isAvailable,
+    resetDisponibilidad,
   };
 }

@@ -55,6 +55,7 @@ export const normalizeHorarioForForm = (horario, empleados = []) => {
     hora_final_completa: horario.hora_final,
     activo: horario.activo ?? true,
     estado: horario.activo ? "activo" : "inactivo",
+    estadosDisponibles: ["activo", "inactivo"], // ← agregar esta línea
     descripcion: `${empleado?.nombre || "Empleado"} - ${diaNombre} ${formatHora(horario.hora_inicio)}`
   };
 };
@@ -62,3 +63,4 @@ export const normalizeHorarioForForm = (horario, empleados = []) => {
 export const normalizeHorariosForList = (horarios = [], empleados = []) => {
   return horarios.map(h => normalizeHorarioForForm(h, empleados));
 };
+

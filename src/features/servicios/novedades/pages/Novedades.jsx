@@ -7,13 +7,13 @@ import UnifiedCrudTable from "@shared/components/crud/CrudTable";
 import Modal from "../../../../shared/components/ui/Modal";
 import Loading from "../../../../shared/components/ui/Loading";
 import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
-import { useHorarios } from "../hooks/useHorarios";
-import { useHorarioForm } from "../hooks/useHorarioForm";
-import HorarioForm from "../components/HorarioForm";
+import { useNovedades } from "../hooks/useNovedades";
+import { useNovedadForm } from "../hooks/useNovedadForm";
+import NovedadForm from "../components/NovedadForm";
 import "../../../../shared/styles/components/crud-table.css";
 import "../../../../shared/styles/components/modal.css";
 
-export default function Horarios() {
+export default function Novedades() {
   const navigate = useNavigate();
   const [notificacion, setNotificacion] = useState({
     visible: false,
@@ -29,7 +29,7 @@ export default function Horarios() {
   const closeNotification = () => setNotificacion(prev => ({ ...prev, visible: false }));
 
   const {
-    horarios,
+    novedades,
     empleados,
     loading,
     error,
@@ -38,8 +38,8 @@ export default function Horarios() {
     filterEstado,
     setFilterEstado,
     estadoFilters,
-    eliminarHorario,
-    cambiarEstado,
+    eliminarNovedad,
+    cambiarEstado, 
     recargar,
     modalForm,
     modalDelete,
@@ -49,7 +49,7 @@ export default function Horarios() {
     closeFormModal,
     openDeleteModal,
     closeDeleteModal,
-  } = useHorarios();
+  } = useNovedades();
 
   const {
     formData,
@@ -57,12 +57,11 @@ export default function Horarios() {
     submitting,
     handleChange,
     handleSubmit,
-    resetForm,
-  } = useHorarioForm({
+  } = useNovedadForm({
     mode: modalForm.mode,
     initialData: modalForm.initialData,
     onSubmitSuccess: () => {
-      showNotification("Horario guardado correctamente", "success");
+      showNotification("Novedad guardada correctamente", "success");
       closeFormModal();
       recargar();
     },
@@ -75,15 +74,15 @@ export default function Horarios() {
     if (modalForm.mode === "view") {
       closeFormModal();
     } else {
-      const formElement = document.getElementById("horario-form");
+      const formElement = document.getElementById("novedad-form");
       if (formElement) formElement.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
     }
   };
 
   const confirmDelete = async () => {
-    const result = await eliminarHorario(modalDelete.id);
+    const result = await eliminarNovedad(modalDelete.id);
     if (result.success) {
-      showNotification("Horario eliminado correctamente", "success");
+      showNotification("Novedad eliminada correctamente", "success");
       closeDeleteModal();
       recargar();
     } else {
@@ -91,37 +90,24 @@ export default function Horarios() {
     }
   };
 
-  const handleChangeStatus = async (row, nuevoEstado) => {
-    const result = await cambiarEstado(row.id, nuevoEstado);
-    if (result.success) {
-      showNotification("Estado actualizado correctamente", "success");
-    } else {
-      showNotification(result.error, "error");
-    }
-  };
-
+  // Columnas esenciales
   const columns = [
     { field: "empleado_nombre", header: "Empleado" },
-    { field: "dia_nombre", header: "Día" },
-    { field: "hora_inicio", header: "Hora Inicio" },
-    { field: "hora_final", header: "Hora Final" },
+    { field: "tipo_label", header: "Tipo" },
+    { field: "fechas_display", header: "Fechas" },
+    { field: "motivo", header: "Motivo" },
   ];
 
   const tableActions = [
-    {
-      label: "Cambiar estado",
-      type: "toggle-status",
-      onClick: (item) => handleChangeStatus(item),
-    },
     { label: "Ver Detalles", type: "view", onClick: (item) => openViewModal(item) },
     { label: "Editar", type: "edit", onClick: (item) => openEditModal(item) },
     { label: "Eliminar", type: "delete", onClick: (item) => openDeleteModal(item.id, item.descripcion) },
   ];
 
-  if (loading && horarios.length === 0) {
+  if (loading && novedades.length === 0) {
     return (
-      <CrudLayout title="Horarios" showSearch>
-        <Loading message="Cargando horarios..." />
+      <CrudLayout title="Novedades" showSearch>
+        <Loading message="Cargando novedades..." />
       </CrudLayout>
     );
   }
@@ -141,10 +127,10 @@ export default function Horarios() {
       </Box>
 
       <CrudLayout
-        title="Horarios"
+        title="Novedades"
         onAddClick={openCreateModal}
         showSearch
-        searchPlaceholder="Buscar por empleado, día, hora..."
+        searchPlaceholder="Buscar por empleado, tipo, motivo..."
         searchValue={search}
         onSearchChange={setSearch}
         searchFilters={estadoFilters}
@@ -169,19 +155,19 @@ export default function Horarios() {
 
         <UnifiedCrudTable
           columns={columns}
-          data={horarios}
+          data={novedades}
           actions={tableActions}
-          onChangeStatus={cambiarEstado}
+          onChangeStatus={cambiarEstado} 
           emptyMessage={
             search || filterEstado
-              ? "No se encontraron horarios para los filtros aplicados"
-              : "No hay horarios registrados"
+              ? "No se encontraron novedades para los filtros aplicados"
+              : "No hay novedades registradas"
           }
         />
 
-        {horarios.length === 0 && !search && !filterEstado && !loading && (
+        {novedades.length === 0 && !search && !filterEstado && !loading && (
           <Box sx={{ textAlign: 'center', marginTop: '24px' }}>
-            <Button variant="contained" onClick={openCreateModal}>Crear Primer Horario</Button>
+            <Button variant="contained" onClick={openCreateModal}>Crear Primera Novedad</Button>
           </Box>
         )}
 
@@ -189,8 +175,8 @@ export default function Horarios() {
         <Modal
           open={modalDelete.open}
           type="warning"
-          title="¿Eliminar Horario?"
-          message={`Esta acción eliminará el horario de "${modalDelete.descripcion}" y no se puede deshacer.`}
+          title="¿Eliminar Novedad?"
+          message={`Esta acción eliminará la novedad "${modalDelete.descripcion}" y no se puede deshacer.`}
           confirmText="Eliminar"
           cancelText="Cancelar"
           showCancel
@@ -209,17 +195,16 @@ export default function Horarios() {
           onConfirm={handleModalConfirm}
           onCancel={closeFormModal}
         >
-          <HorarioForm
-            id="horario-form"
+          <NovedadForm
+            id="novedad-form"
             mode={modalForm.mode}
-            initialData={modalForm.initialData}
             empleados={empleados}
             formData={formData}
             errors={errors}
             submitting={submitting}
             handleChange={handleChange}
             handleSubmit={handleSubmit}
-            resetForm={resetForm} 
+            submitError={notificacion.type === "error" && notificacion.visible ? notificacion.message : null}
           />
         </Modal>
       </CrudLayout>
