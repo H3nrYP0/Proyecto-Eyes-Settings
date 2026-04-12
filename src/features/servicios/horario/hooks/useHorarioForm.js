@@ -7,6 +7,7 @@ export function useHorarioForm({ mode = "create", initialData = null, onSubmitSu
     dia: "",
     hora_inicio: "",
     hora_final: "",
+    activo: true, // ← nuevo
   });
 
   const [errors, setErrors] = useState({});
@@ -22,6 +23,7 @@ export function useHorarioForm({ mode = "create", initialData = null, onSubmitSu
         dia: initialData.dia ?? "",
         hora_inicio: initialData.hora_inicio?.substring(0, 5) || "",
         hora_final: initialData.hora_final?.substring(0, 5) || "",
+        activo: initialData.activo !== undefined ? initialData.activo : true, // ← nuevo
       });
     }
   }, [initialData]);
@@ -30,11 +32,10 @@ export function useHorarioForm({ mode = "create", initialData = null, onSubmitSu
   // Handle change
   // ============================
   const handleChange = useCallback((e) => {
-    const { name, value } = e.target;
-
+    const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: type === "checkbox" ? checked : value,
     }));
 
     if (errors[name]) {
@@ -43,7 +44,7 @@ export function useHorarioForm({ mode = "create", initialData = null, onSubmitSu
   }, [errors]);
 
   // ============================
-  // Validaciones
+  // Validaciones (sin cambios)
   // ============================
   const validate = useCallback(() => {
     const newErrors = {};
@@ -77,7 +78,7 @@ export function useHorarioForm({ mode = "create", initialData = null, onSubmitSu
   }, [formData]);
 
   // ============================
-  // Submit
+  // Submit (incluye activo en payload)
   // ============================
   const handleSubmit = useCallback(async () => {
     if (!validate()) return;
@@ -85,9 +86,11 @@ export function useHorarioForm({ mode = "create", initialData = null, onSubmitSu
     setSubmitting(true);
     try {
       const payload = {
-        ...formData,
         empleado_id: Number(formData.empleado_id),
         dia: Number(formData.dia),
+        hora_inicio: formData.hora_inicio,
+        hora_final: formData.hora_final,
+        activo: formData.activo, // ← enviar activo
       };
 
       let result;
@@ -114,7 +117,7 @@ export function useHorarioForm({ mode = "create", initialData = null, onSubmitSu
   }, [formData, mode, initialData, validate, onSubmitSuccess, onError]);
 
   // ============================
-  // Reset form
+  // Reset form (incluye activo)
   // ============================
   const resetForm = useCallback(() => {
     setFormData({
@@ -122,6 +125,7 @@ export function useHorarioForm({ mode = "create", initialData = null, onSubmitSu
       dia: "",
       hora_inicio: "",
       hora_final: "",
+      activo: true,
     });
     setErrors({});
   }, []);

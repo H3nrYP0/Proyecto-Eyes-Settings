@@ -74,6 +74,7 @@ import { Outlet } from 'react-router-dom';
 import { Horarios } from "../../../features/servicios/horario";
 import { AgendaDataProvider } from '../../../features/servicios/agenda/context/AgendaDataContext';
 import { Agenda } from "../../../features/servicios/agenda";
+import { Novedades } from "../../../features/servicios/novedades";
 
 import CampanasSalud from "../../../features/servicios/campanaSalud/CampanasSalud";
 import CrearCampanaSalud from "../../../features/servicios/campanaSalud/CrearCampanaSalud";
@@ -216,7 +217,9 @@ export default function OpticaDashboardLayout({ user, setUser }) {
                 <Route path="crear" element={<CrearCita />} />
                 <Route path="editar/:id" element={<EditarCita />} />
                 <Route path="detalle/:id" element={<DetalleCita />} />
+                <Route path="novedades" element={<Novedades />} />
               </Route>
+              
             </Route>
 
             <Route path="empleados" element={<Empleados />} />

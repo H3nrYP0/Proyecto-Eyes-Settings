@@ -137,6 +137,9 @@ export default function Agenda() {
             >
               Ver Horarios
             </button>
+            <button className="agenda-btn" style={{ marginTop: '8px' }} onClick={() => navigate('/admin/servicios/citas/novedades')}>
+              Ver Novedades
+            </button>
           </aside>
         </div>
       </CrudLayout>
