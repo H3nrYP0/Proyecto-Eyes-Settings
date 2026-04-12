@@ -84,8 +84,18 @@ export default function CitaForm({
       <BaseFormLayout title={title}>
         <BaseFormSection title="Información de la Cita">
           <Box sx={{ minHeight: 70, mb: 2 }}>
-            <CrudNotification message={successNotification.message} type="success" isVisible={successNotification.visible} onClose={closeSuccessNotification} />
-            <CrudNotification message={errorNotification.message} type="error" isVisible={errorNotification.visible} onClose={closeErrorNotification} />
+            <CrudNotification 
+              message={successNotification.message} 
+              type="success" 
+              isVisible={successNotification.visible} 
+              onClose={closeSuccessNotification} 
+            />
+            <CrudNotification 
+              message={errorNotification.message} 
+              type="error" 
+              isVisible={errorNotification.visible} 
+              onClose={closeErrorNotification} 
+            />
           </Box>
 
           {/* Mostrar error de disponibilidad si existe */}
@@ -109,8 +119,16 @@ export default function CitaForm({
               value={formData.cliente_id}
               onChange={handleChange}
               disabled={isDisabled}
-              options={[{ value: "", label: "-- Seleccione --" }, ...getClientesActivos().map(c => ({ value: c.id, label: `${c.nombre} ${c.apellido || ""}` }))]}
-              required error={!!errors.cliente_id} helperText={errors.cliente_id}
+              options={[
+                { value: "", label: "-- Seleccione --" }, 
+                ...getClientesActivos().map(c => ({ 
+                  value: c.id, 
+                  label: `${c.nombre} ${c.apellido || ""}` 
+                }))
+              ]}
+              required 
+              error={!!errors.cliente_id} 
+              helperText={errors.cliente_id}
             />
           </BaseFormField>
 
@@ -123,8 +141,16 @@ export default function CitaForm({
               value={formData.servicio_id}
               onChange={handleChange}
               disabled={isDisabled}
-              options={[{ value: "", label: "-- Seleccione --" }, ...getServiciosActivos().map(s => ({ value: s.id, label: `${s.nombre}` }))]}
-              required error={!!errors.servicio_id} helperText={errors.servicio_id}
+              options={[
+                { value: "", label: "-- Seleccione --" }, 
+                ...getServiciosActivos().map(s => ({ 
+                  value: s.id, 
+                  label: `${s.nombre}` 
+                }))
+              ]}
+              required 
+              error={!!errors.servicio_id} 
+              helperText={errors.servicio_id}
             />
           </BaseFormField>
 
@@ -137,8 +163,16 @@ export default function CitaForm({
               value={formData.empleado_id}
               onChange={handleChange}
               disabled={isDisabled}
-              options={[{ value: "", label: "-- Seleccione --" }, ...getEmpleadosActivos().map(e => ({ value: e.id, label: e.nombre }))]}
-              required error={!!errors.empleado_id} helperText={errors.empleado_id}
+              options={[
+                { value: "", label: "-- Seleccione --" }, 
+                ...getEmpleadosActivos().map(e => ({ 
+                  value: e.id, 
+                  label: e.nombre 
+                }))
+              ]}
+              required 
+              error={!!errors.empleado_id} 
+              helperText={errors.empleado_id}
             />
           </BaseFormField>
 
@@ -152,8 +186,16 @@ export default function CitaForm({
                 value={formData.estado_cita_id}
                 onChange={handleChange}
                 disabled={isDisabled}
-                options={[{ value: "", label: "-- Seleccione --" }, ...estadosCita.map(e => ({ value: e.id, label: e.nombre }))]}
-                required error={!!errors.estado_cita_id} helperText={errors.estado_cita_id}
+                options={[
+                  { value: "", label: "-- Seleccione --" }, 
+                  ...estadosCita.map(e => ({ 
+                    value: e.id, 
+                    label: e.nombre 
+                  }))
+                ]}
+                required 
+                error={!!errors.estado_cita_id} 
+                helperText={errors.estado_cita_id}
               />
             </BaseFormField>
           )}
@@ -168,7 +210,9 @@ export default function CitaForm({
               onChange={handleChange}
               disabled={isDisabled}
               options={metodoPagoOptions}
-              required error={!!errors.metodo_pago} helperText={errors.metodo_pago}
+              required 
+              error={!!errors.metodo_pago} 
+              helperText={errors.metodo_pago}
             />
           </BaseFormField>
 
@@ -195,11 +239,13 @@ export default function CitaForm({
               disabled={true}
             />
             <FormHelperText>
-              {servicioSeleccionado ? "Precio del servicio seleccionado" : "El precio se obtiene del servicio"}
+              {servicioSeleccionado 
+                ? "Precio del servicio seleccionado" 
+                : "El precio se obtiene del servicio"}
             </FormHelperText>
           </BaseFormField>
 
-          {/* Fecha */}
+          {/* Fecha - Con tooltip personalizado para fechas bloqueadas */}
           <BaseFormField>
             <DatePicker
               label="Fecha"
@@ -207,7 +253,17 @@ export default function CitaForm({
               onChange={handleDateChange}
               disabled={isDisabled}
               shouldDisableDate={shouldDisableDate}
-              slotProps={{ textField: { fullWidth: true, size: "small", error: !!errors.fecha, required: true } }}
+              slotProps={{
+                textField: { 
+                  fullWidth: true, 
+                  size: "small", 
+                  error: !!errors.fecha, 
+                  required: true 
+                },
+                day: (ownerState) => ({
+                  title: ownerState.disabled ? "Fecha bloqueada por novedad del empleado" : ""
+                })
+              }}
             />
             <FormHelperText error>{errors.fecha || " "}</FormHelperText>
           </BaseFormField>
@@ -222,10 +278,21 @@ export default function CitaForm({
               shouldDisableTime={shouldDisableTime}
               ampm={true}
               ampmInClock={true}
-              slotProps={{ textField: { fullWidth: true, size: "small", error: !!errors.hora || horaInvalida, required: true } }}
+              slotProps={{ 
+                textField: { 
+                  fullWidth: true, 
+                  size: "small", 
+                  error: !!errors.hora || horaInvalida, 
+                  required: true 
+                } 
+              }}
             />
             <FormHelperText error>
-              {errors.hora || getHoraErrorMessage() || (!formData.fecha && "Primero seleccione una fecha") || (!formData.servicio_id && "Primero seleccione un servicio") || " "}
+              {errors.hora || 
+               getHoraErrorMessage() || 
+               (!formData.fecha && "Primero seleccione una fecha") || 
+               (!formData.servicio_id && "Primero seleccione un servicio") || 
+               " "}
             </FormHelperText>
           </BaseFormField>
         </BaseFormSection>
@@ -239,7 +306,16 @@ export default function CitaForm({
           onEdit={onEdit}
           showSave={mode !== "view"}
           showEdit={mode === "view"}
-          saveDisabled={submitting || verificando || (disponibilidad && !disponibilidad.disponible) || horaInvalida || !formData.hora || !formData.fecha || !formData.empleado_id || !formData.servicio_id}
+          saveDisabled={
+            submitting || 
+            verificando || 
+            (disponibilidad && !disponibilidad.disponible) || 
+            horaInvalida || 
+            !formData.hora || 
+            !formData.fecha || 
+            !formData.empleado_id || 
+            !formData.servicio_id
+          }
           saveLabel={submitting ? "Guardando..." : "Guardar"}
         />
       </BaseFormLayout>

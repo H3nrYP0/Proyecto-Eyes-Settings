@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { createCita, updateCita } from "../services/citasService";
 import { useDisponibilidad } from "./useDisponibilidad";
 import { useHorariosEmpleado } from "./useHorariosEmpleado";
+import { useNovedadesEmpleado } from "./useNovedadesEmpleado";
 import {
   validateFecha,
   validateDuracion,
@@ -41,6 +42,9 @@ export function useCitaForm({
 
   // Horarios del empleado seleccionado
   const { horarios: horariosEmpleado } = useHorariosEmpleado(formData.empleado_id);
+
+  // Novedades del empleado seleccionado (para bloquear fechas)
+  const { isFechaBloqueada } = useNovedadesEmpleado(formData.empleado_id);
 
   // Días activos para mostrar en chips
   const diasActivos = horariosEmpleado
@@ -271,24 +275,32 @@ export function useCitaForm({
     return false;
   }, [formData.fecha, formData.empleado_id, duracionActual, getHorarioDelDia, isView]);
 
-  // Deshabilitar fechas
+  // Deshabilitar fechas (integrando novedades del empleado)
   const shouldDisableDate = useCallback((date) => {
     if (isView) return false;
+    
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
     const fechaComparar = new Date(date);
     fechaComparar.setHours(0, 0, 0, 0);
     
+    // Fechas pasadas
     if (fechaComparar < hoy) return true;
     
+    // Si no hay empleado seleccionado, no deshabilitar por horarios ni novedades
     if (!formData.empleado_id) return false;
+    
+    // Verificar si la fecha está bloqueada por novedad (vacaciones, incapacidad, etc.)
+    if (isFechaBloqueada(date)) return true;
+    
+    // Verificar horarios laborales (días activos)
     if (!diasActivos || diasActivos.length === 0) return false;
     
     const backendDay = getBackendDay(date);
     const diaActivo = diasActivos.find(d => d.dia === backendDay);
     
     return !diaActivo;
-  }, [formData.empleado_id, diasActivos, isView]);
+  }, [formData.empleado_id, diasActivos, isView, isFechaBloqueada]);
 
   // Filtros
   const getClientesActivos = useCallback(() => {
@@ -392,14 +404,19 @@ export function useCitaForm({
     if (!fechaValidation.isValid) {
       newErrors.fecha = fechaValidation.message;
     } else if (formData.fecha) {
-      const backendDay = getBackendDay(formData.fecha);
-      const horariosActivos = horariosEmpleado.filter(h => h.activo === true);
-      const tieneHorario = horariosActivos.some(h => h.dia === backendDay);
-      if (!tieneHorario && horariosActivos.length > 0) {
-        const diasDisponibles = horariosActivos.map(h => diasSemanaMap[h.dia]).join(", ");
-        newErrors.fecha = `El empleado no trabaja este día. Días disponibles: ${diasDisponibles}`;
-      } else if (horariosActivos.length === 0) {
-        newErrors.fecha = "El empleado no tiene horarios configurados o están inactivos.";
+      // Verificar si la fecha está bloqueada por novedad
+      if (isFechaBloqueada(formData.fecha)) {
+        newErrors.fecha = "El empleado no está disponible en esta fecha (vacaciones, incapacidad, etc.)";
+      } else {
+        const backendDay = getBackendDay(formData.fecha);
+        const horariosActivos = horariosEmpleado.filter(h => h.activo === true);
+        const tieneHorario = horariosActivos.some(h => h.dia === backendDay);
+        if (!tieneHorario && horariosActivos.length > 0) {
+          const diasDisponibles = horariosActivos.map(h => diasSemanaMap[h.dia]).join(", ");
+          newErrors.fecha = `El empleado no trabaja este día. Días disponibles: ${diasDisponibles}`;
+        } else if (horariosActivos.length === 0) {
+          newErrors.fecha = "El empleado no tiene horarios configurados o están inactivos.";
+        }
       }
     }
 
@@ -415,7 +432,7 @@ export function useCitaForm({
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [formData, isView, disponibilidad, errorDisponibilidad, horariosEmpleado]);
+  }, [formData, isView, disponibilidad, errorDisponibilidad, horariosEmpleado, isFechaBloqueada]);
 
   // Submit
   const handleSubmit = useCallback(async () => {
@@ -497,7 +514,6 @@ export function useCitaForm({
     resetForm,
     setFormData,
     getHorarioDelDia,
-    // Nuevas exportaciones
     duracionActual,
     getClientesActivos,
     getServiciosActivos,
