@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAgendaData } from '../context/AgendaDataContext';
-import { getHorariosAgenda, getCitasAgenda } from '../services/agendaService';
-import { mapearHorariosEventos, mapearCitasEventos } from '../utils/agendaUtils';
+import { getHorariosAgenda, getCitasAgenda, getNovedadesAgenda } from '../services/agendaService';
+import { mapearHorariosEventos, mapearCitasEventos, mapearNovedadesEventos } from '../utils/agendaUtils';
 
 export function useAgenda() {
   const { empleados, estadosCita, loading: dataLoading } = useAgendaData();
@@ -16,12 +16,12 @@ export function useAgenda() {
       setLoading(true);
       setError(null);
       
-      const [horariosRes, citasRes] = await Promise.allSettled([
+      const [horariosRes, citasRes, novedadesRes] = await Promise.allSettled([
         getHorariosAgenda(),
         getCitasAgenda(),
+        getNovedadesAgenda(),
       ]);
 
-      // Extraer arrays (citasRes.value ya es el array gracias a la modificación)
       const horarios = horariosRes.status === 'fulfilled' && Array.isArray(horariosRes.value) 
         ? horariosRes.value 
         : [];
@@ -30,9 +30,14 @@ export function useAgenda() {
         ? citasRes.value 
         : [];
 
+      const novedades = novedadesRes.status === 'fulfilled' && Array.isArray(novedadesRes.value)
+        ? novedadesRes.value
+        : [];
+
       const errores = [];
       if (horariosRes.status === 'rejected') errores.push('horarios');
       if (citasRes.status === 'rejected') errores.push('citas');
+      if (novedadesRes.status === 'rejected') errores.push('novedades');
 
       if (errores.length) {
         setErrorModal({
@@ -43,8 +48,9 @@ export function useAgenda() {
 
       const horariosEventos = mapearHorariosEventos(horarios, empleados);
       const citasEventos = mapearCitasEventos(citas, empleados, estadosCita);
+      const novedadesEventos = mapearNovedadesEventos(novedades, empleados);
       
-      setEvents([...horariosEventos, ...citasEventos]);
+      setEvents([...horariosEventos, ...citasEventos, ...novedadesEventos]);
     } catch (err) {
       console.error(err);
       setError('Error al cargar la agenda');

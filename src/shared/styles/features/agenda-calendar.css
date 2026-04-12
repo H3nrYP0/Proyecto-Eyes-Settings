@@ -167,3 +167,7 @@
 .fc-toolbar-title {
   text-transform: capitalize;
 }
+
+.legend-color.novedad {
+  background: #fffb00;
+}

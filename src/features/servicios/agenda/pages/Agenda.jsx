@@ -108,6 +108,14 @@ export default function Agenda() {
                 <span>Disponibilidad</span>
               </div>
             </div>
+
+            <div className="legend-section">
+            <div className="legend-subtitle">Novedades</div>
+            <div className="legend-item">
+              <span className="legend-color novedad"></span>
+              <span>Vacaciones / Incapacidades</span>
+            </div>
+          </div>
             
             <div className="legend-section">
               <div className="legend-subtitle">Citas</div>
