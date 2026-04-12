@@ -1,7 +1,6 @@
-// src/features/compras/pages/productos/components/StockCell.jsx
 import { Chip, Box, Tooltip } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import "../styles/Productos.css";
+import { ImageGallery } from "./ImageGallery";
 
 const getStatusColor = (statusType) => {
   switch (statusType) {
@@ -56,7 +55,7 @@ const getStatusMessage = (status, stockActual, stockMinimo) => {
 };
 
 export default function StockCell({ item }) {
-  const { stockActual, stockMinimo } = item;
+  const { stockActual, stockMinimo, imagenes = [] } = item;
   const { status, label } = getStockStatus(stockActual, stockMinimo);
   const message = getStatusMessage(status, stockActual, stockMinimo);
   const colors = getStatusColor(status);
@@ -68,7 +67,7 @@ export default function StockCell({ item }) {
           {stockActual}
         </StockNumber>
       </Tooltip>
-      
+
       {status !== 'optimal' && (
         <Chip
           label={label}
@@ -79,13 +78,12 @@ export default function StockCell({ item }) {
             fontWeight: 500,
             fontSize: '0.7rem',
             height: '22px',
-            '& .MuiChip-label': {
-              px: 1,
-              py: 0.5,
-            },
+            '& .MuiChip-label': { px: 1, py: 0.5 },
           }}
         />
       )}
+
+      <ImageGallery images={imagenes} size="small" />
     </Box>
   );
 }

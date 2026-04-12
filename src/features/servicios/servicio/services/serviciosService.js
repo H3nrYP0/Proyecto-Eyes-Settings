@@ -37,13 +37,7 @@ export const ServicioData = {
 
   async updateServicio(id, data) {
     try {
-      const response = await axios.put(`/servicios/${id}`, {
-        nombre: data.nombre,
-        descripcion: data.descripcion || '',
-        duracion_min: data.duracion_min,
-        precio: data.precio,
-        estado: data.estado
-      });
+      const response = await axios.put(`/servicios/${id}`, data);
       return response.data;
     } catch (error) {
       throw error;
@@ -53,21 +47,26 @@ export const ServicioData = {
   async deleteServicio(id) {
     try {
       await axios.delete(`/servicios/${id}`);
-    return true;
-  } catch (error) {
-    if (error.response) {
-      const errorMessage = error.response.data?.error || "Error al eliminar el servicio";
-      const enhancedError = new Error(errorMessage);
-      enhancedError.response = error.response;
-      throw enhancedError;
+      return true;
+    } catch (error) {
+      if (error.response) {
+        const errorMessage = error.response.data?.error || "Error al eliminar el servicio";
+        const enhancedError = new Error(errorMessage);
+        enhancedError.response = error.response;
+        throw enhancedError;
+      }
+      throw error;
     }
-    throw error;
-  }
-},
+  },
 
   async toggleServicioEstado(id, nuevoEstado) {
     try {
+      const servicioActual = await this.getServicioById(id);
       const response = await axios.put(`/servicios/${id}`, {
+        nombre: servicioActual.nombre,
+        duracion_min: servicioActual.duracion_min,
+        precio: servicioActual.precio,
+        descripcion: servicioActual.descripcion || '',
         estado: nuevoEstado
       });
       return response.data;
@@ -87,6 +86,36 @@ export const ServicioData = {
       );
     } catch (error) {
       throw error;
+    }
+  },
+
+  /**
+   * Obtiene todos los estados de cita disponibles
+   * @returns {Promise<Array>} Lista de estados de cita
+   */
+  async getEstadosCita() {
+    try {
+      const response = await axios.get('/estado-cita');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Obtiene los IDs de los estados de cita que bloquean la desactivación de servicios
+   * @returns {Promise<Array<number>>} Lista de IDs de estados bloqueantes
+   */
+  async getEstadosQueBloquean() {
+    try {
+      const estados = await this.getEstadosCita();
+      const estadosBloqueantes = estados.filter(
+        estado => estado.nombre.toLowerCase() === 'pendiente' || 
+                  estado.nombre.toLowerCase() === 'confirmada'
+      );
+      return estadosBloqueantes.map(estado => estado.id);
+    } catch (error) {
+      return [1, 2];
     }
   },
 

@@ -76,7 +76,22 @@ export const useProductos = () => {
         };
       });
 
-      const productosOrdenados = ordenarProductos(productosConNombres);
+      // Cargar imágenes para cada producto
+      const productosConImagenes = await Promise.all(
+        productosConNombres.map(async (producto) => {
+          try {
+            const productoDetalle = await ProductoData.getProductoById(producto.id);
+            return {
+              ...producto,
+              imagenes: productoDetalle.imagenes || [],
+            };
+          } catch {
+            return { ...producto, imagenes: [] };
+          }
+        })
+      );
+
+      const productosOrdenados = ordenarProductos(productosConImagenes);
 
       setProductos(productosOrdenados);
       setMarcas(marcasData.filter(m => m.estado === true));
@@ -121,7 +136,22 @@ export const useProductos = () => {
         };
       });
 
-      const productosOrdenados = ordenarProductos(productosConNombres);
+      // Cargar imágenes para cada producto
+      const productosConImagenes = await Promise.all(
+        productosConNombres.map(async (producto) => {
+          try {
+            const productoDetalle = await ProductoData.getProductoById(producto.id);
+            return {
+              ...producto,
+              imagenes: productoDetalle.imagenes || [],
+            };
+          } catch {
+            return { ...producto, imagenes: [] };
+          }
+        })
+      );
+
+      const productosOrdenados = ordenarProductos(productosConImagenes);
 
       setProductos(productosOrdenados);
       setMarcas(marcasData.filter(m => m.estado === true));

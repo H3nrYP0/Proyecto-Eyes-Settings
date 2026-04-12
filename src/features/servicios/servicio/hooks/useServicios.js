@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { ServicioData } from '../services/serviciosService';
 import { formatCOP } from '../../../../shared/utils/formatCOP';
+import axios from '../../../../lib/axios';
 
 export const useServicios = () => {
   const [servicios, setServicios] = useState([]);
@@ -9,61 +10,55 @@ export const useServicios = () => {
   const [filterEstado, setFilterEstado] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const [notification, setNotification] = useState({
     isVisible: false,
     message: "",
     type: "success"
   });
-
-  const submitButtonRef = useRef(null);
-
   const [modalForm, setModalForm] = useState({
     open: false,
     mode: "create",
     title: "",
     initialData: null,
   });
-
   const [modalDelete, setModalDelete] = useState({
     open: false,
     id: null,
     nombre: "",
   });
 
+  const submitButtonRef = useRef(null);
+
   const showNotification = useCallback((message, type = "success") => {
-    setNotification({
-      isVisible: true,
-      message,
-      type
-    });
+    setNotification({ isVisible: true, message, type });
   }, []);
 
   const handleCloseNotification = useCallback(() => {
-    setNotification(prev => ({
-      ...prev,
-      isVisible: false
-    }));
+    setNotification(prev => ({ ...prev, isVisible: false }));
   }, []);
 
   useEffect(() => {
     if (notification.isVisible) {
-      const timer = setTimeout(() => {
-        handleCloseNotification();
-      }, 5000);
+      const timer = setTimeout(() => handleCloseNotification(), 5000);
       return () => clearTimeout(timer);
     }
   }, [notification.isVisible, handleCloseNotification]);
 
-  const limpiarAriaHidden = useCallback(() => {
+  const cleanupModalState = useCallback(() => {
     setTimeout(() => {
       const root = document.getElementById('root');
-      if (root && root.hasAttribute('aria-hidden')) {
+      if (root?.hasAttribute('aria-hidden')) {
         root.removeAttribute('aria-hidden');
       }
       document.body.style.pointerEvents = 'auto';
     }, 300);
   }, []);
+
+  const sortServicios = (serviciosArray) => {
+    return [...serviciosArray].sort((a, b) => 
+      a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' })
+    );
+  };
 
   const loadServicios = useCallback(async () => {
     try {
@@ -77,9 +72,9 @@ export const useServicios = () => {
         precio: servicio.precio,
         estado: servicio.estado ? 'activo' : 'inactivo'
       }));
-      setServicios(serviciosTransformados);
+      setServicios(sortServicios(serviciosTransformados));
       setError(null);
-    } catch (err) {
+    } catch {
       setError("No se pudieron cargar los servicios");
       showNotification("Error al cargar los servicios", "error");
     } finally {
@@ -99,7 +94,7 @@ export const useServicios = () => {
       handleCloseForm();
       await loadServicios();
     } catch (error) {
-      showNotification("Error al guardar el servicio", "error");
+      showNotification(error.response?.data?.error || "Error al guardar el servicio", "error");
     }
   }, [modalForm.mode, modalForm.initialData, showNotification, loadServicios]);
 
@@ -113,89 +108,84 @@ export const useServicios = () => {
       await loadServicios();
       showNotification(`Servicio "${modalDelete.nombre}" eliminado exitosamente`, "success");
       setModalDelete({ open: false, id: null, nombre: "" });
-      limpiarAriaHidden();
+      cleanupModalState();
     } catch (err) {
-        let errorMessage = "Error al eliminar el servicio";
-
-        if (err.response && err.response.status === 500) {
-      errorMessage = "Este servicio tiene citas registradas y no puede eliminarse. Para eliminarlo, primero debe eliminar o reasignar las citas asociadas.";
-    } else if (err.message) {
-      errorMessage = err.message;
+      let errorMessage = "Error al eliminar el servicio";
+      if (err.response?.status === 500) {
+        errorMessage = "Este servicio tiene citas registradas y no puede eliminarse. Desactívelo en su lugar.";
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      showNotification(errorMessage, "warning");
+      setModalDelete({ open: false, id: null, nombre: "" });
+      cleanupModalState();
     }
-    
-    showNotification(errorMessage, "warning");
-    setModalDelete({ open: false, id: null, nombre: "" });
-    limpiarAriaHidden();
-  }
-  }, [modalDelete.id, modalDelete.nombre, showNotification, loadServicios, limpiarAriaHidden]);
+  }, [modalDelete.id, modalDelete.nombre, showNotification, loadServicios, cleanupModalState]);
 
-  const handleStatusChange = useCallback(async (row, newStatus) => {
+  const handleStatusChange = useCallback(async (row) => {
     try {
-      const estadoFinal = newStatus !== undefined 
-        ? newStatus 
-        : (row.estado === "activo" ? "inactivo" : "activo");
-
-      await ServicioData.toggleServicioEstado(
-        row.id,
-        estadoFinal === "activo"
-      );
-
+      const shouldActivate = row.estado !== "activo";
+      
+      if (!shouldActivate) {
+        const estadosQueBloquean = await ServicioData.getEstadosQueBloquean();
+        const citasResponse = await axios.get('/citas');
+        
+        const citasQueBloquean = citasResponse.data.filter(cita => 
+          cita.servicio_id === row.id && estadosQueBloquean.includes(cita.estado_cita_id)
+        );
+        
+        if (citasQueBloquean.length > 0) {
+          const estadosUnicos = [...new Set(citasQueBloquean.map(c => c.estado_nombre))];
+          showNotification(
+            `No se puede desactivar "${row.nombre}" porque tiene ${citasQueBloquean.length} cita(s) en estado: ${estadosUnicos.join(' y ')}.`,
+            "error"
+          );
+          return;
+        }
+      }
+      
+      await ServicioData.updateServicio(row.id, {
+        nombre: row.nombre,
+        duracion_min: row.duracion_min,
+        precio: row.precio,
+        descripcion: row.descripcion || '',
+        estado: shouldActivate
+      });
+      
       await loadServicios();
-      
-      const mensaje = estadoFinal === "activo" 
-        ? `Servicio "${row.nombre}" activado exitosamente`
-        : `Servicio "${row.nombre}" desactivado exitosamente`;
-      
-      showNotification(mensaje, "success");
+      showNotification(
+        `Servicio "${row.nombre}" ${shouldActivate ? 'activado' : 'desactivado'} exitosamente`,
+        "success"
+      );
     } catch (err) {
-      showNotification("Error al cambiar el estado del servicio", "error");
+      showNotification(err.response?.data?.error || "Error al cambiar el estado", "error");
     }
   }, [showNotification, loadServicios]);
 
   const handleOpenCreate = useCallback(() => {
-    setModalForm({ 
-      open: true, 
-      mode: "create", 
-      title: "Crear Nuevo Servicio", 
-      initialData: null 
-    });
-    limpiarAriaHidden();
-  }, [limpiarAriaHidden]);
+    setModalForm({ open: true, mode: "create", title: "Crear Nuevo Servicio", initialData: null });
+    cleanupModalState();
+  }, [cleanupModalState]);
 
   const handleOpenEdit = useCallback((item) => {
-    setModalForm({ 
-      open: true, 
-      mode: "edit", 
-      title: `Editar Servicio: ${item.nombre}`, 
-      initialData: item 
-    });
-    limpiarAriaHidden();
-  }, [limpiarAriaHidden]);
+    setModalForm({ open: true, mode: "edit", title: `Editar Servicio: ${item.nombre}`, initialData: item });
+    cleanupModalState();
+  }, [cleanupModalState]);
 
   const handleOpenView = useCallback((item) => {
-    setModalForm({ 
-      open: true, 
-      mode: "view", 
-      title: `Detalle de Servicio: ${item.nombre}`, 
-      initialData: item 
-    });
-    limpiarAriaHidden();
-  }, [limpiarAriaHidden]);
+    setModalForm({ open: true, mode: "view", title: `Detalle de Servicio: ${item.nombre}`, initialData: item });
+    cleanupModalState();
+  }, [cleanupModalState]);
 
   const handleCloseForm = useCallback(() => {
-    setModalForm({ 
-      open: false, 
-      mode: "create", 
-      title: "", 
-      initialData: null 
-    });
-    limpiarAriaHidden();
-  }, [limpiarAriaHidden]);
+    setModalForm({ open: false, mode: "create", title: "", initialData: null });
+    cleanupModalState();
+  }, [cleanupModalState]);
 
   const handleCancelDelete = useCallback(() => {
     setModalDelete({ open: false, id: null, nombre: "" });
-    limpiarAriaHidden();
-  }, [limpiarAriaHidden]);
+    cleanupModalState();
+  }, [cleanupModalState]);
 
   const filteredServicios = useMemo(() => {
     return servicios.filter((servicio) => {
@@ -207,18 +197,14 @@ export const useServicios = () => {
   }, [servicios, search, filterEstado]);
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
+    const timer = setTimeout(() => {
       const root = document.getElementById('root');
-      if (root && root.hasAttribute('aria-hidden')) {
-        const modalExists = document.querySelector('.MuiModal-root');
-        if (!modalExists) {
-          root.removeAttribute('aria-hidden');
-          document.body.style.pointerEvents = 'auto';
-        }
+      if (root?.hasAttribute('aria-hidden') && !document.querySelector('.MuiModal-root')) {
+        root.removeAttribute('aria-hidden');
+        document.body.style.pointerEvents = 'auto';
       }
     }, 400);
-
-    return () => clearTimeout(timeoutId);
+    return () => clearTimeout(timer);
   }, [servicios]);
 
   useEffect(() => {
@@ -233,40 +219,25 @@ export const useServicios = () => {
 
   const columns = [
     { field: "nombre", header: "Nombre" },
-    { 
-      field: "duracion_min", 
-      header: "Duración",
-      render: (row) => `${row.duracion_min} min`
-    },
-    { 
-      field: "precio", 
-      header: "Precio",
-      render: (row) => formatCOP(row.precio)
-    }
+    { field: "duracion_min", header: "Duración", render: (row) => `${row.duracion_min} min` },
+    { field: "precio", header: "Precio", render: (row) => formatCOP(row.precio) }
   ];
 
   const tableActions = [
-    {
-      label: "Cambiar estado",
-      type: "toggle-status",
-      onClick: (item) => handleStatusChange(item, undefined),
-    },
-    {
-      label: "Ver Detalles",
-      type: "view",
-      onClick: (item) => handleOpenView(item)
-    },
-    {
-      label: "Editar",
-      type: "edit",
-      onClick: (item) => handleOpenEdit(item)
-    },
-    {
-      label: "Eliminar",
-      type: "delete",
-      onClick: (item) => handleDelete(item.id, item.nombre)
-    },
+    { label: "Cambiar estado", type: "toggle-status", onClick: (item) => handleStatusChange(item) },
+    { label: "Ver Detalles", type: "view", onClick: (item) => handleOpenView(item) },
+    { label: "Editar", type: "edit", onClick: (item) => handleOpenEdit(item) },
+    { label: "Eliminar", type: "delete", onClick: (item) => handleDelete(item.id, item.nombre) },
   ];
+
+  const handleModalConfirm = useCallback(() => {
+    if (modalForm.mode === "view") {
+      handleCloseForm();
+    } else {
+      const formElement = document.getElementById("servicio-form");
+      formElement?.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+    }
+  }, [modalForm.mode, handleCloseForm]);
 
   return {
     servicios: filteredServicios,
@@ -290,15 +261,6 @@ export const useServicios = () => {
     searchFilters,
     columns,
     tableActions,
-    handleModalConfirm: () => {
-      if (modalForm.mode === "view") {
-        handleCloseForm();
-      } else {
-        const formElement = document.getElementById("servicio-form");
-        if (formElement) {
-          formElement.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
-        }
-      }
-    }
+    handleModalConfirm
   };
 };

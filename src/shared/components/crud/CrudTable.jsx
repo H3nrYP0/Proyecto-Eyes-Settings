@@ -106,6 +106,8 @@ export default function UnifiedCrudTable({
       case "inactiva":
       case "anulada":
       case "rechazado":
+        case "cancelado":
+          case "cancelada":
         return "error";
       case "pendiente":
         return "warning";
