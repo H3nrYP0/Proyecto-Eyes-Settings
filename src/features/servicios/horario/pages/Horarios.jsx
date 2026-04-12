@@ -1,10 +1,12 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Button } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CrudLayout from "../../../../shared/components/crud/CrudLayout";
-import CrudTable from "../../../../shared/components/crud/CrudTable";
+import UnifiedCrudTable from "@shared/components/crud/CrudTable";
 import Modal from "../../../../shared/components/ui/Modal";
 import Loading from "../../../../shared/components/ui/Loading";
+import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
 import { useHorarios } from "../hooks/useHorarios";
 import { useHorarioForm } from "../hooks/useHorarioForm";
 import HorarioForm from "../components/HorarioForm";
@@ -13,7 +15,19 @@ import "../../../../shared/styles/components/modal.css";
 
 export default function Horarios() {
   const navigate = useNavigate();
-  
+  const [notificacion, setNotificacion] = useState({
+    visible: false,
+    message: "",
+    type: "success",
+  });
+
+  const showNotification = (message, type = "success") => {
+    setNotificacion({ visible: true, message, type });
+    setTimeout(() => setNotificacion(prev => ({ ...prev, visible: false })), 5000);
+  };
+
+  const closeNotification = () => setNotificacion(prev => ({ ...prev, visible: false }));
+
   const {
     horarios,
     empleados,
@@ -37,9 +51,6 @@ export default function Horarios() {
     closeDeleteModal,
   } = useHorarios();
 
-  // ============================
-  // Configurar formulario
-  // ============================
   const {
     formData,
     errors,
@@ -51,55 +62,44 @@ export default function Horarios() {
     mode: modalForm.mode,
     initialData: modalForm.initialData,
     onSubmitSuccess: () => {
+      showNotification("Horario guardado correctamente", "success");
       closeFormModal();
       recargar();
     },
-    onError: (error) => {
-      alert(error);
+    onError: (errorMsg) => {
+      showNotification(errorMsg, "error");
     },
   });
-
-  // ============================
-  // Handlers
-  // ============================
-  const handleFormSubmit = async () => {
-    const result = await handleSubmit();
-    if (result.success) {
-      closeFormModal();
-      recargar();
-    }
-  };
 
   const handleModalConfirm = () => {
     if (modalForm.mode === "view") {
       closeFormModal();
     } else {
       const formElement = document.getElementById("horario-form");
-      if (formElement) {
-        formElement.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
-      }
+      if (formElement) formElement.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
     }
   };
 
   const confirmDelete = async () => {
     const result = await eliminarHorario(modalDelete.id);
     if (result.success) {
+      showNotification("Horario eliminado correctamente", "success");
       closeDeleteModal();
+      recargar();
     } else {
-      alert(result.error);
+      showNotification(result.error, "error");
     }
   };
 
   const handleChangeStatus = async (row, nuevoEstado) => {
     const result = await cambiarEstado(row.id, nuevoEstado);
-    if (!result.success) {
-      alert(result.error);
+    if (result.success) {
+      showNotification("Estado actualizado correctamente", "success");
+    } else {
+      showNotification(result.error, "error");
     }
   };
 
-  // ============================
-  // Columnas y acciones
-  // ============================
   const columns = [
     { field: "empleado_nombre", header: "Empleado" },
     { field: "dia_nombre", header: "Día" },
@@ -113,26 +113,11 @@ export default function Horarios() {
       type: "toggle-status",
       onClick: (item) => handleChangeStatus(item),
     },
-    {
-      label: "Ver Detalles",
-      type: "view",
-      onClick: (item) => openViewModal(item),
-    },
-    {
-      label: "Editar",
-      type: "edit",
-      onClick: (item) => openEditModal(item),
-    },
-    {
-      label: "Eliminar",
-      type: "delete",
-      onClick: (item) => openDeleteModal(item.id, item.descripcion),
-    },
+    { label: "Ver Detalles", type: "view", onClick: (item) => openViewModal(item) },
+    { label: "Editar", type: "edit", onClick: (item) => openEditModal(item) },
+    { label: "Eliminar", type: "delete", onClick: (item) => openDeleteModal(item.id, item.descripcion) },
   ];
 
-  // ============================
-  // Loading
-  // ============================
   if (loading && horarios.length === 0) {
     return (
       <CrudLayout title="Horarios" showSearch>
@@ -143,7 +128,6 @@ export default function Horarios() {
 
   return (
     <>
-      {/* Botón Volver */}
       <Box sx={{ p: 2, pb: 0 }}>
         <Button
           startIcon={<ArrowBackIcon />}
@@ -167,25 +151,27 @@ export default function Horarios() {
         filterEstado={filterEstado}
         onFilterChange={setFilterEstado}
       >
+        <CrudNotification
+          message={notificacion.message}
+          type={notificacion.type}
+          isVisible={notificacion.visible}
+          onClose={closeNotification}
+        />
+
         {error && (
-          <div
-            style={{
-              padding: "16px",
-              backgroundColor: "#ffebee",
-              color: "#c62828",
-              borderRadius: "4px",
-              marginBottom: "16px",
-            }}
-          >
-            ⚠️ {error}
-          </div>
+          <CrudNotification
+            message={`⚠️ Error al cargar datos: ${error}`}
+            type="error"
+            isVisible={true}
+            onClose={() => {}}
+          />
         )}
 
-        <CrudTable
+        <UnifiedCrudTable
           columns={columns}
           data={horarios}
           actions={tableActions}
-          onChangeStatus={handleChangeStatus}
+          onChangeStatus={cambiarEstado}
           emptyMessage={
             search || filterEstado
               ? "No se encontraron horarios para los filtros aplicados"
@@ -194,15 +180,9 @@ export default function Horarios() {
         />
 
         {horarios.length === 0 && !search && !filterEstado && !loading && (
-          <div style={{ textAlign: 'center', marginTop: '24px' }}>
-            <button 
-              onClick={openCreateModal}
-              className="btn-primary"
-              style={{ padding: '12px 24px' }}
-            >
-              Crear Primer Horario
-            </button>
-          </div>
+          <Box sx={{ textAlign: 'center', marginTop: '24px' }}>
+            <Button variant="contained" onClick={openCreateModal}>Crear Primer Horario</Button>
+          </Box>
         )}
 
         {/* Modal Eliminar */}
@@ -234,13 +214,12 @@ export default function Horarios() {
             mode={modalForm.mode}
             initialData={modalForm.initialData}
             empleados={empleados}
-            onSubmit={handleFormSubmit}
-            onCancel={closeFormModal}
             formData={formData}
             errors={errors}
             submitting={submitting}
             handleChange={handleChange}
             handleSubmit={handleSubmit}
+            resetForm={resetForm} 
           />
         </Modal>
       </CrudLayout>

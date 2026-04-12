@@ -68,9 +68,13 @@ import {
   EditarCita,
   DetalleCita,
 } from "../../../features/servicios/cita";
+import { CitaDataProvider } from '../../../features/servicios/cita/context/CitaDataContext';
+import { Outlet } from 'react-router-dom';
 
 import { Horarios } from "../../../features/servicios/horario";
+import { AgendaDataProvider } from '../../../features/servicios/agenda/context/AgendaDataContext';
 import { Agenda } from "../../../features/servicios/agenda";
+import { Novedades } from "../../../features/servicios/novedades";
 
 import CampanasSalud from "../../../features/servicios/campanaSalud/CampanasSalud";
 import CrearCampanaSalud from "../../../features/servicios/campanaSalud/CrearCampanaSalud";
@@ -208,10 +212,14 @@ export default function OpticaDashboardLayout({ user, setUser }) {
             <Route index element={<Servicios />} />
       
             <Route path="citas">
-              <Route index element={<Citas />} />
-              <Route path="crear" element={<CrearCita />} />
-              <Route path="editar/:id" element={<EditarCita />} />
-              <Route path="detalle/:id" element={<DetalleCita />} />
+              <Route element={<CitaDataProvider><Outlet /></CitaDataProvider>}>
+                <Route index element={<Citas />} />
+                <Route path="crear" element={<CrearCita />} />
+                <Route path="editar/:id" element={<EditarCita />} />
+                <Route path="detalle/:id" element={<DetalleCita />} />
+                <Route path="novedades" element={<Novedades />} />
+              </Route>
+              
             </Route>
 
             <Route path="empleados" element={<Empleados />} />
@@ -222,8 +230,12 @@ export default function OpticaDashboardLayout({ user, setUser }) {
 
             <Route path="horarios" element={<Horarios />} />
 
-            <Route path="agenda" element={<Agenda />} />
-            <Route path="agenda/horarios" element={<Horarios />} />
+            <Route path="agenda">
+              <Route element={<AgendaDataProvider><Outlet /></AgendaDataProvider>}>
+                <Route index element={<Agenda />} />
+                <Route path="horarios" element={<Horarios />} />
+              </Route>
+            </Route>
 
             <Route path="campanas-salud" element={<CampanasSalud />} />
             <Route path="campanas-salud/crear" element={<CrearCampanaSalud />} />

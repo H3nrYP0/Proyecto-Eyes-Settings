@@ -1,23 +1,23 @@
 import { useState, useEffect } from "react";
-import { FormHelperText, Alert, Box, Chip, Typography } from "@mui/material";
+import { FormHelperText, Box, Chip } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import esLocale from "date-fns/locale/es";
 
-import BaseFormLayout from "../../../../shared/components/base/BaseFormLayout";
-import BaseFormSection from "../../../../shared/components/base/BaseFormSection";
-import BaseFormField from "../../../../shared/components/base/BaseFormField";
-import BaseFormActions from "../../../../shared/components/base/BaseFormActions";
-import BaseInputField from "../../../../shared/components/base/BaseInputField";
-import { metodoPagoOptions } from "../utils/citasUtils";
-import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
+import BaseFormLayout from "@shared/components/base/BaseFormLayout";
+import BaseFormSection from "@shared/components/base/BaseFormSection";
+import BaseFormField from "@shared/components/base/BaseFormField";
+import BaseFormActions from "@shared/components/base/BaseFormActions";
+import BaseInputField from "@shared/components/base/BaseInputField";
+import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
+
+import { metodoPagoOptions, formatPrice } from "../utils/citasUtils";
 
 export default function CitaForm({
   mode = "create",
   title,
-  initialData,
   onSubmit,
   onCancel,
   onEdit,
@@ -25,7 +25,6 @@ export default function CitaForm({
   servicios = [],
   empleados = [],
   estadosCita = [],
-  horariosEmpleado = [],
   diasActivos = [],
   formData,
   errors,
@@ -37,27 +36,22 @@ export default function CitaForm({
   handleDateChange,
   handleTimeChange,
   handleSubmit,
+  // Nuevas props desde useCitaForm
+  duracionActual,
+  getClientesActivos,
+  getServiciosActivos,
+  getEmpleadosActivos,
+  horaInvalida,
+  getHoraErrorMessage,
+  shouldDisableDate,
+  shouldDisableTime,
 }) {
   const isView = mode === "view";
-  const onSubmitForm = async () => {
-    const result = await handleSubmit();
-    if (result.success && onSubmit) {
-      onSubmit(result.data);
-    }
-  };
   const isDisabled = isView || submitting;
 
-  // Estado para controlar notificaciones
-  const [errorNotification, setErrorNotification] = useState({
-    visible: false,
-    message: "",
-  });
-  const [successNotification, setSuccessNotification] = useState({
-    visible: false,
-    message: "",
-  });
+  const [errorNotification, setErrorNotification] = useState({ visible: false, message: "" });
+  const [successNotification, setSuccessNotification] = useState({ visible: false, message: "" });
 
-  // Actualizar notificación de error cuando cambia errors.general
   useEffect(() => {
     if (errors.general) {
       setErrorNotification({ visible: true, message: errors.general });
@@ -66,57 +60,55 @@ export default function CitaForm({
     }
   }, [errors.general]);
 
-  // Actualizar notificación de éxito cuando cambia disponibilidad
   useEffect(() => {
     if (!verificando && disponibilidad && disponibilidad.disponible) {
-      const mensaje = `✓ Horario disponible ${
-        disponibilidad.horario
-          ? `(${disponibilidad.horario.inicio} - ${disponibilidad.horario.fin})`
-          : ""
-      }`;
-      setSuccessNotification({ visible: true, message: mensaje });
+      setSuccessNotification({ visible: true, message: "✓ Horario disponible" });
     } else {
       setSuccessNotification({ visible: false, message: "" });
     }
   }, [verificando, disponibilidad]);
 
-  const closeErrorNotification = () => {
-    setErrorNotification({ visible: false, message: "" });
+  const closeErrorNotification = () => setErrorNotification({ visible: false, message: "" });
+  const closeSuccessNotification = () => setSuccessNotification({ visible: false, message: "" });
+
+  const getPickerDate = () => {
+    if (!formData.fecha) return null;
+    if (formData.fecha instanceof Date) return formData.fecha;
+    return null;
   };
 
-  const closeSuccessNotification = () => {
-    setSuccessNotification({ visible: false, message: "" });
-  };
+  const servicioSeleccionado = servicios.find(s => s.id === parseInt(formData.servicio_id));
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={esLocale}>
       <BaseFormLayout title={title}>
         <BaseFormSection title="Información de la Cita">
-
-          {/* Contenedor fijo para los mensajes (evita desplazamiento) */}
           <Box sx={{ minHeight: 70, mb: 2 }}>
-            {verificando && (
-              <Alert severity="info" sx={{ mb: 1 }}>
-                Verificando disponibilidad...
-              </Alert>
-            )}
-
-            {/* Notificación de éxito */}
-            <CrudNotification
-              message={successNotification.message}
-              type="success"
-              isVisible={successNotification.visible}
-              onClose={closeSuccessNotification}
+            <CrudNotification 
+              message={successNotification.message} 
+              type="success" 
+              isVisible={successNotification.visible} 
+              onClose={closeSuccessNotification} 
             />
-
-            {/* Notificación de error */}
-            <CrudNotification
-              message={errorNotification.message}
-              type="error"
-              isVisible={errorNotification.visible}
-              onClose={closeErrorNotification}
+            <CrudNotification 
+              message={errorNotification.message} 
+              type="error" 
+              isVisible={errorNotification.visible} 
+              onClose={closeErrorNotification} 
             />
           </Box>
+
+          {/* Mostrar error de disponibilidad si existe */}
+          {errorDisponibilidad && (
+            <Box sx={{ mb: 2 }}>
+              <CrudNotification
+                message={errorDisponibilidad}
+                type="error"
+                isVisible={true}
+                onClose={() => {}}
+              />
+            </Box>
+          )}
 
           {/* Cliente */}
           <BaseFormField>
@@ -128,14 +120,14 @@ export default function CitaForm({
               onChange={handleChange}
               disabled={isDisabled}
               options={[
-                { value: "", label: "-- Seleccione --" },
-                ...clientes.map((c) => ({
-                  value: c.id,
-                  label: `${c.nombre} ${c.apellido || ""}`,
-                })),
+                { value: "", label: "-- Seleccione --" }, 
+                ...getClientesActivos().map(c => ({ 
+                  value: c.id, 
+                  label: `${c.nombre} ${c.apellido || ""}` 
+                }))
               ]}
-              required
-              error={!!errors.cliente_id}
+              required 
+              error={!!errors.cliente_id} 
               helperText={errors.cliente_id}
             />
           </BaseFormField>
@@ -150,14 +142,14 @@ export default function CitaForm({
               onChange={handleChange}
               disabled={isDisabled}
               options={[
-                { value: "", label: "-- Seleccione --" },
-                ...servicios.map((s) => ({
-                  value: s.id,
-                  label: s.nombre,
-                })),
+                { value: "", label: "-- Seleccione --" }, 
+                ...getServiciosActivos().map(s => ({ 
+                  value: s.id, 
+                  label: `${s.nombre}` 
+                }))
               ]}
-              required
-              error={!!errors.servicio_id}
+              required 
+              error={!!errors.servicio_id} 
               helperText={errors.servicio_id}
             />
           </BaseFormField>
@@ -172,41 +164,41 @@ export default function CitaForm({
               onChange={handleChange}
               disabled={isDisabled}
               options={[
-                { value: "", label: "-- Seleccione --" },
-                ...empleados
-                  .filter(e => e.estado === "activo" || e.estado === true)
-                  .map((e) => ({
-                    value: e.id,
-                    label: e.nombre,
-                  })),
+                { value: "", label: "-- Seleccione --" }, 
+                ...getEmpleadosActivos().map(e => ({ 
+                  value: e.id, 
+                  label: e.nombre 
+                }))
               ]}
-              required
-              error={!!errors.empleado_id}
+              required 
+              error={!!errors.empleado_id} 
               helperText={errors.empleado_id}
             />
           </BaseFormField>
 
           {/* Estado */}
-          <BaseFormField>
-            <BaseInputField
-              label="Estado"
-              name="estado_cita_id"
-              select
-              value={formData.estado_cita_id}
-              onChange={handleChange}
-              disabled={isDisabled}
-              options={[
-                { value: "", label: "-- Seleccione --" },
-                ...estadosCita.map((e) => ({
-                  value: e.id,
-                  label: e.nombre,
-                })),
-              ]}
-              required
-              error={!!errors.estado_cita_id}
-              helperText={errors.estado_cita_id}
-            />
-          </BaseFormField>
+          {mode !== "create" && (
+            <BaseFormField>
+              <BaseInputField
+                label="Estado"
+                name="estado_cita_id"
+                select
+                value={formData.estado_cita_id}
+                onChange={handleChange}
+                disabled={isDisabled}
+                options={[
+                  { value: "", label: "-- Seleccione --" }, 
+                  ...estadosCita.map(e => ({ 
+                    value: e.id, 
+                    label: e.nombre 
+                  }))
+                ]}
+                required 
+                error={!!errors.estado_cita_id} 
+                helperText={errors.estado_cita_id}
+              />
+            </BaseFormField>
+          )}
 
           {/* Método de Pago */}
           <BaseFormField>
@@ -218,8 +210,8 @@ export default function CitaForm({
               onChange={handleChange}
               disabled={isDisabled}
               options={metodoPagoOptions}
-              required
-              error={!!errors.metodo_pago}
+              required 
+              error={!!errors.metodo_pago} 
               helperText={errors.metodo_pago}
             />
           </BaseFormField>
@@ -230,35 +222,50 @@ export default function CitaForm({
               label="Duración (minutos)"
               name="duracion"
               type="number"
-              value={formData.duracion}
-              onChange={handleChange}
-              disabled={isDisabled}
+              value={duracionActual === null ? "" : duracionActual}
+              disabled={true}
               required
-              error={!!errors.duracion}
-              helperText={errors.duracion}
-              inputProps={{ min: 15, max: 180, step: 5 }}
             />
+            <FormHelperText error>
+              {servicioSeleccionado ? `` : "Seleccione un servicio"}
+            </FormHelperText>
           </BaseFormField>
 
-          {/* Fecha */}
+          {/* Precio del servicio */}
+          <BaseFormField>
+            <BaseInputField
+              label="Precio"
+              value={servicioSeleccionado ? formatPrice(servicioSeleccionado.precio) : "Seleccione un servicio"}
+              disabled={true}
+            />
+            <FormHelperText>
+              {servicioSeleccionado 
+                ? "Precio del servicio seleccionado" 
+                : "El precio se obtiene del servicio"}
+            </FormHelperText>
+          </BaseFormField>
+
+          {/* Fecha - Con tooltip personalizado para fechas bloqueadas */}
           <BaseFormField>
             <DatePicker
               label="Fecha"
-              value={formData.fecha}
+              value={getPickerDate()}
               onChange={handleDateChange}
               disabled={isDisabled}
+              shouldDisableDate={shouldDisableDate}
               slotProps={{
-                textField: {
-                  fullWidth: true,
-                  size: "small",
-                  error: !!errors.fecha,
-                  required: true,
+                textField: { 
+                  fullWidth: true, 
+                  size: "small", 
+                  error: !!errors.fecha, 
+                  required: true 
                 },
+                day: (ownerState) => ({
+                  title: ownerState.disabled ? "Fecha bloqueada por novedad del empleado" : ""
+                })
               }}
             />
-            <FormHelperText error>
-              {errors.fecha || " "}
-            </FormHelperText>
+            <FormHelperText error>{errors.fecha || " "}</FormHelperText>
           </BaseFormField>
 
           {/* Hora */}
@@ -267,51 +274,48 @@ export default function CitaForm({
               label="Hora"
               value={formData.hora}
               onChange={handleTimeChange}
-              disabled={isDisabled}
-              slotProps={{
-                textField: {
-                  fullWidth: true,
-                  size: "small",
-                  error: !!errors.hora,
-                  required: true,
-                },
+              disabled={isDisabled || (!isView && (!formData.fecha || !formData.servicio_id))}
+              shouldDisableTime={shouldDisableTime}
+              ampm={true}
+              ampmInClock={true}
+              slotProps={{ 
+                textField: { 
+                  fullWidth: true, 
+                  size: "small", 
+                  error: !!errors.hora || horaInvalida, 
+                  required: true 
+                } 
               }}
             />
             <FormHelperText error>
-              {errors.hora || " "}
+              {errors.hora || 
+               getHoraErrorMessage() || 
+               (!formData.fecha && "Primero seleccione una fecha") || 
+               (!formData.servicio_id && "Primero seleccione un servicio") || 
+               " "}
             </FormHelperText>
           </BaseFormField>
-
-          {/* Chips de días activos */}
-          {diasActivos.length > 0 && (
-            <BaseFormField>
-              <Box>
-                <Typography variant="caption" color="textSecondary" sx={{ mb: 0.5, display: 'block' }}>
-                  Días con horario:
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                  {diasActivos.map(d => (
-                    <Chip
-                      key={d.dia}
-                      label={`${d.nombre} (${d.hora_inicio} - ${d.hora_final})`}
-                      size="small"
-                      variant="outlined"
-                    />
-                  ))}
-                </Box>
-              </Box>
-            </BaseFormField>
-          )}
-
         </BaseFormSection>
 
         <BaseFormActions
           onCancel={onCancel}
-          onSave={onSubmitForm}
+          onSave={async () => {
+            const result = await handleSubmit();
+            if (result && result.success && onSubmit) onSubmit(result.data);
+          }}
           onEdit={onEdit}
           showSave={mode !== "view"}
           showEdit={mode === "view"}
-          saveDisabled={submitting || verificando || (disponibilidad && !disponibilidad.disponible)}
+          saveDisabled={
+            submitting || 
+            verificando || 
+            (disponibilidad && !disponibilidad.disponible) || 
+            horaInvalida || 
+            !formData.hora || 
+            !formData.fecha || 
+            !formData.empleado_id || 
+            !formData.servicio_id
+          }
           saveLabel={submitting ? "Guardando..." : "Guardar"}
         />
       </BaseFormLayout>

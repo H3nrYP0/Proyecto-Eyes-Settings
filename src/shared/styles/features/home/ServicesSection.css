@@ -1,4 +1,4 @@
-/* === SERVICES SECTION - COLOR A LA LETRA DE FEATURES === */
+/* === SERVICES SECTION — paleta teal Visual Outlet === */
 @import './landing-variables.css';
 
 .services-section {
@@ -24,10 +24,48 @@
   font-weight: 800;
   color: var(--text-dark);
   margin-bottom: var(--space-sm);
-  background: var(--blue-gradient-2);
+  background: linear-gradient(135deg, #0d2e2e, #1a4a4a);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+/* Clases usadas por PageHeader dentro de ServicesList */
+.section-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 0.6rem;
+  background: linear-gradient(135deg, #0d2e2e, #1a4a4a) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+.section-description {
+  font-size: 0.97rem;
+  color: #4e6e6e;
+  max-width: 580px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.blue-gradient-text {
+  background: linear-gradient(135deg, #1a4a4a, #3d8080) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  display: inline-block;
+}
+
+/* Línea decorativa bajo el header */
+.section-header::after {
+  content: '';
+  display: block;
+  width: 44px;
+  height: 3px;
+  background: linear-gradient(90deg, #1a4a4a, #3d8080);
+  border-radius: 4px;
+  margin: 0.75rem auto 0;
 }
 
 .title-subtext {
@@ -79,8 +117,7 @@
   position: absolute;
   width: 100%;
   height: 100%;
-  top: 0;
-  left: 0;
+  top: 0; left: 0;
   border-radius: 28px;
   padding: var(--space-2xl);
   display: flex;
@@ -131,16 +168,12 @@
 }
 
 .service-card.green .icon-circle {
-  background: linear-gradient(135deg, var(--teal-blue), #34d399);
+  background: linear-gradient(135deg, var(--emerald), #2dc89a);
 }
 
 @keyframes float {
-  0%, 100% { 
-    transform: translateY(0) scale(1); 
-  }
-  50% { 
-    transform: translateY(-10px) scale(1.04);
-  }
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%       { transform: translateY(-10px) scale(1.04); }
 }
 
 /* Texto frontal */
@@ -165,19 +198,19 @@
   color: var(--royal-blue);
   font-weight: 700;
   padding: var(--space-sm) var(--space-lg);
-  background: rgba(59, 130, 246, 0.12);
+  background: rgba(26, 74, 74, 0.10);
   border-radius: 28px;
   margin-bottom: var(--space-xl);
-  border: 1.5px solid rgba(59, 130, 246, 0.25);
+  border: 1.5px solid rgba(26, 74, 74, 0.22);
 }
 
 .service-card.green .highlight {
-  color: var(--teal-blue);
-  background: rgba(13, 148, 136, 0.12);
-  border-color: rgba(13, 148, 136, 0.25);
+  color: var(--emerald);
+  background: rgba(31, 122, 106, 0.10);
+  border-color: rgba(31, 122, 106, 0.22);
 }
 
-/* Hint - solo flecha */
+/* Hint */
 .hint {
   display: flex;
   align-items: center;
@@ -195,10 +228,10 @@
 
 @keyframes bounce {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(6px); }
+  50%       { transform: translateY(6px); }
 }
 
-/* ========= CAPA TRASERA ========= */
+/* Capa trasera */
 .back-layer {
   background: var(--blue-gradient-2);
   color: var(--pure-white);
@@ -210,7 +243,7 @@
 }
 
 .service-card.green .back-layer {
-  background: linear-gradient(145deg, #047857, var(--teal-blue));
+  background: linear-gradient(145deg, #145e4e, var(--emerald));
 }
 
 .back-layer.active {
@@ -229,7 +262,6 @@
   gap: var(--space-md);
 }
 
-/* Icono trasero */
 .back-icon {
   font-size: 2.2rem;
   margin-bottom: var(--space-xs);
@@ -239,10 +271,9 @@
 
 @keyframes pulse {
   0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.08); opacity: 0.9; }
+  50%       { transform: scale(1.08); opacity: 0.9; }
 }
 
-/* Título trasero */
 .back-title {
   font-size: 1.8rem;
   font-weight: 800;
@@ -252,7 +283,6 @@
   margin-top: 0;
 }
 
-/* Descripción trasera */
 .back-description {
   font-size: 1.05rem;
   color: rgba(255, 255, 255, 0.95);
@@ -266,7 +296,7 @@
   width: 100%;
 }
 
-/* ========= FEATURES CON COLOR A LA LETRA ========= */
+/* Features con color en texto */
 .features-container {
   width: 100%;
   margin-bottom: var(--space-xl);
@@ -279,56 +309,44 @@
   width: 100%;
 }
 
-/* CAJAS DE FEATURES */
 .feature-item {
   display: flex;
   align-items: center;
   gap: var(--space-md);
   padding: var(--space-md);
-  
-  /* FONDO BLANCO SEMITRANSPARENTE PARA MEJOR CONTRASTE */
   background: rgba(255, 255, 255, 0.15);
-  
   border-radius: var(--radius-lg);
   border: 2px solid rgba(255, 255, 255, 0.25);
-  
   transition: all var(--transition-normal);
   text-align: left;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
 }
 
-/* COLOR DE FONDO DIFERENTE POR SERVICIO */
 .service-card.blue .feature-item {
   background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(96, 165, 250, 0.4);
+  border-color: rgba(106, 174, 174, 0.40);
 }
 
 .service-card.green .feature-item {
   background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(45, 212, 191, 0.4);
+  border-color: rgba(45, 200, 154, 0.40);
 }
 
 .feature-item:hover {
   background: rgba(255, 255, 255, 0.25);
   transform: translateX(8px) translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.4);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.40);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.20);
 }
 
-/* EFECTO DE BRILLO */
 .feature-item::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, 
-    transparent, 
-    rgba(255, 255, 255, 0.25), 
-    transparent);
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
   transition: left 0.5s ease;
 }
 
@@ -336,9 +354,7 @@
   left: 100%;
 }
 
-/* ========== ¡¡¡COLOR A LA LETRA DE LOS FEATURES!!! ========== */
 .feature-icon {
-  /* COLOR AMARILLO PARA EL ICONO CHECK */
   color: #fbbf24;
   font-size: 1.2rem;
   font-weight: bold;
@@ -346,36 +362,33 @@
   position: relative;
   z-index: 1;
   background: rgba(0, 0, 0, 0.2);
-  width: 28px;
-  height: 28px;
+  width: 28px; height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* COLOR AZUL PARA LAS LETRAS EN TARJETA AZUL */
 .service-card.blue .feature-text {
-  color: #e0f2fe; /* AZUL CLARO CLARO */
+  color: #c8eaea;
   font-size: 1rem;
   line-height: 1.5;
   flex: 1;
   position: relative;
   z-index: 1;
   font-weight: 600;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.30);
 }
 
-/* COLOR VERDE PARA LAS LETRAS EN TARJETA VERDE */
 .service-card.green .feature-text {
-  color: #ccfbf1; /* VERDE CLARO CLARO */
+  color: #b6f0e0;
   font-size: 1rem;
   line-height: 1.5;
   flex: 1;
   position: relative;
   z-index: 1;
   font-weight: 600;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.30);
 }
 
 /* Botón de acción */
@@ -401,7 +414,7 @@
 }
 
 .service-card.green .action-btn {
-  color: #047857;
+  color: var(--emerald);
 }
 
 .action-btn:hover {
@@ -413,17 +426,14 @@
   font-size: 1.1rem;
 }
 
-/* Efecto de overlay al hover */
+/* Overlay hover */
 .service-card::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, 
-    rgba(37, 99, 235, 0.15), 
-    rgba(59, 130, 246, 0.08));
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(135deg,
+    rgba(26, 74, 74, 0.12),
+    rgba(35, 95, 95, 0.06));
   border-radius: 28px;
   opacity: 0;
   transition: opacity var(--transition-slow);
@@ -437,96 +447,29 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .services-section {
-    padding: var(--space-xl) var(--space-md);
-  }
-  
-  .section-main-title h2 {
-    font-size: 2rem;
-  }
-  
-  .service-card {
-    height: 500px;
-    max-width: 420px;
-  }
-  
-  .card-layer {
-    padding: var(--space-xl);
-  }
-  
-  .feature-item {
-    padding: var(--space-sm);
-    gap: var(--space-sm);
-  }
-  
-  .icon-circle {
-    width: 75px;
-    height: 75px;
-    font-size: 2.2rem;
-  }
-  
-  .back-icon {
-    font-size: 2rem;
-  }
-  
-  .front-layer h3,
-  .back-title {
-    font-size: 1.6rem;
-  }
-  
-  .description,
-  .back-description {
-    font-size: 1.05rem;
-  }
-  
-  .arrow {
-    font-size: 1.6rem;
-  }
+  .services-section { padding: var(--space-xl) var(--space-md); }
+  .section-main-title h2 { font-size: 2rem; }
+  .service-card { height: 500px; max-width: 420px; }
+  .card-layer { padding: var(--space-xl); }
+  .feature-item { padding: var(--space-sm); gap: var(--space-sm); }
+  .icon-circle { width: 75px; height: 75px; font-size: 2.2rem; }
+  .back-icon { font-size: 2rem; }
+  .front-layer h3, .back-title { font-size: 1.6rem; }
+  .description, .back-description { font-size: 1.05rem; }
+  .arrow { font-size: 1.6rem; }
 }
 
 @media (max-width: 480px) {
-  .services-section {
-    padding: var(--space-xl) var(--space-sm);
-  }
-  
-  .services-grid {
-    gap: var(--space-xl);
-  }
-  
-  .service-card {
-    height: 480px;
-    max-width: 100%;
-  }
-  
-  .card-layer {
-    padding: var(--space-lg);
-  }
-  
-  .feature-item {
-    padding: var(--space-xs) var(--space-sm);
-  }
-  
-  .icon-circle {
-    width: 70px;
-    height: 70px;
-    font-size: 2rem;
-  }
-  
-  .back-icon {
-    font-size: 1.8rem;
-  }
-  
-  .highlight {
-    font-size: 0.95rem;
-    padding: var(--space-xs) var(--space-md);
-  }
-  
-  .arrow {
-    font-size: 1.5rem;
-  }
+  .services-section { padding: var(--space-xl) var(--space-sm); }
+  .services-grid { gap: var(--space-xl); }
+  .service-card { height: 480px; max-width: 100%; }
+  .card-layer { padding: var(--space-lg); }
+  .feature-item { padding: var(--space-xs) var(--space-sm); }
+  .icon-circle { width: 70px; height: 70px; font-size: 2rem; }
+  .back-icon { font-size: 1.8rem; }
+  .highlight { font-size: 0.95rem; padding: var(--space-xs) var(--space-md); }
+  .arrow { font-size: 1.5rem; }
 }
 
-/* Optimizaciones de rendimiento */
-.service-card {
-  transform: translateZ(0);
-}
+/* Optimización de rendimiento */
+.service-card { transform: translateZ(0); }

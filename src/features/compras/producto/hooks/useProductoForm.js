@@ -82,7 +82,9 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
         stockActual: initialData.stockActual?.toString() || "",
         stockMinimo: initialData.stockMinimo?.toString() || "",
         categoria: initialData.categoria?.toString() || "",
+        categoriaNombre: initialData.categoriaNombre || "",
         marca: initialData.marca?.toString() || "",
+        marcaNombre: initialData.marcaNombre || "",
         estado: initialData.estado === 'activo'
       });
 
@@ -156,7 +158,7 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
             setErrors(prev => ({ ...prev, nombre: "" }));
           }
         } catch (error) {
-          // Silent fail
+          // Fallo silencioso para no interrumpir la experiencia
         }
       } else {
         setNombreExists(false);
@@ -311,11 +313,21 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
     const dataToSubmit = {
       nombre: nombreFinal,
       descripcion: formData.descripcion.trim(),
-      categoria: formData.categoria,
-      marca: formData.marca,
       imagenes: imagenesExistentes,
       nuevasImagenes: nuevasImagenes.map(img => ({ url: img.url }))
     };
+
+    if (mode === "edit") {
+      if (formData.categoria !== initialData.categoria?.toString()) {
+        dataToSubmit.categoria = formData.categoria;
+      }
+      if (formData.marca !== initialData.marca?.toString()) {
+        dataToSubmit.marca = formData.marca;
+      }
+    } else {
+      dataToSubmit.categoria = formData.categoria;
+      dataToSubmit.marca = formData.marca;
+    }
     
     if (!isCreate || isFullCreate) {
       dataToSubmit.precioVenta = parseInt(formData.precioVenta, 10);
@@ -324,8 +336,8 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
       dataToSubmit.stockMinimo = parseInt(formData.stockMinimo, 10);
       dataToSubmit.estado = formData.estado;
     } else {
-      dataToSubmit.precioVenta = 0;
-      dataToSubmit.precioCompra = 0;
+      dataToSubmit.precioVenta = 1;
+      dataToSubmit.precioCompra = 1;
       dataToSubmit.stockActual = 0;
       dataToSubmit.stockMinimo = parseInt(formData.stockMinimo, 10) || 0;
       dataToSubmit.estado = true;

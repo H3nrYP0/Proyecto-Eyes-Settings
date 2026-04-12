@@ -14,6 +14,23 @@ const formatCurrency = (amount) =>
     minimumFractionDigits: 0,
   }).format(amount);
 
+// ── Estilos inline para las flechas — centrado perfecto garantizado ──
+const arrowBtnStyle = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  lineHeight: "1",
+  padding: "0",
+  fontSize: "1.2rem",
+};
+
+const arrowIconStyle = {
+  display: "block",
+  lineHeight: "1",
+  margin: "0",
+  padding: "0",
+};
+
 const FeaturesSection = () => {
   const navigate = useNavigate();
   const [productos, setProductos] = useState([]);
@@ -27,7 +44,7 @@ const FeaturesSection = () => {
     const fetchProductos = async () => {
       try {
         const data = await getAllProductosLanding();
-        if (mounted) setProductos(data.slice(0, 6)); // máximo 6 en carrusel
+        if (mounted) setProductos(data.slice(0, 6));
       } catch (err) {
         console.error("Error cargando productos para carrusel:", err);
       } finally {
@@ -38,7 +55,6 @@ const FeaturesSection = () => {
     return () => { mounted = false; };
   }, []);
 
-  // Auto-rotación
   useEffect(() => {
     if (productos.length < 2) return;
     const interval = setInterval(() => nextSlide(), 5000);
@@ -88,6 +104,7 @@ const FeaturesSection = () => {
   return (
     <section id="features" className="features-section">
       <div className="features-container">
+
         {/* Header */}
         <div className="section-header-enhanced">
           <div className="header-left">
@@ -116,33 +133,35 @@ const FeaturesSection = () => {
 
         {/* Carrusel */}
         <div className="carousel-3d-horizontal">
+
+          {/* ── CAMBIO: inline style en botón para centrar la flecha ── */}
           <button
             className="carousel-control-horizontal prev"
             onClick={prevSlide}
             aria-label="Producto anterior"
+            style={arrowBtnStyle}
           >
-            <span className="control-icon-horizontal">←</span>
+            <span style={arrowIconStyle}>←</span>
           </button>
 
           <div className="carousel-3d-wrapper">
             {productos.map((producto, index) => {
               const position = index - currentIndex;
-              const normalized = ((position + productos.length) % productos.length);
               const half = Math.floor(productos.length / 2);
               let pos = position;
               if (position > half) pos = position - productos.length;
               if (position < -half) pos = position + productos.length;
 
-              const isActive = pos === 0;
-              const isNext = pos === 1;
-              const isPrev = pos === -1;
+              const isActive  = pos === 0;
+              const isNext    = pos === 1;
+              const isPrev    = pos === -1;
               const isFarNext = pos === 2;
               const isFarPrev = pos === -2;
 
               let className = "hidden";
               if (isActive)   className = "active";
-              else if (isNext) className = "next";
-              else if (isPrev) className = "prev";
+              else if (isNext)    className = "next";
+              else if (isPrev)    className = "prev";
               else if (isFarNext) className = "far-next";
               else if (isFarPrev) className = "far-prev";
 
@@ -153,25 +172,24 @@ const FeaturesSection = () => {
                   onClick={() => isActive && navigate("/productos")}
                 >
                   <div className="product-card-horizontal">
-                    {/* Imagen o icono */}
                     <div className="product-image-horizontal">
                       {producto.imagenPrincipal ? (
                         <img
                           src={producto.imagenPrincipal}
                           alt={producto.nombre}
                           style={{
-                            width: '100%', height: '100%',
-                            objectFit: 'cover', borderRadius: '0.875rem',
+                            width: "100%", height: "100%",
+                            objectFit: "cover", borderRadius: "0.875rem",
                           }}
                           onError={e => {
-                            e.target.style.display = 'none';
-                            e.target.nextSibling.style.display = 'block';
+                            e.target.style.display = "none";
+                            e.target.nextSibling.style.display = "block";
                           }}
                         />
                       ) : null}
                       <span
                         className="product-emoji-horizontal"
-                        style={{ display: producto.imagenPrincipal ? 'none' : 'block' }}
+                        style={{ display: producto.imagenPrincipal ? "none" : "block" }}
                       >
                         {FALLBACK_ICONS[index % FALLBACK_ICONS.length]}
                       </span>
@@ -181,25 +199,23 @@ const FeaturesSection = () => {
                     <div className="product-content-horizontal">
                       <h3 className="product-name-horizontal">{producto.nombre}</h3>
 
-                      {/* Descripción condicional */}
                       {showDescriptions[producto.id] && producto.descripcion && (
                         <div className="product-description-popup">
                           <p className="product-description-full">{producto.descripcion}</p>
                         </div>
                       )}
 
-                      {/* Badge de stock */}
-                      <div style={{ marginBottom: '0.5rem' }}>
+                      <div style={{ marginBottom: "0.5rem" }}>
                         <span style={{
-                          display: 'inline-block',
-                          padding: '0.2rem 0.6rem',
-                          borderRadius: '999px',
-                          fontSize: '0.7rem',
-                          fontWeight: '600',
-                          background: producto.stockActual > 0 ? '#dcfce7' : '#fee2e2',
-                          color: producto.stockActual > 0 ? '#166534' : '#dc2626',
+                          display: "inline-block",
+                          padding: "0.2rem 0.6rem",
+                          borderRadius: "999px",
+                          fontSize: "0.7rem",
+                          fontWeight: "600",
+                          background: producto.stockActual > 0 ? "#dcfce7" : "#fee2e2",
+                          color: producto.stockActual > 0 ? "#166534" : "#dc2626",
                         }}>
-                          {producto.stockActual > 0 ? `${producto.stockActual} disponibles` : 'Agotado'}
+                          {producto.stockActual > 0 ? `${producto.stockActual} disponibles` : "Agotado"}
                         </span>
                       </div>
 
@@ -234,12 +250,14 @@ const FeaturesSection = () => {
             })}
           </div>
 
+          {/* ── CAMBIO: inline style en botón para centrar la flecha ── */}
           <button
             className="carousel-control-horizontal next"
             onClick={nextSlide}
             aria-label="Siguiente producto"
+            style={arrowBtnStyle}
           >
-            <span className="control-icon-horizontal">→</span>
+            <span style={arrowIconStyle}>→</span>
           </button>
 
           <div className="carousel-indicators-horizontal">
@@ -254,11 +272,24 @@ const FeaturesSection = () => {
           </div>
         </div>
 
-        {/* CTA */}
+        {/* ── CAMBIO: CTA con inline styles — textos separados y centrados ── */}
         <div className="features-cta">
           <div className="cta-content">
-            <h3>¿Quieres ver más opciones?</h3>
-            <p>Explora nuestra colección completa de productos especializados en óptica</p>
+            <h3 style={{
+              textAlign: "center",
+              marginBottom: "1.25rem",
+            }}>
+              ¿Quieres ver más opciones?
+            </h3>
+            <p style={{
+              textAlign: "center",
+              marginBottom: "1.75rem",
+              maxWidth: "500px",
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}>
+              Explora nuestra colección completa de productos especializados en óptica
+            </p>
             <button
               className="btn btn-primary btn-large"
               onClick={() => navigate("/productos")}
@@ -267,6 +298,7 @@ const FeaturesSection = () => {
             </button>
           </div>
         </div>
+
       </div>
     </section>
   );

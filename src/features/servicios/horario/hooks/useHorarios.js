@@ -73,16 +73,17 @@ export function useHorarios() {
   // ============================
   // Cambiar estado
   // ============================
-  const cambiarEstado = useCallback(async (id, nuevoEstado) => {
-    try {
-      await updateEstadoHorario(id, nuevoEstado === "activo");
-      await cargarDatos();
-      return { success: true };
-    } catch (error) {
-      console.error("Error al cambiar estado:", error);
-      return { success: false, error: "Error al cambiar el estado" };
-    }
-  }, [cargarDatos]);
+ const cambiarEstado = useCallback(async (row, nuevoEstado) => {
+  try {
+    const activo = nuevoEstado === "activo";
+    await updateEstadoHorario(row.id, activo);
+    await cargarDatos();
+    return { success: true };
+  } catch (error) {
+    console.error("Error al cambiar estado:", error);
+    return { success: false, error: "Error al cambiar el estado" };
+  }
+}, [cargarDatos]);
 
   // ============================
   // Filtrar horarios

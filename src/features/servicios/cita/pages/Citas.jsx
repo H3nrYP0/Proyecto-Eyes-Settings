@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CrudLayout from "../../../../shared/components/crud/CrudLayout";
-import CrudTable from "../../../../shared/components/crud/CrudTable";
+import UnifiedCrudTable from "@shared/components/crud/CrudTable";
 import Modal from "../../../../shared/components/ui/Modal";
 import Loading from "../../../../shared/components/ui/Loading";
+import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
 import { useCitas } from "../hooks/useCitas";
 import "../../../../shared/styles/components/crud-table.css";
 import "../../../../shared/styles/components/modal.css";
@@ -11,6 +13,11 @@ export default function Citas() {
   const navigate = useNavigate();
   const {
     citas,
+    totalCitas,
+    page,
+    setPage,
+    perPage,
+    setPerPage,
     loading,
     error,
     search,
@@ -25,20 +32,49 @@ export default function Citas() {
     closeDeleteModal,
   } = useCitas();
 
+  const [notificacion, setNotificacion] = useState({
+    visible: false,
+    message: "",
+    type: "success",
+  });
+
+  const showNotification = (message, type = "success") => {
+    setNotificacion({ visible: true, message, type });
+    setTimeout(() => {
+      setNotificacion(prev => ({ ...prev, visible: false }));
+    }, 5000);
+  };
+
+  const closeNotification = () => {
+    setNotificacion(prev => ({ ...prev, visible: false }));
+  };
+
   const confirmDelete = async () => {
     const result = await eliminarCita(modalDelete.id);
     if (result.success) {
+      showNotification("Cita eliminada correctamente", "success");
       closeDeleteModal();
     } else {
-      alert(result.error);
+      showNotification(`Error al eliminar: ${result.error}`, "error");
     }
   };
 
   const handleChangeStatus = async (row, nuevoEstado) => {
     const result = await cambiarEstado(row.id, nuevoEstado);
     if (!result.success) {
-      alert(result.error);
+      showNotification(`Error al cambiar estado: ${result.error}`, "error");
+    } else {
+      showNotification(`Estado cambiado a "${nuevoEstado}" correctamente`, "success");
     }
+  };
+
+  const handlePageChange = (event, newPage) => {
+    setPage(newPage + 1);
+  };
+
+  const handleRowsPerPageChange = (event) => {
+    setPerPage(parseInt(event.target.value, 10));
+    setPage(1);
   };
 
   const columns = [
@@ -87,25 +123,32 @@ export default function Citas() {
         filterEstado={filterEstado}
         onFilterChange={setFilterEstado}
       >
+        <CrudNotification
+          message={notificacion.message}
+          type={notificacion.type}
+          isVisible={notificacion.visible}
+          onClose={closeNotification}
+        />
+
         {error && (
-          <div
-            style={{
-              padding: "16px",
-              backgroundColor: "#ffebee",
-              color: "#c62828",
-              borderRadius: "4px",
-              marginBottom: "16px",
-            }}
-          >
-            ⚠️ {error}
-          </div>
+          <CrudNotification
+            message={`⚠️ Error al cargar datos: ${error}`}
+            type="error"
+            isVisible={true}
+            onClose={() => {}}
+          />
         )}
 
-        <CrudTable
+        <UnifiedCrudTable
           columns={columns}
           data={citas}
           actions={tableActions}
           onChangeStatus={handleChangeStatus}
+          totalCount={totalCitas}
+          page={page - 1}
+          onPageChange={handlePageChange}
+          rowsPerPage={perPage}
+          onRowsPerPageChange={handleRowsPerPageChange}
           emptyMessage={
             search || filterEstado
               ? "No se encontraron citas para los filtros aplicados"

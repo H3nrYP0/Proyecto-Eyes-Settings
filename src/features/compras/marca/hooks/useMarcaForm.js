@@ -15,9 +15,6 @@ export function useMarcaForm({ mode = "create", initialData = null, onSubmit, on
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
-  // ============================
-  // Cargar datos iniciales
-  // ============================
   useEffect(() => {
     if (initialData) {
       setFormData(normalizeMarcaForForm(initialData));
@@ -28,9 +25,6 @@ export function useMarcaForm({ mode = "create", initialData = null, onSubmit, on
     setNombreExists(false);
   }, [initialData]);
 
-  // ============================
-  // Verificar nombre duplicado (solo en creación)
-  // ============================
   const verificarNombreDuplicado = useCallback(async (nombre) => {
     const trimmed = nombre?.trim();
     if (trimmed && isCreate) {
@@ -48,9 +42,6 @@ export function useMarcaForm({ mode = "create", initialData = null, onSubmit, on
     }
   }, [isCreate]);
 
-  // ============================
-  // Handle change
-  // ============================
   const handleChange = useCallback(async (e) => {
     const { name, value } = e.target;
     
@@ -70,12 +61,16 @@ export function useMarcaForm({ mode = "create", initialData = null, onSubmit, on
     }
   }, [errors, isCreate, verificarNombreDuplicado]);
 
-  // ============================
-  // Validar y submit
-  // ============================
   const handleSubmit = useCallback(async (e) => {
-    if (e) e.preventDefault();
-
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    if (submitting) {
+      return;
+    }
+    
     if (isView) {
       if (onSubmit) onSubmit(formData);
       return;
@@ -96,24 +91,15 @@ export function useMarcaForm({ mode = "create", initialData = null, onSubmit, on
         nombre: trimmedNombre
       };
 
-      if (isCreate) {
-        await marcasService.createMarca(payload);
-      } else {
-        await marcasService.updateMarca(initialData.id, payload);
-      }
-
       onSubmit?.(payload);
     } catch (error) {
-      console.error("Error al guardar marca:", error);
-      setErrors({ general: "Error al guardar la marca" });
+      console.error("Error al preparar datos:", error);
+      setErrors({ general: "Error al preparar los datos" });
     } finally {
       setSubmitting(false);
     }
-  }, [formData, isView, isCreate, initialData, nombreExists, onSubmit]);
+  }, [formData, isView, isCreate, initialData, nombreExists, onSubmit, submitting]);
 
-  // ============================
-  // Cancelar
-  // ============================
   const handleCancel = useCallback(() => {
     if (!isView && window.confirm("¿Estás seguro de que deseas cancelar? Los cambios no guardados se perderán.")) {
       onCancel?.();

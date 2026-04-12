@@ -1,6 +1,5 @@
 // productosLandingData.js
 // Servicio de datos de productos para el Landing Page
-// Sigue exactamente el mismo patrón que productosData.js
 import api from "../../../../lib/axios";
 
 export const ProductoLandingData = {
@@ -10,7 +9,6 @@ export const ProductoLandingData = {
       const response = await api.get('/productos');
       const productos = response.data;
 
-      // Obtener imágenes para cada producto (igual que productosData.js)
       const productosConImagenes = await Promise.all(
         productos.map(async (producto) => {
           let imagenes = [];
@@ -18,7 +16,7 @@ export const ProductoLandingData = {
             const imagenesResponse = await api.get(`/imagen/producto/${producto.id}`);
             imagenes = imagenesResponse.data || [];
           } catch {
-            // Sin imágenes, continuamos con array vacío
+            // Sin imágenes
           }
 
           return {
@@ -39,7 +37,6 @@ export const ProductoLandingData = {
         })
       );
 
-      // Solo retornar productos activos con stock
       return productosConImagenes.filter(p => p.estado === 'activo');
     } catch (error) {
       console.error('Error al obtener productos para landing:', error);
@@ -47,7 +44,36 @@ export const ProductoLandingData = {
     }
   },
 
-  // Obtener productos destacados (activos con stock disponible)
+  // Obtener un producto por ID — para cargar la descripción completa al voltear la tarjeta
+  async getProductoById(id) {
+    try {
+      const response = await api.get(`/productos/${id}`);
+      const producto = response.data;
+
+      let imagenes = [];
+      try {
+        const imagenesResponse = await api.get(`/imagen/producto/${id}`);
+        imagenes = imagenesResponse.data || [];
+      } catch {
+        // Sin imágenes
+      }
+
+      return {
+        id: producto.id,
+        nombre: producto.nombre,
+        descripcion: producto.descripcion || '',
+        precioVenta: producto.precio_venta,
+        stockActual: producto.stock,
+        categoria: producto.categoria_id?.toString(),
+        estado: producto.estado ? 'activo' : 'inactivo',
+        imagenes: imagenes,
+      };
+    } catch (error) {
+      console.error('Error al obtener producto por ID:', error);
+      throw error;
+    }
+  },
+
   async getProductosDestacados(limit = 6) {
     try {
       const productos = await this.getAllProductos();
@@ -61,5 +87,6 @@ export const ProductoLandingData = {
   },
 };
 
-export const getAllProductosLanding = () => ProductoLandingData.getAllProductos();
-export const getProductosDestacados = (limit) => ProductoLandingData.getProductosDestacados(limit);
+export const getAllProductosLanding  = () => ProductoLandingData.getAllProductos();
+export const getProductoById         = (id) => ProductoLandingData.getProductoById(id);
+export const getProductosDestacados  = (limit) => ProductoLandingData.getProductosDestacados(limit);

@@ -16,7 +16,7 @@
 .contact-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-lg); /* REDUCIDO de xl a lg para menos espacio */
+  gap: var(--space-lg);
   align-items: start;
 }
 
@@ -26,7 +26,6 @@
   gap: var(--space-md);
 }
 
-/* Nuevas clases para el título dentro de contact-description */
 .contact-description {
   display: flex;
   flex-direction: column;
@@ -36,7 +35,7 @@
 .contact-title {
   font-size: 2.25rem;
   font-weight: 700;
-  color: var(--pure-white); /* Blanco como el contacto-description original */
+  color: var(--pure-white);
   margin: 0;
   line-height: 1.2;
 }
@@ -46,12 +45,11 @@
   line-height: 1.6;
   opacity: 0.9;
   margin: 0;
-  color: var(--pure-white); /* Asegurar que sea blanco */
+  color: var(--pure-white);
 }
 
-/* Eliminar la regla vieja del section-title */
 .contact-info .section-title {
-  display: none; /* Ocultar si todavía existe */
+  display: none;
 }
 
 .contact-details {
@@ -73,7 +71,7 @@
 }
 
 .contact-item:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.14);
   transform: translateX(5px);
 }
 
@@ -84,7 +82,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-md);
 }
 
@@ -113,7 +111,7 @@
   padding: var(--space-xl);
   border-radius: var(--radius-xl);
   color: var(--text-dark);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 20px 40px rgba(13, 46, 46, 0.20);
 }
 
 .form {
@@ -149,7 +147,7 @@
 .form-textarea:focus {
   outline: none;
   border-color: var(--royal-blue);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(26, 74, 74, 0.12);
 }
 
 .form-textarea {
@@ -171,7 +169,7 @@
 
 .contact-form .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 8px 20px rgba(26, 74, 74, 0.30);
 }
 
 /* Responsive */
@@ -180,11 +178,11 @@
     grid-template-columns: 1fr;
     gap: var(--space-lg);
   }
-  
+
   .contact-title {
     font-size: 1.875rem;
   }
-  
+
   .contact-form {
     padding: var(--space-lg);
   }
@@ -194,28 +192,28 @@
   .contact-section {
     padding: var(--space-lg) 0;
   }
-  
+
   .contact-content {
     gap: var(--space-md);
   }
-  
+
   .contact-item {
     padding: 0.75rem var(--space-sm);
     flex-direction: row;
     text-align: left;
     gap: var(--space-sm);
   }
-  
+
   .contact-icon {
     width: 40px;
     height: 40px;
     font-size: 1.1rem;
   }
-  
+
   .contact-text strong {
     font-size: 0.9rem;
   }
-  
+
   .contact-text span {
     font-size: 0.8rem;
   }

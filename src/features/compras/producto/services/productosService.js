@@ -16,6 +16,25 @@ export const ProductoData = {
       const response = await api.get(`/productos/${id}`);
       const producto = response.data;
       
+      let categoriaNombre = '';
+      let marcaNombre = '';
+
+      try {
+        const categorias = await api.get('/categorias');
+        const categoria = categorias.data.find(c => c.id === producto.categoria_id);
+        categoriaNombre = categoria?.nombre || 'Categoría no disponible';
+      } catch (e) {
+        categoriaNombre = 'Categoría no disponible';
+      }
+
+      try {
+        const marcas = await api.get('/marcas');
+        const marca = marcas.data.find(m => m.id === producto.marca_id);
+        marcaNombre = marca?.nombre || 'Marca no disponible';
+      } catch (e) {
+        marcaNombre = 'Marca no disponible';
+      }
+      
       let imagenes = [];
       try {
         const imagenesResponse = await api.get(`/imagenes/producto/${id}`);
@@ -25,7 +44,7 @@ export const ProductoData = {
           imagenes = imagenesResponse.data;
         }
       } catch (error) {
-        // No hay imágenes
+        // Sin imágenes asociadas
       }
       
       return {
@@ -38,7 +57,9 @@ export const ProductoData = {
         stockActual: producto.stock,
         stockMinimo: producto.stock_minimo,
         categoria: producto.categoria_id?.toString(),
+        categoriaNombre: categoriaNombre,
         marca: producto.marca_id?.toString(),
+        marcaNombre: marcaNombre,
         estado: producto.estado ? 'activo' : 'inactivo',
         imagenes: imagenes
       };
@@ -65,8 +86,8 @@ export const ProductoData = {
       const response = await api.post('/productos', productoData);
       const nuevoProducto = response.data.producto;
 
-      if (data.imagenes && data.imagenes.length > 0) {
-        const imagenesPromises = data.imagenes.map(img => 
+      if (data.nuevasImagenes && data.nuevasImagenes.length > 0) {
+        const imagenesPromises = data.nuevasImagenes.map(img => 
           api.post('/imagenes', {
             url: img.url,
             producto_id: nuevoProducto.id
@@ -82,33 +103,45 @@ export const ProductoData = {
   },
 
   async updateProducto(id, data) {
+    if (!id) {
+      throw new Error('ID de producto no proporcionado');
+    }
     try {
       const productoData = {
         nombre: data.nombre,
-        codigo: data.codigo || '',
         descripcion: data.descripcion || '',
         precio_venta: Number(data.precioVenta) || 0,
         precio_compra: Number(data.precioCompra) || 0,
         stock: Number(data.stockActual) || 0,
         stock_minimo: Number(data.stockMinimo) || 0,
-        categoria_id: parseInt(data.categoria, 10),
-        marca_id: parseInt(data.marca, 10),
-        estado: data.estado === true || data.estado === 'activo' 
+        estado: data.estado === true || data.estado === 'activo'
       };
+
+      if (data.categoria !== undefined && data.categoria !== null && data.categoria !== '') {
+        productoData.categoria_id = parseInt(data.categoria, 10);
+      }
+      if (data.marca !== undefined && data.marca !== null && data.marca !== '') {
+        productoData.marca_id = parseInt(data.marca, 10);
+      }
+      
       const response = await api.put(`/productos/${id}`, productoData);
-     
+      
       if (data.nuevasImagenes && data.nuevasImagenes.length > 0) {
-        const imagenesPromises = data.nuevasImagenes.map(img => 
-          api.post('/imagenes', {
-            url: img.url,
-            producto_id: id
-          })
-        );
-        await Promise.all(imagenesPromises);
+        for (const img of data.nuevasImagenes) {
+          try {
+            await api.post('/imagenes', {
+              url: img.url,
+              producto_id: id
+            });
+          } catch (error) {
+            // Error silencioso, se continua con el siguiente
+          }
+        }
       }
       
       return response.data;
     } catch (error) {
+      console.error('Error al actualizar producto:', error);
       throw error;
     }
   },
@@ -183,12 +216,18 @@ export const ProductoData = {
   },
 
   async updateEstadoProducto(id, nuevoEstado) {
-    const payload = {
-      estado: nuevoEstado  
-    };
-    
-    const res = await api.put(`/productos/${id}`, payload);
-    return res.data;
+    if (!id) {
+      throw new Error('ID de producto no proporcionado');
+    }
+    try {
+      const res = await api.put(`/productos/${id}`, {
+        estado: nuevoEstado === true || nuevoEstado === 'activo'
+      });
+      return res.data;
+    } catch (error) {
+      console.error('Error al cambiar estado de producto:', error);
+      throw error;
+    }
   },
 
   async checkProductoExists(nombre, excludeId = null) {

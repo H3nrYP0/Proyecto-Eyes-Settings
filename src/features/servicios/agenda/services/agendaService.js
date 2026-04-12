@@ -27,14 +27,28 @@ export async function getEmpleadosAgenda() {
 }
 
 // ============================
-// OBTENER CITAS
+// OBTENER CITAS (con paginación)
 // ============================
 export async function getCitasAgenda() {
   try {
     const res = await api.get("/citas");
-    return res.data;
+    // El endpoint devuelve { data: [], total, page, per_page, total_pages }
+    return res.data.data || [];
   } catch (error) {
     console.error("Error cargando citas:", error);
+    return [];
+  }
+}
+
+// ============================
+// OBTENER NOVEDADES PARA AGENDA
+// ============================
+export async function getNovedadesAgenda() {
+  try {
+    const res = await api.get("/novedades");
+    return res.data; // array de novedades
+  } catch (error) {
+    console.error("Error cargando novedades:", error);
     return [];
   }
 }
