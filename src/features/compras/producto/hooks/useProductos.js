@@ -1,4 +1,3 @@
-// src/features/compras/pages/producto/hooks/useProductos.js
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { ProductoData } from "../services/productosService";
 import { marcasService as MarcaData } from "../../marca/services/marcasService";
@@ -23,6 +22,7 @@ export const useProductos = () => {
     id: null,
     nombre: "",
   });
+  const [isDeleting, setIsDeleting] = useState(false);
   const [notification, setNotification] = useState({
     message: '',
     type: 'success',
@@ -44,6 +44,28 @@ export const useProductos = () => {
     });
   };
 
+  const transformarProducto = (producto, marcasData, categoriasData) => {
+    const marca = marcasData.find(m => m.id === producto.marca_id);
+    const categoria = categoriasData.find(c => c.id === producto.categoria_id);
+    
+    return {
+      id: producto.id,
+      nombre: producto.nombre,
+      codigo: producto.codigo || '',
+      descripcion: producto.descripcion || '',
+      precioVenta: producto.precio_venta,
+      precioCompra: producto.precio_compra,
+      stockActual: producto.stock,
+      stockMinimo: producto.stock_minimo,
+      marca: marca?.nombre || '-',
+      categoria: categoria?.nombre || '-',
+      marca_id: producto.marca_id,
+      categoria_id: producto.categoria_id,
+      estado: producto.estado ? ESTADO_ACTIVA : ESTADO_INACTIVA,
+      imagenes: producto.imagenes || []
+    };
+  };
+
   const loadData = useCallback(async () => {
     if (initialLoadDone) return;
     
@@ -55,43 +77,11 @@ export const useProductos = () => {
         getAllCategorias()
       ]);
 
-      const productosConNombres = productosData.map(producto => {
-        const marca = marcasData.find(m => m.id === producto.marca_id);
-        const categoria = categoriasData.find(c => c.id === producto.categoria_id);
-        
-        return {
-          id: producto.id,
-          nombre: producto.nombre,
-          codigo: producto.codigo || '',
-          descripcion: producto.descripcion || '',
-          precioVenta: producto.precio_venta,
-          precioCompra: producto.precio_compra,
-          stockActual: producto.stock,
-          stockMinimo: producto.stock_minimo,
-          marca: marca?.nombre || '-',
-          categoria: categoria?.nombre || '-',
-          marca_id: producto.marca_id,
-          categoria_id: producto.categoria_id,
-          estado: producto.estado ? ESTADO_ACTIVA : ESTADO_INACTIVA,
-        };
-      });
-
-      // Cargar imágenes para cada producto
-      const productosConImagenes = await Promise.all(
-        productosConNombres.map(async (producto) => {
-          try {
-            const productoDetalle = await ProductoData.getProductoById(producto.id);
-            return {
-              ...producto,
-              imagenes: productoDetalle.imagenes || [],
-            };
-          } catch {
-            return { ...producto, imagenes: [] };
-          }
-        })
+      const productosTransformados = productosData.map(producto => 
+        transformarProducto(producto, marcasData, categoriasData)
       );
 
-      const productosOrdenados = ordenarProductos(productosConImagenes);
+      const productosOrdenados = ordenarProductos(productosTransformados);
 
       setProductos(productosOrdenados);
       setMarcas(marcasData.filter(m => m.estado === true));
@@ -115,43 +105,11 @@ export const useProductos = () => {
         getAllCategorias()
       ]);
 
-      const productosConNombres = productosData.map(producto => {
-        const marca = marcasData.find(m => m.id === producto.marca_id);
-        const categoria = categoriasData.find(c => c.id === producto.categoria_id);
-        
-        return {
-          id: producto.id,
-          nombre: producto.nombre,
-          codigo: producto.codigo || '',
-          descripcion: producto.descripcion || '',
-          precioVenta: producto.precio_venta,
-          precioCompra: producto.precio_compra,
-          stockActual: producto.stock,
-          stockMinimo: producto.stock_minimo,
-          marca: marca?.nombre || '-',
-          categoria: categoria?.nombre || '-',
-          marca_id: producto.marca_id,
-          categoria_id: producto.categoria_id,
-          estado: producto.estado ? ESTADO_ACTIVA : ESTADO_INACTIVA,
-        };
-      });
-
-      // Cargar imágenes para cada producto
-      const productosConImagenes = await Promise.all(
-        productosConNombres.map(async (producto) => {
-          try {
-            const productoDetalle = await ProductoData.getProductoById(producto.id);
-            return {
-              ...producto,
-              imagenes: productoDetalle.imagenes || [],
-            };
-          } catch {
-            return { ...producto, imagenes: [] };
-          }
-        })
+      const productosTransformados = productosData.map(producto => 
+        transformarProducto(producto, marcasData, categoriasData)
       );
 
-      const productosOrdenados = ordenarProductos(productosConImagenes);
+      const productosOrdenados = ordenarProductos(productosTransformados);
 
       setProductos(productosOrdenados);
       setMarcas(marcasData.filter(m => m.estado === true));
@@ -170,6 +128,9 @@ export const useProductos = () => {
   }, []);
 
   const confirmDelete = useCallback(async () => {
+    if (isDeleting) return;
+    setIsDeleting(true);
+
     try {
       const { tieneAsociaciones, detalles } = await ProductoData.hasProductoAsociaciones(modalDelete.id);
       
@@ -204,8 +165,10 @@ export const useProductos = () => {
       
       showNotification(errorMessage, "error");
       setModalDelete({ open: false, id: null, nombre: "" });
+    } finally {
+      setIsDeleting(false);
     }
-  }, [modalDelete.id, modalDelete.nombre, showNotification, refreshData]);
+  }, [modalDelete.id, modalDelete.nombre, showNotification, refreshData, isDeleting]);
 
   const handleCancelDelete = useCallback(() => {
     setModalDelete({ open: false, id: null, nombre: "" });
@@ -298,6 +261,7 @@ export const useProductos = () => {
     confirmDelete,
     handleCancelDelete,
     handleDelete,
-    refreshData
+    refreshData,
+    isDeleting
   };
 };

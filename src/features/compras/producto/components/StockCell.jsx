@@ -1,6 +1,6 @@
-import { Chip, Box, Tooltip } from "@mui/material";
+// src/features/compras/pages/producto/components/StockCell.jsx
+import { Box, Tooltip } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { ImageGallery } from "./ImageGallery";
 
 const getStatusColor = (statusType) => {
   switch (statusType) {
@@ -32,13 +32,9 @@ const StockNumber = styled(Box)(({ status }) => {
 });
 
 const getStockStatus = (stockActual, stockMinimo) => {
-  if (stockActual <= 0) {
-    return { status: 'out', label: 'Agotado' };
-  }
-  if (stockActual <= stockMinimo) {
-    return { status: 'low', label: 'Bajo stock' };
-  }
-  return { status: 'optimal', label: '' };
+  if (stockActual <= 0) return { status: 'out' };
+  if (stockActual <= stockMinimo) return { status: 'low' };
+  return { status: 'optimal' };
 };
 
 const getStatusMessage = (status, stockActual, stockMinimo) => {
@@ -46,44 +42,22 @@ const getStatusMessage = (status, stockActual, stockMinimo) => {
     case 'out':
       return 'Producto agotado. No hay unidades disponibles.';
     case 'low':
-      return `Stock bajo: ${stockActual} unidad(es) restante(s). El mínimo recomendado es ${stockMinimo}.`;
-    case 'optimal':
-      return `Stock óptimo: ${stockActual} unidad(es) disponible(s).`;
+      return `Stock bajo: ${stockActual} unidad(es) restante(s). Mínimo recomendado: ${stockMinimo}.`;
     default:
-      return `Stock actual: ${stockActual} unidades`;
+      return `Stock óptimo: ${stockActual} unidad(es) disponible(s).`;
   }
 };
 
 export default function StockCell({ item }) {
-  const { stockActual, stockMinimo, imagenes = [] } = item;
-  const { status, label } = getStockStatus(stockActual, stockMinimo);
+  const { stockActual, stockMinimo } = item;
+  const { status } = getStockStatus(stockActual, stockMinimo);
   const message = getStatusMessage(status, stockActual, stockMinimo);
-  const colors = getStatusColor(status);
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center' }}>
       <Tooltip title={message} arrow placement="top">
-        <StockNumber status={status}>
-          {stockActual}
-        </StockNumber>
+        <StockNumber status={status}>{stockActual}</StockNumber>
       </Tooltip>
-
-      {status !== 'optimal' && (
-        <Chip
-          label={label}
-          size="small"
-          sx={{
-            backgroundColor: colors.bg,
-            color: colors.text,
-            fontWeight: 500,
-            fontSize: '0.7rem',
-            height: '22px',
-            '& .MuiChip-label': { px: 1, py: 0.5 },
-          }}
-        />
-      )}
-
-      <ImageGallery images={imagenes} size="small" />
     </Box>
   );
 }

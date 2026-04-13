@@ -1,86 +1,84 @@
 // features/servicios/campanaSalud/hooks/useCampanasSalud.js
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   getAllCampanasSalud,
   deleteCampanaSalud,
-  updateCampanaSalud
+  updateCampanaSalud,
 } from '../services/campanasSaludService';
-import {
-  ESTADO_CITA,
-  ESTADO_CITA_LABELS,
-  ESTADO_CITA_COLORS,
-  ESTADOS_BLOQUEADOS
-} from '../utils/constants';
+import { getEstadosCita } from '../services/estadosCitaCampanaService';
+import { ESTADOS_BLOQUEADOS, ESTADO_CITA } from '../utils/constants';
+import { formatearFechaLocal, horaA12 } from '../utils/campanasSaludUtils';
 
 export const useCampanasSalud = () => {
   const [campanas, setCampanas] = useState([]);
+  const [estadosCita, setEstadosCita] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // ─── Notificación CRUD ────────────────────────────────────────────────────────
   const [notification, setNotification] = useState({
     open: false,
     type: 'success',
-    message: ''
+    message: '',
   });
+  const isMounted = useRef(true);
+  const estadosCitaRef = useRef([]);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const timeoutRef = useRef(null);
 
   const showNotification = (type, message) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
     setNotification({ open: true, type, message });
+    timeoutRef.current = setTimeout(() => {
+      if (isMounted.current) {
+        setNotification((prev) => ({ ...prev, open: false }));
+      }
+      timeoutRef.current = null;
+    }, 5000);
   };
 
   const hideNotification = () => {
-    setNotification(prev => ({ ...prev, open: false }));
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    setNotification((prev) => ({ ...prev, open: false }));
   };
 
-  // ─── Estado automático por fecha ─────────────────────────────────────────────
-  const calcularEstadoAutomatico = (campana) => {
-    if (campana.estado_cita_id === ESTADO_CITA.CANCELADA) return campana.estado_cita_id;
-    if (campana.estado_cita_id === ESTADO_CITA.COMPLETADA) return campana.estado_cita_id;
-
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-    const fechaCampana = new Date(campana.fecha);
-    fechaCampana.setHours(0, 0, 0, 0);
-
-    if (fechaCampana < hoy) return ESTADO_CITA.COMPLETADA;
-    return campana.estado_cita_id;
-  };
-
-  const actualizarEstadosAutomaticamente = async (campanasData) => {
-    let huboCambios = false;
-    for (const campana of campanasData) {
-      const nuevoEstado = calcularEstadoAutomatico(campana);
-      if (nuevoEstado !== campana.estado_cita_id) {
-        try {
-          await updateCampanaSalud(campana.id, { estado_cita_id: nuevoEstado });
-          huboCambios = true;
-        } catch (err) {
-          console.error(`Error actualizando campaña ${campana.id}:`, err);
+  useEffect(() => {
+    isMounted.current = true;
+    const fetchEstados = async () => {
+      try {
+        const data = await getEstadosCita();
+        if (isMounted.current) {
+          setEstadosCita(data);
+          estadosCitaRef.current = data;
+        }
+      } catch (err) {
+        if (isMounted.current) {
+          setError('Error al cargar los estados de cita');
         }
       }
-    }
-    return huboCambios;
-  };
+    };
+    fetchEstados();
+    return () => {
+      isMounted.current = false;
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
-  // ─── Transform ────────────────────────────────────────────────────────────────
-  const horaA12 = (hora) => {
-    if (!hora || hora === '-') return hora || '-';
-    const partes = hora.split(':');
-    let h = parseInt(partes[0], 10);
-    const m = partes[1] ? partes[1].substring(0, 2) : '00';
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    h = h % 12 || 12;
-    return `${h}:${m} ${ampm}`;
-  };
-
-  const transformCampana = (campana) => {
+  const transformCampana = useCallback((campana) => {
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
     const fechaCampana = new Date(campana.fecha);
     fechaCampana.setHours(0, 0, 0, 0);
 
+    const estadoObj = estadosCitaRef.current.find((e) => e.id === campana.estado_cita_id);
+    const estadoNombre = estadoObj?.nombre || 'Pendiente';
     const bloqueada = ESTADOS_BLOQUEADOS.includes(campana.estado_cita_id);
+    const todosLosEstados = estadosCitaRef.current.map((e) => e.nombre);
 
     return {
       id: campana.id,
@@ -89,64 +87,110 @@ export const useCampanasSalud = () => {
       empresa: campana.empresa,
       contacto: campana.contacto || '-',
       fecha: campana.fecha,
-      fechaFormateada: campana.fecha
-        ? new Date(campana.fecha + 'T00:00:00').toLocaleDateString('es-CO', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-          })
-        : '-',
+      fechaFormateada: formatearFechaLocal(campana.fecha),
       fechaObj: fechaCampana,
       hora: campana.hora ? horaA12(campana.hora) : '-',
       horaRaw: campana.hora || '',
       direccion: campana.direccion || '-',
       observaciones: campana.observaciones || '-',
       estado_cita_id: campana.estado_cita_id,
-      estado_nombre: campana.estado_nombre || ESTADO_CITA_LABELS[campana.estado_cita_id] || 'Pendiente',
-      estado_color: ESTADO_CITA_COLORS[campana.estado_cita_id] || 'default',
-      esFechaPasada: fechaCampana < hoy,
+      estado: estadoNombre,
+      estadosDisponibles: todosLosEstados,
       esEditable: !bloqueada,
-      esEliminable: !bloqueada
+      esEliminable: !bloqueada,
     };
-  };
-
-  // ─── Carga ────────────────────────────────────────────────────────────────────
-  const loadCampanas = useCallback(async () => {
-    try {
-      setLoading(true);
-      let data = await getAllCampanasSalud();
-      const huboCambios = await actualizarEstadosAutomaticamente(data);
-      if (huboCambios) data = await getAllCampanasSalud();
-      setCampanas(data.map(transformCampana));
-      setError(null);
-    } catch (err) {
-      console.error('Error loading campanas:', err);
-      setError(err.response?.data?.error || 'Error al cargar las campañas');
-    } finally {
-      setLoading(false);
-    }
   }, []);
 
-  useEffect(() => {
-    loadCampanas();
-    const intervalo = setInterval(loadCampanas, 60 * 60 * 1000);
-    return () => clearInterval(intervalo);
-  }, [loadCampanas]);
+  const loadCampanas = useCallback(async (skipAutoUpdate = false) => {
+    if (!isMounted.current) return;
+    setLoading(true);
+    setError(null);
+    try {
+      let data = await getAllCampanasSalud();
 
-  // ─── Cambio de estado desde el listado ───────────────────────────────────────
-  const handleCambioEstado = async (campana, nuevoEstadoId) => {
+      if (!skipAutoUpdate && !isInitialLoad) {
+        const promises = [];
+        const estadosActuales = estadosCitaRef.current;
+        for (const campana of data) {
+          if (campana.estado_cita_id === ESTADOS_BLOQUEADOS[0] || campana.estado_cita_id === ESTADOS_BLOQUEADOS[1]) continue;
+          const hoy = new Date();
+          hoy.setHours(0, 0, 0, 0);
+          const fechaCampana = new Date(campana.fecha);
+          fechaCampana.setHours(0, 0, 0, 0);
+          if (fechaCampana < hoy) {
+            const completada = estadosActuales.find((e) => e.nombre.toLowerCase() === 'completada');
+            const nuevoId = completada ? completada.id : ESTADO_CITA.COMPLETADA;
+            if (nuevoId !== campana.estado_cita_id) {
+              promises.push(updateCampanaSalud(campana.id, { estado_cita_id: nuevoId }));
+            }
+          }
+        }
+        if (promises.length) {
+          await Promise.all(promises);
+          data = await getAllCampanasSalud();
+        }
+      }
+
+      if (isMounted.current) {
+        setCampanas(data.map(transformCampana));
+        if (isInitialLoad) setIsInitialLoad(false);
+      }
+    } catch (err) {
+      if (isMounted.current) {
+        setError(err.response?.data?.error || 'Error al cargar las campañas');
+      }
+    } finally {
+      if (isMounted.current) {
+        setLoading(false);
+      }
+    }
+  }, [transformCampana, isInitialLoad]);
+
+  useEffect(() => {
+    if (estadosCita.length > 0) {
+      loadCampanas(true);
+    }
+  }, [estadosCita, loadCampanas]);
+
+  useEffect(() => {
+    if (estadosCita.length === 0) return;
+    const intervalo = setInterval(() => {
+      loadCampanas();
+    }, 60 * 60 * 1000);
+    return () => clearInterval(intervalo);
+  }, [estadosCita, loadCampanas]);
+
+  const handleCambioEstado = async (param1, param2) => {
+    let campana, nuevoEstadoNombre;
+    if (typeof param1 === 'object' && param1.id) {
+      campana = param1;
+      nuevoEstadoNombre = param2;
+    } else {
+      const id = param1;
+      campana = campanas.find(c => c.id === id);
+      nuevoEstadoNombre = param2;
+    }
+    if (!campana) {
+      showNotification('error', 'Campaña no encontrada');
+      return { success: false };
+    }
+
+    const estadoSeleccionado = estadosCitaRef.current.find((e) => e.nombre === nuevoEstadoNombre);
+    if (!estadoSeleccionado) {
+      showNotification('error', 'Estado no válido');
+      return { success: false };
+    }
+
     if (ESTADOS_BLOQUEADOS.includes(campana.estado_cita_id)) {
-      const nombreEstado = ESTADO_CITA_LABELS[campana.estado_cita_id] || 'este estado';
       showNotification(
         'warning',
-        `No se puede cambiar el estado: la campaña "${campana.empresa}" está ${nombreEstado.toLowerCase()} y no admite modificaciones.`
+        `No se puede cambiar el estado: la campaña "${campana.empresa}" está ${campana.estado.toLowerCase()} y no admite modificaciones.`
       );
       return { success: false };
     }
+
     try {
-      await updateCampanaSalud(campana.id, {
-        estado_cita_id: parseInt(nuevoEstadoId, 10)
-      });
+      await updateCampanaSalud(campana.id, { estado_cita_id: estadoSeleccionado.id });
       await loadCampanas();
       showNotification('success', `Estado de la campaña "${campana.empresa}" actualizado correctamente`);
       return { success: true };
@@ -157,14 +201,12 @@ export const useCampanasSalud = () => {
     }
   };
 
-  // ─── Eliminar ─────────────────────────────────────────────────────────────────
   const handleDelete = async (id) => {
-    const campana = campanas.find(c => c.id === id);
+    const campana = campanas.find((c) => c.id === id);
     if (campana && ESTADOS_BLOQUEADOS.includes(campana.estado_cita_id)) {
-      const nombreEstado = ESTADO_CITA_LABELS[campana.estado_cita_id] || 'este estado';
       showNotification(
         'warning',
-        `No se puede eliminar la campaña "${campana.empresa}": está ${nombreEstado.toLowerCase()} y no admite eliminación.`
+        `No se puede eliminar la campaña "${campana.empresa}": está ${campana.estado.toLowerCase()} y no admite eliminación.`
       );
       return { success: false };
     }
@@ -185,9 +227,9 @@ export const useCampanasSalud = () => {
     loading,
     error,
     notification,
-    loadCampanas,
     handleDelete,
     handleCambioEstado,
-    hideNotification
+    hideNotification,
+    showNotification,
   };
 };

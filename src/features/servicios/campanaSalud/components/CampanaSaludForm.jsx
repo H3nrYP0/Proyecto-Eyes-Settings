@@ -24,7 +24,7 @@ const CampanaSaludForm = ({
   handleSubmit,
   handleCancel,
   handleEdit,
-  hideNotification
+  hideNotification,
 }) => {
   if (loading) {
     return (
@@ -36,32 +36,29 @@ const CampanaSaludForm = ({
 
   const isDisabled = isView;
 
-  // Opciones de hora: si hay horarios disponibles, usar el select; si no, informar
   const opcionesHora =
     horasDisponibles.length > 0
       ? [
           { value: '', label: '-- Seleccione una hora --' },
-          ...horasDisponibles.map(slot => ({
+          ...horasDisponibles.map((slot) => ({
             value: slot.value,
-            label: slot.label // ya viene en AM/PM
-          }))
+            label: slot.label,
+          })),
         ]
       : formData.empleado_id && formData.fecha
       ? [{ value: '', label: 'Sin horario disponible para este día' }]
       : [{ value: '', label: '-- Seleccione empleado y fecha primero --' }];
 
-  // Opciones de estado desde la BD (excluyendo el placeholder vacío si es edición/vista)
-  const opcionesEstado = estadosCita.map(e => ({
+  const opcionesEstado = estadosCita.map((e) => ({
     value: e.id,
-    label: e.nombre
+    label: e.nombre,
   }));
 
   return (
     <>
-      {/* Notificación CRUD */}
       {notification && (
         <CrudNotification
-          open={notification.open}
+          isVisible={notification.open}
           type={notification.type}
           message={notification.message}
           onClose={hideNotification}
@@ -84,7 +81,6 @@ const CampanaSaludForm = ({
         )}
 
         <BaseFormSection>
-          {/* Empresa */}
           <BaseFormField>
             <BaseInputField
               label="Empresa"
@@ -96,7 +92,6 @@ const CampanaSaludForm = ({
             />
           </BaseFormField>
 
-          {/* Empleado Responsable */}
           <BaseFormField>
             <BaseInputField
               label="Empleado Responsable"
@@ -108,15 +103,14 @@ const CampanaSaludForm = ({
               required
               options={[
                 { value: '', label: '-- Seleccione un empleado --' },
-                ...empleados.map(emp => ({
+                ...empleados.map((emp) => ({
                   value: emp.id,
-                  label: `${emp.nombre}${emp.cargo ? ` - ${emp.cargo}` : ''}`
-                }))
+                  label: `${emp.nombre}${emp.cargo ? ` - ${emp.cargo}` : ''}`,
+                })),
               ]}
             />
           </BaseFormField>
 
-          {/* Fecha */}
           <BaseFormField>
             <BaseInputField
               label="Fecha"
@@ -129,7 +123,6 @@ const CampanaSaludForm = ({
             />
           </BaseFormField>
 
-          {/* Hora — select con slots AM/PM según horario del empleado */}
           <BaseFormField>
             <BaseInputField
               label="Hora"
@@ -152,7 +145,6 @@ const CampanaSaludForm = ({
             />
           </BaseFormField>
 
-          {/* Contacto */}
           <BaseFormField>
             <BaseInputField
               label="Contacto"
@@ -167,7 +159,6 @@ const CampanaSaludForm = ({
             />
           </BaseFormField>
 
-          {/* Dirección */}
           <BaseFormField>
             <BaseInputField
               label="Dirección"
@@ -178,7 +169,6 @@ const CampanaSaludForm = ({
             />
           </BaseFormField>
 
-          {/* Estado de la Cita — solo en edición/vista, cargado dinámicamente */}
           {(isEdit || isView) && opcionesEstado.length > 0 && (
             <BaseFormField>
               <BaseInputField
@@ -193,7 +183,6 @@ const CampanaSaludForm = ({
             </BaseFormField>
           )}
 
-          {/* Observaciones */}
           <BaseFormField fullWidth>
             <BaseInputField
               label="Observaciones"
@@ -215,7 +204,7 @@ const CampanaSaludForm = ({
           onEdit={handleEdit}
           showSave={!isView}
           showEdit={isView}
-          saveLabel={saving ? 'Guardando...' : isEdit ? 'Actualizar' : 'Crear'}
+          saveLabel={saving ? 'Guardando...' : isEdit ? 'Guardar' : 'Guardar'}
           disabled={saving}
         />
       </BaseFormLayout>

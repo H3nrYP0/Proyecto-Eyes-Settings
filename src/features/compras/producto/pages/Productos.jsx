@@ -9,6 +9,7 @@ import CrudNotification from "../../../../shared/styles/components/notifications
 import Loading from "../../../../shared/components/ui/Loading/Loading";
 import { useProductos } from "../hooks/useProductos";
 import StockCell from "../components/StockCell";
+import { ImageGallery } from "../components/ImageGallery";
 import { formatCOP } from "../../../../shared/utils/formatCOP";
 
 export default function Productos() {
@@ -68,6 +69,10 @@ export default function Productos() {
       field: "stockActual",
       header: "Stock",
       render: (item) => <StockCell item={item} />,
+    },
+    {
+      header: "Imágenes",
+      render: (item) => <ImageGallery images={item.imagenes} size="small" showAsButton />,
     },
   ];
 

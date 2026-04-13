@@ -10,23 +10,18 @@ export const UploadData = {
     try {
       const response = await axios.post(
         'https://api.cloudinary.com/v1_1/dgcayso7n/image/upload',
-        formData
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
       );
       return response.data.secure_url;
     } catch (error) {
-      console.error('Error al subir imagen:', error);
-      throw error;
+      console.error('Cloudinary error:', error.response?.data || error.message);
+      throw new Error(error.response?.data?.error?.message || 'Error subiendo imagen');
     }
   },
 
   async uploadMultipleImages(files) {
-    try {
-      const uploadPromises = files.map(file => this.uploadImage(file));
-      const urls = await Promise.all(uploadPromises);
-      return urls;
-    } catch (error) {
-      console.error('Error al subir imágenes:', error);
-      throw error;
-    }
+    const uploadPromises = files.map(file => this.uploadImage(file));
+    return Promise.all(uploadPromises);
   }
 };
