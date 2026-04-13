@@ -1,4 +1,3 @@
-// lib/axios.js - YA ESTÁ CORRECTO
 import axios from "axios";
 
 const api = axios.create({
