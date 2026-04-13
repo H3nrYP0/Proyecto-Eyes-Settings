@@ -1,84 +1,50 @@
 import { useState, useEffect, useCallback } from "react";
 import { ventasService } from "../services/ventasService";
-import { formatCurrency, ESTADOS_VENTA } from "../utils/ventasUtils";
+import { formatCurrency, COLORES_ESTADO_VENTA, getEstadoLabelVenta } from "../utils/ventasUtils";
 
 export function useVentas() {
-  const [ventas, setVentas] = useState([]);
-  const [search, setSearch] = useState("");
+  const [ventas,       setVentas]       = useState([]);
+  const [search,       setSearch]       = useState("");
   const [filterEstado, setFilterEstado] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [modalDelete, setModalDelete] = useState({
-    open: false,
-    id: null,
-    cliente: "",
-  });
+  const [loading,      setLoading]      = useState(true);
 
   const cargarVentas = useCallback(async () => {
     try {
       setLoading(true);
       const data = await ventasService.getAllVentas();
-      setVentas(data);
-      setError(null);
+      setVentas(data ?? []);
     } catch (err) {
       console.error("Error cargando ventas:", err);
-      setError("No se pudieron cargar las ventas");
+      setVentas([]);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const eliminarVenta = useCallback(async (id, cliente) => {
-    setModalDelete({ open: true, id, cliente });
-  }, []);
+  useEffect(() => { cargarVentas(); }, [cargarVentas]);
 
-  const confirmDelete = useCallback(async () => {
-    try {
-      await ventasService.deleteVenta(modalDelete.id);
-      await cargarVentas();
-      setModalDelete({ open: false, id: null, cliente: "" });
-    } catch (error) {
-      const msg = error?.response?.data?.error || "No se pudo eliminar la venta";
-      alert(`❌ ${msg}`);
-      setModalDelete({ open: false, id: null, cliente: "" });
-    }
-  }, [modalDelete.id, cargarVentas]);
-
-  const closeDeleteModal = useCallback(() => {
-    setModalDelete({ open: false, id: null, cliente: "" });
-  }, []);
-
-  const filteredVentas = ventas.filter((venta) => {
-    const term = search.toLowerCase();
-    const matchesSearch =
-      (venta.cliente_nombre || "").toLowerCase().includes(term) ||
-      (venta.id?.toString() || "").includes(term);
-    const matchesEstado = !filterEstado || venta.estado === filterEstado;
+  const filteredVentas = ventas.filter((v) => {
+    const matchesSearch = (v.cliente_nombre || "")
+      .toLowerCase().includes(search.toLowerCase());
+    const matchesEstado = !filterEstado || v.estado === filterEstado;
     return matchesSearch && matchesEstado;
   });
 
   const estadoFilters = [
-    { value: "", label: "Todos los estados" },
-    ...ESTADOS_VENTA.map(e => ({ value: e.value, label: e.label })),
+    { value: "",               label: "Todos los estados" },
+    { value: "completada",     label: "Completada" },
+    { value: "anulada",        label: "Anulada" },
+    { value: "pendiente_pago", label: "Pendiente de pago" },
   ];
-
-  // ❌ Eliminamos columns y tableActions del hook
 
   return {
     ventas: filteredVentas,
     loading,
-    error,
-    search,
-    setSearch,
-    filterEstado,
-    setFilterEstado,
+    search, setSearch,
+    filterEstado, setFilterEstado,
     estadoFilters,
-    modalDelete,
-    confirmDelete,
-    closeDeleteModal,
     formatCurrency,
-    eliminarVenta,        // <-- para la acción eliminar
-    // También exponemos ESTADOS_VENTA y getEstadoBadge si la página los necesita
-    ESTADOS_VENTA,
+    COLORES_ESTADO_VENTA,
+    getEstadoLabelVenta,
   };
 }
