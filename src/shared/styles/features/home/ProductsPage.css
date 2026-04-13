@@ -153,7 +153,7 @@
    NO hay trigger por hover — pointer-events correctos en ambas caras.
 ════════════════════════════════════════ */
 .product-card-flip-wrapper {
-  height: 220px;
+  height: 270px;
   animation: cardIn 0.38s ease both;
 }
 
@@ -231,7 +231,7 @@
 /* Imagen — ocupa una parte proporcional, SIN badge encima */
 .product-image {
   width: 100%;
-  height: 88px;           /* altura fija proporcional */
+  height: 110px;           /* altura fija proporcional */
   background: linear-gradient(135deg, var(--soft-gray), var(--medium-gray));
   border-radius: 0.75rem;
   display: flex;
@@ -269,15 +269,15 @@
 }
 
 .product-name {
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 700;
   color: var(--text-dark);
-  line-height: 1.3;
+  line-height: 1.35;
   margin: 0;
-  /* Hasta 2 líneas */
+  /* Hasta 3 líneas */
   display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -556,7 +556,7 @@
   .products-hero .hero-title { font-size: 2.3rem; }
   .section-title { font-size: 1.9rem; }
   .products-grid { grid-template-columns: 1fr 1fr; gap: 1rem; }
-  .product-card-flip-wrapper { height: 210px; }
+  .product-card-flip-wrapper { height: 260px; }
   .products-cta .cta-content { flex-direction: column; text-align: center; }
   .cta-actions { justify-content: center; }
   .products-cta { padding: 1.5rem; }
@@ -567,5 +567,5 @@
   .products-hero .hero-title { font-size: 2rem; }
   .section-title { font-size: 1.7rem; }
   .products-container { padding: 0 1rem; }
-  .product-card-flip-wrapper { height: 205px; }
+  .product-card-flip-wrapper { height: 255px; }
 }
