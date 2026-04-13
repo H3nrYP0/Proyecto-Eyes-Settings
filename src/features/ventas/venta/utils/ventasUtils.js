@@ -1,28 +1,17 @@
-// ============================
-// Constantes
-// ============================
-export const ESTADOS_VENTA = [
-  { value: "completada", label: "Completada" },
-  { value: "anulada", label: "Anulada" },
-  { value: "pendiente_pago", label: "Pendiente de Pago" },
-];
-
-export const METODOS_PAGO = ["efectivo", "tarjeta", "transferencia"];
-export const METODOS_ENTREGA = ["tienda", "domicilio"];
-
-// ============================
-// Formato de moneda
-// ============================
-export const formatCurrency = (amount) => `$${(amount || 0).toLocaleString("es-CO")}`;
-
-// ============================
-// Estado badge
-// ============================
-export const getEstadoBadge = (estado) => {
-  const badges = {
-    completada: "success",
-    anulada: "error",
-    pendiente_pago: "warning",
-  };
-  return badges[estado] || "default";
+export const COLORES_ESTADO_VENTA = {
+  completada:    { bg: "#dcfce7", color: "#166534" },
+  anulada:       { bg: "#fee2e2", color: "#991b1b" },
+  pendiente_pago: { bg: "#fef3c7", color: "#92400e" },
 };
+
+export const getEstadoLabelVenta = (estado) => {
+  const labels = {
+    completada:     "Completada",
+    anulada:        "Anulada",
+    pendiente_pago: "Pendiente de pago",
+  };
+  return labels[estado] ?? estado;
+};
+
+export const formatCurrency = (amount) =>
+  `$${(amount || 0).toLocaleString("es-CO")}`;

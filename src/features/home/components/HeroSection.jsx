@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import "/src/shared/styles/features/home/HeroSection.css";
 
-// Importar las imágenes directamente
 import gafasImage from "../../../../public/imagenes/carousel/gafas.jpg";
 import contacteyesImage from "../../../../public/imagenes/carousel/contacteyes.jpg";
 import menglasesImage from "../../../../public/imagenes/carousel/menglases.jpg";
@@ -10,17 +9,16 @@ import menglasesImage from "../../../../public/imagenes/carousel/menglases.jpg";
 const HeroSection = ({ onGetStarted, user }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Imágenes del carrusel IMPORTADAS DIRECTAMENTE
   const carouselImages = [
-    gafasImage,        // Imagen 1 - Dashboard
-    contacteyesImage,  // Imagen 2 - Gestión de clientes
-    menglasesImage,    // Imagen 3 - Control de inventario
+    gafasImage,
+    contacteyesImage,
+    menglasesImage,
   ];
 
   const carouselTexts = [
     "Dashboard intuitivo con métricas en tiempo real",
-    "Gestión completa de historial de clientes", 
-    "Control automatizado de inventario"
+    "Gestión completa de historial de clientes",
+    "Control automatizado de inventario",
   ];
 
   useEffect(() => {
@@ -32,15 +30,14 @@ const HeroSection = ({ onGetStarted, user }) => {
 
   return (
     <section className="hero-section">
-      {/* Carrusel de fondo CON IMG EN LUGAR DE BACKGROUND-IMAGE */}
       <div className="hero-carousel">
         {carouselImages.map((image, index) => (
           <div
             key={index}
-            className={`carousel-slide ${index === currentSlide ? 'active' : ''}`}
+            className={`carousel-slide ${index === currentSlide ? "active" : ""}`}
           >
-            <img 
-              src={image} 
+            <img
+              src={image}
               alt={`Slide ${index + 1}`}
               className="slide-image"
               style={{ opacity: index === currentSlide ? 1 : 0 }}
@@ -48,13 +45,12 @@ const HeroSection = ({ onGetStarted, user }) => {
             <div className="slide-overlay"></div>
           </div>
         ))}
-        
-        {/* Indicadores */}
+
         <div className="carousel-indicators">
           {carouselImages.map((_, index) => (
             <button
               key={index}
-              className={`indicator ${index === currentSlide ? 'active' : ''}`}
+              className={`indicator ${index === currentSlide ? "active" : ""}`}
               onClick={() => setCurrentSlide(index)}
             />
           ))}
@@ -65,15 +61,24 @@ const HeroSection = ({ onGetStarted, user }) => {
         <div className="hero-content">
           <h1 className="hero-title">
             Calidad Y
-            <span className="blue-gradient-text"> Responsabilidad</span> 
+            {/* ── CAMBIO: inline style para que no dependa de ningún CSS externo ── */}
+            <span style={{
+              background: "linear-gradient(135deg, #a8dada 0%, #d0eeee 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+              display: "inline",
+            }}>
+              {" "}Responsabilidad
+            </span>
             <br />A Precio Justo
           </h1>
-          
+
           <p className="hero-description">
             {carouselTexts[currentSlide]}
           </p>
         </div>
-        
+
         <div className="hero-visual">
           <div className="dashboard-preview">
             <div className="preview-header">
@@ -85,11 +90,11 @@ const HeroSection = ({ onGetStarted, user }) => {
             </div>
             <div className="preview-content">
               <div className="preview-chart">
-                <div className="chart-bar" style={{height: '60%'}}></div>
-                <div className="chart-bar" style={{height: '80%'}}></div>
-                <div className="chart-bar" style={{height: '45%'}}></div>
-                <div className="chart-bar" style={{height: '90%'}}></div>
-                <div className="chart-bar" style={{height: '70%'}}></div>
+                <div className="chart-bar" style={{ height: "60%" }}></div>
+                <div className="chart-bar" style={{ height: "80%" }}></div>
+                <div className="chart-bar" style={{ height: "45%" }}></div>
+                <div className="chart-bar" style={{ height: "90%" }}></div>
+                <div className="chart-bar" style={{ height: "70%" }}></div>
               </div>
               <div className="preview-metrics">
                 <div className="metric-card"></div>
@@ -100,8 +105,7 @@ const HeroSection = ({ onGetStarted, user }) => {
           </div>
         </div>
       </div>
-      
-      {/* Elementos decorativos flotantes */}
+
       <div className="hero-background">
         <div className="floating-shape shape-1"></div>
         <div className="floating-shape shape-2"></div>
@@ -110,8 +114,7 @@ const HeroSection = ({ onGetStarted, user }) => {
         <div className="floating-shape shape-5"></div>
         <div className="floating-shape shape-6"></div>
       </div>
-      
-      {/* Ola animada */}
+
       <div className="wave-animation"></div>
     </section>
   );

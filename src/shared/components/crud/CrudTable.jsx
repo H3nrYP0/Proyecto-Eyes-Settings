@@ -25,6 +25,7 @@ export default function UnifiedCrudTable({
   loading = false,
   emptyMessage = "No hay registros.",
   onChangeStatus,
+  showStatusColumn = true,
   // Nuevas props para paginación externa (opcionales)
   totalCount = null,
   page = 0,
@@ -172,9 +173,11 @@ export default function UnifiedCrudTable({
                     {col.header}
                   </TableCell>
                 ))}
-                <TableCell align="center" sx={{ whiteSpace: "nowrap", fontWeight: 600 }}>
-                  Estado
-                </TableCell>
+                {showStatusColumn && (
+                  <TableCell align="center" sx={{ whiteSpace: "nowrap", fontWeight: 600 }}>
+                    Estado
+                  </TableCell>
+                )}
                 {hasActions && (
                   <TableCell align="center" sx={{ whiteSpace: "nowrap", fontWeight: 600 }}>
                     Acciones
@@ -207,22 +210,24 @@ export default function UnifiedCrudTable({
                       </TableCell>
                     ))}
 
-                    <TableCell align="center">
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        color={getStatusColor(row.estado)}
-                        onClick={(e) => handleStatusClick(e, row)}
-                        sx={{
-                          textTransform: "capitalize",
-                          minWidth: 85,
-                          fontSize: "0.75rem",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {row.estado}
-                      </Button>
-                    </TableCell>
+                    {showStatusColumn && (
+                      <TableCell align="center">
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color={getStatusColor(row.estado)}
+                          onClick={(e) => handleStatusClick(e, row)}
+                          sx={{
+                            textTransform: "capitalize",
+                            minWidth: 85,
+                            fontSize: "0.75rem",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {row.estado}
+                        </Button>
+                      </TableCell>
+                    )}
 
                     {hasActions && (
                       <TableCell align="center">

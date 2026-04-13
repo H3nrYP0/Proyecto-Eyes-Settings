@@ -10,7 +10,6 @@ const FooterCompact = () => {
         <div className="footer-content">
           <div className="footer-brand">
             <div className="footer-logo">
-              <span className="logo-icon">👁️</span>
               <span className="logo-text">Visual Outlet</span>
             </div>
             <p className="footer-description">

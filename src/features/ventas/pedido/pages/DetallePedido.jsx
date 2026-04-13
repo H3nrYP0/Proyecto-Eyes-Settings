@@ -22,7 +22,7 @@ export default function DetallePedido() {
   return (
     <PedidoForm
       mode="view"
-      title={`Detalle del Pedido #${pedido.id}`}
+      title="Detalle del Pedido"
       initialData={pedido}
       onCancel={() => navigate(-1)}
     />
