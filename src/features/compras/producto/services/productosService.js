@@ -68,26 +68,37 @@ export const ProductoData = {
     }
   },
 
-  async createProducto(data) {
+async createProducto(data) {
     try {
+      // Validar que los IDs sean números enteros
+      const categoria_id = data.categoria ? parseInt(data.categoria, 10) : null;
+      const marca_id = data.marca ? parseInt(data.marca, 10) : null;
+
+      if (!categoria_id || isNaN(categoria_id)) {
+        throw new Error('Debe seleccionar una categoría válida');
+      }
+      if (!marca_id || isNaN(marca_id)) {
+        throw new Error('Debe seleccionar una marca válida');
+      }
+
       const productoData = {
         nombre: data.nombre,
         codigo: data.codigo || '',
         descripcion: data.descripcion || '',
-        precio_venta: data.precioVenta,
-        precio_compra: data.precioCompra,
-        stock: data.stockActual,
-        stock_minimo: data.stockMinimo,
-        categoria_id: parseInt(data.categoria, 10),
-        marca_id: parseInt(data.marca, 10),
-        estado: true
+        precio_venta: Number(data.precioVenta) || 0,
+        precio_compra: Number(data.precioCompra) || 0,
+        stock: Number(data.stockActual) || 0,
+        stock_minimo: Number(data.stockMinimo) || 0,
+        categoria_id: categoria_id,
+        marca_id: marca_id,
+        estado: data.estado !== undefined ? data.estado : true
       };
 
       const response = await api.post('/productos', productoData);
       const nuevoProducto = response.data.producto;
 
       if (data.nuevasImagenes && data.nuevasImagenes.length > 0) {
-        const imagenesPromises = data.nuevasImagenes.map(img => 
+        const imagenesPromises = data.nuevasImagenes.map(img =>
           api.post('/imagenes', {
             url: img.url,
             producto_id: nuevoProducto.id
@@ -98,6 +109,7 @@ export const ProductoData = {
 
       return nuevoProducto;
     } catch (error) {
+      console.error('Error al crear producto:', error);
       throw error;
     }
   },
@@ -123,9 +135,9 @@ export const ProductoData = {
       if (data.marca !== undefined && data.marca !== null && data.marca !== '') {
         productoData.marca_id = parseInt(data.marca, 10);
       }
-      
+
       const response = await api.put(`/productos/${id}`, productoData);
-      
+
       if (data.nuevasImagenes && data.nuevasImagenes.length > 0) {
         for (const img of data.nuevasImagenes) {
           try {
@@ -138,7 +150,7 @@ export const ProductoData = {
           }
         }
       }
-      
+
       return response.data;
     } catch (error) {
       console.error('Error al actualizar producto:', error);

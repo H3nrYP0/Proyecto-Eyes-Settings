@@ -1,5 +1,5 @@
 // src/features/compras/pages/producto/components/ProductoForm.jsx
-import { FormHelperText, IconButton, Typography, Box, Stack } from "@mui/material";
+import { FormHelperText, IconButton, Box, Stack } from "@mui/material";
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 import BaseFormLayout from "../../../../shared/components/base/BaseFormLayout";
@@ -26,6 +26,7 @@ export default function ProductoForm({
   imagenes,
   imagePreviews,
   uploadingImages,
+  isSubmitting,
   onOpenCategoriaModal,
   onOpenMarcaModal,
   onCancel,
@@ -35,10 +36,8 @@ export default function ProductoForm({
   removeImage,
   handleSubmit
 }) {
-  // Determinar si el campo debe ser de solo lectura
-  // En modo edición (edit), los campos principales son solo lectura
   const isEditMode = mode === "edit";
-  
+  const isProductoActivo = mode !== 'edit' || formData.estado === true;
   const getCategoriaOptions = () => {
     const options = [
       { value: "", label: "-- Seleccionar categoría --" },
@@ -48,12 +47,13 @@ export default function ProductoForm({
       }))
     ];
 
-    if (!isCreate && formData.categoria && formData.categoriaNombre) {
-      const categoriaExiste = categorias.some(c => c.id.toString() === formData.categoria);
-      if (!categoriaExiste) {
+    // Si hay un valor de categoría seleccionado que no está en las opciones, lo agregamos
+    if (formData.categoria) {
+      const existe = categorias.some(c => c.id.toString() === formData.categoria);
+      if (!existe) {
         options.unshift({
           value: formData.categoria,
-          label: `${formData.categoriaNombre} (Inactiva)`
+          label: `${formData.categoriaNombre || 'Nueva categoría'} (Cargando...)`
         });
       }
     }
@@ -70,12 +70,12 @@ export default function ProductoForm({
       }))
     ];
 
-    if (!isCreate && formData.marca && formData.marcaNombre) {
-      const marcaExiste = marcas.some(m => m.id.toString() === formData.marca);
-      if (!marcaExiste) {
+    if (formData.marca) {
+      const existe = marcas.some(m => m.id.toString() === formData.marca);
+      if (!existe) {
         options.unshift({
           value: formData.marca,
-          label: `${formData.marcaNombre} (Inactiva)`
+          label: `${formData.marcaNombre || 'Nueva marca'} (Cargando...)`
         });
       }
     }
@@ -92,10 +92,11 @@ export default function ProductoForm({
             name="nombre"
             value={formData.nombre}
             onChange={handleChange}
-            disabled={isView || isEditMode}
+            disabled={isView}
             required
             error={!!errors.nombre || nombreExists}
             helperText={errors.nombre || (nombreExists ? "Ya existe un producto con este nombre" : "")}
+            inputProps={{ maxLength: 50 }}
           />
         </FormCol>
 
@@ -292,12 +293,20 @@ export default function ProductoForm({
       <BaseFormSection>
         <BaseFormField fullWidth>
           <ImageDropzone
-            onDrop={handleImageUpload}
-            previews={imagePreviews}
-            onRemove={removeImage}
-            disabled={isView}
-            uploadingImages={uploadingImages}
-          />
+        onDrop={handleImageUpload}
+        previews={imagePreviews}
+        onRemove={removeImage}
+        disabled={isView || !isProductoActivo}
+        uploadingImages={uploadingImages}
+      />
+
+      
+      {!isProductoActivo && mode === 'edit' && (
+        <FormHelperText error sx={{ mt: 1 }}>
+           No se pueden agregar imágenes porque el producto está **inactivo**. 
+          Actívalo desde el campo "Estado del Producto" para poder subir imágenes.
+        </FormHelperText>
+      )}
         </BaseFormField>
       </BaseFormSection>
 
@@ -310,6 +319,7 @@ export default function ProductoForm({
         saveLabel={isCreate ? "Guardar" : "Guardar"}
         cancelLabel="Cancelar"
         editLabel="Editar"
+        saving={isSubmitting}
       />
     </BaseFormLayout>
   );

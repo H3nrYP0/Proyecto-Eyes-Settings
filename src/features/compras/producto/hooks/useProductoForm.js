@@ -31,11 +31,29 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
   const [loading, setLoading] = useState(true);
   const [nombreExists, setNombreExists] = useState(false);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const marcasCargadasRef = useRef(false);
   const categoriasCargadasRef = useRef(false);
+  const abortControllerRef = useRef(null);
+  
+  const onErrorRef = useRef(onError);
+  const onSubmitSuccessRef = useRef(onSubmitSuccess);
+
+  useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
+
+  useEffect(() => {
+    onSubmitSuccessRef.current = onSubmitSuccess;
+  }, [onSubmitSuccess]);
 
   const loadMarcasYCategorias = useCallback(async () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+
     try {
       const promises = [];
       if (!marcasCargadasRef.current) {
@@ -66,9 +84,11 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
         setCategorias(categoriasData.filter(c => c.estado === true));
       }
     } catch (error) {
-      onError?.("Error cargando datos");
+      if (error.name !== 'AbortError') {
+        onErrorRef.current?.("Error cargando datos");
+      }
     }
-  }, [onError]);
+  }, []);
 
   const loadData = useCallback(async () => {
     await loadMarcasYCategorias();
@@ -104,6 +124,11 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
 
   useEffect(() => {
     loadData();
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, [loadData]);
 
   useEffect(() => {
@@ -158,7 +183,7 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
             setErrors(prev => ({ ...prev, nombre: "" }));
           }
         } catch (error) {
-          // Fallo silencioso para no interrumpir la experiencia
+          // Silent fail
         }
       } else {
         setNombreExists(false);
@@ -170,19 +195,29 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
   };
 
   const handleImageUpload = async (acceptedFiles) => {
+    if (mode === 'edit' && !formData.estado) {
+      const errorMsg = "No se pueden agregar imágenes a un producto inactivo. Activa el producto primero.";
+      setErrors(prev => ({ ...prev, imagenes: errorMsg }));
+      onErrorRef.current?.(errorMsg);
+      return;
+    }
+    
+    if (!acceptedFiles || acceptedFiles.length === 0) {
+      return;
+    }
+
     if (imagenes.length + acceptedFiles.length > 5) {
       setErrors(prev => ({ ...prev, imagenes: "Máximo 5 imágenes permitidas" }));
       return;
     }
 
     setUploadingImages(true);
-    
+
     try {
       const cloudinaryUrls = await UploadData.uploadMultipleImages(acceptedFiles);
       const nuevasImagenes = cloudinaryUrls.map(url => ({ id: null, url }));
-      
       setImagenes(prev => [...prev, ...nuevasImagenes]);
-      
+
       const newPreviews = [];
       acceptedFiles.forEach(file => {
         const reader = new FileReader();
@@ -199,7 +234,7 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
         setErrors(prev => ({ ...prev, imagenes: "" }));
       }
     } catch (error) {
-      setErrors(prev => ({ ...prev, imagenes: "Error al subir imágenes" }));
+      setErrors(prev => ({ ...prev, imagenes: error.message || "Error al subir imágenes" }));
     } finally {
       setUploadingImages(false);
     }
@@ -212,7 +247,9 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
       try {
         await ProductoData.deleteImagen(imagenAEliminar.id);
       } catch (error) {
-        setErrors(prev => ({ ...prev, imagenes: "Error al eliminar imagen" }));
+        if (error.response?.status !== 404) {
+          setErrors(prev => ({ ...prev, imagenes: "Error al eliminar imagen" }));
+        }
         return;
       }
     }
@@ -230,8 +267,8 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
       newErrors.nombre = "El nombre es requerido";
     } else if (nombreTrimmed.length < 3) {
       newErrors.nombre = "El nombre debe tener al menos 3 caracteres";
-    } else if (nombreTrimmed.length > 20) {
-      newErrors.nombre = "El nombre no puede exceder 20 caracteres";
+    } else if (nombreTrimmed.length > 50) {
+      newErrors.nombre = "El nombre no puede exceder 50 caracteres";
     } else if (nombreExists) {
       newErrors.nombre = "Ya existe un producto con este nombre";
     }
@@ -288,14 +325,15 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleSubmit = useCallback(async () => {
-    const newErrors = validateForm();
+    if (isSubmitting) return;
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
 
@@ -303,6 +341,8 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
       setErrors(prev => ({ ...prev, nombre: "Ya existe un producto con este nombre" }));
       return;
     }
+
+    setIsSubmitting(true);
 
     const nombreProcesado = formData.nombre.trim().replace(/\s+/g, " ");
     const nombreFinal = formatNombre(nombreProcesado);
@@ -312,7 +352,7 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
 
     const dataToSubmit = {
       nombre: nombreFinal,
-      descripcion: formData.descripcion.trim(),
+      descripcion: (formData.descripcion || "").trim(),
       imagenes: imagenesExistentes,
       nuevasImagenes: nuevasImagenes.map(img => ({ url: img.url }))
     };
@@ -360,7 +400,7 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
       }
       
       setTimeout(() => {
-        onSubmitSuccess?.(result);
+        onSubmitSuccessRef.current?.(result);
       }, 300);
       
     } catch (error) {
@@ -368,9 +408,11 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
         message: error.response?.data?.message || "Error al guardar el producto",
         type: "error"
       }));
-      onError?.(error.response?.data?.message || "Error al guardar el producto");
+      onErrorRef.current?.(error.response?.data?.message || "Error al guardar el producto");
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [formData, imagenes, isCreate, isFullCreate, mode, initialData, onSubmitSuccess, onError, nombreExists]);
+  }, [formData, imagenes, isCreate, isFullCreate, mode, initialData, nombreExists, isSubmitting]);
 
   const resetForm = useCallback(() => {
     setFormData({
@@ -403,6 +445,7 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
     imagenes,
     imagePreviews,
     uploadingImages,
+    isSubmitting,
     handleChange,
     handleImageUpload,
     removeImage,

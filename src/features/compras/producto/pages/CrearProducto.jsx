@@ -1,5 +1,5 @@
 // src/features/compras/pages/producto/pages/CrearProducto.jsx
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@mui/material";
 import SmartToyIcon from '@mui/icons-material/SmartToy';
@@ -36,6 +36,9 @@ export default function CrearProducto() {
     loading: false
   });
 
+  const [isCategoriaSubmitting, setIsCategoriaSubmitting] = useState(false);
+  const [isMarcaSubmitting, setIsMarcaSubmitting] = useState(false);
+
   const showNotification = (message, type = 'success') => {
     setNotification({ message, type, isVisible: true });
     setTimeout(() => {
@@ -46,6 +49,14 @@ export default function CrearProducto() {
   const hideNotification = () => {
     setNotification(prev => ({ ...prev, isVisible: false }));
   };
+
+  const handleSubmitSuccess = useCallback(() => {
+    navigate("/admin/compras/productos");
+  }, [navigate]);
+
+  const handleError = useCallback((error) => {
+    showNotification(error, "error");
+  }, [showNotification]);
 
   const {
     formData,
@@ -63,16 +74,13 @@ export default function CrearProducto() {
     handleImageUpload,
     removeImage,
     handleSubmit,
+    setFormData
   } = useProductoForm({
     mode: formMode,
     refreshMarcas,
     refreshCategorias,
-    onSubmitSuccess: () => {
-      navigate("/admin/compras/productos");
-    },
-    onError: (error) => {
-      showNotification(error, "error");
-    }
+    onSubmitSuccess: handleSubmitSuccess,
+    onError: handleError
   });
 
   const {
@@ -115,6 +123,26 @@ export default function CrearProducto() {
       showNotification("Creando producto nuevo desde cero", "info");
     }
   });
+
+  const handleCategoriaSubmitSafe = async (data) => {
+    if (isCategoriaSubmitting) return;
+    setIsCategoriaSubmitting(true);
+    try {
+      await handleCategoriaSubmit(data);
+    } finally {
+      setIsCategoriaSubmitting(false);
+    }
+  };
+
+  const handleMarcaSubmitSafe = async (data) => {
+    if (isMarcaSubmitting) return;
+    setIsMarcaSubmitting(true);
+    try {
+      await handleMarcaSubmit(data);
+    } finally {
+      setIsMarcaSubmitting(false);
+    }
+  };
 
   const handleOpenMarcaModal = () => {
     setMarcaModal({ open: true, loading: false });
@@ -216,9 +244,12 @@ export default function CrearProducto() {
         cancelText="Cancelar"
         showCancel={!marcaModal.loading}
         onConfirm={() => {
-          const formElement = document.getElementById("marca-modal-form");
-          if (formElement) {
-            formElement.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+          const form = document.getElementById("marca-modal-form");
+          if (form && form.requestSubmit) {
+            form.requestSubmit();
+          } else if (form) {
+            const btn = form.querySelector('button[type="submit"]');
+            btn?.click();
           }
         }}
         onCancel={handleCloseMarcaModal}
@@ -226,7 +257,7 @@ export default function CrearProducto() {
         <MarcaForm
           id="marca-modal-form"
           mode="create"
-          onSubmit={handleMarcaSubmit}
+          onSubmit={handleMarcaSubmitSafe}
           onCancel={handleCloseMarcaModal}
           embedded={true}
         />
@@ -240,9 +271,12 @@ export default function CrearProducto() {
         cancelText="Cancelar"
         showCancel={!categoriaSubmitting}
         onConfirm={() => {
-          const formElement = document.getElementById("categoria-modal-form");
-          if (formElement) {
-            formElement.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+          const form = document.getElementById("categoria-modal-form");
+          if (form && form.requestSubmit) {
+            form.requestSubmit();
+          } else if (form) {
+            const btn = form.querySelector('button[type="submit"]');
+            btn?.click();
           }
         }}
         onCancel={handleCloseCategoriaModal}
@@ -255,7 +289,7 @@ export default function CrearProducto() {
           nombreExists={categoriaNombreExists}
           submitting={categoriaSubmitting}
           handleChange={handleCategoriaChange}
-          handleSubmit={handleCategoriaSubmit}
+          handleSubmit={handleCategoriaSubmitSafe}
           onCancel={handleCloseCategoriaModal}
           embedded={true}
         />

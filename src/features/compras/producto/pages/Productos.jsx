@@ -1,4 +1,3 @@
-// src/features/compras/pages/producto/pages/Productos.jsx
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Button, Stack, Select, MenuItem } from "@mui/material";
@@ -10,11 +9,12 @@ import CrudNotification from "../../../../shared/styles/components/notifications
 import Loading from "../../../../shared/components/ui/Loading/Loading";
 import { useProductos } from "../hooks/useProductos";
 import StockCell from "../components/StockCell";
+import { ImageGallery } from "../components/ImageGallery";
 import { formatCOP } from "../../../../shared/utils/formatCOP";
 
 export default function Productos() {
   const navigate = useNavigate();
-  
+
   const {
     productos,
     loading,
@@ -37,10 +37,9 @@ export default function Productos() {
     modalDelete,
     confirmDelete,
     handleCancelDelete,
-    handleDelete
+    handleDelete,
   } = useProductos();
 
-  // Funcion para limpiar todos los filtros
   const limpiarFiltros = () => {
     setSearch("");
     setFilterEstado("");
@@ -48,7 +47,6 @@ export default function Productos() {
     setFilterCategoria("");
   };
 
-  // Verificar si hay filtros activos
   const hayFiltrosActivos = search !== "" || filterEstado !== "" || filterMarca !== "" || filterCategoria !== "";
 
   useEffect(() => {
@@ -62,16 +60,20 @@ export default function Productos() {
     { field: "nombre", header: "Nombre" },
     { field: "marca", header: "Marca" },
     { field: "categoria", header: "Categoría" },
-    { 
-      field: "precioVenta", 
+    {
+      field: "precioVenta",
       header: "Precio Venta",
-      render: (item) => formatCOP(item.precioVenta)
+      render: (item) => formatCOP(item.precioVenta),
     },
-    { 
-      field: "stockActual", 
+    {
+      field: "stockActual",
       header: "Stock",
-      render: (item) => <StockCell item={item} />
-    }
+      render: (item) => <StockCell item={item} />,
+    },
+    {
+      header: "Imágenes",
+      render: (item) => <ImageGallery images={item.imagenes} size="small" showAsButton />,
+    },
   ];
 
   const tableActions = [
@@ -115,7 +117,7 @@ export default function Productos() {
         isVisible={notification.isVisible}
         onClose={hideNotification}
       />
-      
+
       <CrudLayout
         title="Productos"
         onAddClick={onCreateClick}
@@ -128,7 +130,6 @@ export default function Productos() {
         onFilterChange={setFilterEstado}
       >
         <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2, flexWrap: 'wrap' }}>
-          {/* Filtro de marca - mismo estilo que CrudLayout */}
           <Select
             value={filterMarca}
             onChange={(e) => setFilterMarca(e.target.value)}
@@ -143,7 +144,6 @@ export default function Productos() {
             ))}
           </Select>
 
-          {/* Filtro de categoría - mismo estilo que CrudLayout */}
           <Select
             value={filterCategoria}
             onChange={(e) => setFilterCategoria(e.target.value)}
@@ -158,7 +158,6 @@ export default function Productos() {
             ))}
           </Select>
 
-          {/* Boton de limpiar filtros - mismo estilo que CrudLayout */}
           {hayFiltrosActivos && (
             <Button
               variant="outlined"
@@ -174,13 +173,15 @@ export default function Productos() {
         </Stack>
 
         {error && (
-          <Box sx={{ 
-            p: 2, 
-            bgcolor: '#ffebee', 
-            color: '#c62828', 
-            borderRadius: 1,
-            mb: 2 
-          }}>
+          <Box
+            sx={{
+              p: 2,
+              bgcolor: '#ffebee',
+              color: '#c62828',
+              borderRadius: 1,
+              mb: 2,
+            }}
+          >
             {error}
           </Box>
         )}
@@ -200,11 +201,7 @@ export default function Productos() {
 
         {showEmptyState && (
           <Box sx={{ textAlign: 'center', mt: 3 }}>
-            <Button 
-              onClick={onCreateClick}
-              variant="contained"
-              color="primary"
-            >
+            <Button onClick={onCreateClick} variant="contained" color="primary">
               Crear Primer Producto
             </Button>
           </Box>

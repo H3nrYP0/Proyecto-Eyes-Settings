@@ -76,10 +76,12 @@ import { AgendaDataProvider } from '../../../features/servicios/agenda/context/A
 import { Agenda } from "../../../features/servicios/agenda";
 import { Novedades } from "../../../features/servicios/novedades";
 
-import CampanasSalud from "../../../features/servicios/campanaSalud/CampanasSalud";
-import CrearCampanaSalud from "../../../features/servicios/campanaSalud/CrearCampanaSalud";
-import EditarCampanaSalud from "../../../features/servicios/campanaSalud/EditarCampanaSalud";
-import DetalleCampanaSalud from "../../../features/servicios/campanaSalud/DetalleCampanaSalud";
+import { 
+  CampanasSalud, 
+  CrearCampanaSalud, 
+  EditarCampanaSalud, 
+  DetalleCampanaSalud 
+} from "@servicios/campanaSalud";
 
 import Roles from "@seguridad/roles/pages/Roles";
 import CrearRol from "@seguridad/roles/pages/CrearRol";
