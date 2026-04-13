@@ -42,7 +42,8 @@ export const menuStructure = [
     permisos: ["ventas", "clientes", "pedidos"],
     items: [
       { name: "Clientes", path: "/admin/ventas/clientes", icon: "user-icon" },
-      { name: "Pedidos", path: "/admin/ventas/pedidos", icon: "orders-icon" },
+      { name: "Pedidos",  path: "/admin/ventas/pedidos",  icon: "orders-icon" },
+      { name: "Ventas",   path: "/admin/ventas",          icon: "sales-icon" },
     ]
   },
   {

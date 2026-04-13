@@ -8,7 +8,7 @@ import AppHeader from "./AppHeader";
 import Dashboard from "../../../features/dashboard/Dashboard";
 
 // VENTAS
-import { Ventas, DetalleVenta, EditarVenta } from "../../../features/ventas/venta";
+import { Ventas, DetalleVenta } from "../../../features/ventas/venta";
 import { 
   Clientes, 
   CrearCliente, 
@@ -170,12 +170,8 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               <Route path="detalle/:id" element={<DetallePedido />} />
             </Route>
 
-            {/* Ventas (creación automática desde pedidos) */}
-            
+            {/* Ventas — solo lectura, se generan desde pedidos */}
             <Route path="detalle/:id" element={<DetalleVenta />} />
-            <Route path="editar/:id" element={<EditarVenta />} />
-            
-            {/* NOTA: La ruta de Abonos ha sido eliminada porque ahora está integrada como modal dentro de Pedidos */}
           </Route>
 
           {/* ========== COMPRAS ========== */}
