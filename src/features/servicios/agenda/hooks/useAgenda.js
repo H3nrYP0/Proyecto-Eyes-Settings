@@ -22,17 +22,9 @@ export function useAgenda() {
         getNovedadesAgenda(),
       ]);
 
-      const horarios = horariosRes.status === 'fulfilled' && Array.isArray(horariosRes.value) 
-        ? horariosRes.value 
-        : [];
-      
-      const citas = citasRes.status === 'fulfilled' && Array.isArray(citasRes.value) 
-        ? citasRes.value 
-        : [];
-
-      const novedades = novedadesRes.status === 'fulfilled' && Array.isArray(novedadesRes.value)
-        ? novedadesRes.value
-        : [];
+      const horarios = horariosRes.status === 'fulfilled' && Array.isArray(horariosRes.value) ? horariosRes.value : [];
+      const citas = citasRes.status === 'fulfilled' && Array.isArray(citasRes.value) ? citasRes.value : [];
+      const novedades = novedadesRes.status === 'fulfilled' && Array.isArray(novedadesRes.value) ? novedadesRes.value : [];
 
       const errores = [];
       if (horariosRes.status === 'rejected') errores.push('horarios');
@@ -59,6 +51,7 @@ export function useAgenda() {
     }
   }, [empleados, estadosCita]);
 
+  // Filtrar eventos por empleado seleccionado
   const eventosFiltrados = selectedEmpleado === 'todos' 
     ? events 
     : events.filter(e => e.extendedProps?.empleado_id === parseInt(selectedEmpleado));

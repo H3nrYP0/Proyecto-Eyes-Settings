@@ -11,13 +11,13 @@ export const COLORES_ESTADO = {
   default: "#6b7280"
 };
 
+export const COLOR_NOVEDAD = "#f97316"; // naranja
+
 // ============================
 // CREAR FECHA PARA EVENTO (sin zona horaria)
 // ============================
 export const crearFechaEvento = (fecha, hora) => {
   try {
-    // fecha viene como "YYYY-MM-DD"
-    // hora puede venir como "HH:MM:SS" o "HH:MM"
     const [year, month, day] = fecha.split('-');
     let hours, minutes;
     if (hora.includes(':')) {
@@ -27,7 +27,6 @@ export const crearFechaEvento = (fecha, hora) => {
     } else {
       return null;
     }
-    // Crear fecha local (sin UTC)
     return new Date(year, month-1, day, hours, minutes);
   } catch (error) {
     console.error("Error creando fecha evento:", error);
@@ -55,7 +54,11 @@ export const mapearHorariosEventos = (horarios, empleados) => {
         display: 'background',
         backgroundColor: '#93c5fd',
         classNames: ['horario-disponible'],
-        extendedProps: { tipo: 'horario', empleado_id: h.empleado_id }
+        extendedProps: { 
+          tipo: 'horario', 
+          empleado_id: h.empleado_id,
+          empleado_nombre: empleado?.nombre
+        }
       };
     });
 };
@@ -94,9 +97,10 @@ export const mapearCitasEventos = (citas, empleados, estados) => {
         extendedProps: {
           tipo: 'cita',
           cita_id: c.id,
+          empleado_id: c.empleado_id,
+          empleado_nombre: empleado?.nombre,
           cliente: c.cliente_nombre,
           servicio: c.servicio_nombre,
-          empleado: empleado?.nombre,
           estado: estado?.nombre
         }
       };
@@ -105,26 +109,20 @@ export const mapearCitasEventos = (citas, empleados, estados) => {
 };
 
 // ============================
-// COLOR PARA NOVEDADES
-// ============================
-export const COLOR_NOVEDAD = "#fffb00"; // naranja
-
-// ============================
 // MAPEAR NOVEDADES A EVENTOS DE CALENDARIO
 // ============================
 export const mapearNovedadesEventos = (novedades, empleados) => {
   if (!novedades?.length) return [];
 
   return novedades
-    .filter(n => n.activo) // solo novedades activas
+    .filter(n => n.activo)
     .map(n => {
       const empleado = empleados.find(e => e.id === n.empleado_id);
       const fechaInicio = n.fecha_inicio;
       const fechaFin = n.fecha_fin;
       
-      // Si la novedad tiene horas específicas, se crean eventos de rango horario en fechas concretas
+      // Si la novedad tiene horas específicas
       if (n.hora_inicio && n.hora_fin) {
-        // Rango de horas en un solo día (fechaInicio == fechaFin)
         const fechaEvento = crearFechaEvento(fechaInicio, n.hora_inicio);
         if (!fechaEvento) return null;
         const duracion = calcularMinutos(n.hora_inicio, n.hora_fin);
@@ -135,7 +133,7 @@ export const mapearNovedadesEventos = (novedades, empleados) => {
           end: new Date(fechaEvento.getTime() + duracion * 60000),
           backgroundColor: COLOR_NOVEDAD,
           borderColor: COLOR_NOVEDAD,
-          textColor: '#000000',
+          textColor: '#fff',
           classNames: ['novedad'],
           extendedProps: {
             tipo: 'novedad',
@@ -149,10 +147,9 @@ export const mapearNovedadesEventos = (novedades, empleados) => {
         };
       } else {
         // Novedad de día completo (rango de fechas)
-        // Para FullCalendar, se crea un evento con start y end (end excluyente, por eso sumamos 1 día)
         const startDate = new Date(fechaInicio);
         const endDate = new Date(fechaFin);
-        endDate.setDate(endDate.getDate() + 1); // FullCalendar requiere end excluyente
+        endDate.setDate(endDate.getDate() + 1); // end excluyente
         return {
           id: `novedad-${n.id}`,
           title: `${n.tipo} - ${empleado?.nombre || 'Empleado'}`,
@@ -161,7 +158,7 @@ export const mapearNovedadesEventos = (novedades, empleados) => {
           allDay: true,
           backgroundColor: COLOR_NOVEDAD,
           borderColor: COLOR_NOVEDAD,
-          textColor: '#000000',
+          textColor: '#fff',
           classNames: ['novedad'],
           extendedProps: {
             tipo: 'novedad',

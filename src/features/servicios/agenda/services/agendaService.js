@@ -41,19 +41,6 @@ export async function getCitasAgenda() {
 }
 
 // ============================
-// OBTENER NOVEDADES PARA AGENDA
-// ============================
-export async function getNovedadesAgenda() {
-  try {
-    const res = await api.get("/novedades");
-    return res.data; // array de novedades
-  } catch (error) {
-    console.error("Error cargando novedades:", error);
-    return [];
-  }
-}
-
-// ============================
 // OBTENER ESTADOS DE CITA
 // ============================
 export async function getEstadosCitaAgenda() {
@@ -62,6 +49,19 @@ export async function getEstadosCitaAgenda() {
     return res.data;
   } catch (error) {
     console.error("Error cargando estados:", error);
+    return [];
+  }
+}
+
+// ============================
+// OBTENER NOVEDADES PARA AGENDA
+// ============================
+export async function getNovedadesAgenda() {
+  try {
+    const res = await api.get("/novedades");
+    return res.data;
+  } catch (error) {
+    console.error("Error cargando novedades:", error);
     return [];
   }
 }
