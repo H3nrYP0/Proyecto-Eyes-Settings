@@ -27,10 +27,9 @@ export default function DetalleCompra() {
   return (
     <ComprasForm
       mode="view"
-      title={`Detalle de la Compra ${compra.numeroCompra}`}
+      title={`Detalle Compra ${compra.numeroCompra || `#${id}`}`}
       initialData={compra}
       onCancel={() => navigate("/admin/compras")}
-      onEdit={() => navigate(`/admin/compras/editar/${compra.id}`)}
     />
   );
 }
