@@ -2,11 +2,14 @@ import api from "../../../lib/axios";
 
 const authServices = {
 
+  // ============================================================
+  // LOGIN
+  // ============================================================
   async login(correo, contrasenia, recordarme = false) {
     const response = await api.post("/auth/login", { correo, contrasenia });
     const { token, usuario } = response.data;
 
-    // Limpiar AMBOS storages antes de guardar (evita datos cruzados)
+    // Limpiar ambos storages antes de guardar
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     sessionStorage.removeItem("token");
@@ -19,6 +22,68 @@ const authServices = {
     return usuario;
   },
 
+  // ============================================================
+  // REGISTRO (Paso 1: enviar código)
+  // ============================================================
+  async sendRegisterCode(datos) {
+    const response = await api.post("/auth/register", datos);
+    return response.data;
+  },
+
+  // ============================================================
+  // REGISTRO (Paso 2: verificar código y crear cuenta)
+  // ============================================================
+  async verifyRegisterCode(correo, codigo) {
+    const response = await api.post("/auth/verify-register", { correo, codigo });
+    return response.data;
+  },
+
+  // ============================================================
+  // RECUPERACIÓN (Paso 1: enviar código)
+  // ============================================================
+  async sendForgotPasswordCode(correo) {
+    const response = await api.post("/auth/forgot-password", { correo });
+    return response.data;
+  },
+
+  // ============================================================
+  // RECUPERACIÓN (Paso 2: resetear contraseña)
+  // ============================================================
+  async resetPassword(correo, codigo, nueva_contrasenia) {
+    const response = await api.post("/auth/reset-password", {
+      correo,
+      codigo,
+      nueva_contrasenia
+    });
+    return response.data;
+  },
+
+  // ============================================================
+  // OBTENER PERFIL (rehidratar sesión)
+  // ============================================================
+  async getMe() {
+    const token = this.getToken();
+    if (!token) return null;
+
+    try {
+      const response = await api.get("/auth/me");
+      const { usuario } = response.data;
+      
+      // Actualizar usuario en el mismo storage donde está el token
+      const storage = localStorage.getItem("token") ? localStorage : sessionStorage;
+      storage.setItem("user", JSON.stringify(usuario));
+      
+      return usuario;
+    } catch (error) {
+      // Token inválido o expirado
+      this.logout();
+      return null;
+    }
+  },
+
+  // ============================================================
+  // LOGOUT
+  // ============================================================
   logout() {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -26,6 +91,9 @@ const authServices = {
     sessionStorage.removeItem("user");
   },
 
+  // ============================================================
+  // UTILIDADES
+  // ============================================================
   getUser() {
     try {
       const user = localStorage.getItem("user") || sessionStorage.getItem("user");

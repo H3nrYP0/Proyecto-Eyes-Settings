@@ -1,8 +1,18 @@
 import { useState, useEffect, useCallback } from "react";
-import { createCompra, updateCompra } from "../services/comprasService";
+import { createCompra } from "../services/comprasService";
 import { getProveedoresActivos } from "../../proveedor/services/proveedoresService";
 import { getAllProductos } from "../../producto/services/productosService";
-import { EMPTY_PRODUCT_ROW, calculateTotals } from "../utils/comprasUtils";
+import { calculateTotals } from "../utils/comprasUtils";
+
+const EMPTY_ROW = {
+  productoId: "",
+  nombre: "",
+  stockActual: 0,
+  cantidad: 1,
+  precioCompra: 0,
+  precioVenta: 0,
+  total: 0,
+};
 
 export function useCompraForm({ mode = "create", initialData = null, onSubmitSuccess, onError }) {
   const isView = mode === "view";
@@ -11,7 +21,7 @@ export function useCompraForm({ mode = "create", initialData = null, onSubmitSuc
   const [formData, setFormData] = useState({
     proveedorId: "",
     observaciones: "",
-    productos: [{ ...EMPTY_PRODUCT_ROW }],
+    productos: [{ ...EMPTY_ROW }],
   });
 
   const [errors, setErrors] = useState({});
@@ -22,102 +32,124 @@ export function useCompraForm({ mode = "create", initialData = null, onSubmitSuc
   const [apiError, setApiError] = useState("");
 
   // ============================
-  // Cargar datos de dependencias
+  // Cargar proveedores (reutilizable para refrescar)
+  // ============================
+  const cargarProveedores = useCallback(async () => {
+    const data = await getProveedoresActivos();
+    setProveedores(
+      data.map((p) => ({
+        ...p,
+        razonSocial: p.razon_social_o_nombre || p.razonSocial || p.nombre || "Sin nombre",
+      }))
+    );
+  }, []);
+
+  // ============================
+  // Cargar todos los datos iniciales
   // ============================
   useEffect(() => {
-    const cargarDatos = async () => {
+    const cargar = async () => {
       try {
         setLoadingData(true);
-        const [proveedoresData, productosData] = await Promise.all([
-          getProveedoresActivos(),
+        const [productosData] = await Promise.all([
           getAllProductos(),
+          cargarProveedores(),
         ]);
-        
-        setProveedores(proveedoresData);
+
         setCatalogo(
           productosData.map((p) => ({
             id: p.id,
             nombre: p.nombre,
-            precio: Number(p.precio_compra ?? p.precioCompra ?? 0),
-            stock: Number(p.stock ?? p.stockActual ?? 0),
+            stockActual: Number(p.stock ?? p.stockActual ?? 0),
+            precioCompra: Number(p.precio_compra ?? p.precioCompra ?? 0),
+            precioVenta: Number(p.precio_venta ?? p.precioVenta ?? 0),
           }))
         );
-      } catch (error) {
-        console.error("Error cargando datos:", error);
+      } catch (err) {
+        console.error("Error cargando datos:", err);
         setApiError("No se pudieron cargar proveedores o productos.");
       } finally {
         setLoadingData(false);
       }
     };
-    cargarDatos();
-  }, []);
+    cargar();
+  }, [cargarProveedores]);
 
   // ============================
-  // Cargar datos iniciales (edición)
+  // Cargar datos iniciales en vista/edición
   // ============================
   useEffect(() => {
     if (!initialData) return;
-
     setFormData({
-      proveedorId: initialData.proveedorId ?? "",
+      proveedorId: initialData.proveedorId ?? initialData.proveedor_id ?? "",
       observaciones: initialData.observaciones ?? "",
       productos: initialData.productos?.length
         ? initialData.productos.map((p) => ({
             id: p.id,
             productoId: p.productoId ?? "",
             nombre: p.nombre ?? "",
-            stock: p.stock ?? 0,
+            stockActual: p.stockActual ?? 0,
             cantidad: p.cantidad,
-            precioUnitario: p.precioUnitario,
+            precioCompra: p.precioCompra ?? p.precioUnitario ?? 0,
+            precioVenta: p.precioVenta ?? 0,
             total: p.total,
           }))
-        : [{ ...EMPTY_PRODUCT_ROW }],
+        : [{ ...EMPTY_ROW }],
     });
   }, [initialData]);
 
   // ============================
-  // Calcular totales
+  // Totales (usa precioCompra como base)
   // ============================
-  const { subtotal, iva, total } = calculateTotals(formData.productos);
+  const subtotal = formData.productos.reduce((acc, p) => acc + (p.total || 0), 0);
+  const iva = subtotal * 0.19;
+  const total = subtotal + iva;
   const formatCurrency = (n) => `$${Number(n).toLocaleString("es-CO")}`;
 
   // ============================
-  // Handlers de productos
+  // Cambios en fila de producto
   // ============================
-  const handleProductoChange = useCallback((index, field, value) => {
-    setFormData((prev) => {
-      const productos = [...prev.productos];
-      const row = { ...productos[index] };
+  const handleProductoChange = useCallback(
+    (index, field, value) => {
+      setFormData((prev) => {
+        const productos = [...prev.productos];
+        const row = { ...productos[index] };
 
-      if (field === "productoId") {
-        const found = catalogo.find((p) => p.id === Number(value));
-        row.productoId = value;
-        row.nombre = found?.nombre ?? "";
-        row.stock = found?.stock ?? 0;
-        row.precioUnitario = found?.precio ?? 0;
-        row.cantidad = Math.min(row.cantidad, found?.stock ?? row.cantidad) || 1;
-        row.total = row.cantidad * row.precioUnitario;
-        setErrors((e) => ({ ...e, [`prod_${index}`]: "" }));
-      } else if (field === "cantidad") {
-        const max = row.stock || Infinity;
-        const qty = Math.max(1, Math.min(Number(value) || 1, max));
-        row.cantidad = qty;
-        row.total = qty * row.precioUnitario;
-        setErrors((e) => ({ ...e, [`qty_${index}`]: "" }));
-      } else if (field === "precioUnitario") {
-        const precio = Math.max(0, Number(value) || 0);
-        row.precioUnitario = precio;
-        row.total = row.cantidad * precio;
-        setErrors((e) => ({ ...e, [`precio_${index}`]: "" }));
-      }
+        if (field === "productoId") {
+          const found = catalogo.find((p) => p.id === Number(value));
+          row.productoId = value;
+          row.nombre = found?.nombre ?? "";
+          row.stockActual = found?.stockActual ?? 0;
+          row.precioCompra = found?.precioCompra ?? 0;
+          row.precioVenta = found?.precioVenta ?? 0;
+          row.cantidad = 1;
+          row.total = row.cantidad * row.precioCompra;
+          setErrors((e) => ({ ...e, [`prod_${index}`]: "" }));
+        } else if (field === "cantidad") {
+          // Sin límite de stock — es una compra, se suma al stock
+          const qty = Math.max(1, Number(value) || 1);
+          row.cantidad = qty;
+          row.total = qty * row.precioCompra;
+          setErrors((e) => ({ ...e, [`qty_${index}`]: "" }));
+        } else if (field === "precioCompra") {
+          const precio = Math.max(0, Number(value) || 0);
+          row.precioCompra = precio;
+          row.total = row.cantidad * precio;
+          setErrors((e) => ({ ...e, [`precioC_${index}`]: "" }));
+        } else if (field === "precioVenta") {
+          row.precioVenta = Math.max(0, Number(value) || 0);
+          setErrors((e) => ({ ...e, [`precioV_${index}`]: "" }));
+        }
 
-      productos[index] = row;
-      return { ...prev, productos };
-    });
-  }, [catalogo]);
+        productos[index] = row;
+        return { ...prev, productos };
+      });
+    },
+    [catalogo]
+  );
 
   const addRow = useCallback(() => {
-    setFormData((prev) => ({ ...prev, productos: [...prev.productos, { ...EMPTY_PRODUCT_ROW }] }));
+    setFormData((prev) => ({ ...prev, productos: [...prev.productos, { ...EMPTY_ROW }] }));
   }, []);
 
   const removeRow = useCallback((index) => {
@@ -127,17 +159,17 @@ export function useCompraForm({ mode = "create", initialData = null, onSubmitSuc
     }));
   }, []);
 
-  // ============================
-  // Handle change general
-  // ============================
-  const handleChange = useCallback((e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
-  }, [errors]);
+  const handleChange = useCallback(
+    (e) => {
+      const { name, value } = e.target;
+      setFormData((prev) => ({ ...prev, [name]: value }));
+      if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
+    },
+    [errors]
+  );
 
   // ============================
-  // Validaciones
+  // Validación
   // ============================
   const validate = useCallback(() => {
     const newErrors = {};
@@ -148,7 +180,8 @@ export function useCompraForm({ mode = "create", initialData = null, onSubmitSuc
       formData.productos.forEach((p, i) => {
         if (!p.productoId) newErrors[`prod_${i}`] = "Selecciona el producto.";
         if (!p.cantidad || p.cantidad < 1) newErrors[`qty_${i}`] = "Mínimo 1.";
-        if (!p.precioUnitario || p.precioUnitario <= 0) newErrors[`precio_${i}`] = "Precio requerido.";
+        if (!p.precioCompra || p.precioCompra <= 0) newErrors[`precioC_${i}`] = "Precio de compra requerido.";
+        if (!p.precioVenta || p.precioVenta <= 0) newErrors[`precioV_${i}`] = "Precio de venta requerido.";
       });
     }
     setErrors(newErrors);
@@ -168,32 +201,27 @@ export function useCompraForm({ mode = "create", initialData = null, onSubmitSuc
         proveedorId: Number(formData.proveedorId),
         observaciones: formData.observaciones,
         productos: formData.productos.map((p) => ({
-          id: p.id,
           productoId: Number(p.productoId),
           cantidad: Number(p.cantidad),
-          precioUnitario: Number(p.precioUnitario),
+          precioCompra: Number(p.precioCompra),
+          precioVenta: Number(p.precioVenta),
+          stockActual: Number(p.stockActual),
         })),
       };
 
-      let result;
-      if (isCreate) {
-        result = await createCompra(payload);
-      } else {
-        result = await updateCompra(initialData.id, payload);
-      }
-
+      const result = await createCompra(payload);
       onSubmitSuccess?.(result);
       return { success: true, data: result };
     } catch (error) {
       console.error("Error al guardar compra:", error);
-      const errorMessage = error.response?.data?.message || "Error al guardar la compra";
-      setApiError(errorMessage);
-      onError?.(errorMessage);
-      return { success: false, error: errorMessage };
+      const msg = error.response?.data?.message || error.message || "Error al guardar la compra";
+      setApiError(msg);
+      onError?.(msg);
+      return { success: false, error: msg };
     } finally {
       setSubmitting(false);
     }
-  }, [formData, isCreate, initialData, validate, onSubmitSuccess, onError]);
+  }, [formData, validate, onSubmitSuccess, onError]);
 
   return {
     formData,
@@ -213,5 +241,6 @@ export function useCompraForm({ mode = "create", initialData = null, onSubmitSuc
     removeRow,
     handleSubmit,
     setFormData,
+    recargarProveedores: cargarProveedores,
   };
 }

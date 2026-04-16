@@ -18,10 +18,13 @@ export default function Compras() {
     setFilterEstado,
     estadoFilters,
     eliminarCompra,
-    cambiarEstado,
     modalDelete,
     openDeleteModal,
     closeDeleteModal,
+    modalAnular,
+    abrirModalAnular,
+    cerrarModalAnular,
+    confirmarAnular,
   } = useCompras();
 
   const confirmDelete = async () => {
@@ -30,29 +33,42 @@ export default function Compras() {
     else alert(result.error);
   };
 
-  const handleChangeStatus = async (row) => {
-    const result = await cambiarEstado(row);
-    if (!result.success) alert(result.error);
-  };
-
   const columns = [
     { field: "proveedorNombre", header: "Proveedor" },
     { field: "fechaFormateada", header: "Fecha" },
     { field: "totalFormateado", header: "Total" },
+    {
+      field: "estado",
+      header: "Estado",
+      render: (row) => (
+        <span
+          style={{
+            display: "inline-block",
+            padding: "2px 10px",
+            borderRadius: 12,
+            fontSize: "0.78rem",
+            fontWeight: 600,
+            backgroundColor: row.estado === "Anulada" ? "#f3f4f6" : "#dcfce7",
+            color: row.estado === "Anulada" ? "#9ca3af" : "#16a34a",
+          }}
+        >
+          {row.estado || "—"}
+        </span>
+      ),
+    },
   ];
 
   const tableActions = [
     {
-      label: "Cambiar estado",
+      label: "Anular",
       type: "toggle-status",
-      onClick: handleChangeStatus,
+      onClick: (row) => abrirModalAnular(row),
       disabled: (row) => row.estado === "Anulada",
     },
     {
       label: "Ver Detalles",
       type: "view",
       onClick: (row) => navigate(`/admin/compras/detalle/${row.id}`),
-      disabled: (row) => row.estado === "Anulada",
     },
     {
       label: "Generar PDF",
@@ -70,9 +86,14 @@ export default function Compras() {
     <>
       <style>{`
         tr.row-anulada td {
-          background-color: #e5e5e5 !important;
-          color: #888 !important;
-          opacity: 0.7;
+          background-color: #ececec !important;
+          color: #9ca3af !important;
+          opacity: 0.75;
+        }
+        tr.row-anulada td button,
+        tr.row-anulada td a {
+          pointer-events: none;
+          opacity: 0.35;
         }
       `}</style>
 
@@ -94,7 +115,7 @@ export default function Compras() {
           columns={columns}
           data={compras}
           actions={tableActions}
-          rowClassName={(row) => row.estado === "Anulada" ? "row-anulada" : ""}
+          rowClassName={(row) => (row.estado === "Anulada" ? "row-anulada" : "")}
           emptyMessage={
             search || filterEstado
               ? "No se encontraron compras para los filtros aplicados"
@@ -102,6 +123,7 @@ export default function Compras() {
           }
         />
 
+        {/* Modal eliminar */}
         <Modal
           open={modalDelete.open}
           type="warning"
@@ -112,6 +134,19 @@ export default function Compras() {
           showCancel
           onConfirm={confirmDelete}
           onCancel={closeDeleteModal}
+        />
+
+        {/* Modal anular */}
+        <Modal
+          open={modalAnular.open}
+          type="warning"
+          title="¿Anular Compra?"
+          message="Esta acción anulará la compra de forma permanente. No se podrá revertir."
+          confirmText="Sí, anular"
+          cancelText="Cancelar"
+          showCancel
+          onConfirm={confirmarAnular}
+          onCancel={cerrarModalAnular}
         />
       </CrudLayout>
     </>
