@@ -29,7 +29,7 @@ export default function RolForm({
 
   const [errors, setErrors] = useState({});
 
-  // 🔥 CORREGIDO: Convertir estado y permisos
+  // Convertir estado y permisos
   useEffect(() => {
     if (initialData) {
       // Convertir estado de booleano a "activo"/"inactivo"
@@ -120,7 +120,7 @@ export default function RolForm({
       </BaseFormSection>
 
       {/* PERMISOS */}
-      <Box sx={{ pb: 2, pt: 1 }}>
+      <Box sx={{ pb: 2, pt: 1, px: 2, pr: 0.5 }}>
         <BaseFormSection>
           <PermisosSelector
             permisosDisponibles={permisosDisponibles}
