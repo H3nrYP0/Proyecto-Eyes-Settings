@@ -20,7 +20,7 @@ export default function BaseInputField({
       fullWidth
       variant="outlined"
       size="medium"
-      margin="none"   // 👈 quitamos el margen automático
+      margin="none"   // quitamos el margen automático
       label={label}
       name={name}
       value={value ?? ""}
