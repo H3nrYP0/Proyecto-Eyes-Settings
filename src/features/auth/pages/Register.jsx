@@ -36,7 +36,7 @@ export default function Register() {
     if (error) setError('');
   };
 
-  // ── Paso 1: enviar código al correo ──
+  // ── enviar código al correo ──
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -59,7 +59,7 @@ export default function Register() {
     }
   };
 
-  // ── Paso 2: verificar código y crear cuenta ──
+  // ── verificar código y crear cuenta ──
   const handleVerifyCode = async (codigo) => {
     setLoading(true);
     try {
@@ -93,7 +93,7 @@ export default function Register() {
   return (
     <Box sx={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #e3f2fd 0%, #f3f8ff 50%, #ffffff 100%)',
+
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       py: 1,
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
@@ -135,64 +135,131 @@ export default function Register() {
 
             <Box component="form" onSubmit={handleSubmit}>
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <TextField fullWidth size="small" name="nombre" label="Nombre completo"
-                    value={formData.nombre} onChange={handleChange}
-                    placeholder="Tu nombre completo" required
-                    disabled={success || loading}
-                    error={!!errors.nombre} helperText={errors.nombre}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField fullWidth size="small" name="correo" label="Correo electrónico"
-                    type="email" value={formData.correo} onChange={handleChange}
-                    placeholder="tu@correo.com" required
-                    disabled={success || loading}
-                    error={!!errors.correo} helperText={errors.correo}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField fullWidth size="small" name="telefono" label="Teléfono"
-                    type="tel" value={formData.telefono} onChange={handleChange}
-                    placeholder="+57 300 123 4567" disabled={success || loading}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField fullWidth size="small" name="fechaNacimiento" label="Fecha de nacimiento"
-                    type="date" value={formData.fechaNacimiento} onChange={handleChange}
-                    InputLabelProps={{ shrink: true }} required
-                    disabled={success || loading}
-                    error={!!errors.fechaNacimiento} helperText={errors.fechaNacimiento}
-                  />
-                </Grid>
+                {/* 1. TIPO DE DOCUMENTO */}
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth size="small" error={!!errors.tipoDocumento}>
-                    <InputLabel>Tipo de documento</InputLabel>
-                    <Select name="tipoDocumento" value={formData.tipoDocumento}
-                      label="Tipo de documento" onChange={handleChange}
-                      disabled={success || loading}>
+                    <InputLabel>Tipo de documento *</InputLabel>
+                    <Select 
+                      name="tipoDocumento" 
+                      value={formData.tipoDocumento}
+                      label="Tipo de documento *" 
+                      onChange={handleChange}
+                      disabled={success || loading}
+                    >
                       {Object.entries(TIPOS_DOCUMENTO).map(([key, value]) => (
                         <MenuItem key={key} value={key}>{value}</MenuItem>
                       ))}
                     </Select>
+                    {errors.tipoDocumento && (
+                      <Typography variant="caption" color="error" sx={{ ml: 1 }}>
+                        {errors.tipoDocumento}
+                      </Typography>
+                    )}
                   </FormControl>
                 </Grid>
+
+                {/* 2. NÚMERO DE DOCUMENTO */}
                 <Grid item xs={12} sm={6}>
-                  <TextField fullWidth size="small" name="numeroDocumento" label="Número de documento"
-                    value={formData.numeroDocumento} onChange={handleChange}
-                    placeholder={DOC_PLACEHOLDERS[formData.tipoDocumento] || ''}
-                    required disabled={success || loading}
-                    error={!!errors.numeroDocumento} helperText={errors.numeroDocumento}
+                  <TextField 
+                    fullWidth 
+                    size="small" 
+                    name="numeroDocumento" 
+                    label="Número de documento *"
+                    value={formData.numeroDocumento} 
+                    onChange={handleChange}
+                    placeholder={DOC_PLACEHOLDERS[formData.tipoDocumento] || 'Ingrese su número de documento'}
+                    required 
+                    disabled={success || loading}
+                    error={!!errors.numeroDocumento} 
+                    helperText={errors.numeroDocumento}
                   />
                 </Grid>
 
-                {/* Contraseña */}
+                {/* 3. NOMBRE COMPLETO */}
                 <Grid item xs={12} sm={6}>
-                  <TextField fullWidth size="small" name="contrasenia" label="Contraseña"
+                  <TextField 
+                    fullWidth 
+                    size="small" 
+                    name="nombre" 
+                    label="Nombre completo *"
+                    value={formData.nombre} 
+                    onChange={handleChange}
+                    placeholder="Tu nombre completo" 
+                    required
+                    disabled={success || loading}
+                    error={!!errors.nombre} 
+                    helperText={errors.nombre}
+                  />
+                </Grid>
+
+                {/* 4. CORREO ELECTRÓNICO */}
+                <Grid item xs={12} sm={6}>
+                  <TextField 
+                    fullWidth 
+                    size="small" 
+                    name="correo" 
+                    label="Correo electrónico *"
+                    type="email" 
+                    value={formData.correo} 
+                    onChange={handleChange}
+                    placeholder="tu@correo.com" 
+                    required
+                    disabled={success || loading}
+                    error={!!errors.correo} 
+                    helperText={errors.correo}
+                  />
+                </Grid>
+
+                {/* 5. TELÉFONO */}
+                <Grid item xs={12} sm={6}>
+                  <TextField 
+                    fullWidth 
+                    size="small" 
+                    name="telefono" 
+                    label="Teléfono"
+                    type="tel" 
+                    value={formData.telefono} 
+                    onChange={handleChange}
+                    placeholder="+57 300 123 4567" 
+                    disabled={success || loading}
+                    error={!!errors.telefono} 
+                    helperText={errors.telefono}
+                  />
+                </Grid>
+
+                {/* 6. FECHA DE NACIMIENTO */}
+                <Grid item xs={12} sm={6}>
+                  <TextField 
+                    fullWidth 
+                    size="small" 
+                    name="fechaNacimiento" 
+                    label="Fecha de nacimiento *"
+                    type="date" 
+                    value={formData.fechaNacimiento} 
+                    onChange={handleChange}
+                    InputLabelProps={{ shrink: true }} 
+                    required
+                    disabled={success || loading}
+                    error={!!errors.fechaNacimiento} 
+                    helperText={errors.fechaNacimiento}
+                  />
+                </Grid>
+
+                {/* 7. CONTRASEÑA */}
+                <Grid item xs={12} sm={6}>
+                  <TextField 
+                    fullWidth 
+                    size="small" 
+                    name="contrasenia" 
+                    label="Contraseña *"
                     type={showPassword ? 'text' : 'password'}
-                    value={formData.contrasenia} onChange={handleChange}
-                    placeholder="········" required disabled={success || loading}
-                    error={!!errors.contrasenia} helperText={errors.contrasenia}
+                    value={formData.contrasenia} 
+                    onChange={handleChange}
+                    placeholder="········" 
+                    required 
+                    disabled={success || loading}
+                    error={!!errors.contrasenia} 
+                    helperText={errors.contrasenia}
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position="end">
@@ -206,13 +273,21 @@ export default function Register() {
                   <PasswordStrength password={formData.contrasenia} />
                 </Grid>
 
-                {/* Confirmar contraseña */}
+                {/* 8. CONFIRMAR CONTRASEÑA */}
                 <Grid item xs={12} sm={6}>
-                  <TextField fullWidth size="small" name="confirmContrasenia" label="Confirmar contraseña"
+                  <TextField 
+                    fullWidth 
+                    size="small" 
+                    name="confirmContrasenia" 
+                    label="Confirmar contraseña *"
                     type={showConfirmPassword ? 'text' : 'password'}
-                    value={formData.confirmContrasenia} onChange={handleChange}
-                    placeholder="········" required disabled={success || loading}
-                    error={!!errors.confirmContrasenia} helperText={errors.confirmContrasenia}
+                    value={formData.confirmContrasenia} 
+                    onChange={handleChange}
+                    placeholder="········" 
+                    required 
+                    disabled={success || loading}
+                    error={!!errors.confirmContrasenia} 
+                    helperText={errors.confirmContrasenia}
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position="end">
@@ -226,14 +301,26 @@ export default function Register() {
                 </Grid>
               </Grid>
 
-              {/* Términos */}
+              {/* Términos y condiciones */}
               <Box sx={{ mt: 2.5, mb: 1, display: 'flex', alignItems: 'flex-start' }}>
-                <Checkbox name="agreeTerms" checked={formData.agreeTerms} onChange={handleChange}
-                  color="primary" size="small" disabled={success || loading} sx={{ mt: -0.5 }} />
+                <Checkbox 
+                  name="agreeTerms" 
+                  checked={formData.agreeTerms} 
+                  onChange={handleChange}
+                  color="primary" 
+                  size="small" 
+                  disabled={success || loading} 
+                  sx={{ mt: -0.5 }} 
+                />
                 <Typography sx={{ fontSize: '0.85rem', fontWeight: '500', lineHeight: 1.5 }}>
                   Acepto los{' '}
-                  <Button component={Link} to="/terms" variant="text" size="small"
-                    sx={{ fontSize: '0.85rem', p: 0, minWidth: 'auto', fontWeight: '600', textTransform: 'none', verticalAlign: 'baseline' }}>
+                  <Button 
+                    component={Link} 
+                    to="/terms" 
+                    variant="text" 
+                    size="small"
+                    sx={{ fontSize: '0.85rem', p: 0, minWidth: 'auto', fontWeight: '600', textTransform: 'none', verticalAlign: 'baseline' }}
+                  >
                     términos y condiciones
                   </Button>
                 </Typography>
@@ -244,8 +331,13 @@ export default function Register() {
                 </Typography>
               )}
 
-              <Button type="submit" fullWidth variant="contained" disabled={success || loading}
-                sx={{ mt: 2, mb: 2.5, py: 1.2, textTransform: 'none', fontSize: '0.95rem', fontWeight: '700', borderRadius: 2 }}>
+              <Button 
+                type="submit" 
+                fullWidth 
+                variant="contained" 
+                disabled={success || loading}
+                sx={{ mt: 2, mb: 2.5, py: 1.2, textTransform: 'none', fontSize: '0.95rem', fontWeight: '700', borderRadius: 2 }}
+              >
                 {loading ? <CircularProgress size={24} color="inherit" /> : 'Crear cuenta'}
               </Button>
             </Box>
@@ -254,8 +346,13 @@ export default function Register() {
               <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem', display: 'inline' }}>
                 ¿Ya tienes una cuenta?{' '}
               </Typography>
-              <Button component={Link} to="/login" variant="text" size="small"
-                sx={{ textTransform: 'none', fontSize: '0.85rem', fontWeight: '700', p: 0, minWidth: 'auto', verticalAlign: 'baseline' }}>
+              <Button 
+                component={Link} 
+                to="/login" 
+                variant="text" 
+                size="small"
+                sx={{ textTransform: 'none', fontSize: '0.85rem', fontWeight: '700', p: 0, minWidth: 'auto', verticalAlign: 'baseline' }}
+              >
                 Inicia sesión aquí
               </Button>
             </Box>

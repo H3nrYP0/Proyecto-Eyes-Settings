@@ -60,7 +60,7 @@ export default function Login({ setUser }) {
   return (
     <Box sx={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #e3f2fd 0%, #f3f8ff 50%, #ffffff 100%)',
+      background: '#f5f5f5',
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       py: 2,
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif",
@@ -72,7 +72,7 @@ export default function Login({ setUser }) {
           <Box sx={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             width: 52, height: 52,
-            background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
+            background: '#1976d2',
             borderRadius: '12px', boxShadow: '0 4px 12px rgba(25, 118, 210, 0.2)',
           }}>
             <VisibilityOutlinedIcon sx={{ fontSize: 26, color: 'white' }} />
@@ -155,6 +155,26 @@ export default function Login({ setUser }) {
                 Regístrate aquí
               </Button>
             </Typography>
+            
+            {/* Botón Volver */}
+            <Button 
+              component={Link} 
+              to="/" 
+              variant="text" 
+              size="small"
+              sx={{ 
+                textTransform: 'none', 
+                fontSize: '0.85rem', 
+                fontWeight: '500',
+                mt: 1.5,
+                color: 'text.secondary',
+                '&:hover': {
+                  color: 'primary.main',
+                }
+              }}
+            >
+            Volver
+            </Button>
           </Box>
         </Card>
       </Container>
