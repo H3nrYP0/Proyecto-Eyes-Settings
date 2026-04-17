@@ -1,5 +1,10 @@
 import { Box, Button } from "@mui/material";
 
+// Azul del sidebar
+const BRAND_COLOR = "#1a2540";
+// Azul del header (hover)
+const BRAND_HOVER = "#2d3a6b";
+
 export default function BaseFormActions({
   onCancel,
   onSave,
@@ -22,6 +27,15 @@ export default function BaseFormActions({
       <Button
         variant="outlined"
         onClick={onCancel}
+        sx={{
+          color: BRAND_COLOR,
+          borderColor: BRAND_COLOR,
+          "&:hover": {
+            borderColor: BRAND_HOVER,
+            color: BRAND_HOVER,
+            backgroundColor: `${BRAND_COLOR}12`,
+          },
+        }}
       >
         {cancelLabel}
       </Button>
@@ -30,6 +44,10 @@ export default function BaseFormActions({
         <Button
           variant="contained"
           onClick={onEdit}
+          sx={{
+            backgroundColor: BRAND_COLOR,
+            "&:hover": { backgroundColor: BRAND_HOVER },
+          }}
         >
           {editLabel}
         </Button>
@@ -39,6 +57,10 @@ export default function BaseFormActions({
         <Button
           variant="contained"
           onClick={onSave}
+          sx={{
+            backgroundColor: BRAND_COLOR,
+            "&:hover": { backgroundColor: BRAND_HOVER },
+          }}
         >
           {saveLabel}
         </Button>
