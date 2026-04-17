@@ -157,18 +157,28 @@ const ServicesPage = ({ user, setUser }) => {
     );
   }
 
-  // Caso 3: Error al cargar perfil
+  // Caso 3: Error al cargar perfil (cliente no asociado, token inválido, etc.)
   if (errorCliente) {
     return (
       <div className="services-page">
         <Navbar user={user} activePage="servicios" puedeVerDashboard={puedeVerDashboard}
           onNavigation={handleNavigation} onLogin={handleLogin} onLogout={handleLogout} onDashboard={handleDashboard} />
-        <div style={{ textAlign: "center", padding: "4rem", color: "#991b1b" }}>
-          <p>❌ {errorCliente}</p>
-          <button onClick={handleLogout} style={{ marginTop: "1rem", background: "#0d2e2e", color: "#fff", border: "none", padding: "0.5rem 1rem", borderRadius: "0.5rem", cursor: "pointer" }}>
-            Cerrar sesión e intentar de nuevo
-          </button>
+
+        <div className="error-container">
+          <div className="error-card">
+            <div className="error-icon">⚠️</div>
+            <h2 className="error-title">¡Atención!</h2>
+            <p className="error-message">{errorCliente}</p>
+            <p className="error-suggestion">
+              Parece que tu cuenta de usuario no está vinculada a un perfil de cliente.
+              Por favor, contacta al administrador o cierra sesión e intenta con otra cuenta.
+            </p>
+            <button className="error-btn" onClick={handleLogout}>
+              Cerrar sesión e intentar de nuevo
+            </button>
+          </div>
         </div>
+
         <FooterCompact />
       </div>
     );
