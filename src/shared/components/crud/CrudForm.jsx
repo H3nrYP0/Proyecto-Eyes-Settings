@@ -14,7 +14,24 @@ import {
   Stack,
   Typography,
   Paper,
+  Grid,
 } from "@mui/material";
+
+const BRAND_COLOR = "#1a2540";
+const BRAND_HOVER = "#2d3a6b";
+
+/**
+ * Calcula el tamaño de columna md según el total de campos.
+ * Máximo 4 columnas.
+ *   1 campo  → md=12
+ *   2 campos → md=6
+ *   3 campos → md=4
+ *   4+ campos → md=3
+ */
+function getColSize(totalFields) {
+  const cols = Math.min(Math.max(totalFields, 1), 4);
+  return Math.floor(12 / cols);
+}
 
 export default function CrudForm({
   title,
@@ -110,11 +127,7 @@ export default function CrudForm({
 
       case "select":
         return (
-          <FormControl
-            key={name}
-            fullWidth
-            error={Boolean(errors[name])}
-          >
+          <FormControl key={name} fullWidth error={Boolean(errors[name])}>
             <InputLabel>{label}</InputLabel>
             <Select
               value={formData[name] || ""}
@@ -161,27 +174,52 @@ export default function CrudForm({
     }
   };
 
+  const colSize = getColSize(fields.length);
+
   return (
     <Paper sx={{ p: 3 }}>
       <Stack spacing={3}>
         <Box>
           <Typography variant="h5">{title}</Typography>
           {description && (
-            <Typography color="text.secondary">
-              {description}
-            </Typography>
+            <Typography color="text.secondary">{description}</Typography>
           )}
         </Box>
 
         <Box component="form" onSubmit={handleSubmit}>
           <Stack spacing={2}>
-            {fields.map(renderField)}
+            <Grid container spacing={2}>
+              {fields.map((field) => (
+                <Grid item xs={12} sm={12} md={colSize} key={field.name}>
+                  {renderField(field)}
+                </Grid>
+              ))}
+            </Grid>
 
             <Stack direction="row" spacing={2} justifyContent="flex-end">
-              <Button variant="outlined" onClick={onCancel}>
+              <Button
+                variant="outlined"
+                onClick={onCancel}
+                sx={{
+                  color: BRAND_COLOR,
+                  borderColor: BRAND_COLOR,
+                  "&:hover": {
+                    borderColor: BRAND_HOVER,
+                    color: BRAND_HOVER,
+                    backgroundColor: `${BRAND_COLOR}12`,
+                  },
+                }}
+              >
                 Cancelar
               </Button>
-              <Button type="submit" variant="contained">
+              <Button
+                type="submit"
+                variant="contained"
+                sx={{
+                  backgroundColor: BRAND_COLOR,
+                  "&:hover": { backgroundColor: BRAND_HOVER },
+                }}
+              >
                 {esEdicion ? "Actualizar" : "Crear"}
               </Button>
             </Stack>

@@ -14,6 +14,9 @@ import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 import AddIcon from "@mui/icons-material/Add";
 
+const BRAND_COLOR = "#1a2540";
+const BRAND_HOVER = "#2d3a6b";
+
 export default function CrudLayout({
   title,
   description,
@@ -51,7 +54,6 @@ export default function CrudLayout({
         gap={1.5}
         mb={description ? 1 : 3}
       >
-        {/* Título */}
         <Typography
           variant="h5"
           sx={{ fontWeight: 600, flexShrink: 0 }}
@@ -59,7 +61,6 @@ export default function CrudLayout({
           {title}
         </Typography>
 
-        {/* Controles */}
         {showSearch && (
           <Stack
             direction={{ xs: "column", sm: "row" }}
@@ -67,7 +68,6 @@ export default function CrudLayout({
             alignItems={{ xs: "stretch", sm: "center" }}
             sx={{ ml: { sm: "auto" } }}
           >
-            {/* Buscador + filtro en la misma fila en móvil */}
             <Stack direction="row" spacing={1.5} alignItems="center">
               <TextField
                 size="small"
@@ -108,16 +108,16 @@ export default function CrudLayout({
               )}
             </Stack>
 
-            {/* Botón agregar — full width en móvil */}
             {onAddClick && (
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
                 onClick={onAddClick}
-                fullWidth={false}
                 sx={{
                   whiteSpace: "nowrap",
                   width: { xs: "100%", sm: "auto" },
+                  backgroundColor: BRAND_COLOR,
+                  "&:hover": { backgroundColor: BRAND_HOVER },
                 }}
               >
                 Agregar

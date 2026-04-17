@@ -109,7 +109,7 @@ export default function ForgotPassword() {
   return (
     <Box sx={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #e3f2fd 0%, #f3f8ff 50%, #ffffff 100%)',
+
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       py: 2,
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
