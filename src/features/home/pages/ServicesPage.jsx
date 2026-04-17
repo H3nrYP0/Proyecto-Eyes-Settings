@@ -638,6 +638,7 @@ const ServicesPage = ({ user, setUser }) => {
               gap: "1.5rem",
               maxWidth: "900px",
               margin: "0 auto",
+              alignItems: "stretch",
             }}>
               {servicios.map((s) => (
                 <ServiceCard key={s.id} servicio={s} onAgendar={handleAgendar} />
