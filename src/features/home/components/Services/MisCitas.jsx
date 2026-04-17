@@ -1,6 +1,17 @@
 import { useState, useEffect } from "react";
 import { getMisCitas, cancelarCita } from "./citasLandingService";
 
+// Material UI icons
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ScheduleIcon from "@mui/icons-material/Schedule";
+import CloseIcon from "@mui/icons-material/Close";
+import PersonIcon from "@mui/icons-material/Person";
+import EventIcon from "@mui/icons-material/Event";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import MedicalServicesIcon from "@mui/icons-material/MedicalServices";
+import WarningIcon from "@mui/icons-material/Warning";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+
 // Formatear fecha de YYYY-MM-DD a DD/MM/AAAA
 const formatDate = (dateString) => {
   if (!dateString) return "";
@@ -8,23 +19,43 @@ const formatDate = (dateString) => {
   return `${day}/${month}/${year}`;
 };
 
+// Formatear hora de HH:MM:SS a HH:MM AM/PM
+const formatTimeToAMPM = (timeString) => {
+  if (!timeString) return "";
+  let hours, minutes;
+  
+  if (timeString.includes(":")) {
+    const parts = timeString.split(":");
+    hours = parseInt(parts[0], 10);
+    minutes = parts[1];
+  } else {
+    return timeString;
+  }
+  
+  const ampm = hours >= 12 ? "PM" : "AM";
+  const hours12 = hours % 12 || 12;
+  return `${hours12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+};
+
 // Mapeo de estado a clases CSS y texto
 const estadoInfo = {
-  1: { texto: "Confirmada", clase: "estado-confirmada", icono: "✅" },
-  2: { texto: "Pendiente", clase: "estado-pendiente", icono: "⏳" },
-  3: { texto: "Completada", clase: "estado-completada", icono: "✔️" },
-  4: { texto: "Cancelada", clase: "estado-cancelada", icono: "❌" },
+  1: { texto: "Confirmada", clase: "estado-confirmada", icono: <CheckCircleIcon sx={{ fontSize: "0.8rem" }} /> },
+  2: { texto: "Pendiente", clase: "estado-pendiente", icono: <ScheduleIcon sx={{ fontSize: "0.8rem" }} /> },
+  3: { texto: "Completada", clase: "estado-completada", icono: <CheckCircleIcon sx={{ fontSize: "0.8rem" }} /> },
+  4: { texto: "Cancelada", clase: "estado-cancelada", icono: <CloseIcon sx={{ fontSize: "0.8rem" }} /> },
 };
 
 // Modal de confirmación
 const ConfirmCancelModal = ({ cita, onConfirm, onClose }) => {
   const fechaFormateada = formatDate(cita.fecha);
-  const horaFormateada = cita.hora.substring(0, 5);
+  const horaFormateada = formatTimeToAMPM(cita.hora);
 
   return (
     <div className="success-modal-overlay" onClick={onClose}>
       <div className="success-modal-card" onClick={(e) => e.stopPropagation()}>
-        <div className="success-icon" style={{ background: "#fee2e2", color: "#991b1b" }}>⚠️</div>
+        <div className="success-icon" style={{ background: "#fee2e2", color: "#991b1b" }}>
+          <WarningIcon sx={{ fontSize: "3rem" }} />
+        </div>
         <h3>Cancelar cita</h3>
         <p>¿Estás seguro de cancelar esta cita?</p>
         <div className="success-details">
@@ -50,8 +81,10 @@ const CancelSuccessModal = ({ cita, onClose, onSendWhatsApp }) => {
   return (
     <div className="success-modal-overlay" onClick={onClose}>
       <div className="success-modal-card" onClick={(e) => e.stopPropagation()}>
-        <div className="success-icon">✅</div>
-        <h3>¡Cita cancelada!</h3>
+        <div className="success-icon">
+          <CheckCircleIcon sx={{ fontSize: "3rem", color: "#15803d" }} />
+        </div>
+        <h3>Cita cancelada</h3>
         <p>Tu cita ha sido cancelada correctamente.</p>
         <div className="success-details">
           <p><strong>Servicio:</strong> {cita.servicio}</p>
@@ -63,6 +96,7 @@ const CancelSuccessModal = ({ cita, onClose, onSendWhatsApp }) => {
         </p>
         <div style={{ display: "flex", gap: "1rem", marginTop: "0.5rem" }}>
           <button className="success-btn" onClick={onSendWhatsApp}>
+            <WhatsAppIcon sx={{ fontSize: "1rem", marginRight: "0.3rem", verticalAlign: "middle" }} />
             Enviar WhatsApp
           </button>
           <button className="success-btn" style={{ background: "#4e6e6e" }} onClick={onClose}>
@@ -74,7 +108,7 @@ const CancelSuccessModal = ({ cita, onClose, onSendWhatsApp }) => {
   );
 };
 
-const MisCitas = ({ onCitaCancelada }) => {
+const MisCitas = ({ readOnly = false, onCitaCancelada }) => {
   const [citas, setCitas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -95,23 +129,22 @@ const MisCitas = ({ onCitaCancelada }) => {
   };
 
   useEffect(() => {
-    cargarCitas();
-  }, []);
+    if (!readOnly) {
+      cargarCitas();
+    }
+  }, [readOnly]);
 
   const handleConfirmCancel = async () => {
     if (!citaParaCancelar) return;
     setCancelandoId(citaParaCancelar.id);
     try {
-      const result = await cancelarCita(citaParaCancelar.id);
-      // Recargar lista de citas
+      await cancelarCita(citaParaCancelar.id);
       await cargarCitas();
-      // Guardar datos de la cita cancelada para mostrar en modal de éxito
       setCitaCanceladaExito({
         servicio: citaParaCancelar.servicio_nombre,
         fecha: formatDate(citaParaCancelar.fecha),
-        hora: citaParaCancelar.hora.substring(0, 5),
+        hora: formatTimeToAMPM(citaParaCancelar.hora),
       });
-      // Cerrar modal de confirmación
       setCitaParaCancelar(null);
       if (onCitaCancelada) onCitaCancelada();
     } catch (err) {
@@ -123,26 +156,35 @@ const MisCitas = ({ onCitaCancelada }) => {
 
   const handleSendWhatsApp = () => {
     if (!citaCanceladaExito) return;
-    const telefonoOptica = "573006139449"; // Cambia por el número real
-    const mensaje = `Hola, he cancelado mi cita del ${citaCanceladaExito.fecha} a las ${citaCanceladaExito.hora} para el servicio de ${citaCanceladaExito.servicio}. Mi nombre es ${citaCanceladaExito.cliente || "Cliente"}. Gracias.`;
+    const telefonoOptica = "573006139449";
+    const mensaje = `Hola, he cancelado mi cita del ${citaCanceladaExito.fecha} a las ${citaCanceladaExito.hora} para el servicio de ${citaCanceladaExito.servicio}. Gracias.`;
     const url = `https://wa.me/${telefonoOptica}?text=${encodeURIComponent(mensaje)}`;
     window.open(url, "_blank");
   };
 
-  if (loading) return <div className="mis-citas-loading">📋 Cargando tus citas...</div>;
-  if (error) return <div className="mis-citas-error">❌ Error: {error}</div>;
-  if (citas.length === 0) return <div className="mis-citas-empty">📅 No tienes citas agendadas aún.</div>;
+  if (readOnly) {
+    return (
+      <div className="admin-readonly-message">
+        <p>Lista de citas no disponible en modo administrador.</p>
+        <p>Para ver tus citas, utiliza una cuenta de cliente.</p>
+      </div>
+    );
+  }
+
+  if (loading) return <div className="mis-citas-loading">Cargando tus citas...</div>;
+  if (error) return <div className="mis-citas-error">Error: {error}</div>;
+  if (citas.length === 0) return <div className="mis-citas-empty">No tienes citas agendadas aún.</div>;
 
   return (
     <>
       <div className="mis-citas-container">
-        <h3>📋 Mis citas</h3>
+        <h3><EventIcon sx={{ fontSize: "1.2rem", marginRight: "0.5rem", verticalAlign: "middle" }} /> Mis citas</h3>
         <div className="citas-grid">
           {citas.map(cita => {
-            const estado = estadoInfo[cita.estado_cita_id] || { texto: "Desconocido", clase: "", icono: "❓" };
+            const estado = estadoInfo[cita.estado_cita_id] || { texto: "Desconocido", clase: "", icono: <MedicalServicesIcon sx={{ fontSize: "0.8rem" }} /> };
             const esCancelable = cita.estado_cita_id === 1 || cita.estado_cita_id === 2;
             const fechaFormateada = formatDate(cita.fecha);
-            const horaFormateada = cita.hora.substring(0, 5);
+            const horaFormateada = formatTimeToAMPM(cita.hora);
 
             return (
               <div key={cita.id} className={`cita-card ${estado.clase}`}>
@@ -151,9 +193,8 @@ const MisCitas = ({ onCitaCancelada }) => {
                   <span className="cita-estado">{estado.icono} {estado.texto}</span>
                 </div>
                 <div className="cita-body">
-                  <div className="cita-fecha">📅 {fechaFormateada}</div>
-                  <div className="cita-hora">⏰ {horaFormateada}</div>
-                  <div className="cita-empleado">👨‍⚕️ {cita.empleado_nombre || "Optómetra"}</div>
+                  <div className="cita-fecha"><EventIcon sx={{ fontSize: "0.8rem", marginRight: "0.3rem", verticalAlign: "middle" }} /> {fechaFormateada}</div>
+                  <div className="cita-hora"><AccessTimeIcon sx={{ fontSize: "0.8rem", marginRight: "0.3rem", verticalAlign: "middle" }} /> {horaFormateada}</div>
                 </div>
                 {esCancelable && (
                   <button
@@ -170,7 +211,6 @@ const MisCitas = ({ onCitaCancelada }) => {
         </div>
       </div>
 
-      {/* Modal de confirmación */}
       {citaParaCancelar && (
         <ConfirmCancelModal
           cita={citaParaCancelar}
@@ -179,7 +219,6 @@ const MisCitas = ({ onCitaCancelada }) => {
         />
       )}
 
-      {/* Modal de éxito después de cancelar */}
       {citaCanceladaExito && (
         <CancelSuccessModal
           cita={citaCanceladaExito}

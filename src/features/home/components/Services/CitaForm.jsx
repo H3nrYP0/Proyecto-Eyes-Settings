@@ -1,7 +1,16 @@
-// home/components/Services/CitaForm.jsx
 import { useState, useEffect } from "react";
 import { getEmpleadosActivosLanding, getHorasDisponiblesMultiple, crearCitaLanding } from "./citasLandingService";
 import SuccessModal from "./SuccessModal";
+
+// Material UI icons
+import PersonIcon from "@mui/icons-material/Person";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ScheduleIcon from "@mui/icons-material/Schedule";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import PhoneIcon from "@mui/icons-material/Phone";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import LocalPhoneIcon from "@mui/icons-material/LocalPhone";
+import ConfirmationNumberIcon from "@mui/icons-material/ConfirmationNumber";
 
 const formatTimeLabel = (t) => {
   const [hour, minute] = t.split(":").map(Number);
@@ -31,10 +40,9 @@ const nextDays = (() => {
   return days;
 })();
 
-const CitaForm = ({ cliente, servicios, estadosCita, preServicioId }) => {
-  // 🔹 Guardia unificada (de la segunda versión)
+const CitaForm = ({ cliente, servicios, estadosCita, preServicioId, onCitaAgendada }) => {
   if (!cliente) {
-    return <div style={{ textAlign: "center", padding: "2rem" }}>Cargando información del cliente...</div>;
+    return <div className="admin-readonly-message">Cargando información del cliente...</div>;
   }
 
   const [selectedService, setSelectedService] = useState(null);
@@ -111,7 +119,7 @@ const CitaForm = ({ cliente, servicios, estadosCita, preServicioId }) => {
         hora: formatTimeLabel(selectedTime),
         cliente: `${cliente.nombre} ${cliente.apellido}`
       });
-      // Resetear formulario
+      if (onCitaAgendada) onCitaAgendada();
       setSelectedService(null);
       setSelectedDate(null);
       setSelectedTime(null);
@@ -131,8 +139,9 @@ const CitaForm = ({ cliente, servicios, estadosCita, preServicioId }) => {
         <div className="services-container">
           <div className="section-header">
             <h2 className="section-title"><span className="blue-gradient-text">Agenda tu Cita</span></h2>
-            <div style={{ textAlign: "center", marginBottom: "0.5rem", fontSize: "0.85rem", color: "#166534", background: "#f0faf5", display: "inline-block", padding: "0.2rem 1rem", borderRadius: "999px" }}>
-              👤 Agendando como <strong>{cliente.nombre} {cliente.apellido}</strong>
+            <div style={{ textAlign: "center", marginBottom: "0.5rem", fontSize: "0.85rem", color: "#166534", background: "#f0faf5", display: "inline-flex", alignItems: "center", gap: "0.3rem", padding: "0.2rem 1rem", borderRadius: "999px" }}>
+              <PersonIcon sx={{ fontSize: "0.9rem" }} />
+              <span>Agendando como <strong>{cliente.nombre} {cliente.apellido}</strong></span>
             </div>
             <p className="section-description">Selecciona servicio, fecha y horario disponible.</p>
           </div>
@@ -176,7 +185,7 @@ const CitaForm = ({ cliente, servicios, estadosCita, preServicioId }) => {
                       ) : loadingHoras ? (
                         <div className="skeleton-grid">{[...Array(8)].map((_, i) => <div key={i} className="skeleton-slot" />)}</div>
                       ) : horasDisponibles.length === 0 ? (
-                        <div className="no-slots">😔 No hay horarios disponibles este día. Prueba otra fecha.</div>
+                        <div className="no-slots">No hay horarios disponibles este día. Prueba otra fecha.</div>
                       ) : (
                         <div className="time-grid">
                           {horasDisponibles.map(time => (
@@ -193,20 +202,20 @@ const CitaForm = ({ cliente, servicios, estadosCita, preServicioId }) => {
                 {errorMsg && <div className="result-box error">{errorMsg}</div>}
 
                 <button type="submit" className="submit-appointment-btn" disabled={submitting || !selectedService || !selectedDate || !selectedTime || loadingHoras}>
-                  {submitting ? "Agendando…" : <><span>✅</span> Confirmar Cita</>}
+                  {submitting ? "Agendando…" : <><CheckCircleIcon sx={{ fontSize: "1rem" }} /> Confirmar Cita</>}
                 </button>
               </form>
             </div>
 
             <div className="appointment-info">
               <div className="info-card">
-                <h3>📅 Información de la Cita</h3>
+                <h3><ScheduleIcon sx={{ fontSize: "1rem", marginRight: "0.3rem", verticalAlign: "middle" }} /> Información de la Cita</h3>
                 <div className="info-list">
                   {[
-                    { icon: "⏰", title: "Horarios de Atención", lines: ["Lun–Vie: 8:00 AM – 6:00 PM", "Sábados: 9:00 AM – 2:00 PM"] },
-                    { icon: "📍", title: "Ubicación", lines: ["Cra 45 # 50-48 Local 102", "El Palo con la Playa, Medellín"] },
-                    { icon: "📞", title: "Contacto", lines: ["300 613 9449 (WhatsApp)", "(+57) 604 579 9276 (Fijo)"] },
-                    { icon: "✅", title: "Confirmación", lines: ["Recibirás confirmación por WhatsApp en menos de 24 horas"] },
+                    { icon: <ScheduleIcon sx={{ fontSize: "0.9rem" }} />, title: "Horarios de Atención", lines: ["Lun–Vie: 8:00 AM – 6:00 PM", "Sábados: 9:00 AM – 2:00 PM"] },
+                    { icon: <LocationOnIcon sx={{ fontSize: "0.9rem" }} />, title: "Ubicación", lines: ["Cra 45 # 50-48 Local 102", "El Palo con la Playa, Medellín"] },
+                    { icon: <PhoneIcon sx={{ fontSize: "0.9rem" }} />, title: "Contacto", lines: ["300 613 9449 (WhatsApp)", "(+57) 604 579 9276 (Fijo)"] },
+                    { icon: <ConfirmationNumberIcon sx={{ fontSize: "0.9rem" }} />, title: "Confirmación", lines: ["Recibirás confirmación por WhatsApp en menos de 24 horas"] },
                   ].map(({ icon, title, lines }) => (
                     <div key={title} className="info-item">
                       <span className="info-icon">{icon}</span>

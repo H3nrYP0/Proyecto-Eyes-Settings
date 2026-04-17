@@ -1153,3 +1153,27 @@
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(13,46,46,0.2);
 }
+
+/* Mensaje para modo administrador (solo lectura) */
+.admin-banner {
+  background: #fef3c7;
+  color: #92400e;
+  text-align: center;
+  padding: 0.75rem;
+  margin: 1rem auto;
+  border-radius: 0.75rem;
+  max-width: 900px;
+  font-weight: 500;
+  border-left: 4px solid #f59e0b;
+}
+
+.admin-readonly-message {
+  text-align: center;
+  padding: 2rem;
+  background: #f3f8f8;
+  border-radius: 1rem;
+  margin: 1rem 0;
+  color: #4e6e6e;
+  font-style: italic;
+  border: 1px dashed #d4e6e6;
+}
