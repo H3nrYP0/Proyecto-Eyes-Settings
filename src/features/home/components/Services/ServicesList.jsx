@@ -111,7 +111,7 @@ const ServicesList = () => {
         )}
 
         {!loading && !error && servicios.length > 0 && (
-          <div className="services-grid">
+          <div className="services-grid" style={{ alignItems: "stretch" }}>
             {servicios.map(servicio => (
               <ServiceCard
                 key={servicio.id}

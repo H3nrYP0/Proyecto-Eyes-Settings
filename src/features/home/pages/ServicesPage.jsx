@@ -216,8 +216,17 @@ const ServicesPage = ({ user, setUser }) => {
           {loadingData ? <LoadingSpinner mensaje="Cargando servicios..." /> : servicios.length === 0 ? (
             <p style={{ textAlign: "center", color: "#64748b" }}>No hay servicios disponibles en este momento.</p>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1.5rem", maxWidth: "900px", margin: "0 auto" }}>
-              {servicios.map(s => <ServiceCard key={s.id} servicio={s} onAgendar={() => {}} />)}
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+              gap: "1.5rem",
+              maxWidth: "900px",
+              margin: "0 auto",
+              alignItems: "stretch",
+            }}>
+              {servicios.map((s) => (
+                <ServiceCard key={s.id} servicio={s} onAgendar={handleAgendar} />
+              ))}
             </div>
           )}
         </div>
