@@ -381,3 +381,58 @@ export async function getEmpleadoDisponible(fecha, hora, servicioId, duracion, e
   }
   return null;
 }
+
+// ── OBTENER PERFIL DEL CLIENTE LOGUEADO ──────────────────
+export async function getMiPerfil() {
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  if (!token) throw new Error("No hay sesión activa");
+
+  const res = await fetch(`${BASE_URL}/cliente/perfil`, {
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    }
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || "Error al obtener perfil");
+  }
+  return res.json();
+}
+
+// ── OBTENER CITAS DEL CLIENTE LOGUEADO ──────────────────
+export async function getMisCitas() {
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  if (!token) throw new Error("No hay sesión activa");
+
+  const res = await fetch(`${BASE_URL}/cliente/citas`, {
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    }
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || "Error al obtener citas");
+  }
+  return res.json();
+}
+
+// ── CANCELAR UNA CITA ───────────────────────────────────
+export async function cancelarCita(citaId) {
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  if (!token) throw new Error("No hay sesión activa");
+
+  const res = await fetch(`${BASE_URL}/cliente/citas/${citaId}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    }
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || "Error al cancelar cita");
+  }
+  return res.json();
+}

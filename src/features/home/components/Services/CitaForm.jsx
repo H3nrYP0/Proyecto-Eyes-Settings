@@ -1,7 +1,7 @@
 // home/components/Services/CitaForm.jsx
 import { useState, useEffect } from "react";
 import { getEmpleadosActivosLanding, getHorasDisponiblesMultiple, crearCitaLanding } from "./citasLandingService";
-import SuccessModal from "./SuccessModal";  // ← Importa el modal
+import SuccessModal from "./SuccessModal";
 
 const formatTimeLabel = (t) => {
   const [hour, minute] = t.split(":").map(Number);
@@ -31,7 +31,12 @@ const nextDays = (() => {
   return days;
 })();
 
-const CitaForm = ({ cliente, servicios, estadosCita, preServicioId, onCambiarCliente }) => {
+const CitaForm = ({ cliente, servicios, estadosCita, preServicioId }) => {
+  // 🔹 Guardia unificada (de la segunda versión)
+  if (!cliente) {
+    return <div style={{ textAlign: "center", padding: "2rem" }}>Cargando información del cliente...</div>;
+  }
+
   const [selectedService, setSelectedService] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
@@ -39,7 +44,7 @@ const CitaForm = ({ cliente, servicios, estadosCita, preServicioId, onCambiarCli
   const [horasMap, setHorasMap] = useState(new Map());
   const [loadingHoras, setLoadingHoras] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [successCita, setSuccessCita] = useState(null); // para el modal
+  const [successCita, setSuccessCita] = useState(null);
 
   useEffect(() => {
     if (preServicioId && servicios.length) {
@@ -100,7 +105,6 @@ const CitaForm = ({ cliente, servicios, estadosCita, preServicioId, onCambiarCli
         fecha: selectedDate,
         hora: selectedTime,
       });
-      // Mostrar modal de éxito
       setSuccessCita({
         servicio: selectedService.nombre,
         fecha: selectedDate,
@@ -127,10 +131,8 @@ const CitaForm = ({ cliente, servicios, estadosCita, preServicioId, onCambiarCli
         <div className="services-container">
           <div className="section-header">
             <h2 className="section-title"><span className="blue-gradient-text">Agenda tu Cita</span></h2>
-            <div className="patient-badge">
-              <span>👤</span>
-              <span>Agendando como <strong>{cliente.nombre} {cliente.apellido}</strong></span>
-              <button onClick={onCambiarCliente}>Cambiar</button>
+            <div style={{ textAlign: "center", marginBottom: "0.5rem", fontSize: "0.85rem", color: "#166534", background: "#f0faf5", display: "inline-block", padding: "0.2rem 1rem", borderRadius: "999px" }}>
+              👤 Agendando como <strong>{cliente.nombre} {cliente.apellido}</strong>
             </div>
             <p className="section-description">Selecciona servicio, fecha y horario disponible.</p>
           </div>
@@ -218,7 +220,6 @@ const CitaForm = ({ cliente, servicios, estadosCita, preServicioId, onCambiarCli
         </div>
       </section>
 
-      {/* Modal de éxito */}
       {successCita && <SuccessModal cita={successCita} onClose={() => setSuccessCita(null)} />}
     </>
   );

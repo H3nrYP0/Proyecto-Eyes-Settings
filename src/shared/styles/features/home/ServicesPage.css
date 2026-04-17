@@ -958,3 +958,129 @@
   .services-hero .hero-title { font-size: 2rem; }
   .section-title { font-size: 1.65rem; }
 }
+
+/* ========== MIS CITAS ========== */
+.mis-citas-container {
+  background: white;
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  margin: 2rem auto;
+  max-width: 1060px;
+  box-shadow: 0 5px 18px rgba(13,46,46,0.07);
+  border: 1px solid var(--medium-gray);
+}
+
+.mis-citas-container h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #0d2e2e;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #d4e6e6;
+}
+
+.citas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.cita-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1rem;
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.cita-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(13,46,46,0.1);
+}
+
+.cita-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.cita-servicio {
+  font-weight: 700;
+  color: #0d2e2e;
+  background: #eef5f5;
+  padding: 0.2rem 0.6rem;
+  border-radius: 1rem;
+  font-size: 0.8rem;
+}
+
+.cita-estado {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 1rem;
+}
+
+.estado-confirmada {
+  background: #dbeafe;
+  color: #1e40af;
+}
+.estado-pendiente {
+  background: #fef3c7;
+  color: #92400e;
+}
+.estado-completada {
+  background: #d1fae5;
+  color: #065f46;
+}
+.estado-cancelada {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.cita-body {
+  margin: 0.75rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.cita-fecha, .cita-hora, .cita-empleado {
+  font-size: 0.85rem;
+  color: #334155;
+}
+
+.cancelar-btn {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.cancelar-btn:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.cancelar-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.mis-citas-loading, .mis-citas-error, .mis-citas-empty {
+  text-align: center;
+  padding: 2rem;
+  color: #4e6e6e;
+  background: #f9fdfd;
+  border-radius: 1rem;
+  margin: 1rem 0;
+}
