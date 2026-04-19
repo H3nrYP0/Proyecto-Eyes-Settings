@@ -226,6 +226,9 @@ export default function Categorias() {
         showCancel={modalForm.mode !== "view"}
         onConfirm={handleModalConfirm}
         onCancel={closeFormModal}
+        confirmButtonColor="#1a2540"
+        confirmButtonHoverColor="#2d3a6b"
+
       >
         <CategoriaForm
           id="categoria-form"

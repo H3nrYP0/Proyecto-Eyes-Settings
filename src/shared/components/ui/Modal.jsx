@@ -23,6 +23,8 @@ export default function Modal({
   onConfirm,
   onCancel,
   children,
+  confirmButtonColor,
+  confirmButtonHoverColor,
 }) {
   const getIconColor = () => {
     switch (type) {
@@ -46,7 +48,7 @@ export default function Modal({
     >
       {/* Header con título e ícono de cerrar */}
       <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <IconComponent color={getIconColor()} />
+        {/* <IconComponent color={getIconColor()} /> */}
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
           {title}
         </Typography>
@@ -81,8 +83,15 @@ export default function Modal({
         <Button
           onClick={onConfirm}
           variant="contained"
-          color={getIconColor()}
-          sx={{ borderRadius: 2 }}
+          color={!confirmButtonColor ? getIconColor() : undefined}
+          sx={{ borderRadius: 2,
+             ...(confirmButtonColor && {  // ← si hay color personalizado, úsalo
+        backgroundColor: confirmButtonColor,
+        '&:hover': {
+          backgroundColor: confirmButtonHoverColor,
+        }
+      })
+           }}
         >
           {confirmText}
         </Button>
