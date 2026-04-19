@@ -21,6 +21,9 @@
 
       // ========== COMPONENTS ==========
       "@components/*": ["./src/components/*"],
+
+      // ========== THEME ==========
+      "@theme/*": ["./src/theme/*"]
     }
   },
   "include": ["src/**/*"],

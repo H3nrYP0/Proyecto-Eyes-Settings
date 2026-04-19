@@ -36,6 +36,9 @@ export default defineConfig({
       
       // ========== COMPONENTS ==========
       '@components': path.resolve(__dirname, './src/components'),
+
+      // ========== THEME ==========
+      '@theme': path.resolve(__dirname, './src/theme'),
       
       // ========== EJEMPLO PARA AGREGAR MÁS ALIAS ==========
       // Copia esta línea, cambia @nombre y la ruta:
