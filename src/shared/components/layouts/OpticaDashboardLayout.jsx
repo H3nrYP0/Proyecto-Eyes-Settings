@@ -94,7 +94,7 @@ import EditarUsuario from "@seguridad/user/pages/EditarUsuario";
 import DetalleUsuario from "@seguridad/user/pages/DetalleUsuario";
 
 // ========== CONFIGURACIÓN ==========
-import Configuracion from "../../../features/configuracion/Configuration";
+import Configuracion from "../../../features/configuracion/pages/Configuration";
 import authServices from "@auth/services/authServices";
 
 const drawerWidth = 240;

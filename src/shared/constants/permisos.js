@@ -13,5 +13,6 @@ export const permisosDisponibles = [
   { id: "usuarios", nombre: "Gestionar Usuarios" },
   { id: "proveedores", nombre: "Gestionar Proveedores" },
   { id: "agenda", nombre: "Gestionar Agenda" },
-  { id: "pedidos", nombre: "Gestionar Pedidos" }
+  { id: "pedidos", nombre: "Gestionar Pedidos" },
+  { id: "configuracion", nombre: "Configuración" }
 ];
