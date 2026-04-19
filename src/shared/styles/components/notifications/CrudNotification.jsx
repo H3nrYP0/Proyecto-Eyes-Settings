@@ -1,7 +1,23 @@
 // src/shared/components/notifications/CrudNotification.jsx
 import './CrudNotification.css';
+import { useEffect } from 'react';
 
-export default function CrudNotification({ message, type = 'success', isVisible, onClose }) {
+export default function CrudNotification({
+   message,
+  type = 'success',
+  isVisible, 
+  onClose,
+  duration =4000
+ }) {
+  useEffect(() => {
+    if (isVisible && duration > 0) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, duration);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, duration, onClose]);
+
   if (!isVisible) return null;
 
   const bgColor = type === 'success' 

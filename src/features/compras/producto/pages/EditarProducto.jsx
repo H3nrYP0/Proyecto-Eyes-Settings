@@ -20,7 +20,6 @@ export default function EditarProducto() {
 
   const showNotification = useCallback((message, type = 'success') => {
     setNotification({ message, type, isVisible: true });
-    setTimeout(() => setNotification(prev => ({ ...prev, isVisible: false })), 6000);
   }, []);
 
   const hideNotification = useCallback(() => {
@@ -115,6 +114,7 @@ export default function EditarProducto() {
         handleImageUpload={handleImageUpload}
         removeImage={removeImage}
         handleSubmit={handleSubmit}
+        showNotification={showNotification}
       />
     </>
   );

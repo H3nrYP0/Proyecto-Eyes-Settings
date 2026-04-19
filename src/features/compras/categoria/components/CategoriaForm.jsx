@@ -19,6 +19,8 @@ export default function CategoriaForm({
   const onSubmitForm = async (e) => {
     e.preventDefault();
     const result = await handleSubmit();
+    // Si la validación falló, result será undefined
+    if (!result) return;
     if (result.success && onSubmit) {
       onSubmit(result.data);
     }

@@ -48,27 +48,17 @@ export const useCampanaSaludForm = (id, mode = 'create') => {
     type: 'success',
     message: '',
   });
-  const timeoutRef = useRef(null);
 
   const isEdit = mode === 'edit';
   const isView = mode === 'view';
 
   const showNotification = (type, message) => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setNotification({ open: true, type, message });
-    timeoutRef.current = setTimeout(() => {
-      setNotification((prev) => ({ ...prev, open: false }));
-      timeoutRef.current = null;
-    }, 5000);
   };
 
-  const hideNotification = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-    setNotification((prev) => ({ ...prev, open: false }));
-  };
+const hideNotification = () => {
+  setNotification((prev) => ({ ...prev, open: false }));
+};
 
   const generarSlots = (horaInicio, horaFinal) => {
     const slots = [];
@@ -190,9 +180,7 @@ export const useCampanaSaludForm = (id, mode = 'create') => {
       setLoading(false);
     };
     init();
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
+    return () => {};
   }, [loadEmpleados, loadEstadosCita, loadCampana, isEdit, isView]);
 
   const handleChange = (e) => {

@@ -1,19 +1,22 @@
-// src/features/compras/pages/producto/components/ImageDropzone.jsx
-import { Box, Grid, Paper, IconButton, Typography, CircularProgress, Alert } from "@mui/material";
+import { Box, Grid, Paper, IconButton, Typography, CircularProgress } from "@mui/material";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useDropzone } from 'react-dropzone';
-import { useState } from "react";
 
-export default function ImageDropzone({ onDrop, previews, onRemove, disabled, uploadingImages }) {
-  const [errorMessage, setErrorMessage] = useState("");
-
+export default function ImageDropzone({ onDrop, previews, onRemove, disabled, uploadingImages, onError }) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (acceptedFiles, fileRejections) => {
-      setErrorMessage("");
       if (fileRejections.length > 0) {
         const firstError = fileRejections[0].errors[0];
-        setErrorMessage(firstError.message);
+        let errorMessage = "";
+        if (firstError.code === "file-too-large") {
+          errorMessage = `El archivo es demasiado grande. Tamaño máximo permitido: 2 MB.`;
+        } else if (firstError.code === "file-invalid-type") {
+          errorMessage = `Formato no permitido. Solo se aceptan JPG, PNG o WEBP.`;
+        } else {
+          errorMessage = firstError.message;
+        }
+        if (onError) onError(errorMessage);
         return;
       }
       if (acceptedFiles.length > 0) {
@@ -55,17 +58,11 @@ export default function ImageDropzone({ onDrop, previews, onRemove, disabled, up
         </Typography>
       </Paper>
 
-      {errorMessage && (
-        <Alert severity="error" sx={{ mt: 1 }} onClose={() => setErrorMessage("")}>
-          {errorMessage}
-        </Alert>
-      )}
-
       {uploadingImages && (
         <Box sx={{ textAlign: 'center', mt: 2, py: 2 }}>
           <CircularProgress size={24} />
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            Subiendo imágenes a Cloudinary...
+            Subiendo imágenes...
           </Typography>
         </Box>
       )}
