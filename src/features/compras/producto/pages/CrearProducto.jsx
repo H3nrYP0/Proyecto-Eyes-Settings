@@ -41,9 +41,6 @@ export default function CrearProducto() {
 
   const showNotification = (message, type = 'success') => {
     setNotification({ message, type, isVisible: true });
-    setTimeout(() => {
-      setNotification(prev => ({ ...prev, isVisible: false }));
-    }, 3000);
   };
 
   const hideNotification = () => {
@@ -225,6 +222,7 @@ export default function CrearProducto() {
         handleSubmit={handleSubmit}
         refreshMarcas={refreshMarcas}
         refreshCategorias={refreshCategorias}
+        showNotification={showNotification}
       />
 
       <ChatBot

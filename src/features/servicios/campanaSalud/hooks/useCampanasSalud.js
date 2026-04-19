@@ -23,27 +23,12 @@ export const useCampanasSalud = () => {
   const isMounted = useRef(true);
   const estadosCitaRef = useRef([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const timeoutRef = useRef(null);
 
-  const showNotification = (type, message) => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
+ const showNotification = (type, message) => {
     setNotification({ open: true, type, message });
-    timeoutRef.current = setTimeout(() => {
-      if (isMounted.current) {
-        setNotification((prev) => ({ ...prev, open: false }));
-      }
-      timeoutRef.current = null;
-    }, 5000);
   };
 
   const hideNotification = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
     setNotification((prev) => ({ ...prev, open: false }));
   };
 
@@ -63,10 +48,7 @@ export const useCampanasSalud = () => {
       }
     };
     fetchEstados();
-    return () => {
-      isMounted.current = false;
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
+    return () => {};
   }, []);
 
   const transformCampana = useCallback((campana) => {

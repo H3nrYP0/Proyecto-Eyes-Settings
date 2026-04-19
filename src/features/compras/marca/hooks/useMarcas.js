@@ -39,13 +39,6 @@ export function useMarcas() {
     setNotification(prev => ({ ...prev, isVisible: false }));
   }, []);
 
-  useEffect(() => {
-    if (notification.isVisible) {
-      const timer = setTimeout(() => handleCloseNotification(), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [notification.isVisible, handleCloseNotification]);
-
   const limpiarAriaHidden = useCallback(() => {
     setTimeout(() => {
       const root = document.getElementById('root');

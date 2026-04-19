@@ -37,13 +37,6 @@ export const useServicios = () => {
     setNotification(prev => ({ ...prev, isVisible: false }));
   }, []);
 
-  useEffect(() => {
-    if (notification.isVisible) {
-      const timer = setTimeout(() => handleCloseNotification(), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [notification.isVisible, handleCloseNotification]);
-
   const cleanupModalState = useCallback(() => {
     setTimeout(() => {
       const root = document.getElementById('root');
@@ -195,17 +188,6 @@ export const useServicios = () => {
       return matchesSearch && matchesFilter;
     });
   }, [servicios, search, filterEstado]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const root = document.getElementById('root');
-      if (root?.hasAttribute('aria-hidden') && !document.querySelector('.MuiModal-root')) {
-        root.removeAttribute('aria-hidden');
-        document.body.style.pointerEvents = 'auto';
-      }
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [servicios]);
 
   useEffect(() => {
     loadServicios();

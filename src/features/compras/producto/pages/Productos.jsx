@@ -79,6 +79,7 @@ export default function Productos() {
           images={item.imagenes} 
           size="small" 
           showAsButton 
+          productName={item.nombre}
         />
       ),
     },

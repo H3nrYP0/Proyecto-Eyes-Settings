@@ -22,6 +22,7 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
     estado: true
   });
 
+  const [pendingImageFiles, setPendingImageFiles] = useState([]);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [imagenes, setImagenes] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
@@ -32,7 +33,8 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
   const [nombreExists, setNombreExists] = useState(false);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const [imagenesAEliminar, setImagenesAEliminar] = useState([]);
+
   const marcasCargadasRef = useRef(false);
   const categoriasCargadasRef = useRef(false);
   const abortControllerRef = useRef(null);
@@ -48,48 +50,32 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
     onSubmitSuccessRef.current = onSubmitSuccess;
   }, [onSubmitSuccess]);
 
-  const loadMarcasYCategorias = useCallback(async () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    abortControllerRef.current = new AbortController();
+ const loadMarcasYCategorias = useCallback(async () => {
+  if (abortControllerRef.current) {
+    abortControllerRef.current.abort();
+  }
+  abortControllerRef.current = new AbortController();
 
-    try {
-      const promises = [];
-      if (!marcasCargadasRef.current) {
-        promises.push(MarcaData.getAllMarcas());
-      }
-      if (!categoriasCargadasRef.current) {
-        promises.push(getAllCategorias());
-      }
-      
-      if (promises.length === 0) return;
-      
-      const results = await Promise.all(promises);
-      let marcasData, categoriasData;
-      
-      if (!marcasCargadasRef.current) {
-        marcasData = results[0];
-        marcasCargadasRef.current = true;
-      }
-      if (!categoriasCargadasRef.current) {
-        categoriasData = results[promises.length === 2 ? 1 : 0];
-        categoriasCargadasRef.current = true;
-      }
-      
-      if (marcasData) {
-        setMarcas(marcasData.filter(m => m.estado === true));
-      }
-      if (categoriasData) {
-        setCategorias(categoriasData.filter(c => c.estado === true));
-      }
-    } catch (error) {
-      if (error.name !== 'AbortError') {
-        onErrorRef.current?.("Error cargando datos");
-      }
+  try {
+    // Cargar marcas si no están cargadas o si se solicita refrescar
+    if (!marcasCargadasRef.current) {
+      const marcasData = await MarcaData.getAllMarcas();
+      setMarcas(marcasData.filter(m => m.estado === true));
+      marcasCargadasRef.current = true;
     }
-  }, []);
-
+    
+    // Cargar categorías si no están cargadas o si se solicita refrescar
+    if (!categoriasCargadasRef.current) {
+      const categoriasData = await getAllCategorias();
+      setCategorias(categoriasData.filter(c => c.estado === true));
+      categoriasCargadasRef.current = true;
+    }
+  } catch (error) {
+    if (error.name !== 'AbortError') {
+      onErrorRef.current?.("Error cargando datos");
+    }
+  }
+}, []);
   const loadData = useCallback(async () => {
     await loadMarcasYCategorias();
     
@@ -115,6 +101,7 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
         }));
         setImagenes(imagenesConId);
         setImagePreviews(imagenesConId.map(img => img.url));
+        setImagenesAEliminar([]);
       }
       setInitialDataLoaded(true);
     }
@@ -122,12 +109,10 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
     setLoading(false);
   }, [initialData, initialDataLoaded, loadMarcasYCategorias]);
 
-  useEffect(() => {
+   useEffect(() => {
     loadData();
     return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
+      if (abortControllerRef.current) abortControllerRef.current.abort();
     };
   }, [loadData]);
 
@@ -183,7 +168,6 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
             setErrors(prev => ({ ...prev, nombre: "" }));
           }
         } catch (error) {
-          // Silent fail
         }
       } else {
         setNombreExists(false);
@@ -194,69 +178,52 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
     }
   };
 
-  const handleImageUpload = async (acceptedFiles) => {
-    if (mode === 'edit' && !formData.estado) {
-      const errorMsg = "No se pueden agregar imágenes a un producto inactivo. Activa el producto primero.";
-      setErrors(prev => ({ ...prev, imagenes: errorMsg }));
-      onErrorRef.current?.(errorMsg);
-      return;
-    }
-    
-    if (!acceptedFiles || acceptedFiles.length === 0) {
-      return;
-    }
+const handleImageUpload = useCallback((acceptedFiles) => {
+  if (mode === 'edit' && !formData.estado) {
+    const errorMsg = "No se pueden agregar imágenes a un producto inactivo. Activa el producto primero.";
+    setErrors(prev => ({ ...prev, imagenes: errorMsg }));
+    onErrorRef.current?.(errorMsg);
+    return;
+  }
+  
+  if (!acceptedFiles || acceptedFiles.length === 0) return;
 
-    if (imagenes.length + acceptedFiles.length > 5) {
-      setErrors(prev => ({ ...prev, imagenes: "Máximo 5 imágenes permitidas" }));
-      return;
-    }
+  const totalAfterAdd = imagenes.length + pendingImageFiles.length + acceptedFiles.length;
+  if (totalAfterAdd > 5) {
+    setErrors(prev => ({ ...prev, imagenes: "Máximo 5 imágenes permitidas" }));
+    return;
+  }
 
-    setUploadingImages(true);
+  // Guardar archivos y generar previews locales
+  const newPending = acceptedFiles.map(file => ({
+    file,
+    previewUrl: URL.createObjectURL(file)
+  }));
 
-    try {
-      const cloudinaryUrls = await UploadData.uploadMultipleImages(acceptedFiles);
-      const nuevasImagenes = cloudinaryUrls.map(url => ({ id: null, url }));
-      setImagenes(prev => [...prev, ...nuevasImagenes]);
+  setPendingImageFiles(prev => [...prev, ...newPending]);
+  setImagePreviews(prev => [...prev, ...newPending.map(p => p.previewUrl)]);
 
-      const newPreviews = [];
-      acceptedFiles.forEach(file => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          newPreviews.push(reader.result);
-          if (newPreviews.length === acceptedFiles.length) {
-            setImagePreviews(prev => [...prev, ...newPreviews]);
-          }
-        };
-        reader.readAsDataURL(file);
-      });
+  if (errors.imagenes) setErrors(prev => ({ ...prev, imagenes: "" }));
+}, [formData.estado, mode, imagenes.length, pendingImageFiles.length, onErrorRef, errors.imagenes]);
 
-      if (errors.imagenes) {
-        setErrors(prev => ({ ...prev, imagenes: "" }));
-      }
-    } catch (error) {
-      setErrors(prev => ({ ...prev, imagenes: error.message || "Error al subir imágenes" }));
-    } finally {
-      setUploadingImages(false);
-    }
-  };
-
-  const removeImage = useCallback(async (index) => {
-    const imagenAEliminar = imagenes[index];
-    
-    if (imagenAEliminar && imagenAEliminar.id) {
-      try {
-        await ProductoData.deleteImagen(imagenAEliminar.id);
-      } catch (error) {
-        if (error.response?.status !== 404) {
-          setErrors(prev => ({ ...prev, imagenes: "Error al eliminar imagen" }));
+ const removeImage = useCallback((index) => {
+      // Determinar si la imagen es existente (con id) o pendiente (sin id)
+      const imagenAEliminar = imagenes[index];
+      if (imagenAEliminar && imagenAEliminar.id) {
+        setImagenesAEliminar(prev => [...prev, imagenAEliminar.id]);
+        setImagenes(prev => prev.filter((_, i) => i !== index));
+        setImagePreviews(prev => prev.filter((_, i) => i !== index));
+      } else {
+        // Es una imagen pendiente (aún no subida)
+        const pendingIndex = index - imagenes.length;
+        if (pendingIndex >= 0 && pendingIndex < pendingImageFiles.length) {
+          const pending = pendingImageFiles[pendingIndex];
+          URL.revokeObjectURL(pending.previewUrl); // Liberar memoria
+          setPendingImageFiles(prev => prev.filter((_, i) => i !== pendingIndex));
+          setImagePreviews(prev => prev.filter((_, i) => i !== index));
         }
-        return;
       }
-    }
-    
-    setImagenes(prev => prev.filter((_, i) => i !== index));
-    setImagePreviews(prev => prev.filter((_, i) => i !== index));
-  }, [imagenes]);
+    }, [imagenes, pendingImageFiles]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -343,18 +310,47 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
     }
 
     setIsSubmitting(true);
-
+    setUploadingImages(true);
     const nombreProcesado = formData.nombre.trim().replace(/\s+/g, " ");
     const nombreFinal = formatNombre(nombreProcesado);
 
     const imagenesExistentes = imagenes.filter(img => img.id);
-    const nuevasImagenes = imagenes.filter(img => !img.id);
+    for (const id of imagenesAEliminar) {
+      try {
+        await ProductoData.deleteImagen(id);
+      } catch (error) {
+        console.error(`Error al eliminar imagen ${id}:`, error);
+      }
+    }
+    setImagenesAEliminar([]);
 
+    // Subir imágenes pendientes a Cloudinary
+    let nuevasImagenesUrls = [];
+    if (pendingImageFiles.length > 0) {
+      try {
+        const filesToUpload = pendingImageFiles.map(p => p.file);
+        nuevasImagenesUrls = await UploadData.uploadMultipleImages(filesToUpload);
+        // Liberar URLs temporales
+        pendingImageFiles.forEach(p => URL.revokeObjectURL(p.previewUrl));
+        setPendingImageFiles([]);
+      } catch (error) {
+        console.error("Error subiendo imágenes:", error);
+        setErrors(prev => ({ ...prev, imagenes: "Error al subir imágenes. Intente de nuevo." }));
+        // Liberar recursos
+        pendingImageFiles.forEach(p => URL.revokeObjectURL(p.previewUrl));
+        setPendingImageFiles([]);
+        setUploadingImages(false);
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
+    const nuevasImagenes = nuevasImagenesUrls.map(url => ({ url }));
     const dataToSubmit = {
       nombre: nombreFinal,
       descripcion: (formData.descripcion || "").trim(),
       imagenes: imagenesExistentes,
-      nuevasImagenes: nuevasImagenes.map(img => ({ url: img.url }))
+      nuevasImagenes: nuevasImagenes
     };
 
     if (mode === "edit") {
@@ -410,10 +406,11 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
       }));
       onErrorRef.current?.(error.response?.data?.message || "Error al guardar el producto");
     } finally {
+      setUploadingImages(false);
       setIsSubmitting(false);
     }
-  }, [formData, imagenes, isCreate, isFullCreate, mode, initialData, nombreExists, isSubmitting]);
-
+  }, [formData, imagenes, pendingImageFiles, imagenesAEliminar, isCreate, isFullCreate, mode, initialData, nombreExists, isSubmitting]);
+  
   const resetForm = useCallback(() => {
     setFormData({
       nombre: "",
@@ -428,10 +425,12 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
     });
     setImagenes([]);
     setImagePreviews([]);
+    pendingImageFiles.forEach(p => URL.revokeObjectURL(p.previewUrl));
+    setImagenesAEliminar([]);
     setErrors({});
     setNombreExists(false);
     setInitialDataLoaded(false);
-  }, []);
+  },  [pendingImageFiles]);
 
   return {
     formData,
