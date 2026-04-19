@@ -6,7 +6,6 @@ import { validarNombre, validarTelefono, validarFechaNacimiento } from '../utils
 export const useConfiguracion = (user, onUserUpdate) => {
   const { hasPermisoCRUD, isAdmin, hasRol } = useAuth();
   
-  // Estados
   const [formData, setFormData] = useState({
     nombre: '',
     email: '',
@@ -29,12 +28,10 @@ export const useConfiguracion = (user, onUserUpdate) => {
   const [validationErrors, setValidationErrors] = useState({});
   const [fotoPerfil, setFotoPerfil] = useState(null);
 
-  // Detectar rol del usuario
   const esCliente = hasRol('cliente');
   const esAdmin = isAdmin();
   const puedeEditar = isAdmin() || hasPermisoCRUD('configuracion')?.actualizar === true;
 
-  // Cargar datos del usuario
   useEffect(() => {
     if (user) {
       const userData = {
@@ -49,12 +46,10 @@ export const useConfiguracion = (user, onUserUpdate) => {
       setOriginalData(userData);
     }
     
-    // Cargar foto de perfil
     const foto = localStorage.getItem(`foto_perfil_${user?.id}`);
     if (foto) setFotoPerfil(foto);
   }, [user]);
 
-  // Validar campo
   const validateField = (name, value) => {
     switch (name) {
       case 'nombre': return validarNombre(value);
@@ -64,7 +59,6 @@ export const useConfiguracion = (user, onUserUpdate) => {
     }
   };
 
-  // Manejar cambios
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -73,14 +67,12 @@ export const useConfiguracion = (user, onUserUpdate) => {
     if (error) setError('');
   };
 
-  // Manejar cambio de contraseña
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
     setPasswordData(prev => ({ ...prev, [name]: value }));
     if (error) setError('');
   };
 
-  // Verificar si hay cambios válidos
   const hasValidChanges = () => {
     const hasChanges = (
       formData.nombre !== originalData.nombre ||
@@ -91,7 +83,6 @@ export const useConfiguracion = (user, onUserUpdate) => {
     return hasChanges && hasNoErrors;
   };
 
-  // Guardar cambios
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -148,7 +139,6 @@ export const useConfiguracion = (user, onUserUpdate) => {
     }
   };
 
-  // Cambiar contraseña
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     
@@ -177,7 +167,6 @@ export const useConfiguracion = (user, onUserUpdate) => {
     }
   };
 
-  // Cancelar edición
   const handleCancelEdit = () => {
     setFormData(originalData);
     setEditMode(false);
@@ -185,14 +174,12 @@ export const useConfiguracion = (user, onUserUpdate) => {
     setValidationErrors({});
   };
 
-  // Subir foto de perfil
   const handleFotoUpload = (fotoUrl) => {
     setFotoPerfil(fotoUrl);
     localStorage.setItem(`foto_perfil_${user?.id}`, fotoUrl);
   };
 
   return {
-    // Datos
     formData,
     fotoPerfil,
     loading,
@@ -202,11 +189,9 @@ export const useConfiguracion = (user, onUserUpdate) => {
     showPasswordForm,
     validationErrors,
     passwordData,
-    // Permisos
     puedeEditar,
     esCliente,
     esAdmin,
-    // Funciones
     handleChange,
     handlePasswordChange,
     handleSubmit,

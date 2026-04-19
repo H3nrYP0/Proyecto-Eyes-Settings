@@ -1,11 +1,8 @@
-// features/configuracion/components/general/UploadAvatar.jsx
 import { useState } from 'react';
 import { Box, Avatar, IconButton, CircularProgress, Snackbar, Alert } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
 import { PhotoCamera as CameraIcon } from '@mui/icons-material';
 
 export default function UploadAvatar({ user, fotoPerfil, onUpload, puedeEditar = false }) {
-  const theme = useTheme();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -45,12 +42,12 @@ export default function UploadAvatar({ user, fotoPerfil, onUpload, puedeEditar =
         sx={{
           width: 100,
           height: 100,
-          bgcolor: theme.palette.primary.main,
+          bgcolor: '#3b82f6',
           fontSize: 40,
           cursor: puedeEditar ? 'pointer' : 'default',
           '&:hover': puedeEditar ? {
             opacity: 0.8,
-            backgroundColor: theme.palette.primary.dark
+            backgroundColor: '#2563eb'
           } : {}
         }}
       >
@@ -64,10 +61,10 @@ export default function UploadAvatar({ user, fotoPerfil, onUpload, puedeEditar =
             position: 'absolute',
             bottom: 0,
             right: 0,
-            bgcolor: theme.palette.primary.main,
+            bgcolor: '#3b82f6',
             color: 'white',
             '&:hover': { 
-              bgcolor: theme.palette.secondary.main 
+              bgcolor: '#64748b'
             },
             width: 32,
             height: 32

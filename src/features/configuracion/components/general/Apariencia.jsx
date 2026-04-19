@@ -1,12 +1,17 @@
 // features/configuracion/componentes/general/Apariencia.jsx
 import { Box, Typography, TextField, Button, Grid, Avatar, Alert, CircularProgress, Divider } from '@mui/material';
-import { useTheme } from '@mui/material/styles';  // ← Importar useTheme
 import { useConfiguracion } from '../../hooks/useConfiguracion';
 import UploadAvatar from './UploadAvatar';
 
+// Colores del panel admin
+const BRAND_COLOR = "#1a2540";
+const BRAND_HOVER = "#2d3a6b";
+const ACCENT_COLOR = "#3b82f6";
+const SUCCESS_COLOR = "#22c55e";
+const TEXT_SECONDARY = "#64748b";
+const BORDER_COLOR = "#cbd5e1";
+
 export default function Apariencia({ user, onUserUpdate, canEdit = false }) {
-  const theme = useTheme(); 
-  
   const {
     formData,
     fotoPerfil,
@@ -41,41 +46,15 @@ export default function Apariencia({ user, onUserUpdate, canEdit = false }) {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography 
-        variant="h6" 
-        gutterBottom 
-        sx={{ 
-          mb: 2,
-          color: theme.palette.text.primary,  // Color del texto del tema
-          fontWeight: 600
-        }}
-      >
+      <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
         Información Personal
       </Typography>
       
-      {error && (
-        <Alert 
-          severity="error" 
-          sx={{ mb: 2, borderRadius: 2 }}
-          onClose={() => setError('')}
-        >
-          {error}
-        </Alert>
-      )}
-      
-      {success && (
-        <Alert 
-          severity="success" 
-          sx={{ mb: 2, borderRadius: 2 }}
-          onClose={() => setSuccess('')}
-        >
-          {success}
-        </Alert>
-      )}
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
       
       <form onSubmit={handleSubmit}>
         <Grid container spacing={2}>
-          {/* Avatar */}
           <Grid item xs={12} display="flex" justifyContent="center">
             <UploadAvatar 
               user={user} 
@@ -85,7 +64,6 @@ export default function Apariencia({ user, onUserUpdate, canEdit = false }) {
             />
           </Grid>
           
-          {/* Campos dinámicos según rol */}
           {camposActivos.includes('nombre') && (
             <Grid item xs={12} sm={6}>
               <TextField
@@ -101,10 +79,9 @@ export default function Apariencia({ user, onUserUpdate, canEdit = false }) {
                 helperText={validationErrors.nombre}
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    '&.Mui-focused fieldset': {
-                      borderColor: theme.palette.primary.main,
-                    },
+                    '&.Mui-focused fieldset': { borderColor: ACCENT_COLOR },
                   },
+                  '& .MuiInputLabel-root.Mui-focused': { color: ACCENT_COLOR },
                 }}
               />
             </Grid>
@@ -137,6 +114,12 @@ export default function Apariencia({ user, onUserUpdate, canEdit = false }) {
                 size="small"
                 error={!!validationErrors.telefono}
                 helperText={validationErrors.telefono}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '&.Mui-focused fieldset': { borderColor: ACCENT_COLOR },
+                  },
+                  '& .MuiInputLabel-root.Mui-focused': { color: ACCENT_COLOR },
+                }}
               />
             </Grid>
           )}
@@ -155,6 +138,12 @@ export default function Apariencia({ user, onUserUpdate, canEdit = false }) {
                 size="small"
                 error={!!validationErrors.fechaNacimiento}
                 helperText={validationErrors.fechaNacimiento}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '&.Mui-focused fieldset': { borderColor: ACCENT_COLOR },
+                  },
+                  '& .MuiInputLabel-root.Mui-focused': { color: ACCENT_COLOR },
+                }}
               />
             </Grid>
           )}
@@ -186,7 +175,6 @@ export default function Apariencia({ user, onUserUpdate, canEdit = false }) {
           )}
         </Grid>
         
-        {/* Botones de acción */}
         {puedeEditar && (
           <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
             {!editMode ? (
@@ -195,12 +183,10 @@ export default function Apariencia({ user, onUserUpdate, canEdit = false }) {
                 onClick={() => setEditMode(true)} 
                 disabled={loading}
                 sx={{
-                  backgroundColor: theme.palette.primary.main,
-                  '&:hover': {
-                    backgroundColor: theme.palette.primary.dark,
-                  },
+                  backgroundColor: BRAND_COLOR,
+                  '&:hover': { backgroundColor: BRAND_HOVER },
                   textTransform: 'none',
-                  borderRadius: 2
+                  boxShadow: 'none'
                 }}
               >
                 Editar Perfil
@@ -211,15 +197,15 @@ export default function Apariencia({ user, onUserUpdate, canEdit = false }) {
                   variant="outlined" 
                   onClick={handleCancelEdit} 
                   disabled={loading}
-                  sx={{
-                    borderColor: theme.palette.grey[400],
-                    color: theme.palette.text.secondary,
-                    '&:hover': {
-                      borderColor: theme.palette.grey[600],
-                      backgroundColor: theme.palette.action.hover,
-                    },
+                  sx={{ 
                     textTransform: 'none',
-                    borderRadius: 2
+                    borderColor: BORDER_COLOR,
+                    color: TEXT_SECONDARY,
+                    '&:hover': {
+                      borderColor: BRAND_HOVER,
+                      color: BRAND_HOVER,
+                      backgroundColor: `${BRAND_COLOR}12`,
+                    }
                   }}
                 >
                   Cancelar
@@ -229,15 +215,10 @@ export default function Apariencia({ user, onUserUpdate, canEdit = false }) {
                   variant="contained" 
                   disabled={loading || !hasValidChanges()}
                   sx={{
-                    backgroundColor: theme.palette.success.main,
-                    '&:hover': {
-                      backgroundColor: theme.palette.success.dark,
-                    },
-                    '&:disabled': {
-                      backgroundColor: theme.palette.action.disabledBackground,
-                    },
+                    backgroundColor: SUCCESS_COLOR,
+                    '&:hover': { backgroundColor: '#16a34a' },
                     textTransform: 'none',
-                    borderRadius: 2
+                    boxShadow: 'none'
                   }}
                 >
                   {loading ? 'Guardando...' : 'Guardar'}
@@ -248,32 +229,24 @@ export default function Apariencia({ user, onUserUpdate, canEdit = false }) {
         )}
       </form>
       
-      {/* Cambiar Contraseña */}
+      {/* BOTÓN CAMBIAR CONTRASEÑA - CORREGIDO */}
       {puedeEditar && (
         <>
           <Divider sx={{ my: 3 }} />
           
-          <Typography 
-            variant="h6" 
-            gutterBottom
-            sx={{ color: theme.palette.text.primary }}
-          >
+          <Typography variant="h6" gutterBottom>
             Cambiar Contraseña
           </Typography>
           
           {!showPasswordForm ? (
             <Button 
-              variant="outlined" 
+              variant="contained" 
               onClick={() => setShowPasswordForm(true)}
               sx={{
-                borderColor: theme.palette.primary.main,
-                color: theme.palette.primary.main,
-                '&:hover': {
-                  borderColor: theme.palette.primary.dark,
-                  backgroundColor: theme.palette.primary.light + '20',
-                },
+                backgroundColor: BRAND_COLOR,
+                '&:hover': { backgroundColor: BRAND_HOVER },
                 textTransform: 'none',
-                borderRadius: 2
+                boxShadow: 'none'
               }}
             >
               Cambiar Contraseña
@@ -291,6 +264,12 @@ export default function Apariencia({ user, onUserUpdate, canEdit = false }) {
                     onChange={handlePasswordChange}
                     required
                     size="small"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '&.Mui-focused fieldset': { borderColor: ACCENT_COLOR },
+                      },
+                      '& .MuiInputLabel-root.Mui-focused': { color: ACCENT_COLOR },
+                    }}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -303,6 +282,12 @@ export default function Apariencia({ user, onUserUpdate, canEdit = false }) {
                     onChange={handlePasswordChange}
                     required
                     size="small"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '&.Mui-focused fieldset': { borderColor: ACCENT_COLOR },
+                      },
+                      '& .MuiInputLabel-root.Mui-focused': { color: ACCENT_COLOR },
+                    }}
                   />
                 </Grid>
               </Grid>
@@ -315,11 +300,15 @@ export default function Apariencia({ user, onUserUpdate, canEdit = false }) {
                     setPasswordData({ newPassword: '', confirmPassword: '' });
                     setError('');
                   }}
-                  sx={{
-                    borderColor: theme.palette.grey[400],
-                    color: theme.palette.text.secondary,
+                  sx={{ 
                     textTransform: 'none',
-                    borderRadius: 2
+                    borderColor: BORDER_COLOR,
+                    color: TEXT_SECONDARY,
+                    '&:hover': {
+                      borderColor: BRAND_HOVER,
+                      color: BRAND_HOVER,
+                      backgroundColor: `${BRAND_COLOR}12`,
+                    }
                   }}
                 >
                   Cancelar
@@ -329,12 +318,10 @@ export default function Apariencia({ user, onUserUpdate, canEdit = false }) {
                   variant="contained" 
                   disabled={loading || !passwordData.newPassword}
                   sx={{
-                    backgroundColor: theme.palette.primary.main,
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.dark,
-                    },
+                    backgroundColor: BRAND_COLOR,
+                    '&:hover': { backgroundColor: BRAND_HOVER },
                     textTransform: 'none',
-                    borderRadius: 2
+                    boxShadow: 'none'
                   }}
                 >
                   {loading ? 'Actualizando...' : 'Actualizar Contraseña'}
