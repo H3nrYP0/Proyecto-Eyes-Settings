@@ -174,12 +174,12 @@ export default function UnifiedCrudTable({
                   </TableCell>
                 ))}
                 {showStatusColumn && (
-                  <TableCell align="center" sx={{ whiteSpace: "nowrap", fontWeight: 600 }}>
+                  <TableCell key="header-status" align="center" sx={{ whiteSpace: "nowrap", fontWeight: 600 }}>
                     Estado
                   </TableCell>
                 )}
                 {hasActions && (
-                  <TableCell align="center" sx={{ whiteSpace: "nowrap", fontWeight: 600 }}>
+                  <TableCell key="header-actions" align="center" sx={{ whiteSpace: "nowrap", fontWeight: 600 }}>
                     Acciones
                   </TableCell>
                 )}
@@ -211,7 +211,7 @@ export default function UnifiedCrudTable({
                     ))}
 
                     {showStatusColumn && (
-                      <TableCell align="center">
+                      <TableCell key="status-cell" align="center">
                         <Button
                           size="small"
                           variant="outlined"
@@ -230,7 +230,7 @@ export default function UnifiedCrudTable({
                     )}
 
                     {hasActions && (
-                      <TableCell align="center">
+                      <TableCell key="actions-cell" align="center">
                         <CrudActions actions={actions} item={row} />
                       </TableCell>
                     )}

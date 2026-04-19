@@ -71,8 +71,16 @@ export default function Productos() {
       render: (item) => <StockCell item={item} />,
     },
     {
+      field: "imagenes", 
       header: "Imágenes",
-      render: (item) => <ImageGallery images={item.imagenes} size="small" showAsButton />,
+      render: (item) => (
+        <ImageGallery 
+          key={`img-gallery-${item.id}`}  // ← clave única por producto
+          images={item.imagenes} 
+          size="small" 
+          showAsButton 
+        />
+      ),
     },
   ];
 
