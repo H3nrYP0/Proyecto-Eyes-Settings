@@ -1,5 +1,3 @@
-// features/configuracion/index.jsx
-
 // ==================== PÁGINAS ====================
 export { default as Configuration } from './pages/Configuration';
 

@@ -1,3 +1,15 @@
+// RESPONSABILIDAD: Layout principal del panel de administración
+//
+//   - Contiene la estructura base: AppHeader (barra superior) + Sidebar (menú lateral)
+//   - Maneja la navegación entre todas las rutas del dashboard
+//   - Gestiona el estado de la sesión del usuario (login/logout)
+//   - Actualiza el usuario cuando se edita el perfil (onUserUpdate)
+//   - Es responsive: en móvil el sidebar se vuelve temporal
+//
+// PROPS:
+//   user     — objeto usuario del JWT (nombre, rol, permisos)
+//   setUser  — función para actualizar el estado del usuario
+
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Box, useTheme, useMediaQuery } from "@mui/material";
@@ -25,7 +37,7 @@ import {
 
 // NOTA: Abonos ya NO tiene rutas separadas - está integrado como modal dentro de Pedidos
 
-// ========== COMPRAS (sin cambios) ==========
+// ========== Compras ==========
 import {
   Compras,
   CrearCompra,
@@ -38,6 +50,7 @@ import { Marcas } from "../../../features/compras/marca";
 
 import { Categorias } from "../../../features/compras/categoria";
 
+// ========== Productos ==========
 import {
   Productos,
   CrearProducto,
@@ -45,6 +58,7 @@ import {
   DetalleProducto,
 } from "../../../features/compras/producto";
 
+// ========== Proveedores ==========
 import {
   Proveedores,
   CrearProveedor,
@@ -52,7 +66,7 @@ import {
   DetalleProveedor,
 } from "../../../features/compras/proveedor";
 
-// ========== SERVICIOS (sin cambios) ==========
+// ========== Servicios ==========
 import { Servicios } from "../../../features/servicios/servicio";
 
 import {
@@ -61,6 +75,7 @@ import {
   EditarEmpleado,
   DetalleEmpleado,
 } from "../../../features/servicios/empleado";
+
 
 import {
   Citas,
@@ -83,6 +98,7 @@ import {
   DetalleCampanaSalud 
 } from "@servicios/campanaSalud";
 
+// ========== Seguridad ==========
 import Roles from "@seguridad/roles/pages/Roles";
 import CrearRol from "@seguridad/roles/pages/CrearRol";
 import EditarPermisos from "@seguridad/roles/pages/EditarPermisos";
@@ -93,8 +109,8 @@ import CrearUsuario from "@seguridad/user/pages/CrearUsuario";
 import EditarUsuario from "@seguridad/user/pages/EditarUsuario";
 import DetalleUsuario from "@seguridad/user/pages/DetalleUsuario";
 
-// ========== CONFIGURACIÓN ==========
-import Configuracion from "../../../features/configuracion/pages/Configuration";
+// ========== Configuración ==========
+import Configuracion from "@configuracion/pages/Configuration";
 import authServices from "@auth/services/authServices";
 
 const drawerWidth = 240;
@@ -120,6 +136,11 @@ export default function OpticaDashboardLayout({ user, setUser }) {
     authServices.logout();              
     setUser(null);
     navigate("/login", { replace: true });
+  };
+
+  // Actualizar usuario después de editar el perfil
+  const handleUserUpdate = (updatedUser) => {
+    setUser(updatedUser);
   };
 
   return (
@@ -259,7 +280,15 @@ export default function OpticaDashboardLayout({ user, setUser }) {
           </Route>
 
           {/* ========== CONFIGURACIÓN ========== */}
-          <Route path="configuracion" element={<Configuracion user={user} />} />
+          <Route 
+            path="configuracion" 
+            element={
+              <Configuracion 
+                user={user} 
+                onUserUpdate={handleUserUpdate}
+              />
+            } 
+          />
 
           {/* ========== 404 ========== */}
           <Route

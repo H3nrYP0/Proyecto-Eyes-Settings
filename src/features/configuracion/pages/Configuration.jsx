@@ -22,15 +22,17 @@ export default function Configuration({ user, onUserUpdate }) {
   const { user: currentUser, hasPermisoCRUD, isAdmin } = useAuth();
   const [tabValue, setTabValue] = useState(0);
 
-  const configPermisos = hasPermisoCRUD('configuracion');
-  const canRead = isAdmin() || configPermisos?.leer === true;
-  const canUpdate = isAdmin() || configPermisos?.actualizar === true;
+  // Cualquier usuario autenticado puede ver su perfil
+  // No se necesita permiso especial para ver/editar datos propios
   const canViewLicencias = isAdmin();
+  
+  // Para editar, cualquiera puede editar sus propios datos
+  const canUpdate = true;
 
-  if (!canRead && !isAdmin()) {
+  if (!user) {
     return (
       <Box sx={{ p: 3 }}>
-        <Typography color="error">No tienes permiso para ver esta página</Typography>
+        <Typography color="error">Debes iniciar sesión para ver tu perfil</Typography>
       </Box>
     );
   }

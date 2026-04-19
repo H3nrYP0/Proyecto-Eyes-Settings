@@ -1,24 +1,31 @@
 import { useState, useEffect } from 'react';
-import { updateUser } from '@seguridad/user/services/userServices';
+import { 
+  getMiPerfilUsuario,
+  updateMiPerfilUsuario,
+  cambiarMiContraseniaUsuario,
+  getMiPerfilCliente,
+  updateMiPerfilCliente,
+  cambiarMiContraseniaCliente
+} from '@seguridad/user/services/clienteServices';
 import { useAuth } from '@auth/hooks/useAuth';
-import { validarNombre, validarTelefono, validarFechaNacimiento } from '../utils/configuracionHelpers';
 
 export const useConfiguracion = (user, onUserUpdate) => {
-  const { hasPermisoCRUD, isAdmin, hasRol } = useAuth();
+  const { hasRol, isAdmin } = useAuth();
   
   const [formData, setFormData] = useState({
     nombre: '',
-    email: '',
+    correo: '',
     telefono: '',
-    fechaNacimiento: '',
-    tipoDocumento: '',
-    numeroDocumento: ''
+    // Campos solo para clientes
+    apellido: '',
+    direccion: ''
   });
   
   const [originalData, setOriginalData] = useState({});
   const [passwordData, setPasswordData] = useState({
-    newPassword: '',
-    confirmPassword: ''
+    contrasenia_actual: '',
+    nueva_contrasenia: '',
+    confirmar_contrasenia: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -28,34 +35,79 @@ export const useConfiguracion = (user, onUserUpdate) => {
   const [validationErrors, setValidationErrors] = useState({});
   const [fotoPerfil, setFotoPerfil] = useState(null);
 
+  // Detectar si es cliente (tiene rol 'cliente')
   const esCliente = hasRol('cliente');
-  const esAdmin = isAdmin();
-  const puedeEditar = isAdmin() || hasPermisoCRUD('configuracion')?.actualizar === true;
+  const puedeEditar = true;
+
+  // Cargar datos según el tipo de usuario
+  const loadUserData = async () => {
+    setLoading(true);
+    try {
+      if (esCliente) {
+        // Cliente: usa endpoint de cliente
+        const userData = await getMiPerfilCliente();
+        if (userData) {
+          setFormData({
+            nombre: userData.nombre || '',
+            apellido: userData.apellido || '',
+            correo: userData.correo || '',
+            telefono: userData.telefono || '',
+            direccion: userData.direccion || ''
+          });
+          setOriginalData({
+            nombre: userData.nombre || '',
+            apellido: userData.apellido || '',
+            correo: userData.correo || '',
+            telefono: userData.telefono || '',
+            direccion: userData.direccion || ''
+          });
+        }
+      } else {
+        // Admin/Empleado: usa endpoint de usuario
+        const userData = await getMiPerfilUsuario();
+        if (userData) {
+          setFormData({
+            nombre: userData.nombre || '',
+            correo: userData.correo || '',
+            telefono: userData.telefono || '',
+            apellido: '',
+            direccion: ''
+          });
+          setOriginalData({
+            nombre: userData.nombre || '',
+            correo: userData.correo || '',
+            telefono: userData.telefono || '',
+            apellido: '',
+            direccion: ''
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Error cargando perfil:', err);
+      setError('Error al cargar los datos del perfil');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (user) {
-      const userData = {
-        nombre: user.nombre || '',
-        email: user.correo || user.email || '',
-        telefono: user.telefono || '',
-        fechaNacimiento: (user.fecha_nacimiento || user.fechaNacimiento || '').split('T')[0] || '',
-        tipoDocumento: user.tipo_documento || user.tipoDocumento || '',
-        numeroDocumento: user.numero_documento || user.numeroDocumento || ''
-      };
-      setFormData(userData);
-      setOriginalData(userData);
-    }
-    
-    const foto = localStorage.getItem(`foto_perfil_${user?.id}`);
-    if (foto) setFotoPerfil(foto);
-  }, [user]);
+    loadUserData();
+  }, [esCliente]);
 
+  // Validaciones
   const validateField = (name, value) => {
     switch (name) {
-      case 'nombre': return validarNombre(value);
-      case 'telefono': return validarTelefono(value);
-      case 'fechaNacimiento': return validarFechaNacimiento(value);
-      default: return '';
+      case 'nombre':
+        if (!value || value.trim() === '') return 'El nombre es requerido';
+        if (value.trim().length < 3) return 'El nombre debe tener al menos 3 caracteres';
+        return '';
+      case 'telefono':
+        if (value && !/^\d{7,15}$/.test(value.replace(/[\s-]/g, ''))) {
+          return 'Formato de teléfono inválido (solo números, 7-15 dígitos)';
+        }
+        return '';
+      default:
+        return '';
     }
   };
 
@@ -74,15 +126,26 @@ export const useConfiguracion = (user, onUserUpdate) => {
   };
 
   const hasValidChanges = () => {
-    const hasChanges = (
-      formData.nombre !== originalData.nombre ||
-      formData.telefono !== originalData.telefono ||
-      formData.fechaNacimiento !== originalData.fechaNacimiento
-    );
-    const hasNoErrors = !validationErrors.nombre && !validationErrors.telefono && !validationErrors.fechaNacimiento;
-    return hasChanges && hasNoErrors;
+    if (esCliente) {
+      const hasChanges = (
+        formData.nombre !== originalData.nombre ||
+        formData.apellido !== originalData.apellido ||
+        formData.telefono !== originalData.telefono ||
+        formData.direccion !== originalData.direccion
+      );
+      const hasNoErrors = !validationErrors.nombre && !validationErrors.telefono;
+      return hasChanges && hasNoErrors;
+    } else {
+      const hasChanges = (
+        formData.nombre !== originalData.nombre ||
+        formData.telefono !== originalData.telefono
+      );
+      const hasNoErrors = !validationErrors.nombre && !validationErrors.telefono;
+      return hasChanges && hasNoErrors;
+    }
   };
 
+  // Guardar cambios
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -96,39 +159,24 @@ export const useConfiguracion = (user, onUserUpdate) => {
     setSuccess('');
 
     try {
-      const payload = {};
-      if (formData.nombre !== originalData.nombre && formData.nombre.trim()) payload.nombre = formData.nombre.trim();
-      if (formData.telefono !== originalData.telefono) payload.telefono = formData.telefono || '';
-      if (formData.fechaNacimiento !== originalData.fechaNacimiento && formData.fechaNacimiento) payload.fecha_nacimiento = formData.fechaNacimiento;
-      
-      if (Object.keys(payload).length === 0) {
-        setEditMode(false);
-        setLoading(false);
-        return;
+      if (esCliente) {
+        const payload = {};
+        if (formData.nombre !== originalData.nombre && formData.nombre.trim()) payload.nombre = formData.nombre.trim();
+        if (formData.apellido !== originalData.apellido && formData.apellido.trim()) payload.apellido = formData.apellido.trim();
+        if (formData.telefono !== originalData.telefono) payload.telefono = formData.telefono || '';
+        if (formData.direccion !== originalData.direccion) payload.direccion = formData.direccion || '';
+        
+        await updateMiPerfilCliente(payload);
+      } else {
+        const payload = {};
+        if (formData.nombre !== originalData.nombre && formData.nombre.trim()) payload.nombre = formData.nombre.trim();
+        if (formData.telefono !== originalData.telefono) payload.telefono = formData.telefono || '';
+        
+        await updateMiPerfilUsuario(payload);
       }
       
-      const updatedUser = await updateUser(user.id, payload);
-      
-      const storage = localStorage.getItem('token') ? localStorage : sessionStorage;
-      const currentStoredUser = JSON.parse(storage.getItem('user') || '{}');
-      const mergedUser = { ...currentStoredUser, ...updatedUser, rol: currentStoredUser.rol || user.rol, permisos: currentStoredUser.permisos || user.permisos };
-      
-      storage.setItem('user', JSON.stringify(mergedUser));
-      
-      const newUserData = {
-        nombre: mergedUser.nombre || '',
-        email: mergedUser.correo || mergedUser.email || '',
-        telefono: mergedUser.telefono || '',
-        fechaNacimiento: (mergedUser.fecha_nacimiento || mergedUser.fechaNacimiento || '').split('T')[0] || '',
-        tipoDocumento: mergedUser.tipo_documento || mergedUser.tipoDocumento || '',
-        numeroDocumento: mergedUser.numero_documento || mergedUser.numeroDocumento || ''
-      };
-      setOriginalData(newUserData);
-      setFormData(newUserData);
-      
-      if (onUserUpdate) onUserUpdate(mergedUser);
-      
       setSuccess('Perfil actualizado exitosamente');
+      setOriginalData({ ...formData });
       setEditMode(false);
       setValidationErrors({});
       setTimeout(() => setSuccess(''), 3000);
@@ -139,15 +187,22 @@ export const useConfiguracion = (user, onUserUpdate) => {
     }
   };
 
+  // Cambiar contraseña
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setError('Las contraseñas no coinciden');
+    if (passwordData.nueva_contrasenia !== passwordData.confirmar_contrasenia) {
+      setError('Las contraseñas nuevas no coinciden');
       return;
     }
-    if (passwordData.newPassword.length < 6) {
+    
+    if (passwordData.nueva_contrasenia.length < 6) {
       setError('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+    
+    if (!passwordData.contrasenia_actual) {
+      setError('Debes ingresar tu contraseña actual');
       return;
     }
     
@@ -155,9 +210,20 @@ export const useConfiguracion = (user, onUserUpdate) => {
     setError('');
     
     try {
-      await updateUser(user.id, { contrasenia: passwordData.newPassword });
+      if (esCliente) {
+        await cambiarMiContraseniaCliente({
+          contrasenia_actual: passwordData.contrasenia_actual,
+          nueva_contrasenia: passwordData.nueva_contrasenia
+        });
+      } else {
+        await cambiarMiContraseniaUsuario({
+          contrasenia_actual: passwordData.contrasenia_actual,
+          nueva_contrasenia: passwordData.nueva_contrasenia
+        });
+      }
+      
       setSuccess('Contraseña actualizada exitosamente');
-      setPasswordData({ newPassword: '', confirmPassword: '' });
+      setPasswordData({ contrasenia_actual: '', nueva_contrasenia: '', confirmar_contrasenia: '' });
       setShowPasswordForm(false);
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
@@ -191,7 +257,6 @@ export const useConfiguracion = (user, onUserUpdate) => {
     passwordData,
     puedeEditar,
     esCliente,
-    esAdmin,
     handleChange,
     handlePasswordChange,
     handleSubmit,

@@ -1,9 +1,8 @@
 // =============================================================
-// LandingPage.jsx
 // RESPONSABILIDAD: Lógica pura de la página de inicio.
 //   - Navegación y scroll
 //   - Verificación de permisos desde el JWT
-//   - Handlers de sesión (login / logout / dashboard)
+//   - Handlers de sesión (login / logout / dashboard / perfil)
 //   - Delega todo lo visual a AuthHome
 // =============================================================
 
@@ -28,11 +27,18 @@ const LandingPage = ({ user, setUser }) => {
   };
 
   const handleLogin = () => navigate("/login");
+  
   const handleLogout = () => { 
     setUser(null); 
     navigate("/"); 
   };
+  
   const handleDashboard = () => navigate(user ? "/admin/dashboard" : "/login");
+  
+  // Handler para ir al perfil de usuario
+  const handleMiPerfil = () => {
+  navigate("/cliente/perfil");
+  };
 
   return (
     <AuthHome
@@ -42,6 +48,7 @@ const LandingPage = ({ user, setUser }) => {
       onLogin={handleLogin}
       onLogout={handleLogout}
       onDashboard={handleDashboard}
+      onMiPerfil={handleMiPerfil}
     />
   );
 };

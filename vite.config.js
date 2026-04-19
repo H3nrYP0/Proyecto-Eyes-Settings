@@ -20,7 +20,7 @@ export default defineConfig({
       // ========== FEATURES ==========
       '@auth': path.resolve(__dirname, './src/features/auth'),
       '@compras': path.resolve(__dirname, './src/features/compras'),
-      '@configuracion': path.resolve(__dirname, './src/features/configuración'),
+      '@configuracion': path.resolve(__dirname, './src/features/configuracion'),
       '@dashboard': path.resolve(__dirname, './src/features/dashboard'),
       '@home': path.resolve(__dirname, './src/features/home'),
       '@purchases': path.resolve(__dirname, './src/features/purchases'),

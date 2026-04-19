@@ -125,6 +125,11 @@ const ServicesPage = ({ user, setUser }) => {
   const handleLogout = () => { setUser(null); navigate("/"); };
   const handleDashboard = () => navigate(user ? "/admin/dashboard" : "/login");
 
+  // Handler para ir al perfil de usuario
+  const handleMiPerfil = () => {
+    navigate("/cliente/perfil");
+  };
+
   const handleAgendar = () => {
     if (isAdminMode) {
       alert("Modo administrador: No puedes agendar citas. Utiliza una cuenta de cliente.");
@@ -141,7 +146,8 @@ const ServicesPage = ({ user, setUser }) => {
     return (
       <div className="services-page">
         <Navbar user={user} activePage="servicios" puedeVerDashboard={puedeVerDashboard}
-          onNavigation={handleNavigation} onLogin={handleLogin} onLogout={handleLogout} onDashboard={handleDashboard} />
+          onNavigation={handleNavigation} onLogin={handleLogin} onLogout={handleLogout} onDashboard={handleDashboard}
+          onMiPerfil={handleMiPerfil} />
 
         <section className="services-hero">
           <div className="services-container">
@@ -212,7 +218,8 @@ const ServicesPage = ({ user, setUser }) => {
     return (
       <div className="services-page">
         <Navbar user={user} activePage="servicios" puedeVerDashboard={puedeVerDashboard}
-          onNavigation={handleNavigation} onLogin={handleLogin} onLogout={handleLogout} onDashboard={handleDashboard} />
+          onNavigation={handleNavigation} onLogin={handleLogin} onLogout={handleLogout} onDashboard={handleDashboard} 
+          onMiPerfil={handleMiPerfil}/>
         <div style={{ textAlign: "center", padding: "4rem" }}>
           <LoadingSpinner mensaje="Cargando tu información..." />
         </div>
@@ -225,7 +232,8 @@ const ServicesPage = ({ user, setUser }) => {
     return (
       <div className="services-page">
         <Navbar user={user} activePage="servicios" puedeVerDashboard={puedeVerDashboard}
-          onNavigation={handleNavigation} onLogin={handleLogin} onLogout={handleLogout} onDashboard={handleDashboard} />
+          onNavigation={handleNavigation} onLogin={handleLogin} onLogout={handleLogout} onDashboard={handleDashboard} 
+          onMiPerfil={handleMiPerfil}/>
         <div className="error-container">
           <div className="error-card">
             <div className="error-icon"><WarningIcon sx={{ fontSize: "3.5rem", color: "#991b1b" }} /></div>
@@ -249,7 +257,8 @@ const ServicesPage = ({ user, setUser }) => {
   return (
     <div className="services-page">
       <Navbar user={user} activePage="servicios" puedeVerDashboard={puedeVerDashboard}
-        onNavigation={handleNavigation} onLogin={handleLogin} onLogout={handleLogout} onDashboard={handleDashboard} />
+        onNavigation={handleNavigation} onLogin={handleLogin} onLogout={handleLogout} onDashboard={handleDashboard} 
+        onMiPerfil={handleMiPerfil}/>
 
       <section className="services-hero">
         <div className="services-container">
