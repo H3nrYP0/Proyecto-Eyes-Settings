@@ -5,7 +5,7 @@
       // ========== FEATURES ==========
       "@auth/*": ["./src/features/auth/*"],
       "@compras/*": ["./src/features/compras/*"],
-      "@configuracion/*": ["./src/features/configuración/*"],
+      "@configuracion/*": ["./src/features/configuracion/*"],
       "@dashboard/*": ["./src/features/dashboard/*"],
       "@home/*": ["./src/features/home/*"],
       "@purchases/*": ["./src/features/purchases/*"],

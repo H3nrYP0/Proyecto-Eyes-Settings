@@ -4,20 +4,13 @@ import { Gavel } from "@mui/icons-material";
 const Licencias = ({ canEdit = false }) => {
   return (
     <Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-        <Gavel color="primary" />
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
         <Typography variant="h6" component="h2">
           Licencias de Software Open Source
         </Typography>
       </Box>
       
-      {!canEdit && (
-        <Alert severity="info" sx={{ mb: 3 }}>
-          Esta sección es informativa. Todos los usuarios pueden ver las licencias del software.
-        </Alert>
-      )}
-
-      <Paper elevation={2} sx={{ p: 3, mb: 3, backgroundColor: 'background.default' }}>
+      <Paper elevation={2} sx={{ p: 2, mb: 2, backgroundColor: 'background.default' }}>
         <Typography variant="h6" gutterBottom color="primary">
           Aviso de Uso de Software Open Source
         </Typography>

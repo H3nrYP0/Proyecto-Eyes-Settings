@@ -22,7 +22,9 @@ const AuthHome = ({
   onLogin,
   onLogout,
   onDashboard,
+  onMiPerfil
 }) => (
+  
   <div className="landing-page">
 
     <Navbar
@@ -33,6 +35,7 @@ const AuthHome = ({
       onLogin={onLogin}
       onLogout={onLogout}
       onDashboard={onDashboard}
+      onMiPerfil={onMiPerfil}
     />
 
     <div className="landing-content">

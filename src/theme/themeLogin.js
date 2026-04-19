@@ -1,7 +1,7 @@
 // theme/themeLogin.js
 import { createTheme } from '@mui/material/styles';
 
-// Colores teal específicos para login/register
+// Colores teal específicos para login/register/forgot-password
 const loginColors = {
   primary: '#1a4a4a',
   primaryLight: '#3d8080',

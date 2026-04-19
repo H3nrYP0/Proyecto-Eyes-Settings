@@ -16,10 +16,11 @@
 //   onLogin()          — redirige al login
 //   onLogout()         — cierra sesión
 //   onDashboard()      — redirige al dashboard
+//   onMiPerfil()       — redirige al perfil de usuario
 // =============================================================
 
-import { Tooltip } from "@mui/material";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import { Tooltip, IconButton } from "@mui/material";
+import PersonIcon from "@mui/icons-material/Person";
 
 const Navbar = ({
   user,
@@ -29,8 +30,15 @@ const Navbar = ({
   onLogin,
   onLogout,
   onDashboard,
+  onMiPerfil,
 }) => {
   const userName = user?.name ?? user?.nombre ?? "";
+
+  // Handlers para evitar funciones anónimas en el render
+  const handleNavigationHome = () => onNavigation("/");
+  const handleNavigationProducts = () => onNavigation("/productos");
+  const handleNavigationServices = () => onNavigation("/servicios");
+  const handleMiPerfilClick = () => onMiPerfil?.();
 
   return (
     <nav className="landing-nav">
@@ -41,23 +49,23 @@ const Navbar = ({
           <span className="logo-text">VISUAL OUTLET</span>
         </div>
 
-        {/* Links — active se aplica según activePage */}
+        {/* Links de navegación */}
         <div className="nav-menu">
           <button
             className={`nav-link ${activePage === "inicio" ? "active" : ""}`}
-            onClick={() => onNavigation("/")}
+            onClick={handleNavigationHome}
           >
             Inicio
           </button>
           <button
             className={`nav-link ${activePage === "productos" ? "active" : ""}`}
-            onClick={() => onNavigation("/productos")}
+            onClick={handleNavigationProducts}
           >
             Productos
           </button>
           <button
             className={`nav-link ${activePage === "servicios" ? "active" : ""}`}
-            onClick={() => onNavigation("/servicios")}
+            onClick={handleNavigationServices}
           >
             Servicios
           </button>
@@ -67,27 +75,29 @@ const Navbar = ({
         <div className="nav-actions">
           {user ? (
             <div className="user-actions">
-
-              {/* Icono estándar de usuario MUI */}
-              <Tooltip title={userName} arrow>
-                <AccountCircleIcon
-                  sx={{
-                    fontSize: 36,
-                    color: "rgba(255,255,255,0.85)",
-                    cursor: "default",
-                  }}
-                />
+              {/* Icono de perfil */}
+              <Tooltip title="Mi Perfil" arrow>
+                <IconButton onClick={handleMiPerfilClick} sx={{ p: 0 }}>
+                  <PersonIcon
+                    sx={{
+                      fontSize: 32,
+                      color: "rgba(255,255,255,0.85)",
+                    }}
+                  />
+                </IconButton>
               </Tooltip>
 
+              {/* Saludo al usuario */}
               <span className="user-greeting">Hola, {userName}</span>
 
-              {/* Solo visible si tiene permiso "dashboard" en el JWT */}
+              {/* Botón Dashboard (solo si tiene permiso) */}
               {puedeVerDashboard && (
                 <button className="btn btn-dashboard" onClick={onDashboard}>
                   Dashboard
                 </button>
               )}
 
+              {/* Botón de cierre de sesión */}
               <button className="btn btn-logout" onClick={onLogout}>
                 Salir
               </button>

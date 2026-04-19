@@ -16,6 +16,11 @@ const ProductsPage = ({ user, setUser }) => {
   const handleLogout   = () => { setUser(null); navigate("/"); };
   const handleDashboard = () => navigate(user ? "/admin/dashboard" : "/login");
 
+  // Handler para ir al perfil de usuario
+  const handleMiPerfil = () => {
+    navigate("/cliente/perfil");
+  };
+
   return (
     <div className="products-page">
       <Navbar
@@ -26,6 +31,7 @@ const ProductsPage = ({ user, setUser }) => {
         onLogin={handleLogin}
         onLogout={handleLogout}
         onDashboard={handleDashboard}
+        onMiPerfil={handleMiPerfil}
       />
 
       {/* Hero */}
