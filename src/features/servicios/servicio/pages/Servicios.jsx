@@ -124,6 +124,8 @@ export default function Servicios() {
         showCancel={modalForm.mode !== "view"}
         onConfirm={handleModalConfirm}
         onCancel={handleCloseForm}
+        confirmButtonColor="#1a2540"
+        confirmButtonHoverColor="#2d3a6b"
       >
         <ServicioForm
           id="servicio-form"
