@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Box, Tab, Tabs, Typography } from '@mui/material';
+import { Box, Tab, Tabs, Typography, Button } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@auth/hooks/useAuth';
 import Apariencia from '../components/general/Apariencia';
 import Licencias from '../components/legal/Licencias';
@@ -19,15 +20,17 @@ function TabPanel({ children, value, index }) {
 }
 
 export default function Configuration({ user, onUserUpdate }) {
+  const navigate = useNavigate();
   const { user: currentUser, hasPermisoCRUD, isAdmin } = useAuth();
   const [tabValue, setTabValue] = useState(0);
 
   // Cualquier usuario autenticado puede ver su perfil
-  // No se necesita permiso especial para ver/editar datos propios
   const canViewLicencias = isAdmin();
-  
-  // Para editar, cualquiera puede editar sus propios datos
   const canUpdate = true;
+
+  const handleVolver = () => {
+    navigate(-1);
+  };
 
   if (!user) {
     return (
@@ -39,9 +42,21 @@ export default function Configuration({ user, onUserUpdate }) {
 
   return (
     <Box sx={{ width: '100%', p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Configuración
-      </Typography>
+      {/* Header con título y botón volver */}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+        <Typography variant="h4" gutterBottom sx={{ mb: 0 }}>
+          Configuración
+        </Typography>
+        <Button
+          onClick={handleVolver}
+          sx={{ 
+            color: BRAND_COLOR,
+            textTransform: 'none'
+          }}
+        >
+          Volver
+        </Button>
+      </Box>
       
       <Box>
         <Tabs 
