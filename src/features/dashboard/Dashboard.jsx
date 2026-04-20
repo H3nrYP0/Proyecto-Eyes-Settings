@@ -6,7 +6,6 @@ import {
   alpha,
   useMediaQuery,
   Container,
-  CircularProgress,
   Alert
 } from '@mui/material';
 
@@ -18,6 +17,11 @@ import {
 } from './components';
 
 import { useDashboardData } from './hooks/useDashboardData';
+import Loading from '@shared/components/ui/Loading';
+
+// Colores neutrales
+const FONDO_NEUTRAL = "#f8fafc";
+const BRAND_COLOR = "#1a2540";
 
 const Dashboard = () => {
   const theme = useTheme();
@@ -47,6 +51,7 @@ const Dashboard = () => {
   return (
     <Box sx={{
       minHeight: '100vh',
+      background: `linear-gradient(135deg, ${alpha(BRAND_COLOR, 0.06)} 0%, ${alpha(FONDO_NEUTRAL, 0.95)} 50%, ${FONDO_NEUTRAL} 100%)`,
       p: padding,
       mt: { xs: 7, sm: 8, md: 0 },
       ml: 0,
@@ -73,9 +78,10 @@ const Dashboard = () => {
         />
 
         {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-            <CircularProgress />
-          </Box>
+          <Loading 
+            message="Cargando gráficas operativas..."
+            fullPage={false}
+          />
         ) : (
           <Grid container spacing={gridSpacing}>
             <Grid item xs={12} lg={6}>

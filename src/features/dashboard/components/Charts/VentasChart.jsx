@@ -25,20 +25,37 @@ const BRAND_HOVER = "#2d3a6b";
 const TEXT_SECONDARY = "#64748b";
 const BORDER_COLOR = "#cbd5e1";
 
-// Colores para VENTAS (Verde)
-const VENTAS_PRINCIPAL = "#22c55e";
-const VENTAS_SECUNDARIO = "#86efac";
-const VENTAS_HOVER = "#15803d";
-
-// Colores para COMPRAS (Rojo/naranja - Carmesí)
-const COMPRAS_PRINCIPAL = "#dc2626";
-const COMPRAS_SECUNDARIO = "#fca5a5";
-const COMPRAS_HOVER = "#991b1b";
-
 // Colores neutrales
 const FONDO_NEUTRAL = "#f8fafc";
 const TEXTO_NEUTRAL = "#1f2937";
 const LINEAS_NEUTRALES = "#e5e7eb";
+
+// ============================================================
+// PALETA ALEGRE PARA VENTAS (Azul Eléctrico / Cyan)
+// ============================================================
+// Colores vibrantes que transmiten confianza, dinamismo y crecimiento
+// Inspirados en el azul del cielo y el mar caribeño
+const VENTAS_PRINCIPAL = "#2563eb";      // Azul eléctrico - Principal
+const VENTAS_SECUNDARIO = "#60a5fa";     // Azul claro vibrante - Secundario  
+const VENTAS_HOVER = "#1d4ed8";          // Azul intenso - Hover
+const VENTAS_GRADIENTE = "#bfdbfe";      // Azul muy claro - Gradiente
+
+// ============================================================
+// PALETA ALEGRE PARA COMPRAS (Coral / Naranja Vibrante)
+// ============================================================
+// Colores cálidos y energéticos que contrastan perfectamente con el azul
+// Transmiten acción, oportunidad y dinamismo
+const COMPRAS_PRINCIPAL = "#f97316";      // Naranja vibrante - Principal
+const COMPRAS_SECUNDARIO = "#fdba74";     // Naranja claro - Secundario
+const COMPRAS_HOVER = "#ea580c";          // Naranja intenso - Hover
+const COMPRAS_GRADIENTE = "#fed7aa";      // Naranja muy claro - Gradiente
+
+// ============================================================
+// RELACIÓN CROMÁTICA:
+// Ventas (Azul - 220°) + Compras (Naranja - 25°)
+// = Colores complementarios en el círculo cromático
+// Contraste energético y alegre, fácil de diferenciar
+// ============================================================
 
 const VentasChart = ({ 
   data, 
@@ -59,6 +76,7 @@ const VentasChart = ({
   const principalColor = isVentas ? VENTAS_PRINCIPAL : COMPRAS_PRINCIPAL;
   const secundarioColor = isVentas ? VENTAS_SECUNDARIO : COMPRAS_SECUNDARIO;
   const hoverColor = isVentas ? VENTAS_HOVER : COMPRAS_HOVER;
+  const gradientColor = isVentas ? VENTAS_GRADIENTE : COMPRAS_GRADIENTE;
   
   // Determina el intervalo de etiquetas del eje X basado en el período 
   const getXAxisInterval = () => {
@@ -99,7 +117,7 @@ const VentasChart = ({
         emphasis: {
           itemStyle: {
             shadowBlur: isMobile ? 6 : 10,
-            shadowColor: alpha(principalColor, 0.5)
+            shadowColor: alpha(principalColor, 0.4)
           }
         }
       }];
@@ -121,8 +139,8 @@ const VentasChart = ({
             type: 'linear',
             x: 0, y: 0, x2: 0, y2: 1,
             colorStops: [
-              { offset: 0, color: alpha(principalColor, 0.3) },
-              { offset: 1, color: alpha(principalColor, 0.05) }
+              { offset: 0, color: alpha(principalColor, 0.25) },
+              { offset: 1, color: alpha(gradientColor, 0.08) }
             ]
           }
         },
