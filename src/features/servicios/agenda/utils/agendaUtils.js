@@ -47,7 +47,7 @@ export const mapearHorariosEventos = (horarios, empleados) => {
       
       return {
         id: `horario-${h.id}`,
-        title: `${empleado?.nombre || 'Empleado'} - Disponible`,
+        title: `Disponible`,
         daysOfWeek: [apiToFCDay(h.dia)],
         startTime: h.hora_inicio?.slice(0, 5),
         endTime: h.hora_final?.slice(0, 5),
