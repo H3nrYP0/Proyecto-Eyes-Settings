@@ -31,14 +31,11 @@ export async function getAllCompras() {
 // ============================
 export async function getCompraById(id) {
   try {
-    const [compraRes, proveedoresRes] = await Promise.all([
+    const [compraRes, proveedoresRes, detallesRes] = await Promise.all([
       api.get(`/compras/${id}`),
       getAllProveedores(),
+      api.get(`/compras/${id}/detalles`).catch(() => ({ data: [] })),
     ]);
-
-    const detallesRes = await api
-      .get(`/compras/${id}/detalles`)
-      .catch(() => ({ data: [] }));
 
     const compra = compraRes.data;
     const detalles = Array.isArray(detallesRes.data) ? detallesRes.data : [];
@@ -56,9 +53,9 @@ export async function getCompraById(id) {
         productoId: d.producto_id,
         nombre: d.nombre_producto || d.producto?.nombre || "",
         cantidad: Number(d.cantidad),
-        precioCompra: Number(d.precio_unitario ?? 0),
+        precioCompra: Number(d.precio_unitario ?? d.precio_unidad ?? 0),
         precioVenta: Number(d.precio_venta ?? d.producto?.precio_venta ?? 0),
-        total: Number(d.cantidad) * Number(d.precio_unitario ?? 0),
+        total: Number(d.subtotal ?? (Number(d.cantidad) * Number(d.precio_unitario ?? d.precio_unidad ?? 0))),
         stockActual: Number(d.producto?.stock ?? 0),
       })),
     };
@@ -69,41 +66,24 @@ export async function getCompraById(id) {
 }
 
 // ============================
-// Crear compra + detalles + actualizar stock
+// Crear compra — el backend maneja detalles dentro del mismo POST /compras
+// Endpoint: POST /compras  body: { proveedor_id, estado_compra, detalles: [...] }
 // ============================
 export async function createCompra(data) {
-  // 1) Cabecera de la compra
-  const compraRes = await api.post("/compras", {
+  const payload = {
     proveedor_id: Number(data.proveedorId),
     observaciones: data.observaciones || "",
     estado_compra: true,
-  });
+    detalles: data.productos.map((p) => ({
+      producto_id: Number(p.productoId),
+      cantidad: Number(p.cantidad),
+      precio_unidad: Number(p.precioCompra),
+      precio_venta: Number(p.precioVenta),
+    })),
+  };
 
-  const compraId = compraRes.data.id;
-
-  // 2) Detalles + stock de cada producto
-  if (data.productos && data.productos.length > 0) {
-    await Promise.all(
-      data.productos.map(async (p) => {
-        await api.post("/detalle-compra", {
-          compra_id: compraId,
-          producto_id: Number(p.productoId),
-          cantidad: Number(p.cantidad),
-          precio_unitario: Number(p.precioCompra),
-          precio_venta: Number(p.precioVenta),
-        });
-
-        // Sumar cantidad al stock actual del producto
-        await api.put(`/productos/${Number(p.productoId)}`, {
-          stock: p.stockActual + Number(p.cantidad),
-          precio_compra: Number(p.precioCompra),
-          precio_venta: Number(p.precioVenta),
-        });
-      })
-    );
-  }
-
-  return compraRes.data;
+  const res = await api.post("/compras", payload);
+  return res.data;
 }
 
 // ============================
@@ -115,7 +95,7 @@ export async function deleteCompra(id) {
 }
 
 // ============================
-// Anular compra — irreversible
+// Anular compra — PUT /compras/:id  { estado_compra: false }
 // ============================
 export async function anularCompra(id) {
   const res = await api.put(`/compras/${id}`, { estado_compra: false });
@@ -123,9 +103,17 @@ export async function anularCompra(id) {
 }
 
 // ============================
-// Crear proveedor
+// Crear proveedor — POST /proveedores
+// El backend requiere: razon_social_o_nombre, documento (obligatorios)
 // ============================
 export async function createProveedor(data) {
-  const res = await api.post("/proveedores", data);
-  return res.data;
+  const res = await api.post("/proveedores", {
+    razon_social_o_nombre: data.razon_social_o_nombre,
+    documento: data.documento || `TEMP-${Date.now()}`, // fallback si no se captura
+    telefono: data.telefono || undefined,
+    correo: data.email || undefined,
+    direccion: data.direccion || undefined,
+    estado: true,
+  });
+  return res.data?.proveedor ?? res.data;
 }

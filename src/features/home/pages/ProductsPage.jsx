@@ -47,11 +47,11 @@ const ProductsPage = ({ user, setUser }) => {
           </div>
         </div>
         <div className="hero-animated-elements">
-          <div className="floating-element element-1">👓</div>
-          <div className="floating-element element-2">🕶️</div>
-          <div className="floating-element element-3">🔍</div>
-          <div className="floating-element element-4">✨</div>
-          <div className="floating-element element-5">⭐</div>
+          <div className="floating-element element-1" style={{ width: 18, height: 18, borderRadius: "50%", background: "#3d8080", opacity: 0.5 }} />
+          <div className="floating-element element-2" style={{ width: 28, height: 28, borderRadius: "50%", background: "#1a4a4a", opacity: 0.35 }} />
+          <div className="floating-element element-3" style={{ width: 12, height: 12, borderRadius: "50%", background: "#3d8080", opacity: 0.6 }} />
+          <div className="floating-element element-4" style={{ width: 22, height: 22, borderRadius: 4, background: "#0d2e2e", opacity: 0.3, transform: "rotate(30deg)" }} />
+          <div className="floating-element element-5" style={{ width: 10, height: 10, borderRadius: "50%", background: "#1a4a4a", opacity: 0.5 }} />
         </div>
       </section>
 

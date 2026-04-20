@@ -177,7 +177,7 @@ const ServicesPage = ({ user, setUser }) => {
             {loadingData ? <LoadingSpinner mensaje="Cargando servicios..." /> : servicios.length === 0 ? (
               <p style={{ textAlign: "center", color: "#64748b" }}>No hay servicios disponibles en este momento.</p>
             ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1.5rem", maxWidth: "900px", margin: "0 auto" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 280px))", gap: "1.5rem", maxWidth: "900px", margin: "0 auto", justifyContent: "center" }}>
                 {servicios.map(s => (
                   <ServiceCard 
                     key={s.id} 
@@ -295,7 +295,7 @@ const ServicesPage = ({ user, setUser }) => {
           {loadingData ? <LoadingSpinner mensaje="Cargando servicios..." /> : servicios.length === 0 ? (
             <p style={{ textAlign: "center", color: "#64748b" }}>No hay servicios disponibles en este momento.</p>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1.5rem", maxWidth: "900px", margin: "0 auto" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 280px))", gap: "1.5rem", maxWidth: "900px", margin: "0 auto", justifyContent: "center" }}>
               {servicios.map(s => (
                 <ServiceCard 
                   key={s.id} 
