@@ -17,6 +17,12 @@ import { useTheme, alpha } from '@mui/material/styles';
 import SafeECharts from './SafeECharts';
 import { formatCurrency, getPeriodText } from '../../utils/formatters';
 
+// Colores personalizados
+const BRAND_COLOR = "#1a2540";
+const BRAND_HOVER = "#2d3a6b";
+const TEXT_SECONDARY = "#64748b";
+const BORDER_COLOR = "#cbd5e1";
+
 const AnalisisCategorias = ({ data, timeFilter, yearFilter }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -82,7 +88,7 @@ const AnalisisCategorias = ({ data, timeFilter, yearFilter }) => {
           <span>Ventas:</span>
           <span style="font-weight: bold;">${formatCurrency(item.amount)}</span>
         </div>
-        <div style="margin-top: 4px; font-size: ${isMobile ? '10px' : '11px'}; color: ${theme.palette.text.secondary};">
+        <div style="margin-top: 4px; font-size: ${isMobile ? '10px' : '11px'}; color: ${TEXT_SECONDARY};">
           Agrupa ${otherCount} categorías menores
         </div>
       `;
@@ -104,7 +110,7 @@ const AnalisisCategorias = ({ data, timeFilter, yearFilter }) => {
   // Configuración común para tooltip - MEJORADA RESPONSIVE
   const tooltipConfig = {
     backgroundColor: theme.palette.background.paper,
-    borderColor: theme.palette.divider,
+    borderColor: BORDER_COLOR,
     textStyle: { 
       color: theme.palette.text.primary,
       fontSize: isMobile ? 11 : 12
@@ -126,18 +132,18 @@ const AnalisisCategorias = ({ data, timeFilter, yearFilter }) => {
       data: processedData.map(item => item.name),
       axisLine: { 
         lineStyle: { 
-          color: theme.palette.divider,
+          color: BORDER_COLOR,
           width: isMobile ? 1 : 2
         }
       },
       axisTick: { 
         lineStyle: { 
-          color: theme.palette.divider,
+          color: BORDER_COLOR,
           width: isMobile ? 1 : 1
         }
       },
       axisLabel: {
-        color: theme.palette.text.secondary,
+        color: TEXT_SECONDARY,
         fontSize: isMobile ? 9 : isTablet ? 10 : 11,
         fontWeight: isMobile ? 400 : 500,
         margin: isMobile ? 6 : 8,
@@ -153,31 +159,31 @@ const AnalisisCategorias = ({ data, timeFilter, yearFilter }) => {
       type: 'value',
       name: 'Porcentaje (%)',
       nameTextStyle: {
-        color: theme.palette.text.secondary,
+        color: TEXT_SECONDARY,
         fontSize: isMobile ? 9 : isTablet ? 10 : 11,
         padding: [0, 0, 0, isMobile ? -40 : -50]
       },
       axisLine: { 
         lineStyle: { 
-          color: theme.palette.divider,
+          color: BORDER_COLOR,
           width: isMobile ? 1 : 2
         }
       },
       axisTick: { 
         lineStyle: { 
-          color: theme.palette.divider,
+          color: BORDER_COLOR,
           width: isMobile ? 1 : 1
         }
       },
       splitLine: {
         lineStyle: {
-          color: alpha(theme.palette.divider, 0.5),
+          color: alpha(BORDER_COLOR, 0.5),
           type: 'dashed',
           width: 0.5
         }
       },
       axisLabel: {
-        color: theme.palette.text.secondary,
+        color: TEXT_SECONDARY,
         fontSize: isMobile ? 9 : isTablet ? 10 : 11,
         formatter: '{value}%'
       }
@@ -186,7 +192,7 @@ const AnalisisCategorias = ({ data, timeFilter, yearFilter }) => {
       data: processedData.map(item => ({
         value: item.value,
         itemStyle: { 
-          color: item.color,
+          color: item.color || BRAND_COLOR,
           borderRadius: isMobile ? [2, 2, 0, 0] : [4, 4, 0, 0]
         }
       })),
@@ -203,7 +209,7 @@ const AnalisisCategorias = ({ data, timeFilter, yearFilter }) => {
       emphasis: {
         itemStyle: {
           shadowBlur: isMobile ? 6 : 10,
-          shadowColor: alpha(theme.palette.primary.main, 0.5)
+          shadowColor: alpha(BRAND_COLOR, 0.5)
         }
       }
     }],
@@ -288,7 +294,7 @@ const AnalisisCategorias = ({ data, timeFilter, yearFilter }) => {
         name: item.name,
         value: item.value,
         amount: item.amount,
-        itemStyle: { color: item.color }
+        itemStyle: { color: item.color || BRAND_COLOR }
       }))
     }]
   }), [processedData, theme, isMobile, isTablet]);
@@ -324,7 +330,7 @@ const AnalisisCategorias = ({ data, timeFilter, yearFilter }) => {
             <Typography 
               variant={isMobile ? "subtitle1" : "h6"} 
               fontWeight={600}
-              sx={{ fontSize: isMobile ? '1rem' : '1.25rem' }}
+              sx={{ fontSize: isMobile ? '1rem' : '1.25rem', color: '#000000' }}
             >
               Categorías más vendidas
             </Typography>
@@ -362,7 +368,16 @@ const AnalisisCategorias = ({ data, timeFilter, yearFilter }) => {
                   textTransform: 'none',
                   fontSize: isMobile ? '0.7rem' : '0.75rem',
                   px: isMobile ? 1 : 1.5,
-                  minWidth: isMobile ? '80px' : '100px'
+                  minWidth: isMobile ? '80px' : '100px',
+                  ...(showAll && {
+                    backgroundColor: BRAND_COLOR,
+                    '&:hover': { backgroundColor: BRAND_HOVER }
+                  }),
+                  ...(!showAll && {
+                    borderColor: BORDER_COLOR,
+                    color: BRAND_COLOR,
+                    '&:hover': { borderColor: BRAND_COLOR, backgroundColor: `${BRAND_COLOR}10` }
+                  })
                 }}
               >
                 {showAll ? 'Agrupar' : 'Ver todas'}
@@ -378,7 +393,16 @@ const AnalisisCategorias = ({ data, timeFilter, yearFilter }) => {
                   textTransform: 'none',
                   fontSize: isMobile ? '0.7rem' : '0.75rem',
                   px: isMobile ? 1 : 1.5,
-                  minWidth: isMobile ? '60px' : '80px'
+                  minWidth: isMobile ? '60px' : '80px',
+                  ...(chartType === 'barras' && {
+                    backgroundColor: BRAND_COLOR,
+                    '&:hover': { backgroundColor: BRAND_HOVER }
+                  }),
+                  ...(chartType !== 'barras' && {
+                    borderColor: BORDER_COLOR,
+                    color: BRAND_COLOR,
+                    '&:hover': { borderColor: BRAND_COLOR, backgroundColor: `${BRAND_COLOR}10` }
+                  })
                 }}
               >
                 {formatButtonText('barras')}
@@ -391,7 +415,16 @@ const AnalisisCategorias = ({ data, timeFilter, yearFilter }) => {
                   textTransform: 'none',
                   fontSize: isMobile ? '0.7rem' : '0.75rem',
                   px: isMobile ? 1 : 1.5,
-                  minWidth: isMobile ? '60px' : '80px'
+                  minWidth: isMobile ? '60px' : '80px',
+                  ...(chartType === 'pastel' && {
+                    backgroundColor: BRAND_COLOR,
+                    '&:hover': { backgroundColor: BRAND_HOVER }
+                  }),
+                  ...(chartType !== 'pastel' && {
+                    borderColor: BORDER_COLOR,
+                    color: BRAND_COLOR,
+                    '&:hover': { borderColor: BRAND_COLOR, backgroundColor: `${BRAND_COLOR}10` }
+                  })
                 }}
               >
                 {formatButtonText('pastel')}
