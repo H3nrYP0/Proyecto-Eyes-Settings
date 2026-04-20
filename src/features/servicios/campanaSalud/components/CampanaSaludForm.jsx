@@ -1,13 +1,11 @@
 // features/servicios/campanaSalud/components/CampanaSaludForm.jsx
 
 import React from 'react';
+import { Grid, Box, CircularProgress, Alert } from '@mui/material';
 import BaseFormLayout from '../../../../shared/components/base/BaseFormLayout';
-import BaseFormSection from '../../../../shared/components/base/BaseFormSection';
-import BaseFormField from '../../../../shared/components/base/BaseFormField';
 import BaseInputField from '../../../../shared/components/base/BaseInputField';
 import BaseFormActions from '../../../../shared/components/base/BaseFormActions';
 import CrudNotification from '../../../../shared/styles/components/notifications/CrudNotification';
-import { CircularProgress, Box, Alert } from '@mui/material';
 
 const CampanaSaludForm = ({
   formData,
@@ -25,6 +23,7 @@ const CampanaSaludForm = ({
   handleCancel,
   handleEdit,
   hideNotification,
+  isEstadoBloqueado,
 }) => {
   if (loading) {
     return (
@@ -80,8 +79,9 @@ const CampanaSaludForm = ({
           </Alert>
         )}
 
-        <BaseFormSection>
-          <BaseFormField>
+        {/* FILA 1: Empresa, NIT, Contacto */}
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6} md={4}>
             <BaseInputField
               label="Empresa"
               name="empresa"
@@ -90,9 +90,52 @@ const CampanaSaludForm = ({
               disabled={isDisabled}
               required
             />
-          </BaseFormField>
+          </Grid>
 
-          <BaseFormField>
+          <Grid item xs={12} sm={6} md={4}>
+            <BaseInputField
+              label="NIT de la Empresa"
+              name="nit_empresa"
+              value={formData.nit_empresa || ''}
+              onChange={(e) => {
+                const soloNumeros = e.target.value.replace(/\D/g, '');
+                handleChange({ target: { name: 'nit_empresa', value: soloNumeros } });
+              }}
+              disabled={isDisabled}
+              required
+              helperText={
+                formData.nit_empresa?.length > 0 && formData.nit_empresa.length < 8
+                  ? 'El NIT debe tener al menos 8 dígitos'
+                  : 'NIT único para cada empresa (mínimo 8 dígitos)'
+              }
+              inputProps={{ inputMode: 'numeric', minLength: 8 }}
+            />
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={4}>
+            <BaseInputField
+              label="Contacto"
+              name="contacto"
+              value={formData.contacto}
+              onChange={(e) => {
+                const soloNumeros = e.target.value.replace(/\D/g, '').slice(0, 10);
+                handleChange({ target: { name: 'contacto', value: soloNumeros } });
+              }}
+              disabled={isDisabled}
+              helperText={
+                formData.contacto?.length > 0 && formData.contacto.length !== 10
+                  ? 'El teléfono debe tener exactamente 10 dígitos'
+                  : 'Teléfono de contacto (10 dígitos)'
+              }
+              error={formData.contacto?.length > 0 && formData.contacto.length !== 10}
+              inputProps={{ inputMode: 'numeric', maxLength: 10, minLength: 10 }}
+            />
+          </Grid>
+        </Grid>
+
+        {/* FILA 2: Empleado, Fecha, Hora */}
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6} md={4}>
             <BaseInputField
               label="Empleado Responsable"
               name="empleado_id"
@@ -109,9 +152,9 @@ const CampanaSaludForm = ({
                 })),
               ]}
             />
-          </BaseFormField>
+          </Grid>
 
-          <BaseFormField>
+          <Grid item xs={12} sm={6} md={4}>
             <BaseInputField
               label="Fecha"
               name="fecha"
@@ -121,45 +164,43 @@ const CampanaSaludForm = ({
               disabled={isDisabled}
               required
             />
-          </BaseFormField>
+          </Grid>
 
-          <BaseFormField>
-            <BaseInputField
-              label="Hora"
-              name="hora"
-              select
-              value={formData.hora}
-              onChange={handleChange}
-              disabled={isDisabled || horasDisponibles.length === 0}
-              required
-              options={opcionesHora}
-              helperText={
-                !formData.empleado_id
-                  ? 'Seleccione primero el empleado'
-                  : !formData.fecha
-                  ? 'Seleccione primero la fecha'
-                  : horasDisponibles.length === 0
-                  ? 'El empleado no tiene horario disponible para ese día'
-                  : undefined
-              }
-            />
-          </BaseFormField>
+          <Grid item xs={12} sm={6} md={4}>
+            {isView ? (
+              <BaseInputField
+                label="Hora"
+                name="hora"
+                value={formData.hora}
+                disabled={true}
+              />
+            ) : (
+              <BaseInputField
+                label="Hora"
+                name="hora"
+                select
+                value={formData.hora}
+                onChange={handleChange}
+                disabled={isDisabled || horasDisponibles.length === 0}
+                required
+                options={opcionesHora}
+                helperText={
+                  !formData.empleado_id
+                    ? 'Seleccione primero el empleado'
+                    : !formData.fecha
+                    ? 'Seleccione primero la fecha'
+                    : horasDisponibles.length === 0
+                    ? 'El empleado no tiene horario disponible para ese día'
+                    : undefined
+                }
+              />
+            )}
+          </Grid>
+        </Grid>
 
-          <BaseFormField>
-            <BaseInputField
-              label="Contacto"
-              name="contacto"
-              value={formData.contacto}
-              onChange={(e) => {
-                const soloNumeros = e.target.value.replace(/\D/g, '');
-                handleChange({ target: { name: 'contacto', value: soloNumeros } });
-              }}
-              disabled={isDisabled}
-              helperText="Solo números"
-            />
-          </BaseFormField>
-
-          <BaseFormField>
+        {/* FILA 3: Dirección, Estado */}
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6} md={4}>
             <BaseInputField
               label="Dirección"
               name="direccion"
@@ -167,10 +208,10 @@ const CampanaSaludForm = ({
               onChange={handleChange}
               disabled={isDisabled}
             />
-          </BaseFormField>
+          </Grid>
 
           {(isEdit || isView) && opcionesEstado.length > 0 && (
-            <BaseFormField>
+            <Grid item xs={12} sm={6} md={4}>
               <BaseInputField
                 label="Estado de la Campaña"
                 name="estado_cita_id"
@@ -180,10 +221,13 @@ const CampanaSaludForm = ({
                 disabled={isDisabled}
                 options={opcionesEstado}
               />
-            </BaseFormField>
+            </Grid>
           )}
+        </Grid>
 
-          <BaseFormField fullWidth>
+        {/* FILA 4: Observaciones */}
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
             <BaseInputField
               label="Observaciones"
               name="observaciones"
@@ -192,18 +236,19 @@ const CampanaSaludForm = ({
               disabled={isDisabled}
               multiline
               rows={3}
-              helperText="Máximo 100 caracteres"
-              inputProps={{ maxLength: 100 }}
+              helperText="Máximo 500 caracteres"
+              inputProps={{ maxLength: 500 }}
             />
-          </BaseFormField>
-        </BaseFormSection>
+          </Grid>
+        </Grid>
 
         <BaseFormActions
           onCancel={handleCancel}
           onSave={handleSubmit}
           onEdit={handleEdit}
           showSave={!isView}
-          showEdit={isView}
+          showEdit={isView && !isEstadoBloqueado} 
+          cancelLabel={isView ? "Salir" : "Cancelar"}
           saveLabel={saving ? 'Guardando...' : isEdit ? 'Guardar' : 'Guardar'}
           disabled={saving}
         />
