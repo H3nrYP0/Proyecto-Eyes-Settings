@@ -47,6 +47,7 @@ export const transformCampanaFromBackend = (campana) => {
   return {
     id: campana.id,
     empleado_id: campana.empleado_id,
+    // nit_empresa: campana.nit_empresa || '',
     empleado_nombre: campana.empleado_nombre || 'No asignado',
     empresa: campana.empresa || '',
     contacto: campana.contacto || '',
