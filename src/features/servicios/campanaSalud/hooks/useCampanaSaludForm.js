@@ -24,6 +24,7 @@ const getBackendDay = (date) => {
 const INITIAL_FORM_DATA = {
   empleado_id: '',
   empresa: '',
+  nit_empresa: '',
   contacto: '',
   fecha: '',
   hora: '',
@@ -101,6 +102,7 @@ const hideNotification = () => {
       const loaded = {
         empleado_id: data.empleado_id || '',
         empresa: data.empresa || '',
+        nit_empresa: data.nit_empresa || 'PENDIENTE',
         contacto: data.contacto || '',
         fecha: data.fecha ? data.fecha.split('T')[0] : '',
         hora: data.hora ? formatearHora24(data.hora) : '',
@@ -191,8 +193,13 @@ const hideNotification = () => {
   const validate = () => {
     if (!formData.empleado_id) return 'Debe seleccionar un empleado responsable';
     if (!formData.empresa?.trim()) return 'El nombre de la empresa es requerido';
+    if (!formData.nit_empresa?.trim()) return 'El NIT de la empresa es requerido';
+    if (formData.nit_empresa?.trim().length < 8) return 'El NIT debe tener al menos 8 dígitos';
     if (!formData.fecha) return 'La fecha es requerida';
     if (!formData.hora) return 'La hora es requerida';
+    if (formData.contacto?.trim() && formData.contacto.trim().length !== 10) {
+    return 'El teléfono de contacto debe tener exactamente 10 dígitos';
+  }
     return null;
   };
 
@@ -219,6 +226,9 @@ const hideNotification = () => {
     if (formData.empleado_id !== originalData.empleado_id)
       changed.empleado_id = parseInt(formData.empleado_id, 10);
     if (formData.empresa !== originalData.empresa) changed.empresa = formData.empresa.trim();
+    if (formData.nit_empresa !== originalData.nit_empresa) {
+  changed.nit_empresa = formData.nit_empresa?.trim() || originalData.nit_empresa || 'PENDIENTE';
+}
     if (formData.contacto !== originalData.contacto)
       changed.contacto = formData.contacto?.trim() || null;
     if (formData.fecha !== originalData.fecha) changed.fecha = formData.fecha;
@@ -266,6 +276,7 @@ const hideNotification = () => {
         const dataToSubmit = {
           empleado_id: parseInt(formData.empleado_id, 10),
           empresa: formData.empresa.trim(),
+          nit_empresa: formData.nit_empresa.trim() || 'PENDIENTE',
           fecha: formData.fecha,
           hora: horaFormateada,
           estado_cita_id: ESTADO_CITA.PENDIENTE,
