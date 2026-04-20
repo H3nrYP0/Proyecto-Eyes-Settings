@@ -47,7 +47,6 @@ const Dashboard = () => {
   return (
     <Box sx={{
       minHeight: '100vh',
-      backgroundColor: '#f8fafc',
       p: padding,
       mt: { xs: 7, sm: 8, md: 0 },
       ml: 0,

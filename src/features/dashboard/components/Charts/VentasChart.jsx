@@ -15,15 +15,30 @@ import {
 import { BarChart, ShowChart } from '@mui/icons-material';
 import { useTheme, alpha } from '@mui/material/styles';
 
-// Importaciones de utilidades - MANTENIDAS
+// Importaciones de utilidades
 import SafeECharts from './SafeECharts';
 import { formatCurrency, formatYAxis } from '../../utils/formatters';
 
-// Colores personalizados
+// Colores personalizados para botones y bordes
 const BRAND_COLOR = "#1a2540";
 const BRAND_HOVER = "#2d3a6b";
 const TEXT_SECONDARY = "#64748b";
 const BORDER_COLOR = "#cbd5e1";
+
+// Colores para VENTAS (Verde)
+const VENTAS_PRINCIPAL = "#22c55e";
+const VENTAS_SECUNDARIO = "#86efac";
+const VENTAS_HOVER = "#15803d";
+
+// Colores para COMPRAS (Rojo/naranja - Carmesí)
+const COMPRAS_PRINCIPAL = "#dc2626";
+const COMPRAS_SECUNDARIO = "#fca5a5";
+const COMPRAS_HOVER = "#991b1b";
+
+// Colores neutrales
+const FONDO_NEUTRAL = "#f8fafc";
+const TEXTO_NEUTRAL = "#1f2937";
+const LINEAS_NEUTRALES = "#e5e7eb";
 
 const VentasChart = ({ 
   data, 
@@ -37,7 +52,15 @@ const VentasChart = ({
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
   
-  // Determina el intervalo de etiquetas del eje X basado en el período - MANTENIDO
+  // Determina si es Ventas o Compras
+  const isVentas = title.includes('Ventas');
+  
+  // Colores según el tipo de gráfica
+  const principalColor = isVentas ? VENTAS_PRINCIPAL : COMPRAS_PRINCIPAL;
+  const secundarioColor = isVentas ? VENTAS_SECUNDARIO : COMPRAS_SECUNDARIO;
+  const hoverColor = isVentas ? VENTAS_HOVER : COMPRAS_HOVER;
+  
+  // Determina el intervalo de etiquetas del eje X basado en el período 
   const getXAxisInterval = () => {
     switch (timeFilter) {
       case 'dia': return isMobile ? 2 : 0;
@@ -47,11 +70,8 @@ const VentasChart = ({
     }
   };
 
-  // Configuración común para ambos tipos de gráficas - MEJORADA RESPONSIVE
+  // Configuración común para ambos tipos de gráficas
   const getSeriesConfig = () => {
-    const isVentas = title.includes('Ventas');
-    const color = isVentas ? BRAND_COLOR : TEXT_SECONDARY;
-    
     if (chartType === 'barras') {
       return [{
         name: title,
@@ -59,13 +79,13 @@ const VentasChart = ({
         data: data?.data || [],
         barWidth: isMobile ? '40%' : (timeFilter === 'dia' ? '50%' : '30%'),
         itemStyle: {
-          color,
+          color: principalColor,
           borderRadius: isMobile ? [2, 2, 0, 0] : [4, 4, 0, 0]
         },
         label: {
-          show: !isMobile, // Ocultar labels en móvil
+          show: !isMobile,
           position: 'top',
-          color: theme.palette.text.primary,
+          color: TEXTO_NEUTRAL,
           fontWeight: 'bold',
           fontSize: isMobile ? 9 : 10,
           formatter: (params) => {
@@ -79,7 +99,7 @@ const VentasChart = ({
         emphasis: {
           itemStyle: {
             shadowBlur: isMobile ? 6 : 10,
-            shadowColor: alpha(color, 0.5)
+            shadowColor: alpha(principalColor, 0.5)
           }
         }
       }];
@@ -93,16 +113,16 @@ const VentasChart = ({
         symbolSize: isMobile ? 4 : 6,
         lineStyle: {
           width: isMobile ? 2 : 3,
-          color
+          color: principalColor
         },
-        itemStyle: { color },
+        itemStyle: { color: principalColor },
         areaStyle: {
           color: {
             type: 'linear',
             x: 0, y: 0, x2: 0, y2: 1,
             colorStops: [
-              { offset: 0, color: alpha(color, 0.3) },
-              { offset: 1, color: alpha(color, 0.1) }
+              { offset: 0, color: alpha(principalColor, 0.3) },
+              { offset: 1, color: alpha(principalColor, 0.05) }
             ]
           }
         },
@@ -116,26 +136,27 @@ const VentasChart = ({
     }
   };
 
-  // Opciones de configuración para ECharts - MEJORADA RESPONSIVE
+  // Opciones de configuración para ECharts
   const option = {
     grid: {
       left: isMobile ? '50px' : '70px',
       right: isMobile ? '10px' : '20px',
       top: isMobile ? '40px' : '60px',
-      bottom: isMobile ? '50px' : '60px'
+      bottom: isMobile ? '50px' : '60px',
+      backgroundColor: FONDO_NEUTRAL
     },
     xAxis: {
       type: 'category',
       data: data?.labels || [],
       axisLine: {
         lineStyle: { 
-          color: BORDER_COLOR,
+          color: LINEAS_NEUTRALES,
           width: isMobile ? 1 : 2
         }
       },
       axisTick: {
         lineStyle: { 
-          color: BORDER_COLOR,
+          color: LINEAS_NEUTRALES,
           width: isMobile ? 1 : 1
         }
       },
@@ -152,19 +173,19 @@ const VentasChart = ({
       type: 'value',
       axisLine: {
         lineStyle: { 
-          color: BORDER_COLOR,
+          color: LINEAS_NEUTRALES,
           width: isMobile ? 1 : 2
         }
       },
       axisTick: {
         lineStyle: { 
-          color: BORDER_COLOR,
+          color: LINEAS_NEUTRALES,
           width: isMobile ? 1 : 1
         }
       },
       splitLine: {
         lineStyle: {
-          color: alpha(BORDER_COLOR, 0.5),
+          color: alpha(LINEAS_NEUTRALES, 0.5),
           type: 'dashed',
           width: 0.5
         }
@@ -197,9 +218,9 @@ const VentasChart = ({
         `;
       },
       backgroundColor: theme.palette.background.paper,
-      borderColor: BORDER_COLOR,
+      borderColor: LINEAS_NEUTRALES,
       textStyle: { 
-        color: theme.palette.text.primary,
+        color: TEXTO_NEUTRAL,
         fontSize: isMobile ? 11 : 12
       },
       extraCssText: `box-shadow: ${theme.shadows[isMobile ? 2 : 4]}; border-radius: ${isMobile ? '6px' : '8px'}; padding: ${isMobile ? '6px' : '8px'};`
@@ -209,7 +230,8 @@ const VentasChart = ({
   return (
     <Card sx={{ 
       height: '100%',
-      boxShadow: isMobile ? 1 : 2
+      boxShadow: isMobile ? 1 : 2,
+      backgroundColor: FONDO_NEUTRAL
     }}>
       <CardContent sx={{ 
         p: isMobile ? 2 : 3, 
@@ -231,7 +253,7 @@ const VentasChart = ({
             <Typography 
               variant={isMobile ? "subtitle1" : "h6"} 
               fontWeight={600}
-              sx={{ fontSize: isMobile ? '1rem' : '1.25rem', color: '#000000' }}
+              sx={{ fontSize: isMobile ? '1rem' : '1.25rem', color: TEXTO_NEUTRAL }}
             >
               {title}
             </Typography>
