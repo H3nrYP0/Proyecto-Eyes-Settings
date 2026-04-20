@@ -25,71 +25,68 @@ export default function ServicioForm({
     <form id={id} onSubmit={handleSubmit}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
+          {/* Nombre del Servicio */}
+          <Grid item xs={12}>
             <BaseInputField
               label="Nombre del Servicio"
               name="nombre"
               value={formData.nombre}
               onChange={handleChange}
               disabled={isView}
-              required
+              required={!isView}
               error={!!errors.nombre || nombreExists}
               helperText={errors.nombre || (nombreExists ? "Ya existe un servicio con este nombre" : "")}
             />
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          {/* Precio (media anchura) */}
+          <Grid item xs={12} sm={6}>
+            {isView ? (
+              <BaseInputField
+                label="Precio"
+                value={formatCOP(formData.precio)}
+                disabled={true}
+              />
+            ) : (
+              <>
+                <BaseInputField
+                  label="Precio"
+                  name="precio"
+                  value={formData.precio}
+                  onChange={handleChange}
+                  disabled={isView}
+                  required
+                  error={!!errors.precio}
+                  helperText={errors.precio}
+                  inputProps={{ inputMode: "numeric", min: 0 }}
+                />
+                {formData.precio && !errors.precio && (
+                  <FormHelperText sx={{ mt: 0.5 }}>
+                    {formatCOP(formData.precio)} COP
+                  </FormHelperText>
+                )}
+              </>
+            )}
+          </Grid>
+
+          {/* Duración (media anchura) */}
+          <Grid item xs={12} sm={6}>
             <BaseInputField
               label="Duración (minutos)"
               name="duracion_min"
-              value={formData.duracion_min}
+              value={isView ? `${formData.duracion_min} min` : formData.duracion_min}
               onChange={handleChange}
               disabled={isView}
-              required
+              required={!isView}
               error={!!errors.duracion_min}
               helperText={errors.duracion_min}
               inputProps={{ inputMode: "numeric", min: 1, max: 480 }}
             />
           </Grid>
 
-          <Grid item xs={12} md={3}>
-            <BaseInputField
-              label="Precio"
-              name="precio"
-              value={formData.precio}
-              onChange={handleChange}
-              disabled={isView}
-              required
-              error={!!errors.precio}
-              helperText={errors.precio}
-              inputProps={{ inputMode: "numeric", min: 0 }}
-            />
-            {formData.precio && !errors.precio && (
-              <FormHelperText sx={{ mt: 0.5 }}>
-                {formatCOP(formData.precio)} COP
-              </FormHelperText>
-            )}
-          </Grid>
-
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Descripción"
-              name="descripcion"
-              value={formData.descripcion}
-              onChange={handleChange}
-              disabled={isView}
-              multiline
-              rows={4}
-              variant="outlined"
-              size="small"
-              error={!!errors.descripcion}
-              helperText={errors.descripcion}
-            />
-          </Grid>
-
+          {/* Estado (solo si no es creación) - con ancho medio */}
           {mode !== "create" && (
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} sm={6}>
               <BaseInputField
                 label="Estado del Servicio"
                 name="estado"
@@ -104,6 +101,25 @@ export default function ServicioForm({
               />
             </Grid>
           )}
+
+          {/* Descripción */}
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Descripción"
+              name="descripcion"
+              value={formData.descripcion}
+              onChange={handleChange}
+              disabled={isView}
+              multiline
+              rows={4}
+              variant="outlined"
+              size="small"
+              error={!!errors.descripcion}
+              helperText={errors.descripcion || `${formData.descripcion?.length || 0}/500 caracteres`}
+              inputProps={{ maxLength: 500 }}
+            />
+          </Grid>
         </Grid>
       </Box>
     </form>

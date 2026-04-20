@@ -264,11 +264,11 @@ export default function ProductoForm({
             onChange={handleChange}
             disabled={isView}
             multiline
-            rows={2}
+            rows={3}
             required={false}
             error={!!errors.descripcion}
-            helperText={errors.descripcion || `${formData.descripcion.length}/120 caracteres`}
-            inputProps={{ maxLength: 120 }}
+            helperText={errors.descripcion || `${formData.descripcion.length}/500 caracteres`}
+            inputProps={{ maxLength: 500 }}
           />
         </BaseFormField>
       </BaseFormSection>

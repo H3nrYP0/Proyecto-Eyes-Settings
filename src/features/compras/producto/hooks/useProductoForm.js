@@ -287,8 +287,8 @@ const handleImageUpload = useCallback((acceptedFiles) => {
       }
     }
     
-    if (formData.descripcion && formData.descripcion.length > 120) {
-      newErrors.descripcion = "No debe exceder 120 caracteres";
+    if (formData.descripcion && formData.descripcion.length > 500) {
+      newErrors.descripcion = "No debe exceder 500 caracteres";
     }
 
     setErrors(newErrors);
