@@ -1,11 +1,7 @@
 import { useState, useEffect } from "react";
 import { FormHelperText, Box } from "@mui/material";
 
-import BaseFormLayout from "../../../../shared/components/base/BaseFormLayout";
-import BaseFormSection from "../../../../shared/components/base/BaseFormSection";
-import BaseFormField from "../../../../shared/components/base/BaseFormField";
-import BaseFormActions from "../../../../shared/components/base/BaseFormActions";
-import BaseInputField from "../../../../shared/components/base/BaseInputField";
+import {BaseInputField, BaseFormLayout, BaseFormSection, BaseFormActions, BaseFormField} from "@shared";
 
 import PermisosSelector from "./PermisosSelector";
 

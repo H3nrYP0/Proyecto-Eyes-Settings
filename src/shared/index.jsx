@@ -4,6 +4,7 @@
 export { default as BaseInputField }   from './components/base/BaseInputField';
 export { default as BaseFormLayout }   from './components/base/BaseFormLayout';
 export { default as BaseFormSection }  from './components/base/BaseFormSection';
+export { default as BaseFormField}     from './components/base/BaseFormField';
 export { default as BaseViewField }    from './components/base/BaseViewField';
 export { default as BaseFormActions }  from './components/base/BaseFormActions';
 export { default as FormCol }          from './components/base/FormCol';
