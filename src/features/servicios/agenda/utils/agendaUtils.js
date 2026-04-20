@@ -11,7 +11,7 @@ export const COLORES_ESTADO = {
   default: "#6b7280"
 };
 
-export const COLOR_NOVEDAD = "#f97316"; // naranja
+export const COLOR_NOVEDAD = "#fffb00"; // naranja
 
 // ============================
 // CREAR FECHA PARA EVENTO (sin zona horaria)
@@ -133,7 +133,7 @@ export const mapearNovedadesEventos = (novedades, empleados) => {
           end: new Date(fechaEvento.getTime() + duracion * 60000),
           backgroundColor: COLOR_NOVEDAD,
           borderColor: COLOR_NOVEDAD,
-          textColor: '#fff',
+          textColor: '#000000',
           classNames: ['novedad'],
           extendedProps: {
             tipo: 'novedad',
@@ -158,7 +158,7 @@ export const mapearNovedadesEventos = (novedades, empleados) => {
           allDay: true,
           backgroundColor: COLOR_NOVEDAD,
           borderColor: COLOR_NOVEDAD,
-          textColor: '#fff',
+          textColor: '#000000',
           classNames: ['novedad'],
           extendedProps: {
             tipo: 'novedad',
