@@ -103,7 +103,9 @@ const ServiceCard = ({ servicio, onAgendar, disabledMessage }) => {
           display: "flex",
           flexDirection: "column",
           gap: "0.75rem",
-          minHeight: "160px",
+          height: "220px",
+          width: "100%",
+          boxSizing: "border-box",
           position: "relative",
           overflow: "hidden",
         }}
@@ -179,7 +181,7 @@ const ServiceCard = ({ servicio, onAgendar, disabledMessage }) => {
           )}
         </div>
 
-        {/* Footer: duración + precio + botón */}
+        {/* Footer: duración + precio + botón — siempre en una línea, sin wrap */}
         <div
           style={{
             display: "flex",
@@ -189,7 +191,8 @@ const ServiceCard = ({ servicio, onAgendar, disabledMessage }) => {
             paddingTop: "0.75rem",
             borderTop: hovered ? "1px solid rgba(255,255,255,0.10)" : "1px solid #eaf4f4",
             transition: "border-color 0.28s ease",
-            flexWrap: "wrap",
+            flexWrap: "nowrap",
+            minHeight: "36px",
           }}
         >
           {/* Duración */}
@@ -208,13 +211,14 @@ const ServiceCard = ({ servicio, onAgendar, disabledMessage }) => {
               border: hovered ? "1px solid rgba(255,255,255,0.12)" : "1px solid #e0eeee",
               transition: "all 0.28s ease",
               whiteSpace: "nowrap",
+              flexShrink: 0,
             }}
           >
             <AccessTime sx={{ fontSize: "11px", color: hovered ? "rgba(255,255,255,0.50)" : C.textLight }} />
             {servicio.duracion} min
           </span>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexShrink: 0 }}>
             {/* Precio */}
             <span
               style={{
@@ -229,10 +233,10 @@ const ServiceCard = ({ servicio, onAgendar, disabledMessage }) => {
               {formatCurrency(servicio.precio)}
             </span>
 
-            {/* Botón agendar */}
+            {/* Botón agendar — ocupa espacio siempre, solo se muestra en hover */}
             <button
               style={{
-                padding: hovered ? "0.3rem 0.65rem" : "0",
+                padding: "0.3rem 0.65rem",
                 background: hovered ? "rgba(255,255,255,0.10)" : "transparent",
                 color: hovered ? "#ffffff" : "transparent",
                 border: hovered ? "1px solid rgba(255,255,255,0.26)" : "1px solid transparent",
@@ -241,15 +245,15 @@ const ServiceCard = ({ servicio, onAgendar, disabledMessage }) => {
                 fontWeight: "600",
                 letterSpacing: "0.04em",
                 textTransform: "uppercase",
-                cursor: "pointer",
+                cursor: hovered ? "pointer" : "default",
                 transition: "all 0.28s ease",
                 display: "flex",
                 alignItems: "center",
                 gap: "0.3rem",
-                height: hovered ? "26px" : "0px",
-                overflow: "hidden",
+                height: "26px",
                 whiteSpace: "nowrap",
                 fontFamily: "inherit",
+                pointerEvents: hovered ? "auto" : "none",
               }}
               onClick={handleAgendarClick}
               onMouseEnter={(e) => {

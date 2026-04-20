@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { createCompra } from "../services/comprasService";
 import { getProveedoresActivos } from "../../proveedor/services/proveedoresService";
 import { getAllProductos } from "../../producto/services/productosService";
-import { calculateTotals } from "../utils/comprasUtils";
 
 const EMPTY_ROW = {
   productoId: "",
@@ -13,6 +12,17 @@ const EMPTY_ROW = {
   precioVenta: 0,
   total: 0,
 };
+
+// ============================
+// Parsear valor COP a número puro
+// Acepta: "1.200.000", "$1.200.000", "1200000"
+// ============================
+function parseCOP(value) {
+  if (value === "" || value === null || value === undefined) return 0;
+  const clean = String(value).replace(/\$|\./g, "").replace(",", ".");
+  const num = parseFloat(clean);
+  return isNaN(num) ? 0 : num;
+}
 
 export function useCompraForm({ mode = "create", initialData = null, onSubmitSuccess, onError }) {
   const isView = mode === "view";
@@ -57,13 +67,19 @@ export function useCompraForm({ mode = "create", initialData = null, onSubmitSuc
         ]);
 
         setCatalogo(
-          productosData.map((p) => ({
-            id: p.id,
-            nombre: p.nombre,
-            stockActual: Number(p.stock ?? p.stockActual ?? 0),
-            precioCompra: Number(p.precio_compra ?? p.precioCompra ?? 0),
-            precioVenta: Number(p.precio_venta ?? p.precioVenta ?? 0),
-          }))
+          productosData
+            .filter((p) => {
+              // Cubrir los campos que puede mandar el backend para "activo"
+              const activo = p.estado ?? p.activo ?? p.estado_producto ?? true;
+              return activo === true || activo === "activo" || activo === 1;
+            })
+            .map((p) => ({
+              id: p.id,
+              nombre: p.nombre,
+              stockActual: Number(p.stock ?? p.stockActual ?? 0),
+              precioCompra: Number(p.precio_compra ?? p.precioCompra ?? 0),
+              precioVenta: Number(p.precio_venta ?? p.precioVenta ?? 0),
+            }))
         );
       } catch (err) {
         console.error("Error cargando datos:", err);
@@ -99,12 +115,17 @@ export function useCompraForm({ mode = "create", initialData = null, onSubmitSuc
   }, [initialData]);
 
   // ============================
-  // Totales (usa precioCompra como base)
+  // Totales
   // ============================
   const subtotal = formData.productos.reduce((acc, p) => acc + (p.total || 0), 0);
   const iva = subtotal * 0.19;
   const total = subtotal + iva;
-  const formatCurrency = (n) => `$${Number(n).toLocaleString("es-CO")}`;
+
+  // ============================
+  // Formatear como COP: $1.200.000
+  // ============================
+  const formatCurrency = (n) =>
+    `$${Number(n || 0).toLocaleString("es-CO")}`;
 
   // ============================
   // Cambios en fila de producto
@@ -126,18 +147,19 @@ export function useCompraForm({ mode = "create", initialData = null, onSubmitSuc
           row.total = row.cantidad * row.precioCompra;
           setErrors((e) => ({ ...e, [`prod_${index}`]: "" }));
         } else if (field === "cantidad") {
-          // Sin límite de stock — es una compra, se suma al stock
-          const qty = Math.max(1, Number(value) || 1);
+          const qty = Math.max(1, parseInt(value) || 1);
           row.cantidad = qty;
           row.total = qty * row.precioCompra;
           setErrors((e) => ({ ...e, [`qty_${index}`]: "" }));
         } else if (field === "precioCompra") {
-          const precio = Math.max(0, Number(value) || 0);
+          // Parsear desde formato COP
+          const precio = Math.max(0, parseCOP(value));
           row.precioCompra = precio;
           row.total = row.cantidad * precio;
           setErrors((e) => ({ ...e, [`precioC_${index}`]: "" }));
         } else if (field === "precioVenta") {
-          row.precioVenta = Math.max(0, Number(value) || 0);
+          const precio = Math.max(0, parseCOP(value));
+          row.precioVenta = precio;
           setErrors((e) => ({ ...e, [`precioV_${index}`]: "" }));
         }
 
@@ -189,7 +211,8 @@ export function useCompraForm({ mode = "create", initialData = null, onSubmitSuc
   }, [formData]);
 
   // ============================
-  // Submit
+  // Submit — manda todo al backend en un solo POST /compras
+  // El backend (Flask) incrementa el stock internamente
   // ============================
   const handleSubmit = useCallback(async () => {
     if (!validate()) return;
@@ -197,8 +220,8 @@ export function useCompraForm({ mode = "create", initialData = null, onSubmitSuc
     setSubmitting(true);
     setApiError("");
     try {
-      const payload = {
-        proveedorId: Number(formData.proveedorId),
+      const result = await createCompra({
+        proveedorId: formData.proveedorId,
         observaciones: formData.observaciones,
         productos: formData.productos.map((p) => ({
           productoId: Number(p.productoId),
@@ -207,14 +230,16 @@ export function useCompraForm({ mode = "create", initialData = null, onSubmitSuc
           precioVenta: Number(p.precioVenta),
           stockActual: Number(p.stockActual),
         })),
-      };
-
-      const result = await createCompra(payload);
+      });
       onSubmitSuccess?.(result);
       return { success: true, data: result };
     } catch (error) {
       console.error("Error al guardar compra:", error);
-      const msg = error.response?.data?.message || error.message || "Error al guardar la compra";
+      const msg =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Error al guardar la compra";
       setApiError(msg);
       onError?.(msg);
       return { success: false, error: msg };
@@ -235,6 +260,7 @@ export function useCompraForm({ mode = "create", initialData = null, onSubmitSuc
     iva,
     total,
     formatCurrency,
+    parseCOP,
     handleChange,
     handleProductoChange,
     addRow,

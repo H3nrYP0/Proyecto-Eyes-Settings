@@ -2,7 +2,7 @@
 // Formatear moneda (COP)
 // ============================
 export const formatCurrency = (amount) => {
-  return `$${Number(amount).toLocaleString("es-CO")}`;
+  return `$${Number(amount || 0).toLocaleString("es-CO")}`;
 };
 
 // ============================
@@ -31,12 +31,16 @@ export const EMPTY_PRODUCT_ROW = {
   nombre: "",
   stock: 0,
   cantidad: 1,
-  precioUnitario: 0,
+  precioCompra: 0,
+  precioVenta: 0,
   total: 0,
 };
 
 // ============================
 // Normalizar compra para formulario
+// estado_compra:
+//   true  → "Completada"
+//   false / null / undefined → null (sin estado asignado aún, fila gris)
 // ============================
 export const normalizeCompraForForm = (compra) => ({
   id: compra.id,
@@ -44,15 +48,20 @@ export const normalizeCompraForForm = (compra) => ({
   proveedorNombre: compra.proveedor_nombre || compra.proveedorNombre || "",
   observaciones: compra.observaciones || "",
   fecha: compra.fecha,
-  estado: compra.estado_compra === true ? "Completada" : "Anulada",
+  // null cuando estado_compra es null/undefined/false salvo true
+  estado: compra.estado_compra === true ? "Completada" : null,
   numeroCompra: compra.numeroCompra || `C-${compra.id}`,
+  subtotal: compra.subtotal || 0,
+  iva: compra.iva || 0,
+  total: compra.total || 0,
   productos: (compra.productos || compra.detalles || []).map((p) => ({
     id: p.id,
     productoId: p.producto_id || p.productoId,
     nombre: p.producto_nombre || p.nombre,
-    stock: p.stock || 0,
+    stockActual: p.stock || p.stockActual || 0,
     cantidad: p.cantidad,
-    precioUnitario: p.precio_unidad || p.precioUnitario,
-    total: p.subtotal || p.total,
+    precioCompra: p.precio_unidad || p.precio_unitario || p.precioCompra || 0,
+    precioVenta: p.precio_venta || p.precioVenta || 0,
+    total: p.subtotal || p.total || 0,
   })),
 });

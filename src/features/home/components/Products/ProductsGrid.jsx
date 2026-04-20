@@ -107,7 +107,13 @@ const ProductsGrid = () => {
         )}
 
         {!loading && !error && productos.length > 0 && (
-          <div className="products-grid">
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: "1.75rem",
+            maxWidth: "1100px",
+            margin: "0 auto",
+          }}>
             {productos.map((producto) => (
               <ProductCard
                 key={producto.id}
@@ -119,7 +125,7 @@ const ProductsGrid = () => {
         )}
 
         {!loading && !error && productos.length > 0 && (
-          <div className="products-cta">
+          <div className="products-cta" style={{ marginTop: "3rem" }}>
             <div className="cta-content">
               <h3>¿No encuentras lo que buscas?</h3>
               <p>Contáctanos para productos personalizados y asesoría especializada</p>
@@ -131,7 +137,6 @@ const ProductsGrid = () => {
                   className="btn-whatsapp btn-large"
                   style={{ textDecoration: "none" }}
                 >
-                  <span className="btn-whatsapp-icon">💬</span>
                   Contactar por WhatsApp
                 </a>
               </div>

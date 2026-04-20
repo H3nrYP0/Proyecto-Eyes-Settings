@@ -111,7 +111,13 @@ const ServicesList = () => {
         )}
 
         {!loading && !error && servicios.length > 0 && (
-          <div className="services-grid" style={{ alignItems: "stretch" }}>
+          <div className="services-grid" style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 280px))",
+            gap: "1.5rem",
+            justifyContent: "center",
+            alignItems: "stretch",
+          }}>
             {servicios.map(servicio => (
               <ServiceCard
                 key={servicio.id}
