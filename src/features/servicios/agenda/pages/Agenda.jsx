@@ -43,7 +43,7 @@ export default function Agenda() {
     if (props?.tipo === 'cita') {
       navigate(`/admin/servicios/citas/detalle/${props.cita_id}`);
     } else {
-      navigate('/admin/servicios/horarios');
+      navigate('/admin/servicios/citas/novedades');
     }
   };
 
@@ -145,7 +145,8 @@ export default function Agenda() {
             >
               Ver Horarios
             </button>
-            <button className="agenda-btn" style={{ marginTop: '8px' }} onClick={() => navigate('/admin/servicios/citas/novedades')}>
+            <button className="agenda-btn"
+             style={{ marginTop: '8px' }} onClick={() => navigate('/admin/servicios/citas/novedades')}>
               Ver Novedades
             </button>
           </aside>
