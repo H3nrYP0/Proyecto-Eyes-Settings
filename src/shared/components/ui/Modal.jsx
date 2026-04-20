@@ -47,9 +47,9 @@ export default function Modal({
       }}
     >
       {/* Header con título e ícono de cerrar */}
-      <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+      <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1, fontWeight: 'bold'  }}>
         {/* <IconComponent color={getIconColor()} /> */}
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+        <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
           {title}
         </Typography>
         <IconButton onClick={onCancel} size="small">

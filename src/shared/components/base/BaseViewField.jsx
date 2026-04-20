@@ -6,7 +6,7 @@ export default function BaseViewField({ label, value }) {
       <Typography
         variant="body2"
         color="text.secondary"
-        sx={{ mb: 0.5 }}
+        sx={{ mb: 0.5, fontWeight: 'bold' }}
       >
         {label}
       </Typography>
