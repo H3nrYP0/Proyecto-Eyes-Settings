@@ -47,7 +47,7 @@ const Dashboard = () => {
   return (
     <Box sx={{
       minHeight: '100vh',
-      background: `linear-gradient(135deg, ${alpha(theme.palette.primary.light, 0.1)} 0%, ${alpha(theme.palette.background.default, 0.3)} 50%, ${theme.palette.background.default} 100%)`,
+      backgroundColor: '#f8fafc',
       p: padding,
       mt: { xs: 7, sm: 8, md: 0 },
       ml: 0,

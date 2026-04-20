@@ -19,6 +19,12 @@ import { useTheme, alpha } from '@mui/material/styles';
 import SafeECharts from './SafeECharts';
 import { formatCurrency, formatYAxis } from '../../utils/formatters';
 
+// Colores personalizados
+const BRAND_COLOR = "#1a2540";
+const BRAND_HOVER = "#2d3a6b";
+const TEXT_SECONDARY = "#64748b";
+const BORDER_COLOR = "#cbd5e1";
+
 const VentasChart = ({ 
   data, 
   timeFilter, 
@@ -44,7 +50,7 @@ const VentasChart = ({
   // Configuración común para ambos tipos de gráficas - MEJORADA RESPONSIVE
   const getSeriesConfig = () => {
     const isVentas = title.includes('Ventas');
-    const color = isVentas ? theme.palette.primary.main : theme.palette.secondary.main;
+    const color = isVentas ? BRAND_COLOR : TEXT_SECONDARY;
     
     if (chartType === 'barras') {
       return [{
@@ -123,18 +129,18 @@ const VentasChart = ({
       data: data?.labels || [],
       axisLine: {
         lineStyle: { 
-          color: theme.palette.divider,
+          color: BORDER_COLOR,
           width: isMobile ? 1 : 2
         }
       },
       axisTick: {
         lineStyle: { 
-          color: theme.palette.divider,
+          color: BORDER_COLOR,
           width: isMobile ? 1 : 1
         }
       },
       axisLabel: {
-        color: theme.palette.text.secondary,
+        color: TEXT_SECONDARY,
         fontWeight: isMobile ? 400 : 500,
         fontSize: isMobile ? 9 : isTablet ? 10 : 11,
         interval: getXAxisInterval(),
@@ -146,25 +152,25 @@ const VentasChart = ({
       type: 'value',
       axisLine: {
         lineStyle: { 
-          color: theme.palette.divider,
+          color: BORDER_COLOR,
           width: isMobile ? 1 : 2
         }
       },
       axisTick: {
         lineStyle: { 
-          color: theme.palette.divider,
+          color: BORDER_COLOR,
           width: isMobile ? 1 : 1
         }
       },
       splitLine: {
         lineStyle: {
-          color: alpha(theme.palette.divider, 0.5),
+          color: alpha(BORDER_COLOR, 0.5),
           type: 'dashed',
           width: 0.5
         }
       },
       axisLabel: {
-        color: theme.palette.text.secondary,
+        color: TEXT_SECONDARY,
         fontWeight: isMobile ? 400 : 500,
         fontSize: isMobile ? 9 : isTablet ? 10 : 11,
         formatter: (value) => {
@@ -191,7 +197,7 @@ const VentasChart = ({
         `;
       },
       backgroundColor: theme.palette.background.paper,
-      borderColor: theme.palette.divider,
+      borderColor: BORDER_COLOR,
       textStyle: { 
         color: theme.palette.text.primary,
         fontSize: isMobile ? 11 : 12
@@ -225,7 +231,7 @@ const VentasChart = ({
             <Typography 
               variant={isMobile ? "subtitle1" : "h6"} 
               fontWeight={600}
-              sx={{ fontSize: isMobile ? '1rem' : '1.25rem' }}
+              sx={{ fontSize: isMobile ? '1rem' : '1.25rem', color: '#000000' }}
             >
               {title}
             </Typography>
@@ -237,7 +243,16 @@ const VentasChart = ({
                 sx={{ 
                   textTransform: 'none',
                   fontSize: isMobile ? '0.7rem' : '0.75rem',
-                  px: isMobile ? 1 : 1.5
+                  px: isMobile ? 1 : 1.5,
+                  ...(chartType === 'barras' && {
+                    backgroundColor: BRAND_COLOR,
+                    '&:hover': { backgroundColor: BRAND_HOVER }
+                  }),
+                  ...(chartType !== 'barras' && {
+                    borderColor: BORDER_COLOR,
+                    color: BRAND_COLOR,
+                    '&:hover': { borderColor: BRAND_COLOR, backgroundColor: `${BRAND_COLOR}10` }
+                  })
                 }}
               >
                 {isMobile ? 'Barras' : 'Barras'}
@@ -249,7 +264,16 @@ const VentasChart = ({
                 sx={{ 
                   textTransform: 'none',
                   fontSize: isMobile ? '0.7rem' : '0.75rem',
-                  px: isMobile ? 1 : 1.5
+                  px: isMobile ? 1 : 1.5,
+                  ...(chartType === 'lineas' && {
+                    backgroundColor: BRAND_COLOR,
+                    '&:hover': { backgroundColor: BRAND_HOVER }
+                  }),
+                  ...(chartType !== 'lineas' && {
+                    borderColor: BORDER_COLOR,
+                    color: BRAND_COLOR,
+                    '&:hover': { borderColor: BRAND_COLOR, backgroundColor: `${BRAND_COLOR}10` }
+                  })
                 }}
               >
                 {isMobile ? 'Líneas' : 'Líneas'}

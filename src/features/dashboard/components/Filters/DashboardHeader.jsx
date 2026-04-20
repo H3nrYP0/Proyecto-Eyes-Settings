@@ -17,6 +17,12 @@ import {
 import { CalendarToday, TrendingUp } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 
+// Colores personalizados
+const BRAND_COLOR = "#1a2540";
+const BRAND_HOVER = "#2d3a6b";
+const TEXT_SECONDARY = "#64748b";
+const BORDER_COLOR = "#cbd5e1";
+
 const DashboardHeader = ({
   timeFilter,
   yearFilter,
@@ -53,10 +59,7 @@ const DashboardHeader = ({
               variant={isMobile ? 'h5' : 'h4'}
               fontWeight="bold"
               sx={{
-                background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                color: 'transparent',
+                color: '#000000',
                 fontSize: isMobile ? '1.25rem' : isTablet ? '1.75rem' : '2.125rem'
               }}
             >
@@ -81,7 +84,16 @@ const DashboardHeader = ({
                     textTransform: 'none',
                     fontSize: isMobile ? '0.75rem' : '0.875rem',
                     flex: 1,
-                    minWidth: isMobile ? '60px' : '80px'
+                    minWidth: isMobile ? '60px' : '80px',
+                    ...(timeFilter === filter && {
+                      backgroundColor: BRAND_COLOR,
+                      '&:hover': { backgroundColor: BRAND_HOVER }
+                    }),
+                    ...(timeFilter !== filter && {
+                      borderColor: BORDER_COLOR,
+                      color: BRAND_COLOR,
+                      '&:hover': { borderColor: BRAND_COLOR, backgroundColor: `${BRAND_COLOR}10` }
+                    })
                   }}
                 >
                   {getButtonText(filter)}
@@ -91,8 +103,17 @@ const DashboardHeader = ({
 
             {timeFilter === 'mes' && (
               <FormControl size={isMobile ? 'small' : 'medium'} sx={{ minWidth: isMobile ? '100%' : 120 }}>
-                <InputLabel>Mes</InputLabel>
-                <Select value={monthFilter} label="Mes" onChange={(e) => onMonthFilterChange(e.target.value)}>
+                <InputLabel sx={{ color: TEXT_SECONDARY }}>Mes</InputLabel>
+                <Select 
+                  value={monthFilter} 
+                  label="Mes" 
+                  onChange={(e) => onMonthFilterChange(e.target.value)}
+                  sx={{
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: BORDER_COLOR },
+                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: BRAND_COLOR },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: BRAND_COLOR }
+                  }}
+                >
                   {months.map((month, index) => (
                     <MenuItem key={index} value={index + 1}>{month}</MenuItem>
                   ))}
@@ -102,8 +123,17 @@ const DashboardHeader = ({
 
             {(timeFilter === 'año' || timeFilter === 'mes') && (
               <FormControl size={isMobile ? 'small' : 'medium'} sx={{ minWidth: isMobile ? '100%' : 120 }}>
-                <InputLabel>Año</InputLabel>
-                <Select value={yearFilter} label="Año" onChange={(e) => onYearFilterChange(e.target.value)}>
+                <InputLabel sx={{ color: TEXT_SECONDARY }}>Año</InputLabel>
+                <Select 
+                  value={yearFilter} 
+                  label="Año" 
+                  onChange={(e) => onYearFilterChange(e.target.value)}
+                  sx={{
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: BORDER_COLOR },
+                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: BRAND_COLOR },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: BRAND_COLOR }
+                  }}
+                >
                   {availableYears.map((year) => (
                     <MenuItem key={year} value={year}>{year}</MenuItem>
                   ))}
@@ -121,31 +151,29 @@ const DashboardHeader = ({
                 variant={isMobile ? 'caption' : 'subtitle2'}
                 fontWeight={600}
                 gutterBottom
-                sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: isMobile ? '0.75rem' : '0.875rem' }}
+                sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: isMobile ? '0.75rem' : '0.875rem', color: '#000000' }}
               >
-                <TrendingUp fontSize={isMobile ? 'small' : 'medium'} />
+                <TrendingUp fontSize={isMobile ? 'small' : 'medium'} sx={{ color: BRAND_COLOR }} />
                 {isMobile ? 'Métricas' : 'Métricas operativas'}
               </Typography>
 
               <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1 }}>
                 {[
-                  { label: 'Clientes',   value: metrics.clientes,          color: 'primary'      },
-                  { label: 'Productos',  value: metrics.productosVendidos,  color: 'secondary'    },
-                  { label: 'Citas',      value: metrics.citasEfectivas,     color: 'success.main' }
+                  { label: 'Clientes',   value: metrics.clientes },
+                  { label: 'Productos',  value: metrics.productosVendidos },
+                  { label: 'Citas',      value: metrics.citasEfectivas }
                 ].map((item, index) => (
                   <Box key={index} sx={{ textAlign: 'center', flex: 1 }}>
                     <Typography
                       variant={isMobile ? 'body1' : 'h6'}
                       fontWeight="bold"
-                      color={item.color}
-                      sx={{ fontSize: isMobile ? '0.875rem' : '1.125rem' }}
+                      sx={{ fontSize: isMobile ? '0.875rem' : '1.125rem', color: BRAND_COLOR }}
                     >
                       {item.value}
                     </Typography>
                     <Typography
                       variant="caption"
-                      color="text.secondary"
-                      sx={{ fontSize: isMobile ? '0.7rem' : '0.75rem' }}
+                      sx={{ fontSize: isMobile ? '0.7rem' : '0.75rem', color: TEXT_SECONDARY }}
                     >
                       {item.label}
                     </Typography>
