@@ -116,44 +116,51 @@ export const useServicios = () => {
   }, [modalDelete.id, modalDelete.nombre, showNotification, loadServicios, cleanupModalState]);
 
   const handleStatusChange = useCallback(async (row) => {
-    try {
-      const shouldActivate = row.estado !== "activo";
+  try {
+    const shouldActivate = row.estado !== "activo";
+    
+    if (!shouldActivate) {
+      const estadosQueBloquean = await ServicioData.getEstadosQueBloquean();
+      const citasResponse = await axios.get('/citas');
       
-      if (!shouldActivate) {
-        const estadosQueBloquean = await ServicioData.getEstadosQueBloquean();
-        const citasResponse = await axios.get('/citas');
-        
-        const citasQueBloquean = citasResponse.data.filter(cita => 
-          cita.servicio_id === row.id && estadosQueBloquean.includes(cita.estado_cita_id)
-        );
-        
-        if (citasQueBloquean.length > 0) {
-          const estadosUnicos = [...new Set(citasQueBloquean.map(c => c.estado_nombre))];
-          showNotification(
-            `No se puede desactivar "${row.nombre}" porque tiene ${citasQueBloquean.length} cita(s) en estado: ${estadosUnicos.join(' y ')}.`,
-            "error"
-          );
-          return;
-        }
-      }
+      // CORRECCIÓN: acceder a citasResponse.data.data (porque viene paginado)
+      const citasList = citasResponse.data.data || citasResponse.data || [];
       
-      await ServicioData.updateServicio(row.id, {
-        nombre: row.nombre,
-        duracion_min: row.duracion_min,
-        precio: row.precio,
-        descripcion: row.descripcion || '',
-        estado: shouldActivate
-      });
-      
-      await loadServicios();
-      showNotification(
-        `Servicio "${row.nombre}" ${shouldActivate ? 'activado' : 'desactivado'} exitosamente`,
-        "success"
+      const citasQueBloquean = citasList.filter(cita => 
+        cita.servicio_id === row.id && estadosQueBloquean.includes(cita.estado_cita_id)
       );
-    } catch (err) {
-      showNotification(err.response?.data?.error || "Error al cambiar el estado", "error");
+      
+      if (citasQueBloquean.length > 0) {
+        const estadosUnicos = [...new Set(citasQueBloquean.map(c => c.estado_nombre))];
+        showNotification(
+          `No se puede desactivar "${row.nombre}" porque tiene ${citasQueBloquean.length} cita(s) en estado: ${estadosUnicos.join(' y ')}.`,
+          "error"
+        );
+        return;
+      }
     }
-  }, [showNotification, loadServicios]);
+    
+    // Asegurar que los números no sean null o undefined
+    const payload = {
+      nombre: row.nombre,
+      duracion_min: Number(row.duracion_min) || 0,
+      precio: Number(row.precio) || 0,
+      descripcion: row.descripcion || '',
+      estado: shouldActivate === true
+    };
+    
+    await ServicioData.updateServicio(row.id, payload);
+    await loadServicios();
+    showNotification(
+      `Servicio "${row.nombre}" ${shouldActivate ? 'activado' : 'desactivado'} exitosamente`,
+      "success"
+    );
+  } catch (err) {
+    console.error("Error en handleStatusChange:", err);
+    const errorMsg = err.response?.data?.error || err.message || "Error al cambiar el estado";
+    showNotification(errorMsg, "error");
+  }
+}, [showNotification, loadServicios]);
 
   const handleOpenCreate = useCallback(() => {
     setModalForm({ open: true, mode: "create", title: "Crear Nuevo Servicio", initialData: null });

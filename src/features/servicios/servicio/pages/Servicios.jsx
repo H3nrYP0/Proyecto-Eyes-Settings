@@ -126,6 +126,8 @@ export default function Servicios() {
         onCancel={handleCloseForm}
         confirmButtonColor="#1a2540"
         confirmButtonHoverColor="#2d3a6b"
+        maxWidth="md"
+         PaperProps={{ sx: { width: '100%' } }}  
       >
         <ServicioForm
           id="servicio-form"

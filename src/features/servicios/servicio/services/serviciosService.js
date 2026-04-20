@@ -35,11 +35,29 @@ export const ServicioData = {
     }
   },
 
-  async updateServicio(id, data) {
+   async updateServicio(id, data) {
     try {
-      const response = await axios.put(`/servicios/${id}`, data);
+      const payload = {
+        nombre: data.nombre,
+        descripcion: data.descripcion || '',
+        duracion_min: Number(data.duracion_min),
+        precio: Number(data.precio),
+        estado: data.estado === true
+      };
+      
+      // Solo validar si los valores existen
+      if (isNaN(payload.duracion_min) || payload.duracion_min <= 0) {
+        console.warn('Duración inválida, usando valor existente');
+        // No lanzar error, dejar que el backend maneje
+      }
+      if (isNaN(payload.precio) || payload.precio <= 0) {
+        console.warn('Precio inválido, usando valor existente');
+      }
+      
+      const response = await axios.put(`/servicios/${id}`, payload);
       return response.data;
     } catch (error) {
+      console.error('Error en updateServicio:', error);
       throw error;
     }
   },

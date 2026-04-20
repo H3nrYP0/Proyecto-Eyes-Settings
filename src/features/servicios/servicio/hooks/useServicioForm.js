@@ -131,8 +131,8 @@ export const useServicioForm = ({ mode, initialData, onSubmit, onCancel }) => {
       newErrors.precio = "El precio debe ser mayor a 0";
     }
 
-    if (formData.descripcion && formData.descripcion.length > 200) {
-      newErrors.descripcion = "Máximo 200 caracteres";
+    if (formData.descripcion && formData.descripcion.length > 500) {
+      newErrors.descripcion = "Máximo 500 caracteres";
     }
 
     setErrors(newErrors);
@@ -149,26 +149,27 @@ export const useServicioForm = ({ mode, initialData, onSubmit, onCancel }) => {
     const nombreFinal = formatNombre(formData.nombre.trim().replace(/\s+/g, " "));
 
     if (isEdit) {
-      const updatedData = {};
-      
-      if (formData.nombre !== originalData.nombre) {
-        updatedData.nombre = nombreFinal;
-      }
-      if (formData.descripcion !== originalData.descripcion) {
-        updatedData.descripcion = formData.descripcion.trim();
-      }
-      if (formData.duracion_min !== originalData.duracion_min) {
-        updatedData.duracion_min = parseInt(formData.duracion_min, 10);
-      }
-      if (formData.precio !== originalData.precio) {
-        updatedData.precio = parseInt(formData.precio, 10);
-      }
-      if (formData.estado !== originalData.estado) {
-        updatedData.estado = formData.estado === true;
-      }
-      
-      onSubmit?.(updatedData);
-    } else {
+  // Enviar TODOS los campos, no solo los que cambiaron
+  const updatedData = {
+    nombre: nombreFinal,
+    descripcion: formData.descripcion.trim(),
+    duracion_min: parseInt(formData.duracion_min, 10),
+    precio: parseInt(formData.precio, 10),
+    estado: formData.estado === true
+  };
+  
+  // Validar que los números sean válidos
+  if (isNaN(updatedData.duracion_min) || updatedData.duracion_min <= 0) {
+    setErrors(prev => ({ ...prev, duracion_min: "La duración debe ser un número válido mayor a 0" }));
+    return;
+  }
+  if (isNaN(updatedData.precio) || updatedData.precio <= 0) {
+    setErrors(prev => ({ ...prev, precio: "El precio debe ser un número válido mayor a 0" }));
+    return;
+  }
+  
+  onSubmit?.(updatedData);
+} else {
       onSubmit?.({
         nombre: nombreFinal,
         descripcion: formData.descripcion.trim(),
