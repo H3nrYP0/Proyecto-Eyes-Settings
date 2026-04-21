@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import CrudLayout       from '@shared/components/crud/CrudLayout';
-import CrudTable        from '@shared/components/crud/CrudTable';
-import Modal            from '@shared/components/ui/Modal';
-import Loading          from '@shared/components/ui/Loading';
-import CrudNotification from '@shared/styles/components/notifications/CrudNotification';
+import { CrudLayout, CrudTable } from '@shared';
+import { Modal, Loading }        from '@shared';
+import CrudNotification          from '@shared/styles/components/notifications/CrudNotification';
 
 import { getAllRoles, deleteRol, updateEstadoRol } from '@seguridad';
 import { normalizarRoles, filtrarRoles }           from '@seguridad';

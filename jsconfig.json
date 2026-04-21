@@ -12,6 +12,7 @@
       "@sales/*": ["./src/features/sales/*"],
       "@seguridad/*": ["./src/features/seguridad/*"],
       "@servicios/*": ["./src/features/servicios/*"],
+      "@ventas/*": ["./src/features/ventas/*"],
 
       // ========== LIB ==========
       "@lib/*": ["./src/lib/*"],
