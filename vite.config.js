@@ -27,6 +27,7 @@ export default defineConfig({
       '@sales': path.resolve(__dirname, './src/features/sales'),
       '@seguridad': path.resolve(__dirname, './src/features/seguridad'),
       '@servicios': path.resolve(__dirname, './src/features/servicios'),
+      '@ventas': path.resolve(__dirname, './src/features/ventas'),
 
       // ========== LIB ==========
       '@lib': path.resolve(__dirname, './src/lib'),
