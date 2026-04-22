@@ -105,8 +105,8 @@ const CampanaSaludForm = ({
               required
               helperText={
                 formData.nit_empresa?.length > 0 && formData.nit_empresa.length < 8
-                  ? 'El NIT debe tener al menos 8 dígitos'
-                  : 'NIT único para cada empresa (mínimo 8 dígitos)'
+                  ?      'El NIT debe tener al menos 8 dígitos'
+                  : ''
               }
               inputProps={{ inputMode: 'numeric', minLength: 8 }}
             />
@@ -125,7 +125,7 @@ const CampanaSaludForm = ({
               helperText={
                 formData.contacto?.length > 0 && formData.contacto.length !== 10
                   ? 'El teléfono debe tener exactamente 10 dígitos'
-                  : 'Teléfono de contacto (10 dígitos)'
+                  : ''
               }
               error={formData.contacto?.length > 0 && formData.contacto.length !== 10}
               inputProps={{ inputMode: 'numeric', maxLength: 10, minLength: 10 }}
@@ -186,7 +186,7 @@ const CampanaSaludForm = ({
                 options={opcionesHora}
                 helperText={
                   !formData.empleado_id
-                    ? 'Seleccione primero el empleado'
+                    ? ''
                     : !formData.fecha
                     ? 'Seleccione primero la fecha'
                     : horasDisponibles.length === 0

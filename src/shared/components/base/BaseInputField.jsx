@@ -19,7 +19,7 @@ export default function BaseInputField({
     <TextField
       fullWidth
       variant="outlined"
-      size="medium"
+      size="small"
       margin="none"   // 👈 quitamos el margen automático
       label={label}
       name={name}
