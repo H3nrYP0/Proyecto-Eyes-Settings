@@ -7,22 +7,29 @@ const api = axios.create({
   },
 });
 
+// Lista de rutas que el backend permite sin token (Landing Page)
+const PUBLIC_ROUTES = ["/productos", "/categorias", "/marcas", "/servicios", "/auth/login"];
+
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token") || sessionStorage.getItem("token");
     
-    console.group(`📤 ${config.method?.toUpperCase()} ${config.url}`);
-    console.log("Token en storage:", token ? `✅ ${token.substring(0, 30)}...` : "❌ NO HAY TOKEN");
-    console.log("Longitud del token:", token?.length);
-    
+    // Verificamos si la URL actual es una de las públicas
+    const isPublic = PUBLIC_ROUTES.some(route => config.url?.includes(route));
+
+    // Si tenemos token, lo enviamos siempre (por si acaso hay lógica mixta)
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log("Header Authorization:", config.headers.Authorization.substring(0, 40) + "...");
-    } else {
-      console.warn("⚠️ No se encontró token en localStorage ni sessionStorage");
-    }
-    console.groupEnd();
+    } 
     
+    // Solo mostramos logs detallados en desarrollo para no ensuciar la consola
+    if (process.env.NODE_ENV !== 'production') {
+      console.groupCollapsed(`📤 Request: ${config.method?.toUpperCase()} ${config.url}`);
+      console.log("¿Es ruta pública?:", isPublic ? "✅ SÍ" : "🔒 NO");
+      console.log("Token enviado:", token ? "✅ Presente" : "❌ Ausente");
+      console.groupEnd();
+    }
+
     return config;
   },
   (error) => Promise.reject(error)
@@ -30,28 +37,33 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => {
-    console.log(`✅ ${response.config.method?.toUpperCase()} ${response.config.url} - Status: ${response.status}`);
     return response;
   },
   (error) => {
-    const isAuthRoute = error.config?.url?.includes("/auth/");
-    
-    console.group(`❌ ERROR ${error.config?.method?.toUpperCase()} ${error.config?.url}`);
-    console.log("Status:", error.response?.status);
-    console.log("Response data:", error.response?.data);
-    console.log("Headers enviados:", error.config?.headers);
-    console.log("¿Es ruta auth?:", isAuthRoute);
-    console.groupEnd();
+    const { response, config } = error;
+    const isAuthRoute = config?.url?.includes("/auth/");
 
-    // LIMPIEZA DESACTIVADA TEMPORALMENTE
-    // if (error.response?.status === 401 && !isAuthRoute) {
-    //   console.warn("🧹 Limpiando sesión por 401 en ruta protegida");
-    //   localStorage.removeItem("token");
-    //   localStorage.removeItem("user");
-    //   sessionStorage.removeItem("token");
-    //   sessionStorage.removeItem("user");
-    //   window.location.href = "/login";
-    // }
+    // Si recibimos un 401 (No autorizado) y NO es una ruta de login/registro
+    if (response?.status === 401 && !isAuthRoute) {
+      console.error("🔴 Sesión inválida o expirada. Redirigiendo...");
+      
+      // Limpiamos todo rastro de sesión
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("user");
+
+      // Opcional: Redirigir al login si no estás ya ahí
+      if (window.location.pathname.startsWith('/admin')) {
+          window.location.href = "/login";
+      }
+    }
+
+    // Log de errores para depuración
+    console.group(`❌ API Error: ${config?.method?.toUpperCase()} ${config?.url}`);
+    console.log("Status:", response?.status);
+    console.log("Mensaje:", response?.data?.message || response?.data?.error || "Error desconocido");
+    console.groupEnd();
 
     return Promise.reject(error);
   }
