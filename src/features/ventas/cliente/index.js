@@ -8,5 +8,5 @@ export { default as HistorialFormula } from "./pages/HistorialFormula";
 export { default as ClienteForm } from "./components/ClienteForm";
 export { useClientes } from "./hooks/useClientes";
 export { useClienteForm } from "./hooks/useClienteForm";
-export * as clientesService from "./services/clientesService";
+export { clientesService } from "./services/clientesService";
 export * as clientesUtils from "./utils/clientesUtils";

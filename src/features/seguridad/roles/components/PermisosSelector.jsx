@@ -1,9 +1,14 @@
 import {
-  Box, Typography, Grid, Checkbox,
-  FormControlLabel, FormHelperText, Chip, Button, Paper,
+  Box, Typography, Chip, Button, FormHelperText
 } from '@mui/material';
 
 import { areAllSelected, togglePermiso, toggleSelectAll } from '@seguridad';
+
+// Colores muy claros
+const BRAND_LIGHT = "#eef2f8";
+const BRAND_SELECTED = "#e8f5fe";
+const BRAND_BORDER = "#e3e2f0";
+const TEXT_PRIMARY = "#1a2c3e";
 
 export default function PermisosSelector({
   permisosDisponibles = [],
@@ -24,10 +29,12 @@ export default function PermisosSelector({
     onChange(toggleSelectAll(value, permisosDisponibles));
   };
 
+  const isSelected = (permisoId) => value.includes(permisoId);
+
   return (
-    <Box>
-      {/* Encabezado con contador y botón */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+    <Box sx={{ width: '100%', minWidth: 300 }}>
+      {/* Encabezado */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Typography variant="subtitle1" fontWeight={600}>
             Permisos
@@ -35,49 +42,88 @@ export default function PermisosSelector({
           <Chip
             label={`${value.length} de ${permisosDisponibles.length}`}
             size="small"
-            color="primary"
-            variant="outlined"
+            sx={{
+              bgcolor: BRAND_LIGHT,
+              color: TEXT_PRIMARY,
+              border: `1px solid ${BRAND_BORDER}`,
+              fontWeight: 500,
+            }}
           />
         </Box>
 
         {!disabled && (
-          <Button variant="outlined" size="small" onClick={handleToggleAll}>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={handleToggleAll}
+            sx={{
+              textTransform: 'none',
+              borderRadius: 1.5,
+              borderColor: BRAND_BORDER,
+              color: TEXT_PRIMARY,
+              bgcolor: 'transparent',
+              '&:hover': {
+                borderColor: '#9aaebf',
+                bgcolor: BRAND_LIGHT,
+              },
+              px: 2,
+              py: 0.5,
+              fontSize: '0.75rem',
+            }}
+          >
             {allSelected ? 'Deseleccionar todos' : 'Seleccionar todos'}
           </Button>
         )}
       </Box>
 
-      {/* Lista con scroll */}
-      <Paper
-        variant="outlined"
+      {/* Grid de permisos con 4 columnas en md y superior */}
+      <Box
         sx={{
-          p: 0.5,
-          maxHeight: 280,
+          maxHeight: 320,
           overflowY: 'auto',
-          borderColor: error ? 'error.main' : 'divider',
+          display: 'grid',
+          gridTemplateColumns: {
+            xs: 'repeat(2, 1fr)',
+            sm: 'repeat(3, 1fr)',
+            md: 'repeat(4, 1fr)',
+          },
+          gap: 1,
+          width: '100%',
         }}
       >
-        <Grid container spacing={2}>
-          {permisosDisponibles.map((permiso) => (
-            <Grid item xs={12} sm={6} md={4} key={permiso.id}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={value.includes(permiso.id)}
-                    onChange={() => handlePermisoChange(permiso.id)}
-                    size="small"
-                    disabled={disabled}
-                  />
-                }
-                label={<Typography variant="body2">{permiso.nombre}</Typography>}
-              />
-            </Grid>
-          ))}
-        </Grid>
-      </Paper>
+        {permisosDisponibles.map((permiso) => (
+          <Button
+            key={permiso.id}
+            size="small"
+            variant="text"
+            onClick={() => handlePermisoChange(permiso.id)}
+            disabled={disabled}
+            sx={{
+              justifyContent: 'flex-start',
+              textTransform: 'none',
+              fontWeight: 500,
+              fontSize: '0.8125rem',
+              py: 0.6,
+              px: 1.5,
+              borderRadius: 1.5,
+              backgroundColor: isSelected(permiso.id) ? BRAND_SELECTED : 'transparent',
+              color: TEXT_PRIMARY,
+              border: 'none',
+              '&:hover': {
+                backgroundColor: BRAND_LIGHT,
+              },
+              width: '100%',
+              minWidth: 0,
+              textAlign: 'left',
+            }}
+          >
+            {permiso.nombre}
+          </Button>
+        ))}
+      </Box>
 
       {error && (
-        <FormHelperText error sx={{ mt: 1 }}>
+        <FormHelperText error sx={{ mt: 1.5, fontSize: '0.75rem' }}>
           {error}
         </FormHelperText>
       )}
