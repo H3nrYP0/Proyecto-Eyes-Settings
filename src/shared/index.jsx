@@ -9,7 +9,10 @@ export { default as BaseViewField }    from './components/base/BaseViewField';
 export { default as BaseFormActions }  from './components/base/BaseFormActions';
 export { default as FormCol }          from './components/base/FormCol';
 export { default as FormRow }          from './components/base/FormRow';
-
+export { default as TextFieldLetters } from './components/base/TextFieldLetters';
+export { default as TextFieldNumbers } from './components/base/TextFieldNumbers';
+export { default as TextFieldAlphanumeric } from './components/base/TextFieldAlphanumeric';
+export { default as TextFieldNoEmoji } from './components/base/TextFieldNoEmoji';
 // Crud
 export { default as CrudForm }         from './components/crud/CrudForm';
 export { default as CrudTable }        from './components/crud/CrudTable';
