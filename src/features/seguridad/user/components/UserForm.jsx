@@ -136,7 +136,6 @@ export default function UserForm({
             disabled={isView || mode === "edit"}
             required
             error={!!errors.email}
-            helperText={mode === "edit" ? "El correo no se puede modificar" : errors.email}
           />
         </FormCol>
 
@@ -198,7 +197,6 @@ export default function UserForm({
                 onChange={onChange}
                 required={mode === "create"}
                 error={!!errors.password}
-                helperText={mode === "edit" ? "Dejar en blanco para mantener la actual" : errors.password}
               />
             </FormCol>
 
