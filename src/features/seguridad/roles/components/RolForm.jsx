@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Box } from "@mui/material";
 
-import { BaseInputField, BaseFormLayout, BaseFormSection, BaseFormActions, BaseFormField } from "@shared";
+import { BaseInputField, BaseFormLayout, BaseFormActions, FormRow, FormCol } from "@shared";
 
 import PermisosSelector from "./PermisosSelector";
 
@@ -15,11 +15,12 @@ export default function RolForm({
   onEdit
 }) {
   const isView = mode === "view";
+  const isEdit = mode === "edit";
 
   const [formData, setFormData] = useState({
     nombre: "",
     descripcion: "",
-    estado: "activo",
+    estado: "activo",  // Siempre activo por defecto en creación
     permisos: []
   });
 
@@ -71,9 +72,8 @@ export default function RolForm({
 
   return (
     <BaseFormLayout title={title}>
-      {/* INFORMACIÓN DEL ROL */}
-      <BaseFormSection>
-        <BaseFormField>
+      <FormRow>
+        <FormCol>
           <BaseInputField
             label="Nombre del Rol"
             name="nombre"
@@ -83,9 +83,9 @@ export default function RolForm({
             error={!!errors.nombre}
             helperText={errors.nombre}
           />
-        </BaseFormField>
+        </FormCol>
 
-        <BaseFormField>
+        <FormCol>
           <BaseInputField
             label="Descripción"
             name="descripcion"
@@ -95,12 +95,29 @@ export default function RolForm({
             error={!!errors.descripcion}
             helperText={errors.descripcion}
           />
-        </BaseFormField>
-      </BaseFormSection>
+        </FormCol>
 
-      {/* PERMISOS - con padding superior para alinear */}
-      <Box sx={{ pt: 2, pl: 2 }}>
-        <BaseFormSection>
+        {/* Campo de Estado - SOLO visible en modo edición */}
+        {isEdit && (
+          <FormCol>
+            <BaseInputField
+              label="Estado"
+              name="estado"
+              value={formData.estado}
+              onChange={handleChange}
+              select
+              options={[
+                { value: "activo", label: "Activo" },
+                { value: "inactivo", label: "Inactivo" }
+              ]}
+              disabled={isView}
+            />
+          </FormCol>
+        )}
+      </FormRow>
+
+      <FormRow>
+        <FormCol>
           <PermisosSelector
             permisosDisponibles={permisosDisponibles}
             value={formData.permisos}
@@ -108,8 +125,8 @@ export default function RolForm({
             error={errors.permisos}
             disabled={isView}
           />
-        </BaseFormSection>
-      </Box>
+        </FormCol>
+      </FormRow>
 
       <BaseFormActions
         onCancel={onCancel}
