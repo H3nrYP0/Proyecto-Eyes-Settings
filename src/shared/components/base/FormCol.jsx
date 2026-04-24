@@ -1,36 +1,42 @@
 import { Grid } from "@mui/material";
 
 /**
- * FormCol normaliza columnas automáticamente según el total de campos
- * en la fila (prop totalCols). Máximo 4 columnas. Móvil siempre full width.
- *
- *   totalCols=1 → md=12
- *   totalCols=2 → md=6  (2 columnas)
- *   totalCols=3 → md=4  (3 columnas)
- *   totalCols=4 → md=3  (4 columnas)
- *
- * Si no se pasa totalCols, usa los props manuales (xs, sm, md, lg, xl).
+ * FormCol - Columna para grid de formulario
+ * 
+ * SIRVE PARA: Definir el ancho de cada campo
+ * 
+ * Props:
+ * @param {node} children - El campo del formulario
+ * @param {number} anchoColumna - Ancho de la columna (6=50%, 4=33.33%)
+ * @param {number} totalCamposEnFila - Total de campos en esta fila
+ * @param {number} columnasPorFila - Número de columnas esperadas (2 o 3)
  */
-function getMdFromTotal(totalCols) {
-  const map = { 1: 12, 2: 6, 3: 4, 4: 3 };
-  return map[Math.min(totalCols, 4)] ?? 6;
-}
-
-export default function FormCol({
-  children,
-  totalCols = null,
-  xs = 12,
-  sm = 12,
-  md = 6,
-  lg = 4,
-  xl = 3,
+export default function FormCol({ 
+  children, 
+  anchoColumna = 6, 
+  totalCamposEnFila = null,
+  columnasPorFila = 3,
+  xs = 12 
 }) {
-  const resolvedMd = totalCols !== null ? getMdFromTotal(totalCols) : md;
-  const resolvedLg = totalCols !== null ? getMdFromTotal(totalCols) : lg;
-  const resolvedXl = totalCols !== null ? getMdFromTotal(totalCols) : xl;
+  // Si es la única columna y hay menos de 3 columnas esperadas, ajustar
+  const getWidth = () => {
+    // Si hay 2 columnas o menos en total
+    if (columnasPorFila === 2) return 6; // 50% cada una
+    
+    // Si hay 3 columnas o más
+    if (columnasPorFila === 3) {
+      // Si esta fila tiene menos de 3 campos, mantener 33.33% para todos
+      // para que sean consistentes
+      return 4; // 33.33%
+    }
+    
+    return anchoColumna;
+  };
+
+  const mdWidth = getWidth();
 
   return (
-    <Grid item xs={xs} sm={sm} md={resolvedMd} lg={resolvedLg} xl={resolvedXl}>
+    <Grid item xs={xs} sm={xs} md={mdWidth}>
       {children}
     </Grid>
   );

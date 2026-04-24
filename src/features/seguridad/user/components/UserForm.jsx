@@ -1,6 +1,5 @@
 import {
   BaseFormLayout,
-  BaseFormSection,
   BaseInputField,
   BaseFormActions,
   FormCol,
@@ -8,6 +7,12 @@ import {
 } from "@shared";
 import { useState, useEffect } from 'react';
 
+/**
+ * UserForm - Formulario de usuarios
+ * 
+ * SIRVE PARA: Crear, editar y ver usuarios
+ * 
+ */
 export default function UserForm({
   mode = "create",
   title,
@@ -32,12 +37,12 @@ export default function UserForm({
 
   useEffect(() => {
     const currentData = {
+      tipoDocumento: initialData?.tipoDocumento || "",
+      numeroDocumento: initialData?.numeroDocumento || "",
       nombre: initialData?.nombre || "",
       email: initialData?.email || "",
       telefono: initialData?.telefono || "",
       fechaNacimiento: initialData?.fechaNacimiento || "",
-      tipoDocumento: initialData?.tipoDocumento || "",
-      numeroDocumento: initialData?.numeroDocumento || "",
       rol: initialData?.rol || "",
       ...(mode !== "view" && {
         password: initialData?.password || "",
@@ -46,12 +51,12 @@ export default function UserForm({
     };
 
     const original = {
+      tipoDocumento: originalData?.tipoDocumento || "",
+      numeroDocumento: originalData?.numeroDocumento || "",
       nombre: originalData?.nombre || "",
       email: originalData?.email || "",
       telefono: originalData?.telefono || "",
       fechaNacimiento: originalData?.fechaNacimiento || "",
-      tipoDocumento: originalData?.tipoDocumento || "",
-      numeroDocumento: originalData?.numeroDocumento || "",
       rol: originalData?.rol || "",
       ...(mode !== "view" && {
         password: originalData?.password || "",
@@ -74,8 +79,7 @@ export default function UserForm({
   return (
     <BaseFormLayout title={title}>
       <FormRow>
-        {/* Máximo 4 columnas por fila - TODOS con md={3} */}
-        <FormCol md={3}>
+        <FormCol>
           <BaseInputField
             label="Tipo de Documento"
             name="tipoDocumento"
@@ -96,7 +100,7 @@ export default function UserForm({
           />
         </FormCol>
 
-        <FormCol md={3}>
+        <FormCol>
           <BaseInputField
             label="Número de Documento"
             name="numeroDocumento"
@@ -109,7 +113,7 @@ export default function UserForm({
           />
         </FormCol>
 
-        <FormCol md={3}>
+        <FormCol>
           <BaseInputField
             label="Nombre Completo"
             name="nombre"
@@ -122,7 +126,7 @@ export default function UserForm({
           />
         </FormCol>
 
-        <FormCol md={3}>
+        <FormCol>
           <BaseInputField
             label="Correo Electrónico"
             name="email"
@@ -132,11 +136,10 @@ export default function UserForm({
             disabled={isView || mode === "edit"}
             required
             error={!!errors.email}
-            helperText={mode === "edit" ? "El correo no se puede modificar" : errors.email}
           />
         </FormCol>
 
-        <FormCol md={3}>
+        <FormCol>
           <BaseInputField
             label="Teléfono"
             name="telefono"
@@ -148,7 +151,7 @@ export default function UserForm({
           />
         </FormCol>
 
-        <FormCol md={3}>
+        <FormCol>
           <BaseInputField
             label="Fecha de Nacimiento"
             name="fechaNacimiento"
@@ -162,37 +165,7 @@ export default function UserForm({
           />
         </FormCol>
 
-        {mode !== "view" && (
-          <>
-            <FormCol md={3}>
-              <BaseInputField
-                label={mode === "create" ? "Contraseña" : "Nueva Contraseña (opcional)"}
-                name="password"
-                type="password"
-                value={initialData?.password || ""}
-                onChange={onChange}
-                required={mode === "create"}
-                error={!!errors.password}
-                helperText={mode === "edit" ? "Dejar en blanco para mantener la actual" : errors.password}
-              />
-            </FormCol>
-
-            <FormCol md={3}>
-              <BaseInputField
-                label="Confirmar Contraseña"
-                name="confirmPassword"
-                type="password"
-                value={initialData?.confirmPassword || ""}
-                onChange={onChange}
-                required={mode === "create"}
-                error={!!errors.confirmPassword}
-                helperText={errors.confirmPassword}
-              />
-            </FormCol>
-          </>
-        )}
-
-        <FormCol md={3}>
+        <FormCol>
           <BaseInputField
             label="Seleccionar Rol"
             name="rol"
@@ -212,6 +185,35 @@ export default function UserForm({
             helperText={errors.rol}
           />
         </FormCol>
+
+        {mode !== "view" && (
+          <>
+            <FormCol>
+              <BaseInputField
+                label={mode === "create" ? "Contraseña" : "Nueva Contraseña (opcional)"}
+                name="password"
+                type="password"
+                value={initialData?.password || ""}
+                onChange={onChange}
+                required={mode === "create"}
+                error={!!errors.password}
+              />
+            </FormCol>
+
+            <FormCol>
+              <BaseInputField
+                label="Confirmar Contraseña"
+                name="confirmPassword"
+                type="password"
+                value={initialData?.confirmPassword || ""}
+                onChange={onChange}
+                required={mode === "create"}
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword}
+              />
+            </FormCol>
+          </>
+        )}
       </FormRow>
 
       <BaseFormActions
@@ -221,6 +223,7 @@ export default function UserForm({
         showSave={mode !== "view"}
         showEdit={mode === "view"}
         saveLabel={mode === "edit" && !hasChanges ? "Sin cambios" : "Guardar"}
+        isSubmitting={isSubmitting}
       />
     </BaseFormLayout>
   );

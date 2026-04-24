@@ -3,8 +3,17 @@ import BaseFormSection from "../../../../shared/components/base/BaseFormSection"
 import BaseFormField from "../../../../shared/components/base/BaseFormField";
 import BaseFormActions from "../../../../shared/components/base/BaseFormActions";
 import BaseInputField from "../../../../shared/components/base/BaseInputField";
-import { tipoDocumentoOptions, generoOptions } from "../utils/clientesUtils";
+import {
+  tipoDocumentoOptions,
+  generoOptions,
+  estadoOptions,
+  departamentoOptions,
+  getMunicipioOptions,
+} from "../utils/clientesUtils";
 import { useClienteForm } from "../hooks/useClienteForm";
+
+// Solo letras, tildes, ñ y espacios
+const soloLetras = (value) => value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, "");
 
 export default function ClienteForm({
   mode = "create",
@@ -12,7 +21,8 @@ export default function ClienteForm({
   initialData = null,
   onSubmit,
   onCancel,
-  onEdit,
+  onError,
+  extraActions = null,
 }) {
   const {
     formData,
@@ -26,17 +36,19 @@ export default function ClienteForm({
     mode,
     initialData,
     onSubmitSuccess: onSubmit,
-    onError: (error) => console.error(error),
+    onError: onError ?? ((error) => console.error(error)),
   });
 
   const onSubmitForm = async () => {
     const result = await handleSubmit();
-    if (result.success && onSubmit) {
+    if (result?.success && onSubmit) {
       onSubmit(result.data);
     }
   };
 
   const isDisabled = isView || submitting;
+  const isCreate   = mode === "create";
+  const municipios = getMunicipioOptions(formData.departamento);
 
   return (
     <BaseFormLayout title={title}>
@@ -47,7 +59,9 @@ export default function ClienteForm({
             label="Nombre"
             name="nombre"
             value={formData.nombre}
-            onChange={handleChange}
+            onChange={(e) =>
+              handleChange({ target: { name: "nombre", value: soloLetras(e.target.value) } })
+            }
             disabled={isDisabled}
             required
             error={!!errors.nombre}
@@ -60,7 +74,9 @@ export default function ClienteForm({
             label="Apellido"
             name="apellido"
             value={formData.apellido}
-            onChange={handleChange}
+            onChange={(e) =>
+              handleChange({ target: { name: "apellido", value: soloLetras(e.target.value) } })
+            }
             disabled={isDisabled}
             required
             error={!!errors.apellido}
@@ -86,12 +102,7 @@ export default function ClienteForm({
             name="telefono"
             value={formData.telefono}
             onChange={(e) =>
-              handleChange({
-                target: {
-                  name: "telefono",
-                  value: e.target.value.replace(/\D/g, ""),
-                },
-              })
+              handleChange({ target: { name: "telefono", value: e.target.value.replace(/\D/g, "") } })
             }
             disabled={isDisabled}
           />
@@ -133,12 +144,7 @@ export default function ClienteForm({
             name="documento"
             value={formData.documento}
             onChange={(e) =>
-              handleChange({
-                target: {
-                  name: "documento",
-                  value: e.target.value.replace(/\D/g, ""),
-                },
-              })
+              handleChange({ target: { name: "documento", value: e.target.value.replace(/\D/g, "") } })
             }
             disabled={isDisabled}
             required
@@ -162,16 +168,35 @@ export default function ClienteForm({
           />
         </BaseFormField>
 
+        {/* Departamento — select con lista de Colombia */}
         <BaseFormField>
           <BaseInputField
-            label="Ciudad"
+            label="Departamento"
+            name="departamento"
+            value={formData.departamento}
+            onChange={handleChange}
+            select
+            options={departamentoOptions}
+            disabled={isDisabled}
+            required
+            error={!!errors.departamento}
+            helperText={errors.departamento}
+          />
+        </BaseFormField>
+
+        {/* Municipio — depende del departamento seleccionado */}
+        <BaseFormField>
+          <BaseInputField
+            label="Municipio"
             name="ciudad"
             value={formData.ciudad}
             onChange={handleChange}
-            disabled={isDisabled}
+            select
+            options={municipios}
+            disabled={isDisabled || (!isView && !formData.departamento)}
             required
             error={!!errors.ciudad}
-            helperText={errors.ciudad}
+            helperText={errors.ciudad || (!formData.departamento && !isView ? "Seleccione primero un departamento" : "")}
           />
         </BaseFormField>
 
@@ -185,17 +210,44 @@ export default function ClienteForm({
           />
         </BaseFormField>
 
+        {/* Estado — solo en editar y ver detalle, nunca en crear */}
+        {!isCreate && (
+          <BaseFormField>
+            <BaseInputField
+              label="Estado"
+              name="estado"
+              value={formData.estado}
+              onChange={handleChange}
+              select
+              options={estadoOptions}
+              disabled={isDisabled}
+            />
+          </BaseFormField>
+        )}
+
       </BaseFormSection>
 
-      <BaseFormActions
-        onCancel={onCancel}
-        onSave={onSubmitForm}
-        onEdit={onEdit}
-        showSave={!isView}
-        showEdit={isView}
-        saveLabel={isEdit ? "Actualizar Cliente" : "Guardar Cliente"}
-        saveDisabled={submitting}
-      />
+      {/* Botones en modo vista */}
+      {isView && (
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 24 }}>
+          {extraActions}
+          <button className="crud-btn crud-btn-secondary" onClick={onCancel}>
+            Volver
+          </button>
+        </div>
+      )}
+
+      {/* Botones en crear / editar */}
+      {!isView && (
+        <BaseFormActions
+          onCancel={onCancel}
+          onSave={onSubmitForm}
+          showSave
+          saveLabel="Guardar"
+          saveDisabled={submitting}
+        />
+      )}
+
     </BaseFormLayout>
   );
 }

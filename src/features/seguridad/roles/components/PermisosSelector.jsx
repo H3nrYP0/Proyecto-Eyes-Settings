@@ -32,10 +32,9 @@ export default function PermisosSelector({
   const isSelected = (permisoId) => value.includes(permisoId);
 
   return (
-    <Box sx={{ width: '100%', minWidth: 300 }}>
-      {/* Encabezado */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+    <Box sx={{ width: '100%' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography variant="subtitle1" fontWeight={600}>
             Permisos
           </Typography>
@@ -76,19 +75,19 @@ export default function PermisosSelector({
         )}
       </Box>
 
-      {/* Grid de permisos con 4 columnas en md y superior */}
       <Box
         sx={{
           maxHeight: 320,
           overflowY: 'auto',
           display: 'grid',
           gridTemplateColumns: {
-            xs: 'repeat(2, 1fr)',
-            sm: 'repeat(3, 1fr)',
-            md: 'repeat(4, 1fr)',
+            xs: 'repeat(1, 1fr)',      // Móvil: 1 columna
+            sm: 'repeat(2, 1fr)',      // Tablet: 2 columnas
+            md: 'repeat(3, 1fr)',      // Desktop: 3 columnas (máximo)
           },
-          gap: 1,
+          gap: 0.5,
           width: '100%',
+          mt: 0.5,
         }}
       >
         {permisosDisponibles.map((permiso) => (
@@ -101,9 +100,9 @@ export default function PermisosSelector({
             sx={{
               justifyContent: 'flex-start',
               textTransform: 'none',
-              fontWeight: 500,
+              fontWeight: isSelected(permiso.id) ? 600 : 400,
               fontSize: '0.8125rem',
-              py: 0.6,
+              py: 0.75,
               px: 1.5,
               borderRadius: 1.5,
               backgroundColor: isSelected(permiso.id) ? BRAND_SELECTED : 'transparent',

@@ -1,5 +1,15 @@
 import { Box, Typography } from "@mui/material";
 
+/**
+ * BaseViewField - Campo de visualización (solo lectura)
+ * 
+ * Sirve para mostrar datos en modo vista (read-only) con un estilo
+ * de tarjeta gris que simula un campo deshabilitado pero más estético
+ * 
+ * Props:
+ * @param {string} label - Etiqueta del campo
+ * @param {any} value - Valor a mostrar
+ */
 export default function BaseViewField({ label, value }) {
   return (
     <Box>
