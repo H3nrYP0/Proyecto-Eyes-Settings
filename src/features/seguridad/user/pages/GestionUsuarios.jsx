@@ -82,11 +82,22 @@ export default function GestionUsuarios() {
       await updateEstadoUser(row.id, nuevoEstado);
       await loadUsers();
       const label = nuevoEstado === "activo" ? "activado" : "desactivado";
-      showNotification(`Usuario "${row.nombre}" ${label} correctamente`);
+      const nombreCompleto = row.nombres && row.apellidos 
+        ? `${row.nombres} ${row.apellidos}`
+        : row.nombre || "Usuario";
+      showNotification(`Usuario "${nombreCompleto}" ${label} correctamente`);
     } catch (err) {
       const msg = err?.response?.data?.error || err?.message || "Error al cambiar el estado del usuario";
       showNotification(msg, "error");
     }
+  };
+
+  // Función para obtener nombre completo
+  const getNombreCompleto = (item) => {
+    if (item.nombres && item.apellidos) {
+      return `${item.nombres} ${item.apellidos}`;
+    }
+    return item.nombre || "Sin nombre";
   };
 
   const filteredUsers = useMemo(
@@ -95,8 +106,16 @@ export default function GestionUsuarios() {
   );
 
   const columns = [
-    { field: "nombre", header: "Nombre", render: (item) => item.nombre },
-    { field: "correo", header: "Correo",  render: (item) => item.correo },
+    { 
+      field: "nombre", 
+      header: "Nombre", 
+      render: (item) => getNombreCompleto(item)
+    },
+    { 
+      field: "correo", 
+      header: "Correo",  
+      render: (item) => item.correo 
+    },
     {
       field: "rol_id",
       header: "Rol",
@@ -110,7 +129,7 @@ export default function GestionUsuarios() {
   const tableActions = [
     { label: "Ver detalles", type: "view",   onClick: (row) => navigate(`detalle/${row.id}`) },
     { label: "Editar",       type: "edit",   onClick: (row) => navigate(`editar/${row.id}`) },
-    { label: "Eliminar",     type: "delete", onClick: (row) => handleDelete(row.id, row.nombre) },
+    { label: "Eliminar",     type: "delete", onClick: (row) => handleDelete(row.id, getNombreCompleto(row)) },
   ];
 
   const statusFilters = [

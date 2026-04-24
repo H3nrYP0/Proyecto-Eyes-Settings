@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Box } from "@mui/material";
 
-import { BaseInputField, BaseFormLayout, BaseFormSection, BaseFormActions, BaseFormField } from "@shared";
+import { BaseInputField, BaseFormLayout, BaseFormActions, FormRow, FormCol } from "@shared";
 
 import PermisosSelector from "./PermisosSelector";
 
@@ -15,6 +15,7 @@ export default function RolForm({
   onEdit
 }) {
   const isView = mode === "view";
+  const isEdit = mode === "edit";
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -71,9 +72,8 @@ export default function RolForm({
 
   return (
     <BaseFormLayout title={title}>
-      {/* INFORMACIÓN DEL ROL */}
-      <BaseFormSection>
-        <BaseFormField>
+      <FormRow>
+        <FormCol>
           <BaseInputField
             label="Nombre del Rol"
             name="nombre"
@@ -83,9 +83,9 @@ export default function RolForm({
             error={!!errors.nombre}
             helperText={errors.nombre}
           />
-        </BaseFormField>
+        </FormCol>
 
-        <BaseFormField>
+        <FormCol>
           <BaseInputField
             label="Descripción"
             name="descripcion"
@@ -95,20 +95,34 @@ export default function RolForm({
             error={!!errors.descripcion}
             helperText={errors.descripcion}
           />
-        </BaseFormField>
-      </BaseFormSection>
+        </FormCol>
 
-      {/* PERMISOS - con padding superior para alinear */}
-      <Box sx={{ pt: 2, pl: 2 }}>
-        <BaseFormSection>
-          <PermisosSelector
-            permisosDisponibles={permisosDisponibles}
-            value={formData.permisos}
-            onChange={(permisos) => setFormData((prev) => ({ ...prev, permisos }))}
-            error={errors.permisos}
-            disabled={isView}
-          />
-        </BaseFormSection>
+        {isEdit && (
+          <FormCol>
+            <BaseInputField
+              label="Estado"
+              name="estado"
+              value={formData.estado}
+              onChange={handleChange}
+              select
+              options={[
+                { value: "activo", label: "Activo" },
+                { value: "inactivo", label: "Inactivo" }
+              ]}
+              disabled={isView}
+            />
+          </FormCol>
+        )}
+      </FormRow>
+
+      <Box sx={{ width: '100%', mt: 2 }}>
+        <PermisosSelector
+          permisosDisponibles={permisosDisponibles}
+          value={formData.permisos}
+          onChange={(permisos) => setFormData((prev) => ({ ...prev, permisos }))}
+          error={errors.permisos}
+          disabled={isView}
+        />
       </Box>
 
       <BaseFormActions
