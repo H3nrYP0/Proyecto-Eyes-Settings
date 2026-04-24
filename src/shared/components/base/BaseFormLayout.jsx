@@ -1,5 +1,16 @@
 import { Box, Paper, Typography } from "@mui/material";
 
+/**
+ * BaseFormLayout - Layout principal del formulario
+ * 
+ * Sirve como contenedor principal que envuelve todo el formulario
+ * con un Paper (tarjeta) con título en la parte superior
+ * 
+ * Props:
+ * @param {string} title - Título del formulario
+ * @param {node} children - Contenido del formulario (FormRows con campos)
+ * @param {string} maxWidth - Ancho máximo del formulario
+ */
 export default function BaseFormLayout({
   title,
   children,
@@ -11,6 +22,8 @@ export default function BaseFormLayout({
         elevation={2}
         sx={{
           width: "100%",
+          maxWidth: maxWidth,
+          mx: "auto",  // Centrar el formulario
           borderRadius: 2,
           display: "flex",
           flexDirection: "column"
@@ -38,7 +51,7 @@ export default function BaseFormLayout({
             py: 3,
             display: "flex",
             flexDirection: "column",
-            gap: 2
+            gap: 3
           }}
         >
           {children}
@@ -46,5 +59,4 @@ export default function BaseFormLayout({
       </Paper>
     </Box>
   );
-
 }
