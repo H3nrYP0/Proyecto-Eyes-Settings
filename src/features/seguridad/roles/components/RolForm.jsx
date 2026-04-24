@@ -20,7 +20,7 @@ export default function RolForm({
   const [formData, setFormData] = useState({
     nombre: "",
     descripcion: "",
-    estado: "activo",  // Siempre activo por defecto en creación
+    estado: "activo",
     permisos: []
   });
 
@@ -97,7 +97,6 @@ export default function RolForm({
           />
         </FormCol>
 
-        {/* Campo de Estado - SOLO visible en modo edición */}
         {isEdit && (
           <FormCol>
             <BaseInputField
@@ -116,17 +115,15 @@ export default function RolForm({
         )}
       </FormRow>
 
-      <FormRow>
-        <FormCol>
-          <PermisosSelector
-            permisosDisponibles={permisosDisponibles}
-            value={formData.permisos}
-            onChange={(permisos) => setFormData((prev) => ({ ...prev, permisos }))}
-            error={errors.permisos}
-            disabled={isView}
-          />
-        </FormCol>
-      </FormRow>
+      <Box sx={{ width: '100%', mt: 2 }}>
+        <PermisosSelector
+          permisosDisponibles={permisosDisponibles}
+          value={formData.permisos}
+          onChange={(permisos) => setFormData((prev) => ({ ...prev, permisos }))}
+          error={errors.permisos}
+          disabled={isView}
+        />
+      </Box>
 
       <BaseFormActions
         onCancel={onCancel}
