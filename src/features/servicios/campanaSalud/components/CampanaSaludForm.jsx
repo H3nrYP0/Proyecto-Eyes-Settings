@@ -6,6 +6,7 @@ import BaseFormLayout from '../../../../shared/components/base/BaseFormLayout';
 import BaseInputField from '../../../../shared/components/base/BaseInputField';
 import BaseFormActions from '../../../../shared/components/base/BaseFormActions';
 import CrudNotification from '../../../../shared/styles/components/notifications/CrudNotification';
+import { TextFieldAlphanumeric, TextFieldNoEmoji } from '@shared/index';
 
 const CampanaSaludForm = ({
   formData,
@@ -82,7 +83,7 @@ const CampanaSaludForm = ({
         {/* FILA 1: Empresa, NIT, Contacto */}
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={4}>
-            <BaseInputField
+            <TextFieldAlphanumeric
               label="Empresa"
               name="empresa"
               value={formData.empresa}
@@ -201,7 +202,7 @@ const CampanaSaludForm = ({
         {/* FILA 3: Dirección, Estado */}
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={4}>
-            <BaseInputField
+            <TextFieldNoEmoji
               label="Dirección"
               name="direccion"
               value={formData.direccion}
@@ -228,7 +229,7 @@ const CampanaSaludForm = ({
         {/* FILA 4: Observaciones */}
         <Grid container spacing={2}>
           <Grid item xs={12}>
-            <BaseInputField
+            <TextFieldNoEmoji
               label="Observaciones"
               name="observaciones"
               value={formData.observaciones}

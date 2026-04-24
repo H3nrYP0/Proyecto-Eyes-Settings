@@ -5,6 +5,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import BaseFormLayout from "../../../../shared/components/base/BaseFormLayout";
 import BaseFormActions from "../../../../shared/components/base/BaseFormActions";
 import BaseInputField from "../../../../shared/components/base/BaseInputField";
+import { TextFieldAlphanumeric,TextFieldNoEmoji, TextFieldLetters } from "@shared/index";
 import FormRow from "../../../../shared/components/base/FormRow";
 import FormCol from "../../../../shared/components/base/FormCol";
 import BaseFormField from "../../../../shared/components/base/BaseFormField";
@@ -85,7 +86,7 @@ export default function ProductoForm({
       {/* PRIMERA FILA: Nombre, Categoría, Marca, Stock Mínimo */}
       <FormRow spacing={2}>
         <FormCol xs={12} md={6} lg={3}>
-          <BaseInputField
+          <TextFieldAlphanumeric
             label="Nombre del Producto"
             name="nombre"
             value={formData.nombre}
@@ -257,7 +258,7 @@ export default function ProductoForm({
 
       <BaseFormSection>
         <BaseFormField fullWidth>
-          <BaseInputField
+          <TextFieldNoEmoji
             label="Descripción del producto"
             name="descripcion"
             value={formData.descripcion}

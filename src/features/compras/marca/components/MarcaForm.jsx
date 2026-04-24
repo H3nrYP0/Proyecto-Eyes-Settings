@@ -1,6 +1,7 @@
 import { FormHelperText, MenuItem, TextField, Box } from "@mui/material";
 import BaseInputField from "../../../../shared/components/base/BaseInputField";
 import { useMarcaForm } from "../hooks/useMarcaForm";
+import { TextFieldAlphanumeric, TextFieldLetters } from "@shared/index";
 
 export default function MarcaForm({
   mode = "create",
@@ -25,7 +26,7 @@ export default function MarcaForm({
     <form id={id} onSubmit={handleSubmit}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         <Box>
-          <BaseInputField
+          <TextFieldAlphanumeric
             label="Nombre de la Marca"
             name="nombre"
             value={formData.nombre}
@@ -36,6 +37,7 @@ export default function MarcaForm({
             fullWidth
             required
             error={!!errors.nombre || nombreExists}
+            helperText={errors.nombre}
           />
           {errors.nombre && (
             <FormHelperText error sx={{ mt: 1 }}>
