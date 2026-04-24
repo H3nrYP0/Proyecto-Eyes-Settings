@@ -31,19 +31,6 @@ export default function UserForm({
   const [originalData, setOriginalData] = useState({});
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Determinar cuántos campos TOTALES tiene el formulario
-  const getTotalCampos = () => {
-    let total = 7; // tipoDoc, numDoc, nombre, email, telefono, fechaNac, rol
-    
-    if (mode !== "view") {
-      total += 2; // password, confirmPassword
-    }
-    
-    return total;
-  };
-
-  const totalCampos = getTotalCampos();
-
   useEffect(() => {
     setOriginalData(JSON.parse(JSON.stringify(initialData)));
   }, [initialData]);
@@ -91,8 +78,7 @@ export default function UserForm({
 
   return (
     <BaseFormLayout title={title}>
-
-      <FormRow totalCamposFormulario={totalCampos}>
+      <FormRow>
         <FormCol>
           <BaseInputField
             label="Tipo de Documento"
@@ -139,9 +125,7 @@ export default function UserForm({
             helperText={errors.nombre}
           />
         </FormCol>
-      </FormRow>
 
-      <FormRow totalCamposFormulario={totalCampos}>
         <FormCol>
           <BaseInputField
             label="Correo Electrónico"
@@ -181,81 +165,58 @@ export default function UserForm({
             helperText={errors.fechaNacimiento}
           />
         </FormCol>
+
+        <FormCol>
+          <BaseInputField
+            label="Seleccionar Rol"
+            name="rol"
+            value={initialData?.rol || ""}
+            onChange={onChange}
+            select
+            options={[
+              { value: "", label: "-- Seleccione un rol --" },
+              ...rolesDisponibles.map((rol) => ({
+                value: rol.id,
+                label: rol.nombre
+              }))
+            ]}
+            disabled={isView}
+            required
+            error={!!errors.rol}
+            helperText={errors.rol}
+          />
+        </FormCol>
+
+        {mode !== "view" && (
+          <>
+            <FormCol>
+              <BaseInputField
+                label={mode === "create" ? "Contraseña" : "Nueva Contraseña (opcional)"}
+                name="password"
+                type="password"
+                value={initialData?.password || ""}
+                onChange={onChange}
+                required={mode === "create"}
+                error={!!errors.password}
+                helperText={mode === "edit" ? "Dejar en blanco para mantener la actual" : errors.password}
+              />
+            </FormCol>
+
+            <FormCol>
+              <BaseInputField
+                label="Confirmar Contraseña"
+                name="confirmPassword"
+                type="password"
+                value={initialData?.confirmPassword || ""}
+                onChange={onChange}
+                required={mode === "create"}
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword}
+              />
+            </FormCol>
+          </>
+        )}
       </FormRow>
-
-      {mode !== "view" ? (
-        <FormRow totalCamposFormulario={totalCampos}>
-          <FormCol>
-            <BaseInputField
-              label="Seleccionar Rol"
-              name="rol"
-              value={initialData?.rol || ""}
-              onChange={onChange}
-              select
-              options={[
-                { value: "", label: "-- Seleccione un rol --" },
-                ...rolesDisponibles.map((rol) => ({
-                  value: rol.id,
-                  label: rol.nombre
-                }))
-              ]}
-              disabled={isView}
-              required
-              error={!!errors.rol}
-              helperText={errors.rol}
-            />
-          </FormCol>
-
-          <FormCol>
-            <BaseInputField
-              label={mode === "create" ? "Contraseña" : "Nueva Contraseña (opcional)"}
-              name="password"
-              type="password"
-              value={initialData?.password || ""}
-              onChange={onChange}
-              required={mode === "create"}
-              error={!!errors.password}
-              helperText={mode === "edit" ? "Dejar en blanco para mantener la actual" : errors.password}
-            />
-          </FormCol>
-
-          <FormCol>
-            <BaseInputField
-              label="Confirmar Contraseña"
-              name="confirmPassword"
-              type="password"
-              value={initialData?.confirmPassword || ""}
-              onChange={onChange}
-              required={mode === "create"}
-              error={!!errors.confirmPassword}
-              helperText={errors.confirmPassword}
-            />
-          </FormCol>
-        </FormRow>
-      ) : (
-        <FormRow totalCamposFormulario={totalCampos}>
-          <FormCol>
-            <BaseInputField
-              label="Seleccionar Rol"
-              name="rol"
-              value={initialData?.rol || ""}
-              onChange={onChange}
-              select
-              options={[
-                { value: "", label: "-- Seleccione un rol --" },
-                ...rolesDisponibles.map((rol) => ({
-                  value: rol.id,
-                  label: rol.nombre
-                }))
-              ]}
-              disabled={isView}
-              required
-              error={!!errors.rol}
-              helperText={errors.rol}
-            />
-          </FormCol>
-        </FormRow>
-      )}
 
       <BaseFormActions
         onCancel={onCancel}

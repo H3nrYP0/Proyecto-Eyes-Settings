@@ -51,7 +51,7 @@ export default function BaseFormLayout({
             py: 3,
             display: "flex",
             flexDirection: "column",
-            gap: 3
+            gap: 2
           }}
         >
           {children}
