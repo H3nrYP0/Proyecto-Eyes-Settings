@@ -1,15 +1,25 @@
+/**
+ * menuStructure - Definición de la estructura del menú principal
+ * 
+ * Estructura:
+ * - id: identificador único de la sección
+ * - title: texto visible en el menú
+ * - icon: nombre del ícono (debe coincidir con IconRenderer)
+ * - path: ruta de navegación (opcional, si no tiene items)
+ * - permisos: array de permisos requeridos del backend
+ * - items: submenús (si está vacío, el elemento navega directamente)
+ */
+
 export const menuStructure = [
   {
     id: "dashboard",
     title: "Dashboard",
     icon: "dashboard",
-    // ── permisos del backend requeridos para ver esta sección ──
     permisos: ["dashboard"],
-    items: [
-      { name: "Resumen General", path: "/admin/dashboard", icon: "home-icon" }
-    ]
+    path: "/admin/dashboard", // ← Ruta completa
+    items: [] // Vacío = sin submenú
   },
-    {
+  {
     id: "servicios",
     title: "Servicios",
     icon: "servicios",
@@ -22,7 +32,7 @@ export const menuStructure = [
       { name: "Campañas de Salud", path: "/admin/servicios/campanas-salud", icon: "campaigns-icon" }
     ]
   },
-    {
+  {
     id: "compras",
     title: "Compras",
     icon: "compras",
