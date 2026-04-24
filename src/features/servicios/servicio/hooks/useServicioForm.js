@@ -50,11 +50,6 @@ export const useServicioForm = ({ mode, initialData, onSubmit, onCancel }) => {
     return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
   }, []);
 
-  const soloLetras = useCallback((text) => {
-    const regex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/;
-    return regex.test(text);
-  }, []);
-
   const checkNombreExists = useCallback(async (nombre) => {
     try {
       const exists = await ServicioData.checkServicioExists(
@@ -69,34 +64,23 @@ export const useServicioForm = ({ mode, initialData, onSubmit, onCancel }) => {
 
   const handleChange = useCallback(async (e) => {
     const { name, value } = e.target;
-    let processedValue = value;
-
-    if (name === "duracion_min" || name === "precio") {
-      processedValue = value.replace(/[^0-9]/g, "");
-    }
-
-    if (name === "nombre") {
-      if (!soloLetras(value) && value !== "") {
-        return;
-      }
-    }
 
     setFormData((prev) => ({
       ...prev,
-      [name]: processedValue
+      [name]: value
     }));
 
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
 
-    if (name === "nombre" && processedValue.trim().length >= 3) {
-      const exists = await checkNombreExists(processedValue);
+    if (name === "nombre" && value.trim().length >= 3) {
+      const exists = await checkNombreExists(value);
       setNombreExists(exists);
     } else if (name === "nombre") {
       setNombreExists(false);
     }
-  }, [errors, soloLetras, checkNombreExists]);
+  }, [errors, checkNombreExists]);
 
   const validateForm = useCallback(() => {
     const newErrors = {};
@@ -109,8 +93,6 @@ export const useServicioForm = ({ mode, initialData, onSubmit, onCancel }) => {
       newErrors.nombre = "El nombre debe tener al menos 3 caracteres";
     } else if (nombreTrimmed.length > 65) {
       newErrors.nombre = "El nombre no puede exceder 65 caracteres";
-    } else if (!soloLetras(nombreTrimmed)) {
-      newErrors.nombre = "El nombre solo puede contener letras y espacios";
     } else if (nombreExists) {
       newErrors.nombre = "Ya existe un servicio con este nombre";
     }
@@ -137,7 +119,7 @@ export const useServicioForm = ({ mode, initialData, onSubmit, onCancel }) => {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [formData, nombreExists, soloLetras]);
+  }, [formData, nombreExists]);
 
   const handleSubmit = useCallback((e) => {
     e.preventDefault();
@@ -149,27 +131,25 @@ export const useServicioForm = ({ mode, initialData, onSubmit, onCancel }) => {
     const nombreFinal = formatNombre(formData.nombre.trim().replace(/\s+/g, " "));
 
     if (isEdit) {
-  // Enviar TODOS los campos, no solo los que cambiaron
-  const updatedData = {
-    nombre: nombreFinal,
-    descripcion: formData.descripcion.trim(),
-    duracion_min: parseInt(formData.duracion_min, 10),
-    precio: parseInt(formData.precio, 10),
-    estado: formData.estado === true
-  };
-  
-  // Validar que los números sean válidos
-  if (isNaN(updatedData.duracion_min) || updatedData.duracion_min <= 0) {
-    setErrors(prev => ({ ...prev, duracion_min: "La duración debe ser un número válido mayor a 0" }));
-    return;
-  }
-  if (isNaN(updatedData.precio) || updatedData.precio <= 0) {
-    setErrors(prev => ({ ...prev, precio: "El precio debe ser un número válido mayor a 0" }));
-    return;
-  }
-  
-  onSubmit?.(updatedData);
-} else {
+      const updatedData = {
+        nombre: nombreFinal,
+        descripcion: formData.descripcion.trim(),
+        duracion_min: parseInt(formData.duracion_min, 10),
+        precio: parseInt(formData.precio, 10),
+        estado: formData.estado === true
+      };
+      
+      if (isNaN(updatedData.duracion_min) || updatedData.duracion_min <= 0) {
+        setErrors(prev => ({ ...prev, duracion_min: "La duración debe ser un número válido mayor a 0" }));
+        return;
+      }
+      if (isNaN(updatedData.precio) || updatedData.precio <= 0) {
+        setErrors(prev => ({ ...prev, precio: "El precio debe ser un número válido mayor a 0" }));
+        return;
+      }
+      
+      onSubmit?.(updatedData);
+    } else {
       onSubmit?.({
         nombre: nombreFinal,
         descripcion: formData.descripcion.trim(),
@@ -178,7 +158,7 @@ export const useServicioForm = ({ mode, initialData, onSubmit, onCancel }) => {
         estado: true
       });
     }
-  }, [formData, originalData, validateForm, formatNombre, onSubmit, isEdit]);
+  }, [formData, validateForm, formatNombre, onSubmit, isEdit]);
 
   const handleCancel = useCallback(() => {
     if (window.confirm("¿Estás seguro de que deseas cancelar? Los cambios no guardados se perderán.")) {

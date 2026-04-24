@@ -3,6 +3,7 @@ import { Box, Grid, TextField, FormHelperText } from "@mui/material";
 import BaseInputField from "../../../../shared/components/base/BaseInputField";
 import { useServicioForm } from "../hooks/useServicioForm";
 import { formatCOP } from "../../../../shared/utils/formatCOP";
+import { TextFieldNoEmoji, TextFieldLetters, TextFieldNumbers } from "@shared/index";
 
 export default function ServicioForm({
   mode = "create",
@@ -27,7 +28,7 @@ export default function ServicioForm({
         <Grid container spacing={2}>
           {/* Nombre del Servicio */}
           <Grid item xs={12}>
-            <BaseInputField
+            <TextFieldLetters
               label="Nombre del Servicio"
               name="nombre"
               value={formData.nombre}
@@ -36,6 +37,7 @@ export default function ServicioForm({
               required={!isView}
               error={!!errors.nombre || nombreExists}
               helperText={errors.nombre || (nombreExists ? "Ya existe un servicio con este nombre" : "")}
+              maxLength={65}
             />
           </Grid>
 
@@ -49,7 +51,7 @@ export default function ServicioForm({
               />
             ) : (
               <>
-                <BaseInputField
+                <TextFieldNumbers
                   label="Precio"
                   name="precio"
                   value={formData.precio}
@@ -71,7 +73,8 @@ export default function ServicioForm({
 
           {/* Duración (media anchura) */}
           <Grid item xs={12} sm={6}>
-            <BaseInputField
+            <TextFieldNumbers
+            
               label="Duración (minutos)"
               name="duracion_min"
               value={isView ? `${formData.duracion_min} min` : formData.duracion_min}
@@ -104,7 +107,7 @@ export default function ServicioForm({
 
           {/* Descripción */}
           <Grid item xs={12}>
-            <TextField
+            <TextFieldNoEmoji
               fullWidth
               label="Descripción"
               name="descripcion"
