@@ -17,6 +17,8 @@ export function useClienteForm({ mode = "create", initialData = null, onSubmitSu
     genero:          "",
     departamento:    "",
     ciudad:          "",
+    barrio:          "",
+    codigoPostal:    "",
     direccion:       "",
     estado:          "activo",
   });
@@ -39,6 +41,8 @@ export function useClienteForm({ mode = "create", initialData = null, onSubmitSu
         genero:          initialData.genero          || "",
         departamento:    initialData.departamento    || "",
         ciudad:          initialData.ciudad          || "",
+        barrio:          initialData.barrio          || "",
+        codigoPostal:    initialData.codigoPostal    || "",
         direccion:       initialData.direccion       || "",
         estado:          initialData.estado          || "activo",
       });
@@ -47,7 +51,6 @@ export function useClienteForm({ mode = "create", initialData = null, onSubmitSu
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // Al cambiar departamento, limpiar municipio
     if (name === "departamento") {
       setFormData((prev) => ({ ...prev, departamento: value, ciudad: "" }));
       if (errors.departamento) setErrors((prev) => ({ ...prev, departamento: "" }));
@@ -63,7 +66,6 @@ export function useClienteForm({ mode = "create", initialData = null, onSubmitSu
       setErrors(newErrors);
       return { success: false };
     }
-
     setSubmitting(true);
     try {
       let result;

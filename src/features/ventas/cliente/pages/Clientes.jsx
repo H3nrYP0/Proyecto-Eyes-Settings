@@ -12,9 +12,8 @@ export default function Clientes() {
   const navigate = useNavigate();
   const [notification, setNotification] = useState({ isVisible: false, message: "", type: "success" });
 
-  const showNotification = (message, type = "success") => {
+  const showNotification = (message, type = "success") =>
     setNotification({ isVisible: true, message, type });
-  };
 
   const {
     clientes,
@@ -31,20 +30,18 @@ export default function Clientes() {
     columns,
     tableActions,
     modalDelete,
-    modalEstado,
     confirmDelete,
     closeDeleteModal,
-    confirmChangeStatus,
-    closeEstadoModal,
+    cambiarEstado,
   } = useClientes({ onSuccess: showNotification });
 
   const actionsWithNavigate = tableActions.map(action => ({
     ...action,
     onClick: (row) => {
-      if (action.type === "view") navigate(`detalle/${row.id}`);
+      if (action.type === "view")      navigate(`detalle/${row.id}`);
       else if (action.type === "edit") navigate(`editar/${row.id}`);
-      else action.onClick(row);
-    }
+      else                             action.onClick(row);
+    },
   }));
 
   if (loading && clientes.length === 0) {
@@ -75,10 +72,18 @@ export default function Clientes() {
       >
         {error && <div className="crud-error">⚠️ {error}</div>}
 
+        {/*
+          onChangeStatus={cambiarEstado} → CrudTable maneja su propio modal
+          de confirmación y llama cambiarEstado(row, nuevoEstado) al confirmar.
+          showStatusColumn={true} → pinta el botón de estado.
+          NO hay modal de estado en este componente — solo el del CrudTable.
+        */}
         <CrudTable
           columns={columns}
           data={clientes}
           actions={actionsWithNavigate}
+          onChangeStatus={cambiarEstado}
+          showStatusColumn={true}
           emptyMessage={
             search || filterEstado || filterGenero
               ? "No se encontraron clientes para los filtros aplicados"
@@ -86,6 +91,7 @@ export default function Clientes() {
           }
         />
 
+        {/* Solo modal de eliminar — el de estado lo maneja CrudTable internamente */}
         <Modal
           open={modalDelete.open}
           type="warning"
@@ -96,18 +102,6 @@ export default function Clientes() {
           showCancel
           onConfirm={confirmDelete}
           onCancel={closeDeleteModal}
-        />
-
-        <Modal
-          open={modalEstado.open}
-          type="info"
-          title="¿Cambiar estado?"
-          message={`El cliente "${modalEstado.nombre}" cambiará a estado "${modalEstado.nuevoEstado}".`}
-          confirmText="Confirmar"
-          cancelText="Cancelar"
-          showCancel
-          onConfirm={confirmChangeStatus}
-          onCancel={closeEstadoModal}
         />
       </CrudLayout>
 
