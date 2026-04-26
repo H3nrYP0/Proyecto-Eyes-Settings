@@ -16,7 +16,6 @@ export function useClientes({ onSuccess } = {}) {
       const data = await clientesService.getAllClientes();
       const ordenados = [...data]
         .sort((a, b) => b.id - a.id)
-        // Inyectar estadosDisponibles para que CrudTable calcule el toggle correctamente
         .map((c) => ({ ...c, estadosDisponibles: ["activo", "inactivo"] }));
       setClientes(ordenados);
       setError(null);
@@ -46,17 +45,39 @@ export function useClientes({ onSuccess } = {}) {
     }
   }, [modalDelete.id, modalDelete.nombre, cargarClientes, onSuccess]);
 
-  // CrudTable llama onChangeStatus(row, nuevoEstado) — ambos args ya correctos
-  const cambiarEstado = useCallback(async (row, nuevoEstado) => {
-    try {
-      await clientesService.updateEstadoCliente(row.id, nuevoEstado === "activo");
-      await cargarClientes();
-      onSuccess?.(`Estado de "${row.nombre} ${row.apellido}" cambiado a ${nuevoEstado}`, "success");
-    } catch (err) {
-      console.error("Error cambiando estado", err);
-      onSuccess?.("No se pudo cambiar el estado", "error");
-    }
-  }, [cargarClientes, onSuccess]);
+  // Actualización optimista: cambia el estado localmente PRIMERO
+  // para que se vea inmediato aunque CrudTable no awaitee la función.
+  // Luego confirma con el backend; si falla, revierte.
+  const cambiarEstado = useCallback((row, nuevoEstado) => {
+    const estadoAnterior = row.estado;
+
+    // 1. Actualizar localmente de inmediato
+    setClientes((prev) =>
+      prev.map((c) =>
+        c.id === row.id ? { ...c, estado: nuevoEstado } : c
+      )
+    );
+
+    // 2. Llamar al backend en segundo plano
+    clientesService
+      .updateEstadoCliente(row.id, nuevoEstado === "activo")
+      .then(() => {
+        onSuccess?.(
+          `Estado de "${row.nombre} ${row.apellido}" cambiado a ${nuevoEstado}`,
+          "success"
+        );
+      })
+      .catch((err) => {
+        console.error("Error cambiando estado:", err);
+        // 3. Revertir si falló
+        setClientes((prev) =>
+          prev.map((c) =>
+            c.id === row.id ? { ...c, estado: estadoAnterior } : c
+          )
+        );
+        onSuccess?.("No se pudo cambiar el estado", "error");
+      });
+  }, [onSuccess]);
 
   const closeDeleteModal = useCallback(() =>
     setModalDelete({ open: false, id: null, nombre: "" }), []);
