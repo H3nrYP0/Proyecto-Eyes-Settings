@@ -12,7 +12,7 @@ export const clientesService = {
     return map[tipo] || "cedula";
   },
 
-  // Backend → UI  (usa los campos exactos que devuelve to_dict())
+  // Backend → UI
   _toUI(c) {
     return {
       id:              c.id,
@@ -24,14 +24,16 @@ export const clientesService = {
       correo:          c.correo           || "",
       fechaNacimiento: c.fecha_nacimiento || "",
       genero:          c.genero           || "",
-      departamento:    c.departamento     || "",   // ← nuevo campo del modelo
+      departamento:    c.departamento     || "",
       ciudad:          c.municipio        || "",
+      barrio:          c.barrio           || "",
+      codigoPostal:    c.codigo_postal    || "",
       direccion:       c.direccion        || "",
-      estado:          c.estado           ? "activo" : "inactivo",
+      estado:          c.estado ? "activo" : "inactivo",
     };
   },
 
-  // UI → Backend para crear (estado siempre true al crear)
+  // UI → Backend (crear — estado siempre true)
   _toAPI(data) {
     return {
       nombre:              data.nombre,
@@ -40,18 +42,19 @@ export const clientesService = {
       numero_documento:    data.documento,
       fecha_nacimiento:    data.fechaNacimiento,
       genero:              data.genero,
-      telefono:            data.telefono   || "",
-      correo:              data.correo     || "",
-      departamento:        data.departamento || "",
+      telefono:            data.telefono      || "",
+      correo:              data.correo        || "",
+      departamento:        data.departamento  || "",
       municipio:           data.ciudad,
-      direccion:           data.direccion  || "",
+      barrio:              data.barrio        || "",
+      codigo_postal:       data.codigoPostal  || "",
+      direccion:           data.direccion     || "",
       ocupacion:           "",
       telefono_emergencia: "",
       estado:              true,
     };
   },
 
-  // ── GET (rutas públicas — no requieren JWT) ───────────────────────
   async getAllClientes() {
     try {
       const response = await api.get("/clientes");
@@ -72,7 +75,6 @@ export const clientesService = {
     }
   },
 
-  // ── POST (ruta pública) ───────────────────────────────────────────
   async createCliente(data) {
     try {
       const response = await api.post("/clientes", this._toAPI(data));
@@ -83,7 +85,6 @@ export const clientesService = {
     }
   },
 
-  // ── PUT (ruta pública — no requiere JWT) ──────────────────────────
   async updateCliente(id, data) {
     try {
       const payload = {
@@ -93,12 +94,14 @@ export const clientesService = {
         numero_documento: data.documento,
         fecha_nacimiento: data.fechaNacimiento,
         genero:           data.genero,
-        telefono:         data.telefono    || "",
-        correo:           data.correo      || "",
+        telefono:         data.telefono     || "",
+        correo:           data.correo       || "",
         departamento:     data.departamento || "",
         municipio:        data.ciudad,
-        direccion:        data.direccion   || "",
-        estado:           data.estado === "activo",  // booleano al backend
+        barrio:           data.barrio       || "",
+        codigo_postal:    data.codigoPostal || "",
+        direccion:        data.direccion    || "",
+        estado:           data.estado === "activo",
       };
       const response = await api.put(`/clientes/${id}`, payload);
       return this._toUI(response.data.cliente || response.data);
@@ -108,7 +111,6 @@ export const clientesService = {
     }
   },
 
-  // ── DELETE (ruta pública) ─────────────────────────────────────────
   async deleteCliente(id) {
     try {
       await api.delete(`/clientes/${id}`);
@@ -119,7 +121,6 @@ export const clientesService = {
     }
   },
 
-  // ── Toggle estado rápido desde tabla (ruta pública) ──────────────
   async updateEstadoCliente(id, nuevoEstado) {
     try {
       const estadoBool = typeof nuevoEstado === "string"
@@ -133,10 +134,6 @@ export const clientesService = {
     }
   },
 
-  // ── Historial de fórmulas (rutas admin — requieren JWT) ───────────
-  // El axios interceptor ya inyecta el token desde localStorage/sessionStorage.
-  // Si sigue fallando con 401, confirmar que el token esté en storage al momento
-  // de abrir el modal (window.localStorage.getItem('token') en consola).
   async getHistorialByCliente(clienteId) {
     try {
       const response = await api.get(`/admin/clientes/${clienteId}/historial`);

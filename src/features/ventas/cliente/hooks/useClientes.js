@@ -9,13 +9,16 @@ export function useClientes({ onSuccess } = {}) {
   const [loading,      setLoading]      = useState(true);
   const [error,        setError]        = useState(null);
   const [modalDelete,  setModalDelete]  = useState({ open: false, id: null, nombre: "" });
-  const [modalEstado,  setModalEstado]  = useState({ open: false, id: null, nombre: "", nuevoEstado: "" });
 
   const cargarClientes = useCallback(async () => {
     try {
       setLoading(true);
       const data = await clientesService.getAllClientes();
-      setClientes(data);
+      const ordenados = [...data]
+        .sort((a, b) => b.id - a.id)
+        // Inyectar estadosDisponibles para que CrudTable calcule el toggle correctamente
+        .map((c) => ({ ...c, estadosDisponibles: ["activo", "inactivo"] }));
+      setClientes(ordenados);
       setError(null);
     } catch (err) {
       console.error("Error cargando clientes:", err);
@@ -43,27 +46,20 @@ export function useClientes({ onSuccess } = {}) {
     }
   }, [modalDelete.id, modalDelete.nombre, cargarClientes, onSuccess]);
 
-  const cambiarEstado = useCallback((row) => {
-    const nuevoEstado = row.estado === "activo" ? "inactivo" : "activo";
-    setModalEstado({ open: true, id: row.id, nombre: `${row.nombre} ${row.apellido}`, nuevoEstado });
-  }, []);
-
-  const confirmChangeStatus = useCallback(async () => {
-    const { nombre, nuevoEstado } = modalEstado;
+  // CrudTable llama onChangeStatus(row, nuevoEstado) — ambos args ya correctos
+  const cambiarEstado = useCallback(async (row, nuevoEstado) => {
     try {
-      await clientesService.updateEstadoCliente(modalEstado.id, nuevoEstado === "activo");
+      await clientesService.updateEstadoCliente(row.id, nuevoEstado === "activo");
       await cargarClientes();
-      onSuccess?.(`Estado de "${nombre}" cambiado a ${nuevoEstado}`, "success");
+      onSuccess?.(`Estado de "${row.nombre} ${row.apellido}" cambiado a ${nuevoEstado}`, "success");
     } catch (err) {
       console.error("Error cambiando estado", err);
       onSuccess?.("No se pudo cambiar el estado", "error");
-    } finally {
-      setModalEstado({ open: false, id: null, nombre: "", nuevoEstado: "" });
     }
-  }, [modalEstado, cargarClientes, onSuccess]);
+  }, [cargarClientes, onSuccess]);
 
-  const closeDeleteModal  = useCallback(() => setModalDelete({ open: false, id: null, nombre: "" }), []);
-  const closeEstadoModal  = useCallback(() => setModalEstado({ open: false, id: null, nombre: "", nuevoEstado: "" }), []);
+  const closeDeleteModal = useCallback(() =>
+    setModalDelete({ open: false, id: null, nombre: "" }), []);
 
   const filteredClientes = clientes.filter((c) => {
     const matchesSearch =
@@ -97,10 +93,9 @@ export function useClientes({ onSuccess } = {}) {
   ];
 
   const tableActions = [
-    { label: "Cambiar estado", type: "toggle-status", onClick: cambiarEstado },
-    { label: "Ver detalles",   type: "view",          onClick: (row) => ({ path: `detalle/${row.id}` }) },
-    { label: "Editar",         type: "edit",          onClick: (row) => ({ path: `editar/${row.id}` }) },
-    { label: "Eliminar",       type: "delete",        onClick: (row) => eliminarCliente(row.id, `${row.nombre} ${row.apellido}`) },
+    { label: "Ver detalles", type: "view",   onClick: (row) => ({ path: `detalle/${row.id}` }) },
+    { label: "Editar",       type: "edit",   onClick: (row) => ({ path: `editar/${row.id}` }) },
+    { label: "Eliminar",     type: "delete", onClick: (row) => eliminarCliente(row.id, `${row.nombre} ${row.apellido}`) },
   ];
 
   useEffect(() => { cargarClientes(); }, [cargarClientes]);
@@ -113,8 +108,8 @@ export function useClientes({ onSuccess } = {}) {
     filterGenero, setFilterGenero,
     estadoFilters, generoFilters,
     columns, tableActions,
-    modalDelete, modalEstado,
+    modalDelete,
     confirmDelete, closeDeleteModal,
-    confirmChangeStatus, closeEstadoModal,
+    cambiarEstado,
   };
 }

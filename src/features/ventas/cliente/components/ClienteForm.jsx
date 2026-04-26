@@ -9,6 +9,8 @@ import {
   estadoOptions,
   departamentoOptions,
   getMunicipioOptions,
+  tieneEmoji,
+  hoyISO,
 } from "../utils/clientesUtils";
 import { useClienteForm } from "../hooks/useClienteForm";
 
@@ -49,6 +51,20 @@ export default function ClienteForm({
   const isDisabled = isView || submitting;
   const isCreate   = mode === "create";
   const municipios = getMunicipioOptions(formData.departamento);
+
+  // Validación inline correo
+  const correoInlineError = (() => {
+    if (!formData.correo) return "";
+    if (tieneEmoji(formData.correo)) return "El correo no puede contener emojis";
+    return "";
+  })();
+
+  // Validación inline fecha
+  const fechaInlineError = (() => {
+    if (!formData.fechaNacimiento) return "";
+    if (formData.fechaNacimiento > hoyISO()) return "La fecha no puede ser futura";
+    return "";
+  })();
 
   return (
     <BaseFormLayout title={title}>
@@ -91,8 +107,8 @@ export default function ClienteForm({
             value={formData.correo}
             onChange={handleChange}
             disabled={isDisabled}
-            error={!!errors.correo}
-            helperText={errors.correo}
+            error={!!errors.correo || !!correoInlineError}
+            helperText={errors.correo || correoInlineError}
           />
         </BaseFormField>
 
@@ -117,9 +133,10 @@ export default function ClienteForm({
             onChange={handleChange}
             disabled={isDisabled}
             required
-            error={!!errors.fechaNacimiento}
-            helperText={errors.fechaNacimiento}
+            error={!!errors.fechaNacimiento || !!fechaInlineError}
+            helperText={errors.fechaNacimiento || fechaInlineError}
             InputLabelProps={{ shrink: true }}
+            inputProps={{ max: hoyISO() }}
           />
         </BaseFormField>
 
@@ -168,7 +185,6 @@ export default function ClienteForm({
           />
         </BaseFormField>
 
-        {/* Departamento — select con lista de Colombia */}
         <BaseFormField>
           <BaseInputField
             label="Departamento"
@@ -184,7 +200,6 @@ export default function ClienteForm({
           />
         </BaseFormField>
 
-        {/* Municipio — depende del departamento seleccionado */}
         <BaseFormField>
           <BaseInputField
             label="Municipio"
@@ -196,7 +211,32 @@ export default function ClienteForm({
             disabled={isDisabled || (!isView && !formData.departamento)}
             required
             error={!!errors.ciudad}
-            helperText={errors.ciudad || (!formData.departamento && !isView ? "Seleccione primero un departamento" : "")}
+            helperText={
+              errors.ciudad ||
+              (!formData.departamento && !isView ? "Seleccione primero un departamento" : "")
+            }
+          />
+        </BaseFormField>
+
+        <BaseFormField>
+          <BaseInputField
+            label="Barrio"
+            name="barrio"
+            value={formData.barrio}
+            onChange={handleChange}
+            disabled={isDisabled}
+          />
+        </BaseFormField>
+
+        <BaseFormField>
+          <BaseInputField
+            label="Código Postal"
+            name="codigoPostal"
+            value={formData.codigoPostal}
+            onChange={(e) =>
+              handleChange({ target: { name: "codigoPostal", value: e.target.value.replace(/\D/g, "") } })
+            }
+            disabled={isDisabled}
           />
         </BaseFormField>
 
@@ -227,7 +267,7 @@ export default function ClienteForm({
 
       </BaseFormSection>
 
-      {/* Botones en modo vista */}
+      {/* Botones vista */}
       {isView && (
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 24 }}>
           {extraActions}
@@ -237,17 +277,16 @@ export default function ClienteForm({
         </div>
       )}
 
-      {/* Botones en crear / editar */}
+      {/* Botones crear/editar */}
       {!isView && (
         <BaseFormActions
           onCancel={onCancel}
           onSave={onSubmitForm}
           showSave
           saveLabel="Guardar"
-          saveDisabled={submitting}
+          saveDisabled={submitting || !!correoInlineError || !!fechaInlineError}
         />
       )}
-
     </BaseFormLayout>
   );
 }
