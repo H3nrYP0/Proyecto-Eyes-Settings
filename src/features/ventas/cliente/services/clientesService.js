@@ -33,28 +33,7 @@ export const clientesService = {
     };
   },
 
-  // UI → Backend (crear — estado siempre true)
-  _toAPI(data) {
-    return {
-      nombre:              data.nombre,
-      apellido:            data.apellido,
-      tipo_documento:      this._mapTipoDocumento(data.tipoDocumento),
-      numero_documento:    data.documento,
-      fecha_nacimiento:    data.fechaNacimiento,
-      genero:              data.genero,
-      telefono:            data.telefono      || "",
-      correo:              data.correo        || "",
-      departamento:        data.departamento  || "",
-      municipio:           data.ciudad,
-      barrio:              data.barrio        || "",
-      codigo_postal:       data.codigoPostal  || "",
-      direccion:           data.direccion     || "",
-      ocupacion:           "",
-      telefono_emergencia: "",
-      estado:              true,
-    };
-  },
-
+  // ── GET — rutas públicas (sin JWT) ────────────────────────────────
   async getAllClientes() {
     try {
       const response = await api.get("/clientes");
@@ -75,9 +54,28 @@ export const clientesService = {
     }
   },
 
+  // ── POST — ruta admin (JWT + permiso 'clientes') ──────────────────
   async createCliente(data) {
     try {
-      const response = await api.post("/clientes", this._toAPI(data));
+      const payload = {
+        nombre:              data.nombre,
+        apellido:            data.apellido,
+        tipo_documento:      this._mapTipoDocumento(data.tipoDocumento),
+        numero_documento:    data.documento,
+        fecha_nacimiento:    data.fechaNacimiento,
+        genero:              data.genero,
+        telefono:            data.telefono      || "",
+        correo:              data.correo        || "",
+        departamento:        data.departamento  || "",
+        municipio:           data.ciudad,
+        barrio:              data.barrio        || "",
+        codigo_postal:       data.codigoPostal  || "",
+        direccion:           data.direccion     || "",
+        ocupacion:           "",
+        telefono_emergencia: "",
+        estado:              true,
+      };
+      const response = await api.post("/admin/clientes", payload);
       return this._toUI(response.data.cliente || response.data);
     } catch (error) {
       console.error("Error al crear cliente:", error);
@@ -85,6 +83,8 @@ export const clientesService = {
     }
   },
 
+  // ── PUT — ruta admin (JWT + permiso 'clientes') ───────────────────
+  // Única ruta que actualiza el campo 'estado'
   async updateCliente(id, data) {
     try {
       const payload = {
@@ -101,9 +101,9 @@ export const clientesService = {
         barrio:           data.barrio       || "",
         codigo_postal:    data.codigoPostal || "",
         direccion:        data.direccion    || "",
-        estado:           data.estado === "activo",
+        estado:           data.estado === "activo",  // booleano al backend
       };
-      const response = await api.put(`/clientes/${id}`, payload);
+      const response = await api.put(`/admin/clientes/${id}`, payload);
       return this._toUI(response.data.cliente || response.data);
     } catch (error) {
       console.error("Error al actualizar cliente:", error);
@@ -111,9 +111,10 @@ export const clientesService = {
     }
   },
 
+  // ── DELETE — ruta admin (JWT + permiso 'clientes') ────────────────
   async deleteCliente(id) {
     try {
-      await api.delete(`/clientes/${id}`);
+      await api.delete(`/admin/clientes/${id}`);
       return true;
     } catch (error) {
       console.error("Error al eliminar cliente:", error);
@@ -121,12 +122,13 @@ export const clientesService = {
     }
   },
 
+  // ── Toggle estado — ruta admin (JWT + permiso 'clientes') ─────────
   async updateEstadoCliente(id, nuevoEstado) {
     try {
       const estadoBool = typeof nuevoEstado === "string"
         ? nuevoEstado === "activo"
         : Boolean(nuevoEstado);
-      const response = await api.put(`/clientes/${id}`, { estado: estadoBool });
+      const response = await api.put(`/admin/clientes/${id}`, { estado: estadoBool });
       return this._toUI(response.data.cliente || response.data);
     } catch (error) {
       console.error("Error al cambiar estado:", error);
@@ -134,6 +136,7 @@ export const clientesService = {
     }
   },
 
+  // ── Historial (JWT + permiso 'clientes') ──────────────────────────
   async getHistorialByCliente(clienteId) {
     try {
       const response = await api.get(`/admin/clientes/${clienteId}/historial`);
