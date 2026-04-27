@@ -32,8 +32,7 @@ export function useMarcaForm({ mode = "create", initialData = null, onSubmit, on
         const exists = await marcasService.checkMarcaExists(trimmed);
         setNombreExists(exists);
         return exists;
-      } catch (error) {
-        console.error("Error verificando duplicado:", error);
+      } catch {
         return false;
       }
     } else {
@@ -64,7 +63,6 @@ export function useMarcaForm({ mode = "create", initialData = null, onSubmit, on
   const handleSubmit = useCallback(async (e) => {
     if (e) {
       e.preventDefault();
-      e.stopPropagation();
     }
     
     if (submitting) {
@@ -90,15 +88,13 @@ export function useMarcaForm({ mode = "create", initialData = null, onSubmit, on
         ...formData,
         nombre: trimmedNombre
       };
-
       onSubmit?.(payload);
-    } catch (error) {
-      console.error("Error al preparar datos:", error);
+    } catch {
       setErrors({ general: "Error al preparar los datos" });
     } finally {
       setSubmitting(false);
     }
-  }, [formData, isView, isCreate, initialData, nombreExists, onSubmit, submitting]);
+  }, [formData, isView, nombreExists, onSubmit, submitting]);
 
   const handleCancel = useCallback(() => {
     if (!isView && window.confirm("¿Estás seguro de que deseas cancelar? Los cambios no guardados se perderán.")) {
