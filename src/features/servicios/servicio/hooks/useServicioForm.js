@@ -1,4 +1,3 @@
-// src/features/servicios/pages/servicio/hooks/useServicioForm.js
 import { useState, useEffect, useCallback } from "react";
 import { ServicioData } from "../services/serviciosService";
 
@@ -14,9 +13,9 @@ export const useServicioForm = ({ mode, initialData, onSubmit, onCancel }) => {
     estado: true
   });
 
-  const [originalData, setOriginalData] = useState({});
   const [nombreExists, setNombreExists] = useState(false);
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (initialData) {
@@ -28,20 +27,18 @@ export const useServicioForm = ({ mode, initialData, onSubmit, onCancel }) => {
         estado: initialData.estado === 'activo'
       };
       setFormData(data);
-      setOriginalData(data);
     } else {
-      const emptyData = {
+      setFormData({
         nombre: "",
         descripcion: "",
         duracion_min: "",
         precio: "",
         estado: true
-      };
-      setFormData(emptyData);
-      setOriginalData(emptyData);
+      });
     }
     setErrors({});
     setNombreExists(false);
+    setSubmitting(false);
   }, [initialData]);
 
   const formatNombre = useCallback((text) => {
@@ -57,7 +54,7 @@ export const useServicioForm = ({ mode, initialData, onSubmit, onCancel }) => {
         mode === "edit" ? initialData?.id : null
       );
       return exists;
-    } catch (error) {
+    } catch {
       return false;
     }
   }, [mode, initialData]);
@@ -121,44 +118,55 @@ export const useServicioForm = ({ mode, initialData, onSubmit, onCancel }) => {
     return Object.keys(newErrors).length === 0;
   }, [formData, nombreExists]);
 
-  const handleSubmit = useCallback((e) => {
+  const handleSubmit = useCallback(async(e) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      return;
-    }
+    if (submitting) return;
+
+    if (!validateForm()) return;
+
+    setSubmitting(true);
 
     const nombreFinal = formatNombre(formData.nombre.trim().replace(/\s+/g, " "));
 
-    if (isEdit) {
-      const updatedData = {
-        nombre: nombreFinal,
-        descripcion: formData.descripcion.trim(),
-        duracion_min: parseInt(formData.duracion_min, 10),
-        precio: parseInt(formData.precio, 10),
-        estado: formData.estado === true
-      };
-      
-      if (isNaN(updatedData.duracion_min) || updatedData.duracion_min <= 0) {
-        setErrors(prev => ({ ...prev, duracion_min: "La duración debe ser un número válido mayor a 0" }));
-        return;
+    try {
+      if (isEdit) {
+        const updatedData = {
+          nombre: nombreFinal,
+          descripcion: formData.descripcion.trim(),
+          duracion_min: parseInt(formData.duracion_min, 10),
+          precio: parseInt(formData.precio, 10),
+          estado: formData.estado === true
+        };
+        
+        if (isNaN(updatedData.duracion_min) || updatedData.duracion_min <= 0) {
+          setErrors(prev => ({ ...prev, duracion_min: "La duración debe ser un número válido mayor a 0" }));
+          setSubmitting(false);
+          return;
+        }
+        if (isNaN(updatedData.precio) || updatedData.precio <= 0) {
+          setErrors(prev => ({ ...prev, precio: "El precio debe ser un número válido mayor a 0" }));
+          setSubmitting(false);
+          return;
+        }
+        
+        onSubmit?.(updatedData);
+      } else {
+        onSubmit?.({
+          nombre: nombreFinal,
+          descripcion: formData.descripcion.trim(),
+          duracion_min: parseInt(formData.duracion_min, 10),
+          precio: parseInt(formData.precio, 10),
+          estado: true
+        });
       }
-      if (isNaN(updatedData.precio) || updatedData.precio <= 0) {
-        setErrors(prev => ({ ...prev, precio: "El precio debe ser un número válido mayor a 0" }));
-        return;
-      }
-      
-      onSubmit?.(updatedData);
-    } else {
-      onSubmit?.({
-        nombre: nombreFinal,
-        descripcion: formData.descripcion.trim(),
-        duracion_min: parseInt(formData.duracion_min, 10),
-        precio: parseInt(formData.precio, 10),
-        estado: true
-      });
+    } catch (error) {
+      console.error("Error en handleSubmit:", error);
+      setErrors({ general: "Error al guardar el servicio" });
+    } finally {
+      setSubmitting(false);
     }
-  }, [formData, validateForm, formatNombre, onSubmit, isEdit]);
+  }, [formData, validateForm, formatNombre, onSubmit, isEdit, submitting]);
 
   const handleCancel = useCallback(() => {
     if (window.confirm("¿Estás seguro de que deseas cancelar? Los cambios no guardados se perderán.")) {
@@ -171,6 +179,7 @@ export const useServicioForm = ({ mode, initialData, onSubmit, onCancel }) => {
     errors,
     nombreExists,
     isView,
+    submitting,
     handleChange,
     handleSubmit,
     handleCancel

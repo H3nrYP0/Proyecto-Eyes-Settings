@@ -24,9 +24,6 @@ export function useCategorias() {
     nombre: "",
   });
 
-  // ============================
-  // Cargar categorías
-  // ============================
   const loadCategorias = useCallback(async () => {
     try {
       setLoading(true);
@@ -49,12 +46,9 @@ export function useCategorias() {
     }
   }, []);
 
-  // ============================
-  // Eliminar categoría con verificación
-  // ============================
   const eliminarCategoria = useCallback(async (id, nombre) => {
+    if (!id) return { success: false, error: "ID de categoría inválido" };
     try {
-      // Verificar si tiene productos asociados
       const hasProductos = await hasCategoriaProductosAsociados(id);
       if (hasProductos) {
         return { 
@@ -72,10 +66,8 @@ export function useCategorias() {
     }
   }, [loadCategorias]);
 
-  // ============================
-  // Cambiar estado
-  // ============================
   const cambiarEstado = useCallback(async (id, estadoActual) => {
+    if (!id) return { success: false, error: "ID de categoría inválido" };
     try {
       const estadoActualBoolean = estadoActual === "activa";
       await toggleCategoriaEstado(id, estadoActualBoolean);
@@ -87,9 +79,6 @@ export function useCategorias() {
     }
   }, [loadCategorias]);
 
-  // ============================
-  // Filtrar categorías
-  // ============================
   const categoriasFiltradas = categorias.filter((categoria) => {
     const matchesSearch = 
       categoria.nombre.toLowerCase().includes(search.toLowerCase()) ||
@@ -100,9 +89,6 @@ export function useCategorias() {
     return matchesSearch && matchesFilter;
   });
 
-  // ============================
-  // Handlers de modales
-  // ============================
   const openCreateModal = useCallback(() => {
     setModalForm({ 
       open: true, 
@@ -113,6 +99,7 @@ export function useCategorias() {
   }, []);
 
   const openEditModal = useCallback((item) => {
+    if (!item || !item.id) return;
     setModalForm({ 
       open: true, 
       mode: "edit", 
@@ -127,6 +114,7 @@ export function useCategorias() {
   }, []);
 
   const openViewModal = useCallback((item) => {
+    if (!item || !item.id) return;
     setModalForm({ 
       open: true, 
       mode: "view", 
@@ -145,6 +133,7 @@ export function useCategorias() {
   }, []);
 
   const openDeleteModal = useCallback((id, nombre) => {
+    if (!id) return;
     setModalDelete({ open: true, id, nombre });
   }, []);
 
@@ -152,16 +141,10 @@ export function useCategorias() {
     setModalDelete({ open: false, id: null, nombre: "" });
   }, []);
 
-  // ============================
-  // Cargar datos iniciales
-  // ============================
   useEffect(() => {
     loadCategorias();
   }, [loadCategorias]);
 
-  // ============================
-  // Limpiador de aria-hidden
-  // ============================
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       const root = document.getElementById('root');
@@ -173,29 +156,21 @@ export function useCategorias() {
         }
       }
     }, 400);
-
     return () => clearTimeout(timeoutId);
   }, [categorias]);
 
   return {
-    // Datos
     categorias: categoriasFiltradas,
     categoriasRaw: categorias,
     loading,
     error,
-    
-    // Filtros
     search,
     setSearch,
     filterEstado,
     setFilterEstado,
-    
-    // Acciones CRUD
     loadCategorias,
     eliminarCategoria,
     cambiarEstado,
-    
-    // Modales
     modalForm,
     modalDelete,
     openCreateModal,

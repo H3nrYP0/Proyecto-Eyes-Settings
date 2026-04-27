@@ -10,7 +10,7 @@ import Loading from "../../../../shared/components/ui/Loading";
 import { useServicios } from "../hooks/useServicios";
 
 export default function Servicios() {
-  const submitButtonRef = useRef(null);
+  // const submitButtonRef = useRef(null);
 
   const {
     servicios,
@@ -21,6 +21,7 @@ export default function Servicios() {
     notification,
     modalForm,
     modalDelete,
+    submitButtonRef,
     setSearch,
     setFilterEstado,
     handleFormSubmit,
@@ -33,8 +34,11 @@ export default function Servicios() {
     searchFilters,
     columns,
     tableActions,
-    handleModalConfirm
+    isSaving,
+    handleModalConfirm,
   } = useServicios();
+
+  const isProcessing = modalForm.mode !== "view" && isSaving;
 
   if (loading && servicios.length === 0) {
     return (
@@ -126,6 +130,7 @@ export default function Servicios() {
         onCancel={handleCloseForm}
         confirmButtonColor="#1a2540"
         confirmButtonHoverColor="#2d3a6b"
+        confirmDisabled={isProcessing}  
         maxWidth="md"
          PaperProps={{ sx: { width: '100%' } }}  
       >
@@ -136,7 +141,7 @@ export default function Servicios() {
           onSubmit={handleFormSubmit}
           onCancel={handleCloseForm}
           embedded={true}
-          buttonRef={submitButtonRef}
+          submitButtonRef={submitButtonRef}
         />
       </Modal>
 
