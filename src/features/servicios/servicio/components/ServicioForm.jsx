@@ -1,5 +1,4 @@
-// src/features/servicios/pages/servicio/components/ServicioForm.jsx
-import { Box, Grid, TextField, FormHelperText } from "@mui/material";
+import { Box, Grid, FormHelperText } from "@mui/material";
 import BaseInputField from "../../../../shared/components/base/BaseInputField";
 import { useServicioForm } from "../hooks/useServicioForm";
 import { formatCOP } from "../../../../shared/utils/formatCOP";
@@ -10,13 +9,15 @@ export default function ServicioForm({
   initialData,
   onSubmit,
   onCancel,
-  id
+  id,
+  submitButtonRef
 }) {
   const {
     formData,
     errors,
     nombreExists,
     isView,
+    submitting,
     handleChange,
     handleSubmit,
     handleCancel
@@ -26,7 +27,6 @@ export default function ServicioForm({
     <form id={id} onSubmit={handleSubmit}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         <Grid container spacing={2}>
-          {/* Nombre del Servicio */}
           <Grid item xs={12}>
             <TextFieldLetters
               label="Nombre del Servicio"
@@ -41,7 +41,6 @@ export default function ServicioForm({
             />
           </Grid>
 
-          {/* Precio (media anchura) */}
           <Grid item xs={12} sm={6}>
             {isView ? (
               <BaseInputField
@@ -71,10 +70,8 @@ export default function ServicioForm({
             )}
           </Grid>
 
-          {/* Duración (media anchura) */}
           <Grid item xs={12} sm={6}>
             <TextFieldNumbers
-            
               label="Duración (minutos)"
               name="duracion_min"
               value={isView ? `${formData.duracion_min} min` : formData.duracion_min}
@@ -87,7 +84,6 @@ export default function ServicioForm({
             />
           </Grid>
 
-          {/* Estado (solo si no es creación) - con ancho medio */}
           {mode !== "create" && (
             <Grid item xs={12} sm={6}>
               <BaseInputField
@@ -105,7 +101,6 @@ export default function ServicioForm({
             </Grid>
           )}
 
-          {/* Descripción */}
           <Grid item xs={12}>
             <TextFieldNoEmoji
               fullWidth
@@ -125,6 +120,12 @@ export default function ServicioForm({
           </Grid>
         </Grid>
       </Box>
+      <button 
+        type="submit" 
+        ref={submitButtonRef} 
+        style={{ display: 'none' }}
+        disabled={submitting}
+      />
     </form>
   );
 }

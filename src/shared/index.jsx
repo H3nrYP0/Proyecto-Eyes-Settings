@@ -41,6 +41,7 @@ export * from './constants/roles';
 
 export * from './hooks/useCrud';
 export * from './hooks/useSidebar';
+export {useActionBlocker} from'./hooks/useActionBlocker'
 
 // ==================== UTILS ====================
 

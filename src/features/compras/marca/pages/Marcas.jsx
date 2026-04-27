@@ -18,6 +18,7 @@ export default function Marcas() {
     modalForm,
     modalDelete,
     submitButtonRef,
+    isProcessingSave,
     setSearch,
     setFilterEstado,
     handleFormSubmit,
@@ -45,6 +46,8 @@ export default function Marcas() {
       </CrudLayout>
     );
   }
+
+  const isProcessing = modalForm.mode !== "view" && isProcessingSave();
 
   return (
     <>
@@ -123,6 +126,7 @@ export default function Marcas() {
         onCancel={handleCloseForm}
         confirmButtonColor="#1a2540"
         confirmButtonHoverColor="#2d3a6b"
+        confirmDisabled={isProcessing}
       >
         <MarcaForm
           id="marca-form"

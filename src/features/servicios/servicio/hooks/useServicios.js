@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { ServicioData } from '../services/serviciosService';
 import { formatCOP } from '../../../../shared/utils/formatCOP';
+import { useActionBlocker } from '@shared/hooks/useActionBlocker';
 import axios from '../../../../lib/axios';
 
 export const useServicios = () => {
@@ -26,8 +27,13 @@ export const useServicios = () => {
     id: null,
     nombre: "",
   });
-
+  const [isSaving, setIsSaving] = useState(false);
+  const clickLockRef = useRef(false);
   const submitButtonRef = useRef(null);
+
+  const { execute: executeSave } = useActionBlocker();
+  const { execute: executeDelete } = useActionBlocker();
+  const { execute: executeStatusChange } = useActionBlocker();
 
   const showNotification = useCallback((message, type = "success") => {
     setNotification({ isVisible: true, message, type });
@@ -53,6 +59,11 @@ export const useServicios = () => {
     );
   };
 
+  const handleCloseForm = useCallback(() => {
+    setModalForm({ open: false, mode: "create", title: "", initialData: null });
+    cleanupModalState();
+  }, [cleanupModalState]);
+
   const loadServicios = useCallback(async () => {
     try {
       setLoading(true);
@@ -76,91 +87,90 @@ export const useServicios = () => {
   }, [showNotification]);
 
   const handleFormSubmit = useCallback(async (data) => {
+    setIsSaving(true);
     try {
-      if (modalForm.mode === "create") {
-        await ServicioData.createServicio(data);
-        showNotification("Servicio creado exitosamente", "success");
-      } else if (modalForm.mode === "edit") {
-        await ServicioData.updateServicio(modalForm.initialData.id, data);
-        showNotification("Servicio actualizado exitosamente", "success");
-      }
-      handleCloseForm();
-      await loadServicios();
-    } catch (error) {
-      showNotification(error.response?.data?.error || "Error al guardar el servicio", "error");
+      await executeSave(async () => {
+        if (modalForm.mode === "create") {
+          await ServicioData.createServicio(data);
+          showNotification("Servicio creado exitosamente", "success");
+        } else if (modalForm.mode === "edit") {
+          await ServicioData.updateServicio(modalForm.initialData.id, data);
+          showNotification("Servicio actualizado exitosamente", "success");
+        }
+        handleCloseForm();
+        await loadServicios();
+      });
+    } finally {
+      setIsSaving(false);
+       clickLockRef.current = false;
     }
-  }, [modalForm.mode, modalForm.initialData, showNotification, loadServicios]);
+  }, [modalForm.mode, modalForm.initialData, showNotification, loadServicios, executeSave, handleCloseForm]);
 
   const handleDelete = useCallback((id, nombre) => {
     setModalDelete({ open: true, id, nombre });
   }, []);
 
   const confirmDelete = useCallback(async () => {
-    try {
-      await ServicioData.deleteServicio(modalDelete.id);
-      await loadServicios();
-      showNotification(`Servicio "${modalDelete.nombre}" eliminado exitosamente`, "success");
-      setModalDelete({ open: false, id: null, nombre: "" });
-      cleanupModalState();
-    } catch (err) {
-      let errorMessage = "Error al eliminar el servicio";
-      if (err.response?.status === 500) {
-        errorMessage = "Este servicio tiene citas registradas y no puede eliminarse. Desactívelo en su lugar.";
-      } else if (err.message) {
-        errorMessage = err.message;
+    await executeDelete(async () => {
+      try {
+        await ServicioData.deleteServicio(modalDelete.id);
+        await loadServicios();
+        showNotification(`Servicio "${modalDelete.nombre}" eliminado exitosamente`, "success");
+        setModalDelete({ open: false, id: null, nombre: "" });
+        cleanupModalState();
+      } catch (err) {
+        let errorMessage = "Error al eliminar el servicio";
+        if (err.response?.status === 500) {
+          errorMessage = "Este servicio tiene citas registradas y no puede eliminarse. Desactívelo en su lugar.";
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+        showNotification(errorMessage, "warning");
+        setModalDelete({ open: false, id: null, nombre: "" });
+        cleanupModalState();
       }
-      showNotification(errorMessage, "warning");
-      setModalDelete({ open: false, id: null, nombre: "" });
-      cleanupModalState();
-    }
-  }, [modalDelete.id, modalDelete.nombre, showNotification, loadServicios, cleanupModalState]);
+    });
+  }, [modalDelete.id, modalDelete.nombre, showNotification, loadServicios, cleanupModalState, executeDelete]);
 
   const handleStatusChange = useCallback(async (row) => {
-  try {
-    const shouldActivate = row.estado !== "activo";
-    
-    if (!shouldActivate) {
-      const estadosQueBloquean = await ServicioData.getEstadosQueBloquean();
-      const citasResponse = await axios.get('/citas');
+    await executeStatusChange(async () => {
+      const shouldActivate = row.estado !== "activo";
       
-      // CORRECCIÓN: acceder a citasResponse.data.data (porque viene paginado)
-      const citasList = citasResponse.data.data || citasResponse.data || [];
-      
-      const citasQueBloquean = citasList.filter(cita => 
-        cita.servicio_id === row.id && estadosQueBloquean.includes(cita.estado_cita_id)
-      );
-      
-      if (citasQueBloquean.length > 0) {
-        const estadosUnicos = [...new Set(citasQueBloquean.map(c => c.estado_nombre))];
-        showNotification(
-          `No se puede desactivar "${row.nombre}" porque tiene ${citasQueBloquean.length} cita(s) en estado: ${estadosUnicos.join(' y ')}.`,
-          "error"
+      if (!shouldActivate) {
+        const estadosQueBloquean = await ServicioData.getEstadosQueBloquean();
+        const citasResponse = await axios.get('/citas');
+        const citasList = citasResponse.data.data || citasResponse.data || [];
+        
+        const citasQueBloquean = citasList.filter(cita => 
+          cita.servicio_id === row.id && estadosQueBloquean.includes(cita.estado_cita_id)
         );
-        return;
+        
+        if (citasQueBloquean.length > 0) {
+          const estadosUnicos = [...new Set(citasQueBloquean.map(c => c.estado_nombre))];
+          showNotification(
+            `No se puede desactivar "${row.nombre}" porque tiene ${citasQueBloquean.length} cita(s) en estado: ${estadosUnicos.join(' y ')}.`,
+            "error"
+          );
+          return;
+        }
       }
-    }
-    
-    // Asegurar que los números no sean null o undefined
-    const payload = {
-      nombre: row.nombre,
-      duracion_min: Number(row.duracion_min) || 0,
-      precio: Number(row.precio) || 0,
-      descripcion: row.descripcion || '',
-      estado: shouldActivate === true
-    };
-    
-    await ServicioData.updateServicio(row.id, payload);
-    await loadServicios();
-    showNotification(
-      `Servicio "${row.nombre}" ${shouldActivate ? 'activado' : 'desactivado'} exitosamente`,
-      "success"
-    );
-  } catch (err) {
-    console.error("Error en handleStatusChange:", err);
-    const errorMsg = err.response?.data?.error || err.message || "Error al cambiar el estado";
-    showNotification(errorMsg, "error");
-  }
-}, [showNotification, loadServicios]);
+      
+      const payload = {
+        nombre: row.nombre,
+        duracion_min: Number(row.duracion_min) || 0,
+        precio: Number(row.precio) || 0,
+        descripcion: row.descripcion || '',
+        estado: shouldActivate
+      };
+      
+      await ServicioData.updateServicio(row.id, payload);
+      await loadServicios();
+      showNotification(
+        `Servicio "${row.nombre}" ${shouldActivate ? 'activado' : 'desactivado'} exitosamente`,
+        "success"
+      );
+    });
+  }, [executeStatusChange, showNotification, loadServicios]);
 
   const handleOpenCreate = useCallback(() => {
     setModalForm({ open: true, mode: "create", title: "Crear Nuevo Servicio", initialData: null });
@@ -174,11 +184,6 @@ export const useServicios = () => {
 
   const handleOpenView = useCallback((item) => {
     setModalForm({ open: true, mode: "view", title: `Detalle de Servicio: ${item.nombre}`, initialData: item });
-    cleanupModalState();
-  }, [cleanupModalState]);
-
-  const handleCloseForm = useCallback(() => {
-    setModalForm({ open: false, mode: "create", title: "", initialData: null });
     cleanupModalState();
   }, [cleanupModalState]);
 
@@ -220,12 +225,22 @@ export const useServicios = () => {
   ];
 
   const handleModalConfirm = useCallback(() => {
+
+    if (clickLockRef.current) return; // 🔒 BLOQUEO
+
     if (modalForm.mode === "view") {
       handleCloseForm();
-    } else {
-      const formElement = document.getElementById("servicio-form");
-      formElement?.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+      return;
     }
+
+    if (submitButtonRef.current) {
+
+      clickLockRef.current = true; // 🔒 bloquea inmediatamente
+
+      submitButtonRef.current.click();
+
+    }
+
   }, [modalForm.mode, handleCloseForm]);
 
   return {
@@ -250,6 +265,7 @@ export const useServicios = () => {
     searchFilters,
     columns,
     tableActions,
-    handleModalConfirm
+    handleModalConfirm,
+    isSaving
   };
 };

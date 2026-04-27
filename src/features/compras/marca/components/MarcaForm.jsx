@@ -1,7 +1,6 @@
 import { FormHelperText, MenuItem, TextField, Box } from "@mui/material";
-import BaseInputField from "../../../../shared/components/base/BaseInputField";
+import { TextFieldAlphanumeric } from "@shared/index";
 import { useMarcaForm } from "../hooks/useMarcaForm";
-import { TextFieldAlphanumeric, TextFieldLetters } from "@shared/index";
 
 export default function MarcaForm({
   mode = "create",
@@ -31,7 +30,7 @@ export default function MarcaForm({
             name="nombre"
             value={formData.nombre}
             onChange={handleChange}
-            disabled={isView}
+            disabled={isView || submitting}
             placeholder="Ej: Ray-Ban, Oakley, etc."
             inputProps={{ maxLength: 50 }}
             fullWidth
@@ -60,7 +59,7 @@ export default function MarcaForm({
               name="estado"
               value={formData.estado ? "true" : "false"}
               onChange={handleChange}
-              disabled={isView}
+              disabled={isView || submitting}
               size="medium"
               variant="outlined"
             >

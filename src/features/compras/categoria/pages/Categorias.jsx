@@ -1,9 +1,10 @@
-import { useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRef, useState } from "react";
 import CrudLayout from "../../../../shared/components/crud/CrudLayout";
 import CrudTable from "../../../../shared/components/crud/CrudTable";
 import Modal from "../../../../shared/components/ui/Modal";
 import Loading from "../../../../shared/components/ui/Loading";
+import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
+import { useActionBlocker } from "@shared/hooks/useActionBlocker";
 import { useCategorias } from "../hooks/useCategorias";
 import { useCategoriaForm } from "../hooks/useCategoriaForm";
 import CategoriaForm from "../components/CategoriaForm";
@@ -11,9 +12,22 @@ import "../../../../shared/styles/components/crud-table.css";
 import "../../../../shared/styles/components/modal.css";
 
 export default function Categorias() {
-  const navigate = useNavigate();
   const submitButtonRef = useRef(null);
-  
+
+  const [notification, setNotification] = useState({
+    open: false,
+    message: "",
+    type: "success",
+  });
+
+  const showNotification = (message, type = "success") => {
+    setNotification({ open: true, message, type });
+  };
+
+  const closeNotification = () => {
+    setNotification((prev) => ({ ...prev, open: false }));
+  };
+
   const {
     categorias,
     loading,
@@ -35,9 +49,6 @@ export default function Categorias() {
     loadCategorias,
   } = useCategorias();
 
-  // ============================
-  // Configurar formulario según modo
-  // ============================
   const {
     formData,
     errors,
@@ -50,68 +61,78 @@ export default function Categorias() {
     mode: modalForm.mode,
     initialData: modalForm.initialData,
     onSubmitSuccess: () => {
-      closeFormModal();
       loadCategorias();
+      showNotification(
+        modalForm.mode === "create"
+          ? "Categoría creada exitosamente"
+          : "Categoría actualizada exitosamente",
+        "success"
+      );
     },
-    onError: (error) => {
-      alert(error);
+    onError: (errorMessage) => {
+      showNotification(errorMessage, "error");
     },
   });
 
-  // ============================
-  // Handlers de modales
-  // ============================
-  const handleFormSubmit = async (data) => {
-    const result = await handleSubmit();
-    if (result.success) {
-      closeFormModal();
-      loadCategorias();
-    }
+  const { execute: executeDelete } = useActionBlocker();
+  const { execute: executeStatusChange } = useActionBlocker();
+
+  const handleCloseFormModal = () => {
+    closeFormModal();
+    resetForm();
   };
 
   const handleModalConfirm = () => {
     if (modalForm.mode === "view") {
-      closeFormModal();
-    } else {
-      const formElement = document.getElementById("categoria-form");
-      if (formElement) {
-        formElement.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
-      }
+      handleCloseFormModal();
+      return;
     }
-  };
-
-  const handleDelete = (id, nombre) => {
-    openDeleteModal(id, nombre);
+    const formElement = document.getElementById("categoria-form");
+    if (formElement && !submitting) {
+      formElement.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+    }
   };
 
   const confirmDelete = async () => {
-    const result = await eliminarCategoria(modalDelete.id, modalDelete.nombre);
-    if (result.success) {
+    if (!modalDelete.id) {
+      showNotification("Error: No se pudo identificar la categoría a eliminar", "error");
       closeDeleteModal();
-    } else {
-      alert(result.error);
+      return;
     }
+    await executeDelete(async () => {
+      const result = await eliminarCategoria(modalDelete.id, modalDelete.nombre);
+      if (result.success) {
+        closeDeleteModal();
+        showNotification(`Categoría "${modalDelete.nombre}" eliminada correctamente`, "success");
+      } else {
+        showNotification(
+          result.error || `No se puede eliminar la categoría "${modalDelete.nombre}" porque está relacionada a un producto`,
+          "error"
+        );
+      }
+    });
   };
 
   const handleStatusChange = async (row) => {
-    const result = await cambiarEstado(row.id, row.estado);
-    if (!result.success) {
-      alert(result.error);
-    }
+    if (!row || !row.id) return;
+    await executeStatusChange(async () => {
+      const result = await cambiarEstado(row.id, row.estado);
+      if (result.success) {
+        const nuevoEstado = row.estado === "activa" ? "inactiva" : "activa";
+        showNotification(`Categoría "${row.nombre}" cambiada a ${nuevoEstado}`, "success");
+      } else {
+        showNotification(result.error || "Error al cambiar el estado", "error");
+      }
+    });
   };
 
-  // ============================
-  // Filtros y configuración
-  // ============================
   const searchFilters = [
-    { value: '', label: 'Todos' },
-    { value: 'activa', label: 'Activas' },
-    { value: 'inactiva', label: 'Inactivas' }
+    { value: "", label: "Todos" },
+    { value: "activa", label: "Activas" },
+    { value: "inactiva", label: "Inactivas" },
   ];
 
-  const columns = [
-    { field: "nombre", header: "Nombre" },
-  ];
+  const columns = [{ field: "nombre", header: "Nombre" }];
 
   const tableActions = [
     {
@@ -119,26 +140,23 @@ export default function Categorias() {
       type: "toggle-status",
       onClick: (item) => handleStatusChange(item),
     },
-    { 
-      label: "Ver Detalles", 
-      type: "view", 
-      onClick: (item) => openViewModal(item) 
+    {
+      label: "Ver Detalles",
+      type: "view",
+      onClick: (item) => openViewModal(item),
     },
-    { 
-      label: "Editar", 
-      type: "edit", 
-      onClick: (item) => openEditModal(item) 
+    {
+      label: "Editar",
+      type: "edit",
+      onClick: (item) => openEditModal(item),
     },
-    { 
-      label: "Eliminar", 
-      type: "delete", 
-      onClick: (item) => handleDelete(item.id, item.nombre) 
+    {
+      label: "Eliminar",
+      type: "delete",
+      onClick: (item) => openDeleteModal(item.id, item.nombre),
     },
   ];
 
-  // ============================
-  // Renderizado
-  // ============================
   if (loading && categorias.length === 0) {
     return (
       <CrudLayout
@@ -154,6 +172,14 @@ export default function Categorias() {
 
   return (
     <>
+      <CrudNotification
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.open}
+        onClose={closeNotification}
+        duration={5000}
+      />
+
       <CrudLayout
         title="Categorías de Productos"
         onAddClick={openCreateModal}
@@ -167,42 +193,43 @@ export default function Categorias() {
         searchPosition="left"
       >
         {error && (
-          <div style={{ 
-            padding: '16px', 
-            backgroundColor: '#ffebee', 
-            color: '#c62828', 
-            borderRadius: '4px', 
-            marginBottom: '16px' 
-          }}>
-            ⚠️ {error}
+          <div
+            style={{
+              padding: "16px",
+              backgroundColor: "#ffebee",
+              color: "#c62828",
+              borderRadius: "4px",
+              marginBottom: "16px",
+            }}
+          >
+            {error}
           </div>
         )}
 
-        <CrudTable 
-          columns={columns} 
-          data={categorias} 
+        <CrudTable
+          columns={columns}
+          data={categorias}
           actions={tableActions}
           onChangeStatus={handleStatusChange}
           emptyMessage={
-            search || filterEstado ? 
-              'No se encontraron categorías para los filtros aplicados' : 
-              'No hay categorías registradas'
+            search || filterEstado
+              ? "No se encontraron categorías para los filtros aplicados"
+              : "No hay categorías registradas"
           }
         />
 
         {categorias.length === 0 && !search && !filterEstado && !loading && (
-          <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
-            <button 
+          <div style={{ textAlign: "center", marginTop: "var(--spacing-lg)" }}>
+            <button
               onClick={openCreateModal}
               className="btn-primary"
-              style={{padding: 'var(--spacing-md) var(--spacing-lg)'}}
+              style={{ padding: "var(--spacing-md) var(--spacing-lg)" }}
             >
               Crear Primera Categoría
             </button>
           </div>
         )}
 
-        {/* Modal de Eliminación */}
         <Modal
           open={modalDelete.open}
           type="warning"
@@ -216,7 +243,6 @@ export default function Categorias() {
         />
       </CrudLayout>
 
-      {/* Modal de Formulario */}
       <Modal
         open={modalForm.open}
         type="info"
@@ -225,19 +251,15 @@ export default function Categorias() {
         cancelText="Cancelar"
         showCancel={modalForm.mode !== "view"}
         onConfirm={handleModalConfirm}
-        onCancel={closeFormModal}
+        onCancel={handleCloseFormModal}
         confirmButtonColor="#1a2540"
         confirmButtonHoverColor="#2d3a6b"
-
       >
         <CategoriaForm
           id="categoria-form"
           mode={modalForm.mode}
           initialData={modalForm.initialData}
-          onSubmit={handleFormSubmit}
-          onCancel={closeFormModal}
-          embedded={true}
-          buttonRef={submitButtonRef}
+          onCancel={handleCloseFormModal}
           formData={formData}
           errors={errors}
           nombreExists={nombreExists}

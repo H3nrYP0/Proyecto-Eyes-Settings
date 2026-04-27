@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { marcasService } from '../services/marcasService';
 import { normalizeMarcaForList, searchFilters, columns } from '../utils/marcasUtils';
+import { useActionBlocker } from '@shared/hooks/useActionBlocker';
 
 export function useMarcas() {
   const [marcas, setMarcas] = useState([]);
@@ -16,7 +17,6 @@ export function useMarcas() {
   });
   
   const submitButtonRef = useRef(null);
-  const isDeletingRef = useRef(false);
 
   const [modalForm, setModalForm] = useState({
     open: false,
@@ -30,6 +30,10 @@ export function useMarcas() {
     id: null,
     nombre: "",
   });
+
+  const { execute: executeDelete, isProcessing: isProcessingDelete } = useActionBlocker();
+  const { execute: executeStatusChange, isProcessing: isProcessingStatus } = useActionBlocker();
+  const { execute: executeSave, isProcessing: isProcessingSave } = useActionBlocker();
 
   const showNotification = useCallback((message, type = "success") => {
     setNotification({ isVisible: true, message, type });
@@ -49,6 +53,11 @@ export function useMarcas() {
     }, 300);
   }, []);
 
+  const handleCloseForm = useCallback(() => {
+    setModalForm({ open: false, mode: "create", title: "", initialData: null });
+    limpiarAriaHidden();
+  }, [limpiarAriaHidden]);
+
   const loadMarcas = useCallback(async () => {
     try {
       setLoading(true);
@@ -56,7 +65,7 @@ export function useMarcas() {
       const marcasTransformadas = data.map(marca => normalizeMarcaForList(marca));
       setMarcas(marcasTransformadas);
       setError(null);
-    } catch (err) {
+    } catch {
       setError("No se pudieron cargar las marcas");
       showNotification("Error al cargar las marcas", "error");
     } finally {
@@ -65,34 +74,25 @@ export function useMarcas() {
   }, [showNotification]);
 
   const handleFormSubmit = useCallback(async (data) => {
-    if (submitButtonRef.current?.disabled) {
-      return;
-    }
-    
-    try {
-      if (submitButtonRef.current) {
-        submitButtonRef.current.disabled = true;
-      }
+    await executeSave(async () => {
+      let success = false;
       
       if (modalForm.mode === "create") {
         await marcasService.createMarca(data);
+        success = true;
         showNotification("Marca creada exitosamente", "success");
       } else if (modalForm.mode === "edit") {
         await marcasService.updateMarca(modalForm.initialData.id, data);
+        success = true;
         showNotification("Marca actualizada exitosamente", "success");
       }
       
-      handleCloseForm();
-      await loadMarcas();
-    } catch (error) {
-      console.error("Error en handleFormSubmit:", error);
-      showNotification(error.response?.data?.message || "Error al guardar la marca", "error");
-    } finally {
-      if (submitButtonRef.current) {
-        submitButtonRef.current.disabled = false;
+      if (success) {
+        handleCloseForm();
+        await loadMarcas();
       }
-    }
-  }, [modalForm.mode, modalForm.initialData, showNotification, loadMarcas]);
+    });
+  }, [modalForm.mode, modalForm.initialData, showNotification, loadMarcas, executeSave, handleCloseForm]);
 
   const handleDelete = useCallback((id, nombre) => {
     if (!id) {
@@ -103,20 +103,14 @@ export function useMarcas() {
   }, [showNotification]);
 
   const confirmDelete = useCallback(async () => {
-    if (isDeletingRef.current) {
-      return;
-    }
-    
-    if (!modalDelete.id) {
-      showNotification("Error: No se pudo identificar la marca a eliminar", "error");
-      setModalDelete({ open: false, id: null, nombre: "" });
-      limpiarAriaHidden();
-      return;
-    }
+    await executeDelete(async () => {
+      if (!modalDelete.id) {
+        showNotification("Error: No se pudo identificar la marca a eliminar", "error");
+        setModalDelete({ open: false, id: null, nombre: "" });
+        limpiarAriaHidden();
+        return;
+      }
 
-    isDeletingRef.current = true;
-
-    try {
       const tieneProductos = await marcasService.hasMarcaProductosAsociados(modalDelete.id);
       
       if (tieneProductos) {
@@ -126,7 +120,6 @@ export function useMarcas() {
         );
         setModalDelete({ open: false, id: null, nombre: "" });
         limpiarAriaHidden();
-        isDeletingRef.current = false;
         return;
       }
       
@@ -138,27 +131,16 @@ export function useMarcas() {
       await loadMarcas();
       
       showNotification(`Marca "${modalDelete.nombre}" eliminada exitosamente`, "success");
-    } catch (err) {
-      if (err.response?.status === 404) {
-        setModalDelete({ open: false, id: null, nombre: "" });
-        limpiarAriaHidden();
-        await loadMarcas();
-        showNotification(`La marca "${modalDelete.nombre}" ya no existe en el sistema`, "info");
-      } else {
-        showNotification("Error al eliminar la marca", "error");
-      }
-    } finally {
-      isDeletingRef.current = false;
-    }
-  }, [modalDelete.id, modalDelete.nombre, showNotification, loadMarcas, limpiarAriaHidden]);
+    });
+  }, [modalDelete.id, modalDelete.nombre, showNotification, loadMarcas, limpiarAriaHidden, executeDelete]);
 
   const handleStatusChange = useCallback(async (row, newStatus) => {
-    try {
+    await executeStatusChange(async () => {
       const estadoFinal = newStatus !== undefined 
         ? newStatus 
         : (row.estado === "activa" ? "inactiva" : "activa");
 
-      await marcasService.toggleMarcaEstado(row.id, estadoFinal === "activa" );
+      await marcasService.toggleMarcaEstado(row.id, estadoFinal === "activa");
       await loadMarcas();
       
       const mensaje = estadoFinal === "activa" 
@@ -166,10 +148,8 @@ export function useMarcas() {
         : `Marca "${row.nombre}" desactivada exitosamente`;
       
       showNotification(mensaje, "success");
-    } catch (err) {
-      showNotification("Error al cambiar el estado de la marca", "error");
-    }
-  }, [showNotification, loadMarcas]);
+    });
+  }, [showNotification, loadMarcas, executeStatusChange]);
 
   const handleOpenCreate = useCallback(() => {
     setModalForm({ open: true, mode: "create", title: "Crear Nueva Marca", initialData: null });
@@ -194,11 +174,6 @@ export function useMarcas() {
     limpiarAriaHidden();
   }, [limpiarAriaHidden, showNotification]);
 
-  const handleCloseForm = useCallback(() => {
-    setModalForm({ open: false, mode: "create", title: "", initialData: null });
-    limpiarAriaHidden();
-  }, [limpiarAriaHidden]);
-
   const handleCancelDelete = useCallback(() => {
     setModalDelete({ open: false, id: null, nombre: "" });
     limpiarAriaHidden();
@@ -207,17 +182,12 @@ export function useMarcas() {
   const handleModalConfirm = useCallback(() => {
     if (modalForm.mode === "view") {
       handleCloseForm();
-    } else {
-      const formElement = document.getElementById("marca-form");
-      if (formElement) {
-        if (typeof formElement.requestSubmit === 'function') {
-          formElement.requestSubmit();
-        } else {
-          formElement.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
-        }
-      }
+      return;
     }
-  }, [modalForm.mode, handleCloseForm]);
+    if (submitButtonRef.current && !isProcessingSave()) {
+      submitButtonRef.current.click();
+    }
+  }, [modalForm.mode, handleCloseForm, submitButtonRef, isProcessingSave]);
 
   const filteredMarcas = useMemo(() => {
     return marcas.filter((marca) => {
@@ -279,6 +249,7 @@ export function useMarcas() {
     modalForm,
     modalDelete,
     submitButtonRef,
+    isProcessingSave,
     setSearch,
     setFilterEstado,
     loadMarcas,
