@@ -7,7 +7,6 @@ import api from '@lib/axios';
 // Obtiene todos los usuarios administrativos
 export const getAllUsers = async () => {
   try {
-    
     const res = await api.get('/admin/usuarios');
     return res.data;
   } catch (error) {
@@ -131,6 +130,7 @@ export const updateEstadoUser = async (id, nuevoEstado) => {
 // PERFIL DEL USUARIO AUTENTICADO (cualquier usuario)
 // ============================================================
 
+// Obtiene el perfil del usuario autenticado
 export const getMiPerfil = async () => {
   try {
     const res = await api.get('/usuario/perfil');
@@ -141,6 +141,7 @@ export const getMiPerfil = async () => {
   }
 };
 
+// Cambia la contraseña del usuario autenticado
 export const cambiarMiContrasenia = async (data) => {
   try {
     const res = await api.post('/usuario/cambiar-contrasenia', {
