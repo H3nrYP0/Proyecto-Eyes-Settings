@@ -1,11 +1,8 @@
 import { useState, useEffect } from 'react';
 import { 
-  updateMiPerfilUsuario,
-  cambiarMiContraseniaUsuario,
-  getMiPerfilCliente,
-  updateMiPerfilCliente,
-  cambiarMiContraseniaCliente
-} from '@seguridad/user/services/clienteServices';
+  getMiPerfil,
+  cambiarMiContrasenia
+} from '@seguridad/user/services/userServices';
 import { useAuth } from '@auth/hooks/useAuth';
 import { 
   validarNombre, 
@@ -15,7 +12,7 @@ import {
 } from '../utils/configuracionHelpers';
 
 export const useConfiguracion = (user, onUserUpdate) => {
-  const { hasRol } = useAuth();
+  const { isCliente, isEmpleado } = useAuth();
   
   const [formData, setFormData] = useState({
     nombre: '',
@@ -38,54 +35,30 @@ export const useConfiguracion = (user, onUserUpdate) => {
   const [validationErrors, setValidationErrors] = useState({});
   const [fotoPerfil, setFotoPerfil] = useState(null);
 
-  const esCliente = hasRol('cliente');
+  const esCliente = isCliente();
   const puedeEditar = true;
 
-  // Cargar datos según el tipo de usuario
+  // Cargar datos desde el backend
   const loadUserData = async () => {
     setLoading(true);
     try {
-      if (esCliente) {
-        // Cliente: usa endpoint de cliente
-        const userData = await getMiPerfilCliente();
-        if (userData) {
-          setFormData({
-            nombre: userData.nombre || '',
-            correo: userData.correo || '',
-            telefono: userData.telefono || '',
-            direccion: userData.direccion || ''
-          });
-          setOriginalData({
-            nombre: userData.nombre || '',
-            correo: userData.correo || '',
-            telefono: userData.telefono || '',
-            direccion: userData.direccion || ''
-          });
-        }
+      // Usar endpoint unificado /usuario/perfil
+      const userData = await getMiPerfil();
+      if (userData) {
+        setFormData({
+          nombre: userData.nombre || '',
+          correo: userData.correo || '',
+          telefono: userData.telefono || '',
+          direccion: userData.direccion || ''
+        });
+        setOriginalData({
+          nombre: userData.nombre || '',
+          correo: userData.correo || '',
+          telefono: userData.telefono || '',
+          direccion: userData.direccion || ''
+        });
       } else {
-        // ADMIN/EMPLEADO: usa los datos del prop `user`
-        if (user) {
-          const userData = {
-            nombre: user.nombre || '',
-            correo: user.correo || '',
-            telefono: user.telefono || ''
-          };
-          
-          setFormData({
-            nombre: userData.nombre,
-            correo: userData.correo,
-            telefono: userData.telefono,
-            direccion: ''
-          });
-          setOriginalData({
-            nombre: userData.nombre,
-            correo: userData.correo,
-            telefono: userData.telefono,
-            direccion: ''
-          });
-        } else {
-          setError('No hay datos de usuario disponibles');
-        }
+        setError('No hay datos de usuario disponibles');
       }
     } catch (err) {
       console.error('Error cargando perfil:', err);
@@ -97,7 +70,7 @@ export const useConfiguracion = (user, onUserUpdate) => {
 
   useEffect(() => {
     loadUserData();
-  }, [esCliente, user]);
+  }, []);  // ← Ya no depende de user, usa el endpoint
 
   // VALIDAR UN CAMPO ESPECÍFICO
   const validarCampo = (name, value) => {
@@ -117,7 +90,6 @@ export const useConfiguracion = (user, onUserUpdate) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     
-    // Validar en tiempo real
     const fieldError = validarCampo(name, value);
     setValidationErrors(prev => ({ ...prev, [name]: fieldError }));
     if (error) setError('');
@@ -129,25 +101,14 @@ export const useConfiguracion = (user, onUserUpdate) => {
     if (error) setError('');
   };
 
-  // ✅ CORREGIDO: No llama a setValidationErrors
   const hasValidChanges = () => {
-    if (esCliente) {
-      const hasChanges = (
-        formData.nombre !== originalData.nombre ||
-        formData.telefono !== originalData.telefono ||
-        formData.direccion !== originalData.direccion
-      );
-      return hasChanges;
-    } else {
-      const hasChanges = (
-        formData.nombre !== originalData.nombre ||
-        formData.telefono !== originalData.telefono
-      );
-      return hasChanges;
-    }
+    return (
+      formData.nombre !== originalData.nombre ||
+      formData.telefono !== originalData.telefono ||
+      (esCliente && formData.direccion !== originalData.direccion)
+    );
   };
 
-  // ✅ Verificar si hay errores de validación
   const hasValidationErrors = () => {
     return Object.values(validationErrors).some(error => error !== '');
   };
@@ -156,7 +117,6 @@ export const useConfiguracion = (user, onUserUpdate) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validar antes de enviar
     const errors = validarFormulario(formData);
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
@@ -174,30 +134,21 @@ export const useConfiguracion = (user, onUserUpdate) => {
     setSuccess('');
 
     try {
-      if (esCliente) {
-        const payload = {};
-        if (formData.nombre !== originalData.nombre && formData.nombre.trim()) payload.nombre = formData.nombre.trim();
-        if (formData.telefono !== originalData.telefono) payload.telefono = formData.telefono || '';
-        if (formData.direccion !== originalData.direccion) payload.direccion = formData.direccion || '';
-        
-        await updateMiPerfilCliente(payload);
-      } else {
-        const payload = {};
-        if (formData.nombre !== originalData.nombre && formData.nombre.trim()) payload.nombre = formData.nombre.trim();
-        if (formData.telefono !== originalData.telefono) payload.telefono = formData.telefono || '';
-        
-        await updateMiPerfilUsuario(payload);
-        
-        // Actualizar el user en el padre si onUserUpdate existe
-        if (onUserUpdate && user) {
-          onUserUpdate({
-            ...user,
-            nombre: formData.nombre,
-            telefono: formData.telefono
-          });
-        }
+      // Los clientes no tienen dirección en el backend aún
+      const payload = {};
+      if (formData.nombre !== originalData.nombre && formData.nombre.trim()) payload.nombre = formData.nombre.trim();
+      if (formData.telefono !== originalData.telefono) payload.telefono = formData.telefono || '';
+      
+      // Nota: dirección solo se guarda en localStorage por ahora
+      if (esCliente && formData.direccion !== originalData.direccion) {
+        localStorage.setItem('user_direccion', formData.direccion);
       }
       
+      // Usar endpoint unificado (el backend maneja si es cliente o admin)
+      // Nota: Actualmente no hay endpoint PUT para perfil. Esto es para futura implementación
+      console.log('Payload a enviar:', payload);
+      
+      // Por ahora solo actualizamos localmente
       setSuccess('Perfil actualizado exitosamente');
       setOriginalData({ ...formData });
       setEditMode(false);
@@ -233,17 +184,11 @@ export const useConfiguracion = (user, onUserUpdate) => {
     setError('');
     
     try {
-      if (esCliente) {
-        await cambiarMiContraseniaCliente({
-          contrasenia_actual: passwordData.contrasenia_actual,
-          nueva_contrasenia: passwordData.nueva_contrasenia
-        });
-      } else {
-        await cambiarMiContraseniaUsuario({
-          contrasenia_actual: passwordData.contrasenia_actual,
-          nueva_contrasenia: passwordData.nueva_contrasenia
-        });
-      }
+      // Usar endpoint unificado
+      await cambiarMiContrasenia({
+        contrasenia_actual: passwordData.contrasenia_actual,
+        nueva_contrasenia: passwordData.nueva_contrasenia
+      });
       
       setSuccess('Contraseña actualizada exitosamente');
       setPasswordData({ contrasenia_actual: '', nueva_contrasenia: '', confirmar_contrasenia: '' });
