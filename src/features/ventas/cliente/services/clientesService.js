@@ -33,7 +33,10 @@ export const clientesService = {
     };
   },
 
-  // ── GET — rutas públicas (sin JWT) ────────────────────────────────
+  // ============================================================
+  // RUTAS PÚBLICAS (solo lectura, sin token)
+  // ============================================================
+  
   async getAllClientes() {
     try {
       const response = await api.get("/clientes");
@@ -54,7 +57,10 @@ export const clientesService = {
     }
   },
 
-  // ── POST — ruta admin (JWT + permiso 'clientes') ──────────────────
+  // ============================================================
+  // RUTAS ADMIN (requieren token + permiso 'clientes')
+  // ============================================================
+
   async createCliente(data) {
     try {
       const payload = {
@@ -75,6 +81,7 @@ export const clientesService = {
         telefono_emergencia: "",
         estado:              true,
       };
+      // CRÍTICO: Usar /admin/clientes
       const response = await api.post("/admin/clientes", payload);
       return this._toUI(response.data.cliente || response.data);
     } catch (error) {
@@ -83,8 +90,6 @@ export const clientesService = {
     }
   },
 
-  // ── PUT — ruta admin (JWT + permiso 'clientes') ───────────────────
-  // Única ruta que actualiza el campo 'estado'
   async updateCliente(id, data) {
     try {
       const payload = {
@@ -101,8 +106,9 @@ export const clientesService = {
         barrio:           data.barrio       || "",
         codigo_postal:    data.codigoPostal || "",
         direccion:        data.direccion    || "",
-        estado:           data.estado === "activo",  // booleano al backend
+        estado:           data.estado === "activo",
       };
+
       const response = await api.put(`/admin/clientes/${id}`, payload);
       return this._toUI(response.data.cliente || response.data);
     } catch (error) {
@@ -111,9 +117,9 @@ export const clientesService = {
     }
   },
 
-  // ── DELETE — ruta admin (JWT + permiso 'clientes') ────────────────
   async deleteCliente(id) {
     try {
+
       await api.delete(`/admin/clientes/${id}`);
       return true;
     } catch (error) {
@@ -122,12 +128,12 @@ export const clientesService = {
     }
   },
 
-  // ── Toggle estado — ruta admin (JWT + permiso 'clientes') ─────────
   async updateEstadoCliente(id, nuevoEstado) {
     try {
       const estadoBool = typeof nuevoEstado === "string"
         ? nuevoEstado === "activo"
         : Boolean(nuevoEstado);
+      // CRÍTICO: Usar /admin/clientes
       const response = await api.put(`/admin/clientes/${id}`, { estado: estadoBool });
       return this._toUI(response.data.cliente || response.data);
     } catch (error) {
@@ -136,7 +142,10 @@ export const clientesService = {
     }
   },
 
-  // ── Historial (JWT + permiso 'clientes') ──────────────────────────
+  // ============================================================
+  // HISTORIAL (requiere token + permiso 'clientes')
+  // ============================================================
+
   async getHistorialByCliente(clienteId) {
     try {
       const response = await api.get(`/admin/clientes/${clienteId}/historial`);
