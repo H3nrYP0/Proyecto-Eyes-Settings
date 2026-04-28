@@ -31,15 +31,24 @@ const authServices = {
   },
 
   // ============================================================
-  // REGISTRO (Paso 2: verificar código y crear cuenta)
+  // REGISTRO (verificar código y crear cuenta)
   // ============================================================
   async verifyRegisterCode(correo, codigo) {
     const response = await api.post("/auth/verify-register", { correo, codigo });
+    const { token, usuario } = response.data;
+    
+    // Guardar token y usuario después del registro exitoso
+    if (token && usuario) {
+      const storage = sessionStorage; // Por defecto, sesión temporal
+      storage.setItem("token", token);
+      storage.setItem("user", JSON.stringify(usuario));
+    }
+    
     return response.data;
   },
 
   // ============================================================
-  // RECUPERACIÓN (Paso 1: enviar código)
+  // RECUPERACIÓN (enviar código)
   // ============================================================
   async sendForgotPasswordCode(correo) {
     const response = await api.post("/auth/forgot-password", { correo });
@@ -47,7 +56,7 @@ const authServices = {
   },
 
   // ============================================================
-  // RECUPERACIÓN (Paso 2: resetear contraseña)
+  // RECUPERACIÓN (resetear contraseña)
   // ============================================================
   async resetPassword(correo, codigo, nueva_contrasenia) {
     const response = await api.post("/auth/reset-password", {
@@ -69,13 +78,11 @@ const authServices = {
       const response = await api.get("/auth/me");
       const { usuario } = response.data;
       
-      // Actualizar usuario en el mismo storage donde está el token
       const storage = localStorage.getItem("token") ? localStorage : sessionStorage;
       storage.setItem("user", JSON.stringify(usuario));
       
       return usuario;
     } catch (error) {
-      // Token inválido o expirado
       this.logout();
       return null;
     }
@@ -109,6 +116,18 @@ const authServices = {
 
   isAuthenticated() {
     return !!(localStorage.getItem("token") || sessionStorage.getItem("token"));
+  },
+
+  // Verificar si es cliente
+  isCliente() {
+    const user = this.getUser();
+    return user?.es_cliente === true;
+  },
+
+  // Verificar si es empleado admin
+  isEmpleado() {
+    const user = this.getUser();
+    return user?.es_cliente === false && user?.rol !== null;
   },
 
   hasPermission(usuario, permiso) {
