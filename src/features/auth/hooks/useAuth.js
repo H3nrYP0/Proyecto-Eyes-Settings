@@ -3,8 +3,28 @@ import authServices from '@auth/services/authServices';
 export const useAuth = () => {
   const user = authServices.getUser();
 
-  const isAdmin = () =>
-    user?.rol === 'admin' || user?.rol === 'superadmin';
+  // ============================================================
+  // TIPOS DE USUARIO 
+  // ============================================================
+  
+  // Cliente registrado desde landing
+  const isCliente = () => {
+    return user?.es_cliente === true;
+  };
+
+  // Empleado administrativo (tiene rol)
+  const isEmpleado = () => {
+    return user?.es_cliente === false && user?.rol !== null;
+  };
+
+  // Admin (rol específico)
+  const isAdmin = () => {
+    return user?.rol === 'admin' || user?.rol === 'Admin';
+  };
+
+  // ============================================================
+  // PERMISOS 
+  // ============================================================
 
   const hasPermiso = (permiso) =>
     authServices.hasPermission(user, permiso);
@@ -12,9 +32,8 @@ export const useAuth = () => {
   const hasRol = (rol) =>
     authServices.hasRole(user, rol);
 
-  // ✅ NUEVA FUNCIÓN: Verificar permisos CRUD para un módulo
+  // Permisos CRUD para un módulo
   const hasPermisoCRUD = (modulo) => {
-    // Admin tiene todos los permisos
     if (isAdmin()) {
       return { 
         crear: true, 
@@ -24,7 +43,6 @@ export const useAuth = () => {
       };
     }
     
-    // Si no hay usuario o no tiene permisos
     if (!user?.permisos || !Array.isArray(user.permisos)) {
       return { 
         crear: false, 
@@ -34,7 +52,6 @@ export const useAuth = () => {
       };
     }
     
-    // Buscar el permiso del módulo específico
     const permisoModulo = user.permisos.find(p => p.modulo === modulo);
     
     if (!permisoModulo) {
@@ -46,7 +63,6 @@ export const useAuth = () => {
       };
     }
     
-    // Retornar los permisos CRUD del módulo
     return {
       crear: permisoModulo.crear || false,
       leer: permisoModulo.leer || false,
@@ -55,18 +71,23 @@ export const useAuth = () => {
     };
   };
 
-  // ✅ FUNCIÓN AUXILIAR: Verificar si tiene un permiso específico de CRUD
   const can = (modulo, accion) => {
     const permisos = hasPermisoCRUD(modulo);
     return permisos[accion] || false;
   };
 
+  // ============================================================
+  // RETORNAR
+  // ============================================================
+
   return {
     user,
     isAdmin,
+    isCliente,      
+    isEmpleado,     
     hasPermiso,
     hasRol,
-    hasPermisoCRUD,  // ← EXPORTAR NUEVA FUNCIÓN
-    can              // ← EXPORTAR FUNCIÓN AUXILIAR
+    hasPermisoCRUD,
+    can
   };
 };
