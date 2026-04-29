@@ -15,7 +15,7 @@ import {
 // Obtiene todos los usuarios
 export const getAllUsers = async () => {
   try {
-    const res = await api.get('/usuarios');
+    const res = await api.get('/admin/usuarios');
     return res.data;
   } catch (error) {
     console.error('Error en getAllUsers:', error);
