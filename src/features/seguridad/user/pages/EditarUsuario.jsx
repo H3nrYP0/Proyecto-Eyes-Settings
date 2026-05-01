@@ -5,9 +5,10 @@ import UsuarioForm      from "../components/UserForm";
 import Loading          from "@shared/components/ui/Loading";
 import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 
-import { updateUser, buildUpdatePayload } from "@seguridad";
-import { useUser }     from "../hooks/useUsuario";
-import { useUserForm } from "../hooks/useUserForm";
+import { updateUser }        from "../services/userServices";
+import { buildUpdatePayload } from "../utils/userNormalizer";
+import { useUsuario }        from "../hooks/useUsuario";
+import { useUserForm }       from "../hooks/useUserForm";
 
 export default function EditarUsuario() {
   const { id } = useParams();
@@ -21,7 +22,8 @@ export default function EditarUsuario() {
   const handleCloseNotification = () =>
     setNotification((prev) => ({ ...prev, isVisible: false }));
 
-  const { user, roles, loading } = useUser(id);
+  // useUsuario — datos del usuario + roles en una sola query cacheada
+  const { user, roles, loading } = useUsuario(id);
 
   const {
     formData, errors, isSubmitting, setIsSubmitting,
@@ -29,6 +31,7 @@ export default function EditarUsuario() {
     validate, setFieldError, setFormData,
   } = useUserForm(user, "edit");
 
+  // Sincronizar formData cuando lleguen los datos del servidor
   useEffect(() => {
     if (user) setFormData(user);
   }, [user]);

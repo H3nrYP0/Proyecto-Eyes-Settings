@@ -1,45 +1,24 @@
-import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import UsuarioForm from "../components/UserForm";
 import Loading     from "@shared/components/ui/Loading";
 
-import { getUserById, getAllRoles, normalizeUserInitialData } from "@seguridad";
+import { useUsuario } from "../hooks/useUsuario"; // query cacheada, sin useState/useEffect
 
 export default function DetalleUsuario() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [usuario, setUsuario] = useState(null);
-  const [roles, setRoles] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadData();
-  }, [id]);
-
-  const loadData = async () => {
-    try {
-      const [data, rolesData] = await Promise.all([
-        getUserById(id),
-        getAllRoles(),
-      ]);
-      // normalizeUserInitialData convierte correo→email, rol_id→rol, etc.
-      setUsuario(normalizeUserInitialData(data));
-      setRoles(rolesData);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Misma query key que EditarUsuario → si ya cargó antes, no vuelve a pedir al servidor
+  const { user, roles, loading } = useUsuario(id);
 
   if (loading) return <Loading message="Cargando..." />;
 
   return (
     <UsuarioForm
       mode="view"
-      title={`Detalle: ${usuario?.nombre}`}
-      initialData={usuario}
+      title={`Detalle: ${user?.nombre}`}
+      initialData={user}
       rolesDisponibles={roles}
       onCancel={() => navigate("/admin/seguridad/usuarios")}
       onEdit={() => navigate(`/admin/seguridad/usuarios/editar/${id}`)}
