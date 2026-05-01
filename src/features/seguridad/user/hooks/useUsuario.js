@@ -1,43 +1,31 @@
-import { useState, useEffect } from 'react';
-import { getUserById } from '../services/userServices';
-import { getAllRoles } from '@seguridad/roles/services/rolServices';
-import { normalizeUserInitialData } from '../utils/userNormalizer';
+import { useQuery } from '@tanstack/react-query';
+import { getUserById, getAllRoles, normalizeUserInitialData } from '@seguridad'
 
-export const useUser = (id) => {
-  const [user, setUser] = useState(null);
-  const [roles, setRoles] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+export const useUsuario = (id) => {
+  const { 
+    data, 
+    isLoading, 
+    error 
+  } = useQuery({
+    queryKey: ['user', id],
+    queryFn: async () => {
+      const [userData, rolesData] = await Promise.all([
+        getUserById(id),
+        getAllRoles(),
+      ]);
+      return {
+        user: normalizeUserInitialData(userData),
+        roles: rolesData,
+      };
+    },
+    enabled: !!id, // Solo ejecuta si hay id
+    staleTime: 5 * 60 * 1000,
+  });
 
-  useEffect(() => {
-    const loadData = async () => {
-      if (!id) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const [data, rolesData] = await Promise.all([
-          getUserById(id),
-          getAllRoles(),
-        ]);
-        
-        const normalizedUser = normalizeUserInitialData(data);
-        setUser(normalizedUser);
-        setRoles(rolesData);
-      } catch (err) {
-        console.error('Error al cargar usuario:', err);
-        setError(err.message || 'Error al cargar usuario');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, [id]);
-
-  return { user, roles, loading, error };
+  return {
+    user: data?.user || null,
+    roles: data?.roles || [],
+    loading: isLoading,
+    error,
+  };
 };
