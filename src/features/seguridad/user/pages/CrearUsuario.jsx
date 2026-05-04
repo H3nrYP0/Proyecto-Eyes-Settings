@@ -1,17 +1,18 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUserForm } from "../hooks/useUserForm";
-import { createUser } from "../services/userServices";
-import { getAllRoles } from "@seguridad/roles/services/rolServices";
+import { useQuery } from "@tanstack/react-query";
+
+import { useUserForm }      from "../hooks/useUserForm";
+import { createUser }       from "../services/userServices";
+import { getAllRoles }       from "@seguridad/roles/services/rolServices";
 import { buildCreatePayload } from "../utils/userNormalizer";
+
 import Loading          from "@shared/components/ui/Loading";
 import UserForm         from "../components/UserForm";
 import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 
-export default function CrearUser() {
+export default function CrearUsuario() {
   const navigate = useNavigate();
-  const [roles, setRoles]   = useState([]);
-  const [loading, setLoading] = useState(true);
 
   const [notification, setNotification] = useState({
     isVisible: false, message: "", type: "success",
@@ -21,25 +22,18 @@ export default function CrearUser() {
   const handleCloseNotification = () =>
     setNotification((prev) => ({ ...prev, isVisible: false }));
 
+  // React Query — roles cacheados, no se recargan en cada visita
+  const { data: roles = [], isLoading } = useQuery({
+    queryKey: ["roles"],
+    queryFn: getAllRoles,
+    staleTime: 1000 * 60 * 10, // 10 min — los roles cambian poco
+  });
+
   const {
     formData, errors, isSubmitting, setIsSubmitting,
     handleChange, handleTelefonoChange, handleNumeroDocumentoChange,
     validate, setFieldError,
   } = useUserForm(null, "create");
-
-  useEffect(() => {
-    const loadRoles = async () => {
-      try {
-        const rolesData = await getAllRoles();
-        setRoles(rolesData);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadRoles();
-  }, []);
 
   const handleSubmit = async () => {
     if (!validate()) return;
@@ -48,7 +42,6 @@ export default function CrearUser() {
     try {
       const payload = buildCreatePayload(formData);
       await createUser(payload);
-      // Guardamos el mensaje en sessionStorage para mostrarlo en GestionUsuarios
       sessionStorage.setItem(
         "crudNotification",
         JSON.stringify({ message: `Usuario "${formData.nombre}" creado correctamente`, type: "success" })
@@ -68,7 +61,7 @@ export default function CrearUser() {
     }
   };
 
-  if (loading) return <Loading message="Cargando roles..." />;
+  if (isLoading) return <Loading message="Cargando roles..." />;
 
   return (
     <>

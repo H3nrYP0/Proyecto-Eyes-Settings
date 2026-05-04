@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import CrudLayout       from "@shared/components/crud/CrudLayout";
 import CrudTable        from "@shared/components/crud/CrudTable";
@@ -8,19 +9,20 @@ import Loading          from "@shared/components/ui/Loading";
 import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 
 import {
-  getAllUsers, deleteUser, updateEstadoUser,
-  getAllRoles, normalizeUsers, filtrarUsuarios,
+  getAllUsers,
+  deleteUser,
+  updateEstadoUser,
+  getAllRoles,
+  normalizeUsers,
+  filtrarUsuarios,
 } from "@seguridad";
 
 export default function GestionUsuarios() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const [users, setUsers]               = useState([]);
-  const [roles, setRoles]               = useState([]);
   const [search, setSearch]             = useState("");
   const [filterStatus, setFilterStatus] = useState("");
-  const [loading, setLoading]           = useState(true);
-  const [error, setError]               = useState(null);
   const [deleteModal, setDeleteModal]   = useState({ open: false, id: null, name: "" });
 
   const [notification, setNotification] = useState({
@@ -33,7 +35,38 @@ export default function GestionUsuarios() {
   const handleCloseNotification = () =>
     setNotification((prev) => ({ ...prev, isVisible: false }));
 
-  // Lee notificaciones pendientes dejadas por Crear / Editar
+  // React Query (reemplaza loadUsers)
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["usuarios"],
+    queryFn: async () => {
+      const [data, rolesData] = await Promise.all([
+        getAllUsers(),
+        getAllRoles()
+      ]);
+
+      return {
+        users: normalizeUsers(data),
+        roles: rolesData
+      };
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const users = data?.users || [];
+  const roles = data?.roles || [];
+
+  // Filtrar usuarios para excluir los que tienen rol "Cliente"
+  const clienteRoleId = useMemo(() => {
+    const clienteRole = roles.find(rol => rol.nombre?.toLowerCase() === "cliente");
+    return clienteRole?.id;
+  }, [roles]);
+
+  const usuariosSinClientes = useMemo(() => {
+    if (!clienteRoleId) return users;
+    return users.filter(user => user.rol_id !== clienteRoleId);
+  }, [users, clienteRoleId]);
+
+  // Leer notificaciones persistidas
   useEffect(() => {
     const pending = sessionStorage.getItem("crudNotification");
     if (pending) {
@@ -43,22 +76,38 @@ export default function GestionUsuarios() {
     }
   }, []);
 
-  useEffect(() => { loadUsers(); }, []);
+  const deleteMutation = useMutation({
+    mutationFn: deleteUser,
+    onSuccess: (_, id) => {
+      queryClient.setQueryData(["usuarios"], (old) => {
+        if (!old) return old;
 
-  const loadUsers = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const [data, rolesData] = await Promise.all([getAllUsers(), getAllRoles()]);
-      setUsers(normalizeUsers(data));
-      setRoles(rolesData);
-    } catch (err) {
-      const msg = err?.response?.data?.error || "No se pudieron cargar los usuarios";
-      setError(msg);
-    } finally {
-      setLoading(false);
+        return {
+          ...old,
+          users: old.users.filter(u => u.id !== id)
+        };
+      });
     }
-  };
+  });
+
+  // cambiar estado
+  const estadoMutation = useMutation({
+    mutationFn: ({ id, estado }) => updateEstadoUser(id, estado),
+    onSuccess: (_, variables) => {
+      queryClient.setQueryData(["usuarios"], (old) => {
+        if (!old) return old;
+
+        return {
+          ...old,
+          users: old.users.map(u =>
+            u.id === variables.id
+              ? { ...u, estado: variables.estado === "activo" }
+              : u
+          )
+        };
+      });
+    }
+  });
 
   const handleDelete = (id, name) =>
     setDeleteModal({ open: true, id, name });
@@ -66,9 +115,9 @@ export default function GestionUsuarios() {
   const confirmDelete = async () => {
     const name = deleteModal.name;
     try {
-      await deleteUser(deleteModal.id);
+      await deleteMutation.mutateAsync(deleteModal.id);
+
       setDeleteModal({ open: false, id: null, name: "" });
-      await loadUsers();
       showNotification(`Usuario "${name}" eliminado correctamente`);
     } catch (err) {
       const msg = err?.response?.data?.error || err?.message || "Error al eliminar usuario";
@@ -79,12 +128,17 @@ export default function GestionUsuarios() {
 
   const handleChangeStatus = async (row, nuevoEstado) => {
     try {
-      await updateEstadoUser(row.id, nuevoEstado);
-      await loadUsers();
+      await estadoMutation.mutateAsync({
+        id: row.id,
+        estado: nuevoEstado
+      });
+
       const label = nuevoEstado === "activo" ? "activado" : "desactivado";
+
       const nombreCompleto = row.nombres && row.apellidos 
         ? `${row.nombres} ${row.apellidos}`
         : row.nombre || "Usuario";
+
       showNotification(`Usuario "${nombreCompleto}" ${label} correctamente`);
     } catch (err) {
       const msg = err?.response?.data?.error || err?.message || "Error al cambiar el estado del usuario";
@@ -92,7 +146,6 @@ export default function GestionUsuarios() {
     }
   };
 
-  // Función para obtener nombre completo
   const getNombreCompleto = (item) => {
     if (item.nombres && item.apellidos) {
       return `${item.nombres} ${item.apellidos}`;
@@ -101,8 +154,8 @@ export default function GestionUsuarios() {
   };
 
   const filteredUsers = useMemo(
-    () => filtrarUsuarios(users, search, filterStatus),
-    [users, search, filterStatus]
+    () => filtrarUsuarios(usuariosSinClientes, search, filterStatus),
+    [usuariosSinClientes, search, filterStatus]
   );
 
   const columns = [
@@ -138,7 +191,7 @@ export default function GestionUsuarios() {
     { value: "inactivo", label: "Inactivos"         },
   ];
 
-  if (loading && users.length === 0) {
+  if (isLoading) {
     return (
       <CrudLayout title="Gestión de Usuarios" showSearch>
         <Loading message="Cargando usuarios..." />
@@ -161,10 +214,13 @@ export default function GestionUsuarios() {
       >
         {error && (
           <div style={{
-            padding: "16px", backgroundColor: "#ffebee",
-            color: "#c62828", borderRadius: "4px", marginBottom: "16px",
+            padding: "16px",
+            backgroundColor: "#ffebee",
+            color: "#c62828",
+            borderRadius: "4px",
+            marginBottom: "16px",
           }}>
-            ⚠️ {error}
+            ⚠️ {error?.message || "Error al cargar usuarios"}
           </div>
         )}
 

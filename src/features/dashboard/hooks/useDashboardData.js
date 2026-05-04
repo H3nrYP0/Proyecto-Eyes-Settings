@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+// src/features/dashboard/hooks/useDashboardData.js
+import { useQuery } from '@tanstack/react-query';
 import api from '@lib/axios';
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const toArray = (settled) => {
   if (settled.status !== 'fulfilled') return [];
@@ -135,29 +135,15 @@ const extractAvailableYears = (ventas, compras) => {
   return sorted.map(String);
 };
 
-// ─── Hook principal ──────────────────────────────────────────────────────────
-
 export const useDashboardData = (timeFilter, yearFilter, monthFilter) => {
-  const [state, setState] = useState({
-    ventasData: { labels: [], data: [], lineData: [] },
-    comprasData: { labels: [], data: [], lineData: [] },
-    productosData: [],
-    categoriasData: [],
-    metrics: { clientes: 0, productosVendidos: 0, citasEfectivas: 0 },
-    availableYears: [String(new Date().getFullYear())],
-    loading: true,
-    error: null
-  });
-
-  const load = useCallback(async () => {
-    setState((prev) => ({ ...prev, loading: true, error: null }));
-
-    try {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['dashboard', timeFilter, yearFilter, monthFilter],
+    queryFn: async () => {
       const [ventasRes, comprasRes, clientesRes, citasRes, productosRes, categoriasRes] =
         await Promise.allSettled([
           api.get('/ventas'),
           api.get('/compras'),
-          api.get('/admin/clientes'), // ✅ Usando endpoint correcto (solo JWT)
+          api.get('/admin/clientes'),
           api.get('/citas'),
           api.get('/productos'),
           api.get('/categorias')
@@ -170,14 +156,13 @@ export const useDashboardData = (timeFilter, yearFilter, monthFilter) => {
       const productos = toArray(productosRes);
       const categorias = toArray(categoriasRes);
 
-      // ✅ Contar clientes activos (estado === true)
+      // Clientes activos
       const clientesActivos = clientes.filter(c => c.estado === true).length;
 
-      // Mapa categoria_id → nombre
+      // Mapas
       const catIdToNombre = {};
       categorias.forEach((c) => { catIdToNombre[c.id] = c.nombre; });
 
-      // Mapa producto_id → nombre de categoría
       const prodIdToCat = {};
       productos.forEach((p) => {
         prodIdToCat[p.id] = catIdToNombre[p.categoria_id] || 'Sin categoría';
@@ -190,7 +175,6 @@ export const useDashboardData = (timeFilter, yearFilter, monthFilter) => {
       const filteredVentas = ventas.filter((v) => matchesPeriod(v.fecha_venta, timeFilter, yearFilter, monthFilter));
       const filteredCompras = compras.filter((c) => matchesPeriod(c.fecha, timeFilter, yearFilter, monthFilter));
 
-      // Citas del período: solo confirmadas o completadas
       const ESTADOS_VALIDOS = ['confirmada', 'completada'];
       const filteredCitas = citasRaw.filter((c) => {
         const enPeriodo = matchesPeriod(c.fecha, timeFilter, yearFilter, monthFilter);
@@ -211,7 +195,7 @@ export const useDashboardData = (timeFilter, yearFilter, monthFilter) => {
         (sum, v) => sum + (v.detalles || []).reduce((s, d) => s + parseFloat(d.cantidad || 0), 0), 0
       );
 
-      setState({
+      return {
         ventasData: ventasChart,
         comprasData: comprasChart,
         productosData,
@@ -221,24 +205,21 @@ export const useDashboardData = (timeFilter, yearFilter, monthFilter) => {
           clientes: clientesActivos,
           productosVendidos: Math.round(productosVendidos),
           citasEfectivas: filteredCitas.length
-        },
-        loading: false,
-        error: null
-      });
+        }
+      };
+    },
+    staleTime: 1000 * 60 * 2, // 2 minutos
+    keepPreviousData: true,   // Evita flickering al cambiar filtros
+  });
 
-    } catch (err) {
-      console.error('Error cargando dashboard:', err);
-      setState((prev) => ({
-        ...prev,
-        loading: false,
-        error: 'Error al cargar los datos. Por favor, intenta nuevamente.'
-      }));
-    }
-  }, [timeFilter, yearFilter, monthFilter]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  return state;
+  return {
+    ventasData: data?.ventasData || { labels: [], data: [], lineData: [] },
+    comprasData: data?.comprasData || { labels: [], data: [], lineData: [] },
+    productosData: data?.productosData || [],
+    categoriasData: data?.categoriasData || [],
+    metrics: data?.metrics || { clientes: 0, productosVendidos: 0, citasEfectivas: 0 },
+    availableYears: data?.availableYears || [String(new Date().getFullYear())],
+    loading: isLoading,
+    error: error ? 'Error al cargar los datos. Por favor, intenta nuevamente.' : null
+  };
 };
