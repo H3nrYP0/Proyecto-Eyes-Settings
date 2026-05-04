@@ -1,18 +1,18 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { useUserForm }      from "../hooks/useUserForm";
-import { createUser }       from "../services/userServices";
-import { getAllRoles }       from "@seguridad/roles/services/rolServices";
+import { useUserForm } from "../hooks/useUserForm";
+import { createUser } from "../services/userServices";
+import { getAllRoles } from "@seguridad/roles/services/rolServices";
 import { buildCreatePayload } from "../utils/userNormalizer";
-
 import Loading          from "@shared/components/ui/Loading";
 import UserForm         from "../components/UserForm";
 import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 
-export default function CrearUsuario() {
+export default function CrearUser() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [notification, setNotification] = useState({
     isVisible: false, message: "", type: "success",
@@ -22,11 +22,11 @@ export default function CrearUsuario() {
   const handleCloseNotification = () =>
     setNotification((prev) => ({ ...prev, isVisible: false }));
 
-  // React Query — roles cacheados, no se recargan en cada visita
-  const { data: roles = [], isLoading } = useQuery({
-    queryKey: ["roles"],
+  // ['roles'] — reutiliza caché global, cero petición si ya se cargó antes
+  const { data: roles = [], isLoading: loadingRoles } = useQuery({
+    queryKey: ['roles'],
     queryFn: getAllRoles,
-    staleTime: 1000 * 60 * 10, // 10 min — los roles cambian poco
+    staleTime: 5 * 60 * 1000,
   });
 
   const {
@@ -35,19 +35,18 @@ export default function CrearUsuario() {
     validate, setFieldError,
   } = useUserForm(null, "create");
 
-  const handleSubmit = async () => {
-    if (!validate()) return;
-
-    setIsSubmitting(true);
-    try {
-      const payload = buildCreatePayload(formData);
-      await createUser(payload);
+  const createMutation = useMutation({
+    mutationFn: (payload) => createUser(payload),
+    onSuccess: () => {
+      // Invalida la lista para que se refresque al volver
+      queryClient.invalidateQueries({ queryKey: ['usuarios'] });
       sessionStorage.setItem(
         "crudNotification",
         JSON.stringify({ message: `Usuario "${formData.nombre}" creado correctamente`, type: "success" })
       );
       navigate("/admin/seguridad/usuarios");
-    } catch (error) {
+    },
+    onError: (error) => {
       const msg = error.message || "Error al crear usuario";
       if (error.message?.includes("correo")) {
         setFieldError("email", error.message);
@@ -56,12 +55,17 @@ export default function CrearUsuario() {
       } else {
         showNotification(msg, "error");
       }
-    } finally {
       setIsSubmitting(false);
-    }
+    },
+  });
+
+  const handleSubmit = () => {
+    if (!validate()) return;
+    setIsSubmitting(true);
+    createMutation.mutate(buildCreatePayload(formData));
   };
 
-  if (isLoading) return <Loading message="Cargando roles..." />;
+  if (loadingRoles) return <Loading message="Cargando roles..." />;
 
   return (
     <>

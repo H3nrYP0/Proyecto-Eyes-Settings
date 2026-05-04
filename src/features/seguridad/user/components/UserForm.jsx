@@ -242,7 +242,7 @@ export default function UserForm({
         onEdit={onEdit}
         showSave={!isView}
         showEdit={isView}
-        saveLabel={isEdit && !hasChanges ? "Sin cambios" : "Guardar"}
+        saveLabel={isEdit && !hasChanges ? "Guardar" : "Guardar"}
         isSubmitting={isSubmitting}
       />
     </BaseFormLayout>
