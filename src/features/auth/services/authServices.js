@@ -15,7 +15,8 @@ const authServices = {
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("user");
 
-    const storage = recordarme ? localStorage : sessionStorage;
+    const esAdminOEmpleado = usuario?.es_cliente === false;
+    const storage = (!esAdminOEmpleado && recordarme) ? localStorage : sessionStorage;
     storage.setItem("token", token);
     storage.setItem("user", JSON.stringify(usuario));
 
