@@ -1,24 +1,41 @@
 import { useNavigate, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 
 import UsuarioForm from "../components/UserForm";
 import Loading     from "@shared/components/ui/Loading";
-
-import { useUsuario } from "../hooks/useUsuario"; // query cacheada, sin useState/useEffect
+import { getUserById, getAllRoles, normalizeUserInitialData } from "@seguridad";
 
 export default function DetalleUsuario() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // Misma query key que EditarUsuario → si ya cargó antes, no vuelve a pedir al servidor
-  const { user, roles, loading } = useUsuario(id);
+  // ['usuario', id] — comparte caché con EditarUsuario
+  const { data: usuario, isLoading: loadingUser } = useQuery({
+    queryKey: ['usuario', id],
+    queryFn: async () => {
+      const data = await getUserById(id);
+      if (!data) throw new Error('Usuario no encontrado');
+      return normalizeUserInitialData(data);
+    },
+    enabled: !!id,
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  });
 
-  if (loading) return <Loading message="Cargando..." />;
+  // ['roles'] — caché global compartido
+  const { data: roles = [], isLoading: loadingRoles } = useQuery({
+    queryKey: ['roles'],
+    queryFn: getAllRoles,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  if (loadingUser || loadingRoles) return <Loading message="Cargando..." />;
 
   return (
     <UsuarioForm
       mode="view"
-      title={`Detalle: ${user?.nombre}`}
-      initialData={user}
+      title={`Detalle: ${usuario?.nombre}`}
+      initialData={usuario}
       rolesDisponibles={roles}
       onCancel={() => navigate("/admin/seguridad/usuarios")}
       onEdit={() => navigate(`/admin/seguridad/usuarios/editar/${id}`)}

@@ -1,18 +1,21 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import UsuarioForm      from "../components/UserForm";
 import Loading          from "@shared/components/ui/Loading";
 import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 
-import { updateUser }        from "../services/userServices";
-import { buildUpdatePayload } from "../utils/userNormalizer";
-import { useUsuario }        from "../hooks/useUsuario";
-import { useUserForm }       from "../hooks/useUserForm";
+import { updateUser, buildUpdatePayload } from "@seguridad";
+import { getAllRoles } from "@seguridad/roles/services/rolServices";
+import { getUserById } from "../services/userServices";
+import { normalizeUserInitialData } from "../utils/userNormalizer";
+import { useUserForm } from "../hooks/useUserForm";
 
 export default function EditarUsuario() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [notification, setNotification] = useState({
     isVisible: false, message: "", type: "success",
@@ -22,46 +25,66 @@ export default function EditarUsuario() {
   const handleCloseNotification = () =>
     setNotification((prev) => ({ ...prev, isVisible: false }));
 
-  // useUsuario — datos del usuario + roles en una sola query cacheada
-  const { user, roles, loading } = useUsuario(id);
+  const { data: userData, isLoading: loadingUser, error: userError } = useQuery({
+    queryKey: ['usuario', id],
+    queryFn: async () => {
+      const data = await getUserById(id);
+      if (!data) throw new Error('Usuario no encontrado');
+      return normalizeUserInitialData(data);
+    },
+    enabled: !!id,
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  });
 
+  const { data: roles = [], isLoading: loadingRoles } = useQuery({
+    queryKey: ['roles'],
+    queryFn: getAllRoles,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Solo se inicializa el hook cuando userData ya existe — evita el render con null
   const {
     formData, errors, isSubmitting, setIsSubmitting,
     handleChange, handleTelefonoChange, handleNumeroDocumentoChange,
-    validate, setFieldError, setFormData,
-  } = useUserForm(user, "edit");
+    validate, setFieldError,
+  } = useUserForm(userData ?? null, "edit");
 
-  // Sincronizar formData cuando lleguen los datos del servidor
-  useEffect(() => {
-    if (user) setFormData(user);
-  }, [user]);
-
-  const handleSubmit = async () => {
-    if (!validate()) return;
-
-    setIsSubmitting(true);
-    try {
-      const includePassword = !!formData.password;
-      const payload = buildUpdatePayload(formData, includePassword);
-      await updateUser(id, payload);
+  const updateMutation = useMutation({
+    mutationFn: (payload) => updateUser(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['usuarios'] });
+      queryClient.invalidateQueries({ queryKey: ['usuario', id] });
       sessionStorage.setItem(
         "crudNotification",
         JSON.stringify({ message: `Usuario "${formData.nombre}" actualizado correctamente`, type: "success" })
       );
       navigate("/admin/seguridad/usuarios");
-    } catch (error) {
+    },
+    onError: (error) => {
       const msg = error.message || "Error al editar usuario";
       if (error.message?.includes("correo")) {
         setFieldError("email", error.message);
       } else {
         showNotification(msg, "error");
       }
-    } finally {
       setIsSubmitting(false);
-    }
+    },
+  });
+
+  const handleSubmit = () => {
+    if (!validate()) return;
+    setIsSubmitting(true);
+    const includePassword = !!formData.password;
+    updateMutation.mutate(buildUpdatePayload(formData, includePassword));
   };
 
-  if (loading) return <Loading message="Cargando..." />;
+  if (loadingUser || loadingRoles) return <Loading message="Cargando..." />;
+
+  if (userError || !userData) {
+    navigate("/admin/seguridad/usuarios");
+    return null;
+  }
 
   return (
     <>

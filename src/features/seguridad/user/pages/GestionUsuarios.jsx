@@ -9,12 +9,8 @@ import Loading          from "@shared/components/ui/Loading";
 import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 
 import {
-  getAllUsers,
-  deleteUser,
-  updateEstadoUser,
-  getAllRoles,
-  normalizeUsers,
-  filtrarUsuarios,
+  getAllUsers, deleteUser, updateEstadoUser,
+  getAllRoles, normalizeUsers, filtrarUsuarios,
 } from "@seguridad";
 
 export default function GestionUsuarios() {
@@ -28,45 +24,12 @@ export default function GestionUsuarios() {
   const [notification, setNotification] = useState({
     isVisible: false, message: "", type: "success",
   });
-
   const showNotification = (message, type = "success") =>
     setNotification({ isVisible: true, message, type });
-
   const handleCloseNotification = () =>
     setNotification((prev) => ({ ...prev, isVisible: false }));
 
-  // React Query (reemplaza loadUsers)
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["usuarios"],
-    queryFn: async () => {
-      const [data, rolesData] = await Promise.all([
-        getAllUsers(),
-        getAllRoles()
-      ]);
-
-      return {
-        users: normalizeUsers(data),
-        roles: rolesData
-      };
-    },
-    staleTime: 1000 * 60 * 5,
-  });
-
-  const users = data?.users || [];
-  const roles = data?.roles || [];
-
-  // Filtrar usuarios para excluir los que tienen rol "Cliente"
-  const clienteRoleId = useMemo(() => {
-    const clienteRole = roles.find(rol => rol.nombre?.toLowerCase() === "cliente");
-    return clienteRole?.id;
-  }, [roles]);
-
-  const usuariosSinClientes = useMemo(() => {
-    if (!clienteRoleId) return users;
-    return users.filter(user => user.rol_id !== clienteRoleId);
-  }, [users, clienteRoleId]);
-
-  // Leer notificaciones persistidas
+  // Lee notificaciones dejadas por Crear / Editar
   useEffect(() => {
     const pending = sessionStorage.getItem("crudNotification");
     if (pending) {
@@ -76,106 +39,89 @@ export default function GestionUsuarios() {
     }
   }, []);
 
-  const deleteMutation = useMutation({
-    mutationFn: deleteUser,
-    onSuccess: (_, id) => {
-      queryClient.setQueryData(["usuarios"], (old) => {
-        if (!old) return old;
-
-        return {
-          ...old,
-          users: old.users.filter(u => u.id !== id)
-        };
-      });
-    }
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['usuarios'],
+    queryFn: async () => {
+      const data = await getAllUsers();
+      const normalized = normalizeUsers(data);
+      // EXCLUIR USUARIOS CON ROL CLIENTE
+      return normalized.filter(user => user.rol_nombre?.toLowerCase() !== 'cliente');
+    },
+    staleTime: 1000 * 60 * 5,
   });
 
-  // cambiar estado
+  // ['roles'] — caché global compartido con Crear/Editar/Detalle
+  const { data: roles = [] } = useQuery({
+    queryKey: ['roles'],
+    queryFn: getAllRoles,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const users = data || [];
+
+  // Eliminar usuario
+  const deleteMutation = useMutation({
+    mutationFn: deleteUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['usuarios'] });
+      const name = deleteModal.name;
+      setDeleteModal({ open: false, id: null, name: "" });
+      showNotification(`Usuario "${name}" eliminado correctamente`);
+    },
+    onError: (err) => {
+      const msg = err?.response?.data?.error || err?.message || "Error al eliminar usuario";
+      setDeleteModal({ open: false, id: null, name: "" });
+      showNotification(msg, "error");
+    },
+  });
+
+  // Cambiar estado — actualización optimista en caché
   const estadoMutation = useMutation({
     mutationFn: ({ id, estado }) => updateEstadoUser(id, estado),
-    onSuccess: (_, variables) => {
-      queryClient.setQueryData(["usuarios"], (old) => {
+    onSuccess: (_, { id, estado }) => {
+      queryClient.setQueryData(['usuarios'], (old) => {
         if (!old) return old;
-
-        return {
-          ...old,
-          users: old.users.map(u =>
-            u.id === variables.id
-              ? { ...u, estado: variables.estado === "activo" }
-              : u
-          )
-        };
+        return old.map((u) => u.id === id ? { ...u, estado } : u);
       });
-    }
+    },
   });
 
   const handleDelete = (id, name) =>
     setDeleteModal({ open: true, id, name });
 
-  const confirmDelete = async () => {
-    const name = deleteModal.name;
-    try {
-      await deleteMutation.mutateAsync(deleteModal.id);
-
-      setDeleteModal({ open: false, id: null, name: "" });
-      showNotification(`Usuario "${name}" eliminado correctamente`);
-    } catch (err) {
-      const msg = err?.response?.data?.error || err?.message || "Error al eliminar usuario";
-      setDeleteModal({ open: false, id: null, name: "" });
-      showNotification(msg, "error");
-    }
-  };
+  const confirmDelete = () => deleteMutation.mutate(deleteModal.id);
 
   const handleChangeStatus = async (row, nuevoEstado) => {
     try {
-      await estadoMutation.mutateAsync({
-        id: row.id,
-        estado: nuevoEstado
-      });
-
+      await estadoMutation.mutateAsync({ id: row.id, estado: nuevoEstado });
       const label = nuevoEstado === "activo" ? "activado" : "desactivado";
-
-      const nombreCompleto = row.nombres && row.apellidos 
+      const nombre = row.nombres && row.apellidos
         ? `${row.nombres} ${row.apellidos}`
         : row.nombre || "Usuario";
-
-      showNotification(`Usuario "${nombreCompleto}" ${label} correctamente`);
+      showNotification(`Usuario "${nombre}" ${label} correctamente`);
     } catch (err) {
-      const msg = err?.response?.data?.error || err?.message || "Error al cambiar el estado del usuario";
+      const msg = err?.response?.data?.error || err?.message || "Error al cambiar el estado";
       showNotification(msg, "error");
     }
   };
 
   const getNombreCompleto = (item) => {
-    if (item.nombres && item.apellidos) {
-      return `${item.nombres} ${item.apellidos}`;
-    }
+    if (item.nombres && item.apellidos) return `${item.nombres} ${item.apellidos}`;
     return item.nombre || "Sin nombre";
   };
 
   const filteredUsers = useMemo(
-    () => filtrarUsuarios(usuariosSinClientes, search, filterStatus),
-    [usuariosSinClientes, search, filterStatus]
+    () => filtrarUsuarios(users, search, filterStatus),
+    [users, search, filterStatus]
   );
 
   const columns = [
-    { 
-      field: "nombre", 
-      header: "Nombre", 
-      render: (item) => getNombreCompleto(item)
-    },
-    { 
-      field: "correo", 
-      header: "Correo",  
-      render: (item) => item.correo 
-    },
+    { field: "nombre",  header: "Nombre",  render: (item) => getNombreCompleto(item) },
+    { field: "correo",  header: "Correo",  render: (item) => item.correo },
     {
       field: "rol_id",
       header: "Rol",
-      render: ({ rol_id }) => {
-        const rol = roles.find((r) => r.id === rol_id);
-        return rol?.nombre ?? "Sin rol";
-      },
+      render: ({ rol_id }) => roles.find((r) => r.id === rol_id)?.nombre ?? "Sin rol",
     },
   ];
 
@@ -191,7 +137,7 @@ export default function GestionUsuarios() {
     { value: "inactivo", label: "Inactivos"         },
   ];
 
-  if (isLoading) {
+  if (isLoading && users.length === 0) {
     return (
       <CrudLayout title="Gestión de Usuarios" showSearch>
         <Loading message="Cargando usuarios..." />
@@ -214,13 +160,10 @@ export default function GestionUsuarios() {
       >
         {error && (
           <div style={{
-            padding: "16px",
-            backgroundColor: "#ffebee",
-            color: "#c62828",
-            borderRadius: "4px",
-            marginBottom: "16px",
+            padding: "16px", backgroundColor: "#ffebee",
+            color: "#c62828", borderRadius: "4px", marginBottom: "16px",
           }}>
-            ⚠️ {error?.message || "Error al cargar usuarios"}
+            ⚠️ {error?.message || "No se pudieron cargar los usuarios"}
           </div>
         )}
 
