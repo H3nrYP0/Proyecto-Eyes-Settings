@@ -1,8 +1,9 @@
+// features/configuracion/pages/Configuration.jsx
 import { useState } from 'react';
 import { Box, Tab, Tabs, Typography, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@auth/hooks/useAuth';
-import Apariencia from '../components/general/Apariencia';
+// import Apariencia from '../components/general/Apariencia';  // <-- Comentado por ahora
 import Licencias from '../components/legal/Licencias';
 
 // Colores del panel admin
@@ -28,9 +29,7 @@ export default function Configuration({ user, onUserUpdate }) {
   const canViewLicencias = isAdmin();
   const canUpdate = true;
 
-  const handleVolver = () => {
-    navigate(-1);
-  };
+  const handleVolver = () => navigate(-1);
 
   if (!user) {
     return (
@@ -49,15 +48,14 @@ export default function Configuration({ user, onUserUpdate }) {
         </Typography>
         <Button
           onClick={handleVolver}
-          sx={{ 
-            color: BRAND_COLOR,
-            textTransform: 'none'
-          }}
+          sx={{ color: BRAND_COLOR, textTransform: 'none' }}
         >
           Volver
         </Button>
       </Box>
-      
+
+      {/* ========== COMENTADO Temportal para arreglar esto (será¿?) ========== */}
+      {/*
       <Box>
         <Tabs 
           value={tabValue} 
@@ -99,6 +97,10 @@ export default function Configuration({ user, onUserUpdate }) {
           </TabPanel>
         )}
       </Box>
+      */}
+
+      {/* ========== VERSIÓN ACTUAL: SOLO LICENCIAS ========== */}
+      <Licencias />
     </Box>
   );
 }
