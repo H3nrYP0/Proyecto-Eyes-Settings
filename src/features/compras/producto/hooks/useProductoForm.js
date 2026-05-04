@@ -372,8 +372,8 @@ const handleImageUpload = useCallback((acceptedFiles) => {
       dataToSubmit.stockMinimo = parseInt(formData.stockMinimo, 10);
       dataToSubmit.estado = formData.estado;
     } else {
-      dataToSubmit.precioVenta = 1;
-      dataToSubmit.precioCompra = 1;
+      dataToSubmit.precioVenta = 0;
+      dataToSubmit.precioCompra = 0;
       dataToSubmit.stockActual = 0;
       dataToSubmit.stockMinimo = parseInt(formData.stockMinimo, 10) || 0;
       dataToSubmit.estado = true;
@@ -382,6 +382,7 @@ const handleImageUpload = useCallback((acceptedFiles) => {
     try {
       let result;
       if (mode === "create" || mode === "full-create") {
+       console.log("DATA QUE SE ENVÍA:", dataToSubmit); // 👈 AQUÍ
         result = await ProductoData.createProducto(dataToSubmit);
         localStorage.setItem('productoNotification', JSON.stringify({
           message: "Producto creado exitosamente",

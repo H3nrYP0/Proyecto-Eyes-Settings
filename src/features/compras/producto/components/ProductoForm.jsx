@@ -5,13 +5,13 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import BaseFormLayout from "../../../../shared/components/base/BaseFormLayout";
 import BaseFormActions from "../../../../shared/components/base/BaseFormActions";
 import BaseInputField from "../../../../shared/components/base/BaseInputField";
-import { TextFieldAlphanumeric,TextFieldNoEmoji, TextFieldLetters } from "@shared/index";
+import { TextFieldAlphanumeric, TextFieldNoEmoji, TextFieldLetters } from "@shared/index";
 import FormRow from "../../../../shared/components/base/FormRow";
 import FormCol from "../../../../shared/components/base/FormCol";
 import BaseFormField from "../../../../shared/components/base/BaseFormField";
 import BaseFormSection from "../../../../shared/components/base/BaseFormSection";
 import ImageDropzone from "./ImageDropzone";
-import { formatCOP } from "../../../../shared/utils/formatCOP";
+import { formatCOP, formatToPesos, parseFromPesos } from "../../../../shared/utils/formatCOP";
 
 export default function ProductoForm({
   mode,
@@ -83,9 +83,9 @@ export default function ProductoForm({
 
   return (
     <BaseFormLayout title={title}>
-      {/* PRIMERA FILA: Nombre, Categoría, Marca, Stock Mínimo */}
+      {/* FILA 1: Nombre, Categoría, Marca */}
       <FormRow spacing={2}>
-        <FormCol xs={12} md={6} lg={3}>
+        <FormCol xs={12} md={4}>
           <TextFieldAlphanumeric
             label="Nombre del Producto"
             name="nombre"
@@ -99,7 +99,7 @@ export default function ProductoForm({
           />
         </FormCol>
 
-        <FormCol xs={12} md={6} lg={3}>
+        <FormCol xs={12} md={4}>
           <Stack direction="row" spacing={1} alignItems="center">
             <Box sx={{ flex: 1 }}>
               <BaseInputField
@@ -128,7 +128,7 @@ export default function ProductoForm({
           </Stack>
         </FormCol>
 
-        <FormCol xs={12} md={6} lg={3}>
+        <FormCol xs={12} md={4}>
           <Stack direction="row" spacing={1} alignItems="center">
             <Box sx={{ flex: 1 }}>
               <BaseInputField
@@ -156,8 +156,11 @@ export default function ProductoForm({
             )}
           </Stack>
         </FormCol>
+      </FormRow>
 
-        <FormCol xs={12} md={6} lg={3}>
+      {/* FILA 2: Stock Mínimo, Stock Actual (condicional), Precio Compra (condicional) */}
+      <FormRow spacing={2}>
+        <FormCol xs={12} md={4}>
           <BaseInputField
             label="Stock Mínimo"
             name="stockMinimo"
@@ -170,12 +173,9 @@ export default function ProductoForm({
             inputProps={{ inputMode: "numeric" }}
           />
         </FormCol>
-      </FormRow>
 
-      {/* SEGUNDA FILA: Stock Actual, Precio Compra, Precio Venta, Estado (condicional) */}
-      {(!isCreate || isFullCreate) && (
-        <FormRow spacing={2}>
-          <FormCol xs={12} sm={6} md={6} lg={3}>
+        {(!isCreate || isFullCreate) ? (
+          <FormCol xs={12} md={4}>
             <BaseInputField
               label="Stock Actual"
               name="stockActual"
@@ -191,70 +191,93 @@ export default function ProductoForm({
               }}
             />
           </FormCol>
+           ) : (
+    <FormCol xs={12} md={4} />
+        )}
 
-          <FormCol xs={12} sm={6} md={6} lg={3}>
+        {(!isCreate || isFullCreate) ? (
+          <FormCol xs={12} md={4}>
             <BaseInputField
               label="Precio de Compra"
               name="precioCompra"
-              value={formData.precioCompra}
-              onChange={handleChange}
+              value={formatToPesos(formData.precioCompra)}
+              onChange={(e) => {
+                const raw = parseFromPesos(e.target.value);
+                handleChange({
+                  target: {
+                    name: "precioCompra",
+                    value: raw
+                  }
+                });
+              }}
               disabled={isView || isEditMode}
               required
               error={!!errors.precioCompra}
               helperText={errors.precioCompra}
               inputProps={{ inputMode: "numeric" }}
             />
-            {formData.precioCompra && !errors.precioCompra && (
-              <FormHelperText sx={{ mt: 0.5 }}>
-                {formatCOP(formData.precioCompra)} COP
-              </FormHelperText>
-            )}
+           
           </FormCol>
+          ) : (
+          <FormCol xs={12} md={4} />
+        )}
+      </FormRow>
 
-          <FormCol xs={12} sm={6} md={6} lg={3}>
-            <BaseInputField
-              label="Precio de Venta"
-              name="precioVenta"
-              value={formData.precioVenta}
-              onChange={handleChange}
-              disabled={isView || isEditMode}
-              required
-              error={!!errors.precioVenta}
-              helperText={errors.precioVenta}
-              inputProps={{ inputMode: "numeric" }}
-            />
-            {formData.precioVenta && !errors.precioVenta && (
-              <FormHelperText sx={{ mt: 0.5 }}>
-                {formatCOP(formData.precioVenta)} COP
-              </FormHelperText>
-            )}
-          </FormCol>
+      {/* FILA 3: Precio Venta (condicional), Estado (condicional) */}
+<FormRow spacing={2}>
+  {(!isCreate || isFullCreate) ? (
+    <FormCol xs={12} md={4}>
+      <BaseInputField
+        label="Precio de Venta"
+        name="precioVenta"
+        value={formatToPesos(formData.precioVenta)}
+        onChange={(e) => {
+          const raw = parseFromPesos(e.target.value);
+          handleChange({
+            target: {
+              name: "precioVenta",
+              value: raw
+            }
+          });
+        }}
+        disabled={isView || isEditMode}
+        required
+        error={!!errors.precioVenta}
+        helperText={errors.precioVenta}
+        inputProps={{ inputMode: "numeric" }}
+      />
+      
+    </FormCol>
+  ) : (
+    <FormCol xs={12} md={4} />
+  )}
 
-          {!isCreate && (
-            <FormCol xs={12} sm={6} md={6} lg={3}>
-              <BaseInputField
-                label="Estado del Producto"
-                name="estado"
-                value={formData.estado ? "activo" : "inactivo"}
-                onChange={(e) => {
-                  const newValue = e.target.value === "activo";
-                  handleChange({
-                    target: { name: "estado", value: newValue }
-                  });
-                }}
-                select
-                options={[
-                  { value: "activo", label: "Activo" },
-                  { value: "inactivo", label: "Inactivo" }
-                ]}
-                disabled={isView}
-              />
-            </FormCol>
-          )}
-        </FormRow>
-      )}
+  {!isCreate ? (
+    <FormCol xs={12} md={4}>
+      <BaseInputField
+        label="Estado del Producto"
+        name="estado"
+        value={formData.estado ? "activo" : "inactivo"}
+        onChange={(e) => {
+          const newValue = e.target.value === "activo";
+          handleChange({
+            target: { name: "estado", value: newValue }
+          });
+        }}
+        select
+        options={[
+          { value: "activo", label: "Activo" },
+          { value: "inactivo", label: "Inactivo" }
+        ]}
+        disabled={isView}
+      />
+    </FormCol>
+  ) : (
+    <FormCol xs={12} md={4} />
+  )}
 
-      {/* Para create sin fullCreate, ya no hay más campos porque el stock mínimo está en la primera fila */}
+  <FormCol xs={12} md={4} />
+</FormRow>
 
       <BaseFormSection>
         <BaseFormField fullWidth>
@@ -275,67 +298,62 @@ export default function ProductoForm({
       </BaseFormSection>
 
       <BaseFormSection>
-  <BaseFormField fullWidth>
-    {isView ? (
-      // Modo vista: solo mostrar imágenes existentes
-      imagenes && imagenes.length > 0 ? (
-        <Grid container spacing={1.5}>
-          {imagenes.map((img, idx) => (
-            <Grid item xs={2.4} key={img.id || idx}>
-              <Paper
-                variant="outlined"
-                sx={{
-                  position: 'relative',
-                  overflow: 'hidden',
-                  p: 1,
-                  aspectRatio: '1/1',
-                  cursor: 'pointer',
+        <BaseFormField fullWidth>
+          {isView ? (
+            imagenes && imagenes.length > 0 ? (
+              <Grid container spacing={1.5}>
+                {imagenes.map((img, idx) => (
+                  <Grid item xs={2.4} key={img.id || idx}>
+                    <Paper
+                      variant="outlined"
+                      sx={{
+                        position: 'relative',
+                        overflow: 'hidden',
+                        p: 1,
+                        aspectRatio: '1/1',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => {}}
+                    >
+                      <Box sx={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <img
+                          src={img.url}
+                          alt={`Imagen ${idx + 1}`}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          loading="lazy"
+                        />
+                      </Box>
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            ) : (
+              <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                Este producto no tiene imágenes asociadas.
+              </Typography>
+            )
+          ) : (
+            <>
+              <ImageDropzone
+                onDrop={handleImageUpload}
+                previews={imagePreviews}
+                onRemove={removeImage}
+                disabled={isView || !isProductoActivo}
+                uploadingImages={uploadingImages}
+                onError={(errorMsg) => {
+                  showNotification?.(errorMsg, "error");
                 }}
-                onClick={() => {
-                  // Opcional: abrir lightbox al hacer clic
-                  // Puedes importar ImageGallery y usarlo, pero por simplicidad dejamos solo la imagen
-                }}
-              >
-                <Box sx={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                  <img
-                    src={img.url}
-                    alt={`Imagen ${idx + 1}`}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    loading="lazy"
-                  />
-                </Box>
-              </Paper>
-            </Grid>
-          ))}
-        </Grid>
-      ) : (
-        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
-          Este producto no tiene imágenes asociadas.
-        </Typography>
-      )
-    ) : (
-      // Modo creación o edición: mostrar dropzone
-      <>
-        <ImageDropzone
-          onDrop={handleImageUpload}
-          previews={imagePreviews}
-          onRemove={removeImage}
-          disabled={isView || !isProductoActivo}
-          uploadingImages={uploadingImages}
-          onError={(errorMsg) => {
-            showNotification?.(errorMsg, "error");
-          }}
-        />
-        {!isProductoActivo && mode === 'edit' && (
-          <FormHelperText error sx={{ mt: 1 }}>
-            No se pueden agregar imágenes porque el producto está **inactivo**. 
-            Actívalo desde el campo "Estado del Producto" para poder subir imágenes.
-          </FormHelperText>
-        )}
-      </>
-    )}
-  </BaseFormField>
-</BaseFormSection>
+              />
+              {!isProductoActivo && mode === 'edit' && (
+                <FormHelperText error sx={{ mt: 1 }}>
+                  No se pueden agregar imágenes porque el producto está **inactivo**. 
+                  Actívalo desde el campo "Estado del Producto" para poder subir imágenes.
+                </FormHelperText>
+              )}
+            </>
+          )}
+        </BaseFormField>
+      </BaseFormSection>
 
       <BaseFormActions
         onCancel={onCancel}

@@ -8,7 +8,7 @@ export default function CrudNotification({
   type = 'success',
   isVisible,
   onClose,
-  duration = 10000
+  duration = 5000
 }) {
   const [progress, setProgress] = useState(100);
   const [open, setOpen] = useState(false);

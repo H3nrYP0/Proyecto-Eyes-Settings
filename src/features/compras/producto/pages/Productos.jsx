@@ -58,8 +58,8 @@ export default function Productos() {
 
   const columns = [
     { field: "nombre", header: "Nombre" },
-    { field: "marca", header: "Marca" },
-    { field: "categoria", header: "Categoría" },
+    // { field: "marca", header: "Marca" },
+    // { field: "categoria", header: "Categoría" },
     {
       field: "precioVenta",
       header: "Precio Venta",
@@ -131,15 +131,15 @@ export default function Productos() {
         title="Productos"
         onAddClick={onCreateClick}
         showSearch
-        searchPlaceholder="Buscar por nombre..."
+        searchPlaceholder="Buscar por nombre marca o categoría..."
         searchValue={search}
         onSearchChange={setSearch}
         searchFilters={estadoFilters}
         filterEstado={filterEstado}
         onFilterChange={setFilterEstado}
       >
-        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2, flexWrap: 'wrap' }}>
-          <Select
+        {/* <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2, flexWrap: 'wrap' }}> */}
+          {/* <Select
             value={filterMarca}
             onChange={(e) => setFilterMarca(e.target.value)}
             displayEmpty
@@ -165,9 +165,9 @@ export default function Productos() {
                 {filter.label}
               </MenuItem>
             ))}
-          </Select>
+          </Select> */}
 
-          {hayFiltrosActivos && (
+          {/* {hayFiltrosActivos && (
             <Button
               variant="outlined"
               size="small"
@@ -179,7 +179,7 @@ export default function Productos() {
               Limpiar filtros
             </Button>
           )}
-        </Stack>
+        </Stack> */}
 
         {error && (
           <Box

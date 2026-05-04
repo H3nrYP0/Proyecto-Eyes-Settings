@@ -195,9 +195,24 @@ export const useProductos = () => {
 
   const filteredProductos = useMemo(() => {
     return productos.filter((p) => {
-      const matchesSearch = p.nombre.toLowerCase().includes(search.toLowerCase()) ||
-        (p.codigo && p.codigo.toLowerCase().includes(search.toLowerCase()));
+      const searchLower = search.toLowerCase();
+  const normalize = (text) =>
+     text?.toLowerCase().replace(/[-_]/g, " ");    
+     
+  const matchesSearch = (() => {
+  if (!search) return true;
 
+  const palabras = normalize(search).trim().split(/\s+/);
+
+      return palabras.every((palabra) => {
+        return (
+          normalize(p.nombre)?.includes(palabra) ||
+          normalize(p.codigo)?.includes(palabra) ||
+          normalize(p.marca)?.includes(palabra) ||
+          normalize(p.categoria)?.includes(palabra)
+        );
+      });
+    })();
       const matchesEstado = !filterEstado || p.estado === filterEstado;
       const matchesMarca = !filterMarca || p.marca_id?.toString() === filterMarca;
       const matchesCategoria = !filterCategoria || p.categoria_id?.toString() === filterCategoria;
