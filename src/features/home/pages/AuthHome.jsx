@@ -1,10 +1,6 @@
 // =============================================================
-// AuthHome.jsx
-// RESPONSABILIDAD: Contenedor visual de la página de inicio.
-//   - Usa el Navbar compartido con activePage="inicio"
-//   - Ensambla las secciones (Hero, Features, Services, etc.)
-//   - NO contiene lógica de negocio ni permisos
-//   - Todo handler y permiso llega como prop desde LandingPage
+// AuthHome.jsx — Envuelve con CartProvider para que el carrito
+// y la wishlist funcionen también en la landing
 // =============================================================
 
 import Navbar from "./Navbar";
@@ -13,20 +9,20 @@ import FeaturesSection from "../components/FeaturesSection";
 import ServicesSection from "../components/ServicesSection";
 import ContactSection from "../components/ContactSection";
 import FooterCompact from "../components/FooterCompact";
+import ShoppingCart, { CartProvider, WishlistDrawer } from "../../home/components/Products/ShoppingCart";
 import "/src/shared/styles/features/home/LandingPage.css";
+import "/src/shared/styles/features/home/ShoppingCart.css";
 
-const AuthHome = ({
+const AuthHomeInner = ({
   user,
   puedeVerDashboard,
   onNavigation,
   onLogin,
   onLogout,
   onDashboard,
-  onMiPerfil
+  onMiPerfil,
 }) => (
-  
   <div className="landing-page">
-
     <Navbar
       user={user}
       activePage="inicio"
@@ -45,8 +41,18 @@ const AuthHome = ({
       <ContactSection />
     </div>
 
+    {/* Carrito y wishlist disponibles desde la landing */}
+    <ShoppingCart user={user} />
+    <WishlistDrawer user={user} />
+
     <FooterCompact />
   </div>
+);
+
+const AuthHome = (props) => (
+  <CartProvider user={props.user}>
+    <AuthHomeInner {...props} />
+  </CartProvider>
 );
 
 export default AuthHome;

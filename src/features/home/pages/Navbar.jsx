@@ -1,26 +1,10 @@
 // =============================================================
-// Navbar.jsx
-// RESPONSABILIDAD: Barra de navegación compartida entre todas
-//   las páginas públicas (Inicio, Productos, Servicios).
-//
-//   - Muestra icono de usuario + nombre si hay sesión activa
-//   - Muestra botón Dashboard solo si tiene permiso "dashboard"
-//   - Resalta el link activo según la prop `activePage`
-//   - NO contiene lógica de permisos — recibe todo por props
-//
-// PROPS:
-//   user               — objeto usuario del JWT (o null)
-//   activePage         — "inicio" | "productos" | "servicios"
-//   puedeVerDashboard  — boolean calculado en el padre
-//   onNavigation(path) — navega con scroll top
-//   onLogin()          — redirige al login
-//   onLogout()         — cierra sesión
-//   onDashboard()      — redirige al dashboard
-//   onMiPerfil()       — redirige al perfil de usuario
+// Navbar.jsx — Con iconos de carrito y wishlist
 // =============================================================
 
 import { Tooltip, IconButton } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
+import { useCart } from "../../home/components/Products/ShoppingCart";
 
 const Navbar = ({
   user,
@@ -33,12 +17,7 @@ const Navbar = ({
   onMiPerfil,
 }) => {
   const userName = user?.name ?? user?.nombre ?? "";
-
-  // Handlers para evitar funciones anónimas en el render
-  const handleNavigationHome = () => onNavigation("/");
-  const handleNavigationProducts = () => onNavigation("/productos");
-  const handleNavigationServices = () => onNavigation("/servicios");
-  const handleMiPerfilClick = () => onMiPerfil?.();
+  const { cartCount, toggleCart, wishCount, openWishlist } = useCart();
 
   return (
     <nav className="landing-nav">
@@ -49,63 +28,52 @@ const Navbar = ({
           <span className="logo-text">VISUAL OUTLET</span>
         </div>
 
-        {/* Links de navegación */}
+        {/* Links */}
         <div className="nav-menu">
-          <button
-            className={`nav-link ${activePage === "inicio" ? "active" : ""}`}
-            onClick={handleNavigationHome}
-          >
-            Inicio
-          </button>
-          <button
-            className={`nav-link ${activePage === "productos" ? "active" : ""}`}
-            onClick={handleNavigationProducts}
-          >
-            Productos
-          </button>
-          <button
-            className={`nav-link ${activePage === "servicios" ? "active" : ""}`}
-            onClick={handleNavigationServices}
-          >
-            Servicios
-          </button>
+          <button className={`nav-link ${activePage === "inicio" ? "active" : ""}`} onClick={() => onNavigation("/")}>Inicio</button>
+          <button className={`nav-link ${activePage === "productos" ? "active" : ""}`} onClick={() => onNavigation("/productos")}>Productos</button>
+          <button className={`nav-link ${activePage === "servicios" ? "active" : ""}`} onClick={() => onNavigation("/servicios")}>Servicios</button>
         </div>
 
-        {/* Acciones según sesión */}
+        {/* Acciones */}
         <div className="nav-actions">
+          {/* Wishlist */}
+          <Tooltip title="Lista de deseos" arrow>
+            <button className="nav-icon-btn" onClick={openWishlist} aria-label="Lista de deseos">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+              </svg>
+              {wishCount > 0 && <span className="nav-badge">{wishCount}</span>}
+            </button>
+          </Tooltip>
+
+          {/* Carrito */}
+          <Tooltip title="Carrito" arrow>
+            <button className="nav-icon-btn" onClick={toggleCart} aria-label="Carrito de compras">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <path d="M16 10a4 4 0 01-8 0"/>
+              </svg>
+              {cartCount > 0 && <span className="nav-badge">{cartCount}</span>}
+            </button>
+          </Tooltip>
+
           {user ? (
             <div className="user-actions">
-              {/* Icono de perfil */}
               <Tooltip title="Mi Perfil" arrow>
-                <IconButton onClick={handleMiPerfilClick} sx={{ p: 0 }}>
-                  <PersonIcon
-                    sx={{
-                      fontSize: 32,
-                      color: "rgba(255,255,255,0.85)",
-                    }}
-                  />
+                <IconButton onClick={() => onMiPerfil?.()} sx={{ p: 0 }}>
+                  <PersonIcon sx={{ fontSize: 28, color: "rgba(255,255,255,0.85)" }} />
                 </IconButton>
               </Tooltip>
-
-              {/* Saludo al usuario */}
               <span className="user-greeting">Hola, {userName}</span>
-
-              {/* Botón Dashboard (solo si tiene permiso) */}
               {puedeVerDashboard && (
-                <button className="btn btn-dashboard" onClick={onDashboard}>
-                  Dashboard
-                </button>
+                <button className="btn btn-dashboard" onClick={onDashboard}>Dashboard</button>
               )}
-
-              {/* Botón de cierre de sesión */}
-              <button className="btn btn-logout" onClick={onLogout}>
-                Salir
-              </button>
+              <button className="btn btn-logout" onClick={onLogout}>Salir</button>
             </div>
           ) : (
-            <button className="btn btn-login" onClick={onLogin}>
-              Iniciar sesión
-            </button>
+            <button className="btn btn-login" onClick={onLogin}>Iniciar sesión</button>
           )}
         </div>
 

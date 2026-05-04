@@ -9,11 +9,11 @@ import Register from "../features/auth/pages/Register";
 import ForgotPassword from "../features/auth/pages/ForgotPassword";
 import OpticaDashboardLayout from "../shared/components/layouts/OpticaDashboardLayout";
 import ProtectedRoute from "../shared/components/ProtectedRoute";
-import authServices from "../features/auth/services/authServices";
+import authServices from "../features/auth/Services/authServices";
 import Configuration from "@configuracion/pages/Configuration";
 
 export default function App() {
-  const [user, setUser] = useState(() => authServices.getUser());
+  const [user, setUser] = useState(() => authServices?.getUser?.() ?? null);
 
   const handleLogout = () => {
     authServices.logout();
@@ -25,7 +25,8 @@ export default function App() {
       <Routes>
         {/* ========== RUTAS PÚBLICAS ========== */}
         <Route path="/" element={<LandingPage user={user} setUser={setUser} />} />
-        <Route path="/productos" element={<ProductsPage user={user} setUser={setUser} />} />
+        {/* /productos/* para que acepte subrutas: /productos y /productos/:id */}
+        <Route path="/productos/*" element={<ProductsPage user={user} setUser={setUser} />} />
         <Route path="/servicios" element={<ServicesPage user={user} setUser={setUser} />} />
 
         {/* ========== RUTAS DE AUTENTICACIÓN ========== */}

@@ -1,0 +1,316 @@
+/* =============================================================
+   ProductDetail.css — Estilo Farfetch refinado
+   ============================================================= */
+@import './landing-variables.css';
+
+/* ─── Página base ──────────────────────────────────────────── */
+.pd-page {
+  min-height: 100vh;
+  background: #ffffff;
+  padding-top: 70px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: #0c2222;
+}
+
+/* ─── Breadcrumb ───────────────────────────────────────────── */
+.pd-breadcrumb {
+  display: flex; align-items: center; gap: 0.35rem;
+  padding: 1.1rem 2rem;
+  max-width: 1280px; margin: 0 auto;
+  font-size: 0.73rem; color: #6a8e8e;
+}
+
+.pd-bread-link {
+  background: none; border: none; color: #6a8e8e;
+  cursor: pointer; font-size: 0.73rem; font-family: inherit;
+  padding: 0; transition: color 0.12s;
+}
+.pd-bread-link:hover { color: #0d2e2e; }
+
+.pd-bread-sep { color: #c4d8d8; font-size: 0.85rem; }
+
+.pd-bread-current {
+  color: #0c2222; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px;
+}
+
+/* ─── Layout principal ─────────────────────────────────────── */
+.pd-layout {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 5rem;
+  max-width: 1280px; margin: 0 auto;
+  padding: 0 2rem 5rem;
+  align-items: flex-start;
+}
+
+/* ─── Galería ──────────────────────────────────────────────── */
+.pd-gallery {
+  display: flex; gap: 0.875rem;
+  position: sticky; top: 84px;
+}
+
+/* Miniaturas */
+.pd-thumbs {
+  display: flex; flex-direction: column; gap: 0.5rem;
+  width: 68px; flex-shrink: 0;
+}
+
+.pd-thumb {
+  width: 68px; height: 68px;
+  border: 1px solid #ebebeb;
+  border-radius: 2px; overflow: hidden;
+  cursor: pointer; padding: 0;
+  background: #f5f5f5;
+  transition: border-color 0.15s; flex-shrink: 0;
+}
+.pd-thumb:hover { border-color: #1a4a4a; }
+.pd-thumb--active { border-color: #0d2e2e; border-width: 2px; }
+
+.pd-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+
+.pd-thumb-placeholder {
+  width:100%; height:100%;
+  display: flex; align-items:center; justify-content:center; color:#b0c8c8;
+}
+.pd-thumb-placeholder svg { width:26px; height:26px; }
+
+/* Imagen principal */
+.pd-main-image-wrap {
+  flex: 1; position: relative;
+  border-radius: 2px; overflow: hidden;
+  background: #f5f5f5; aspect-ratio: 3 / 4;
+}
+
+.pd-main-image {
+  width:100%; height:100%; object-fit:cover; display:block;
+  transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.pd-main-image-wrap:hover .pd-main-image { transform: scale(1.04); }
+
+/* Placeholder */
+.pd-img-placeholder {
+  width:100%; height:100%;
+  display: flex; flex-direction:column; align-items:center; justify-content:center;
+  gap: 1rem;
+  background: linear-gradient(135deg, #eaf3f3, #f5f5f5); color:#b0c8c8;
+}
+.pd-img-placeholder svg { width:72px; height:72px; }
+.pd-img-placeholder p { font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; margin:0; }
+
+/* Nav imágenes */
+.pd-img-nav {
+  position: absolute; bottom: 0.875rem; left: 50%;
+  transform: translateX(-50%);
+  display: flex; align-items:center; gap:0.65rem;
+  background: rgba(255,255,255,0.88); backdrop-filter:blur(8px);
+  border-radius: 999px; padding: 0.25rem 0.65rem;
+  border: 1px solid rgba(0,0,0,0.07);
+}
+.pd-img-arrow {
+  background:none; border:none; font-size:1.15rem; color:#1a4a4a;
+  cursor:pointer; padding:0; line-height:1; transition:color 0.12s;
+}
+.pd-img-arrow:hover { color:#0d2e2e; }
+.pd-img-counter { font-size:0.68rem; font-weight:700; color:#4e6e6e; }
+
+/* ─── Info ─────────────────────────────────────────────────── */
+.pd-info {
+  padding-top: 0.5rem;
+  display: flex; flex-direction:column; gap:0;
+}
+
+.pd-meta {
+  font-size:0.67rem; font-weight:700; color:#3d8080;
+  text-transform:uppercase; letter-spacing:0.12em; margin:0 0 0.6rem;
+}
+
+.pd-nombre {
+  font-size:1.75rem; font-weight:700; color:#0c2222;
+  margin:0 0 0.35rem; line-height:1.15; letter-spacing:-0.02em;
+}
+
+.pd-codigo { font-size:0.7rem; color:#a0b8b8; margin:0 0 0.875rem; font-weight:400; }
+
+/* Precio */
+.pd-precio-wrap { margin-bottom:0.875rem; }
+.pd-precio { font-size:1.5rem; font-weight:700; color:#0d2e2e; letter-spacing:-0.03em; }
+
+/* Stock — minimalista, sin colores saturados */
+.pd-disponibilidad { margin-bottom:1.1rem; }
+
+.pd-stock {
+  display:inline-flex; align-items:center; gap:0.4rem;
+  font-size:0.75rem; font-weight:600;
+  padding: 0.25rem 0.7rem;
+  border-radius:999px;
+}
+
+.pd-stock-dot {
+  width:6px; height:6px; border-radius:50%; flex-shrink:0;
+}
+
+/* Stock colores clásicos y contenidos */
+.pd-stock--in  { background:#f0f7f0; color:#2e6e3a; }
+.pd-stock--in  .pd-stock-dot { background:#3a8a4a; }
+.pd-stock--low { background:#fdf8ee; color:#7a5a1a; }
+.pd-stock--low .pd-stock-dot { background:#c08a20; }
+.pd-stock--out { background:#f5f5f5; color:#8a8a8a; }
+.pd-stock--out .pd-stock-dot { background:#b0b0b0; }
+
+/* Separador */
+.pd-divider { height:1px; background:#f0f0f0; margin:0.5rem 0 1.25rem; }
+
+/* Descripción */
+.pd-descripcion { margin-bottom:1.5rem; }
+
+.pd-descripcion-title {
+  font-size:0.68rem; font-weight:700; color:#6a8e8e;
+  text-transform:uppercase; letter-spacing:0.1em; margin:0 0 0.45rem;
+}
+
+.pd-descripcion-text { font-size:0.88rem; color:#444; line-height:1.75; margin:0; }
+
+/* ─── Acciones ─────────────────────────────────────────────── */
+.pd-actions {
+  display:flex; flex-direction:column; gap:0.75rem; margin-bottom:1.5rem;
+}
+
+.pd-cantidad-wrap { display:flex; align-items:center; gap:1rem; }
+
+.pd-cantidad-label {
+  font-size:0.7rem; font-weight:700; color:#6a8e8e;
+  text-transform:uppercase; letter-spacing:0.07em; flex-shrink:0;
+}
+
+.pd-cantidad-ctrl {
+  display:flex; align-items:center;
+  border:1.5px solid #e0eeee; border-radius:0.45rem; overflow:hidden;
+}
+
+.pd-cantidad-btn {
+  width:34px; height:34px; background:none; border:none;
+  font-size:1rem; color:#1a4a4a; cursor:pointer;
+  transition:background 0.12s; font-family:inherit;
+}
+.pd-cantidad-btn:hover:not(:disabled) { background:#f0f7f7; }
+.pd-cantidad-btn:disabled { color:#c4d8d8; cursor:default; }
+
+.pd-cantidad-val {
+  min-width:36px; text-align:center; font-size:0.88rem;
+  font-weight:700; color:#0c2222;
+  border-left:1px solid #e0eeee; border-right:1px solid #e0eeee;
+  line-height:34px;
+}
+
+/* Botón añadir */
+.pd-add-btn {
+  display:flex; align-items:center; justify-content:center; gap:0.5rem;
+  width:100%; padding:0.875rem 1.5rem;
+  background:#0d2e2e; color:#fff;
+  border:none; border-radius:0.45rem;
+  font-size:0.88rem; font-weight:700;
+  cursor:pointer; transition:background 0.2s, transform 0.15s;
+  font-family:inherit; letter-spacing:0.02em;
+}
+.pd-add-btn svg { width:17px; height:17px; }
+.pd-add-btn:hover { background:#1a4a4a; transform:translateY(-1px); }
+.pd-add-btn--added { background:#2a6a3a; }
+.pd-add-btn:disabled { background:#a0b8b8; cursor:default; transform:none; }
+
+/* Ver carrito */
+.pd-view-cart-btn {
+  width:100%; padding:0.6rem;
+  background:transparent; color:#1a4a4a;
+  border:1.5px solid #d4e6e6; border-radius:0.45rem;
+  font-size:0.82rem; font-weight:600;
+  cursor:pointer; transition:all 0.15s; font-family:inherit;
+}
+.pd-view-cart-btn:hover { border-color:#1a4a4a; background:#f5fbfb; }
+
+/* Agotado */
+.pd-agotado-msg {
+  display:flex; align-items:center; gap:0.55rem;
+  padding:0.875rem 1rem; background:#f8f8f8;
+  border-radius:0.45rem; color:#8a8a8a;
+  font-size:0.83rem; font-weight:400; margin-bottom:1.5rem;
+  border:1px solid #eee;
+}
+.pd-agotado-msg svg { width:17px; height:17px; flex-shrink:0; }
+
+/* ─── Ficha técnica ─────────────────────────────────────────── */
+.pd-ficha { border-top:1px solid #f0f0f0; padding-top:1.1rem; }
+
+.pd-ficha-title {
+  font-size:0.68rem; font-weight:700; color:#6a8e8e;
+  text-transform:uppercase; letter-spacing:0.1em; margin:0 0 0.875rem;
+}
+
+.pd-ficha-list {
+  display:grid; grid-template-columns:auto 1fr;
+  gap:0.5rem 1.25rem; margin:0;
+}
+
+.pd-ficha-list dt {
+  font-size:0.72rem; font-weight:700; color:#a0b8b8;
+  text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap;
+}
+
+.pd-ficha-list dd { font-size:0.83rem; color:#444; font-weight:400; margin:0; }
+
+/* ─── Navegación inferior ─────────────────────────────────── */
+.pd-bottom-nav {
+  max-width:1280px; margin:0 auto; padding:0 2rem 3rem;
+}
+
+.pd-back-products {
+  display:inline-flex; align-items:center; gap:0.35rem;
+  background:none; border:1px solid #e0eeee;
+  color:#6a8e8e; padding:0.5rem 0.875rem;
+  border-radius:0.4rem; font-size:0.78rem; font-weight:500;
+  cursor:pointer; font-family:inherit; transition:all 0.15s;
+}
+.pd-back-products svg { width:15px; height:15px; }
+.pd-back-products:hover { border-color:#1a4a4a; color:#1a4a4a; }
+
+/* ─── Estados ──────────────────────────────────────────────── */
+.pd-loading {
+  display:flex; align-items:center; justify-content:center; min-height:60vh;
+}
+
+.pd-error-state {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  min-height:60vh; text-align:center; padding:2rem; gap:0.875rem; color:#6a8e8e;
+}
+.pd-error-state svg { width:52px; height:52px; opacity:0.35; }
+.pd-error-state h2 { font-size:1.3rem; font-weight:700; color:#0c2222; margin:0; }
+.pd-error-state p  { font-size:0.88rem; margin:0; }
+
+.pd-back-btn {
+  padding:0.6rem 1.5rem; background:#0d2e2e; color:#fff;
+  border:none; border-radius:0.6rem;
+  font-size:0.85rem; font-weight:700;
+  cursor:pointer; font-family:inherit; transition:background 0.15s;
+}
+.pd-back-btn:hover { background:#1a4a4a; }
+
+/* ─── Responsive ────────────────────────────────────────────── */
+@media (max-width:1024px) {
+  .pd-layout { gap:2.5rem; }
+  .pd-nombre  { font-size:1.5rem; }
+}
+
+@media (max-width:768px) {
+  .pd-layout { grid-template-columns:1fr; padding:0 1rem 3rem; gap:1.5rem; }
+  .pd-gallery { position:static; }
+  .pd-thumbs { flex-direction:row; width:auto; overflow-x:auto; }
+  .pd-thumb  { width:58px; height:58px; flex-shrink:0; }
+  .pd-nombre { font-size:1.3rem; }
+  .pd-precio { font-size:1.25rem; }
+  .pd-breadcrumb { padding:0.875rem 1rem; }
+  .pd-bottom-nav { padding:0 1rem 2rem; }
+}
+
+@media (max-width:480px) {
+  .pd-nombre { font-size:1.2rem; }
+  .pd-ficha-list { grid-template-columns:1fr; }
+}
