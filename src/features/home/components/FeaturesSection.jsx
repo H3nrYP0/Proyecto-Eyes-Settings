@@ -1,64 +1,41 @@
-// FeaturesSection.jsx — Carrusel de productos con datos reales del backend
+// FeaturesSection.jsx — Carrusel minimalista
+// Tarjeta: solo imagen + precio, click → /productos/:id
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import LoadingSpinner from "./Shared/LoadingSpinner";
 import { getAllProductosLanding } from "../components/Services/productosLandingData";
 import "/src/shared/styles/features/home/FeaturesSection.css";
 
-const FALLBACK_ICONS = ["🕶️", "👓", "🔍", "✨", "⚡", "🌓"];
-
 const formatCurrency = (amount) =>
   new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    minimumFractionDigits: 0,
+    style: "currency", currency: "COP", minimumFractionDigits: 0,
   }).format(amount);
 
-// ── Estilos inline para las flechas — centrado perfecto garantizado ──
 const arrowBtnStyle = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  lineHeight: "1",
-  padding: "0",
-  fontSize: "1.2rem",
-};
-
-const arrowIconStyle = {
-  display: "block",
-  lineHeight: "1",
-  margin: "0",
-  padding: "0",
+  display: "flex", alignItems: "center", justifyContent: "center",
+  lineHeight: "1", padding: "0",
 };
 
 const FeaturesSection = () => {
   const navigate = useNavigate();
-  const [productos, setProductos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [showDescriptions, setShowDescriptions] = useState({});
+  const [productos,     setProductos]     = useState([]);
+  const [loading,       setLoading]       = useState(true);
+  const [currentIndex,  setCurrentIndex]  = useState(0);
+  const [isAnimating,   setIsAnimating]   = useState(false);
 
   useEffect(() => {
     let mounted = true;
-    const fetchProductos = async () => {
-      try {
-        const data = await getAllProductosLanding();
-        if (mounted) setProductos(data.slice(0, 6));
-      } catch (err) {
-        console.error("Error cargando productos para carrusel:", err);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-    fetchProductos();
+    getAllProductosLanding()
+      .then(data => { if (mounted) setProductos(data.slice(0, 6)); })
+      .catch(err => console.error("Error carrusel:", err))
+      .finally(() => { if (mounted) setLoading(false); });
     return () => { mounted = false; };
   }, []);
 
   useEffect(() => {
     if (productos.length < 2) return;
-    const interval = setInterval(() => nextSlide(), 5000);
-    return () => clearInterval(interval);
+    const t = setInterval(() => nextSlide(), 5000);
+    return () => clearInterval(t);
   }, [currentIndex, productos.length]);
 
   const nextSlide = () => {
@@ -80,11 +57,6 @@ const FeaturesSection = () => {
     setIsAnimating(true);
     setCurrentIndex(index);
     setTimeout(() => setIsAnimating(false), 350);
-  };
-
-  const toggleDescription = (id, e) => {
-    e.stopPropagation();
-    setShowDescriptions(p => ({ ...p, [id]: !p[id] }));
   };
 
   if (loading) {
@@ -116,9 +88,7 @@ const FeaturesSection = () => {
           <div className="header-center">
             <div className="carousel-info">
               <div className="current-product-info">
-                <span className="product-counter">
-                  {currentIndex + 1} / {productos.length}
-                </span>
+                <span className="product-counter">{currentIndex + 1} / {productos.length}</span>
                 <h3 className="current-product-name">{current.nombre}</h3>
               </div>
             </div>
@@ -133,23 +103,21 @@ const FeaturesSection = () => {
 
         {/* Carrusel */}
         <div className="carousel-3d-horizontal">
-
-          {/* ── CAMBIO: inline style en botón para centrar la flecha ── */}
           <button
             className="carousel-control-horizontal prev"
             onClick={prevSlide}
             aria-label="Producto anterior"
             style={arrowBtnStyle}
           >
-            <span style={arrowIconStyle}>←</span>
+            ←
           </button>
 
           <div className="carousel-3d-wrapper">
             {productos.map((producto, index) => {
               const position = index - currentIndex;
-              const half = Math.floor(productos.length / 2);
-              let pos = position;
-              if (position > half) pos = position - productos.length;
+              const half     = Math.floor(productos.length / 2);
+              let pos        = position;
+              if (position > half)  pos = position - productos.length;
               if (position < -half) pos = position + productos.length;
 
               const isActive  = pos === 0;
@@ -169,80 +137,32 @@ const FeaturesSection = () => {
                 <div
                   key={producto.id}
                   className={`carousel-slide-horizontal ${className}`}
-                  onClick={() => isActive && navigate("/productos")}
+                  onClick={() => isActive && navigate(`/productos/${producto.id}`)}
                 >
-                  <div className="product-card-horizontal">
-                    <div className="product-image-horizontal">
+                  {/* Tarjeta minimalista: solo imagen + precio */}
+                  <div className="fcs-card">
+                    <div className="fcs-image-wrap">
                       {producto.imagenPrincipal ? (
                         <img
                           src={producto.imagenPrincipal}
                           alt={producto.nombre}
-                          style={{
-                            width: "100%", height: "100%",
-                            objectFit: "cover", borderRadius: "0.875rem",
-                          }}
-                          onError={e => {
-                            e.target.style.display = "none";
-                            e.target.nextSibling.style.display = "block";
-                          }}
+                          className="fcs-image"
+                          draggable={false}
                         />
-                      ) : null}
-                      <span
-                        className="product-emoji-horizontal"
-                        style={{ display: producto.imagenPrincipal ? "none" : "block" }}
-                      >
-                        {FALLBACK_ICONS[index % FALLBACK_ICONS.length]}
-                      </span>
-                      <div className="product-badge-horizontal">Destacado</div>
-                    </div>
-
-                    <div className="product-content-horizontal">
-                      <h3 className="product-name-horizontal">{producto.nombre}</h3>
-
-                      {showDescriptions[producto.id] && producto.descripcion && (
-                        <div className="product-description-popup">
-                          <p className="product-description-full">{producto.descripcion}</p>
+                      ) : (
+                        <div className="fcs-placeholder">
+                          <svg viewBox="0 0 48 48" fill="none">
+                            <rect x="6" y="14" width="36" height="24" rx="3" stroke="currentColor" strokeWidth="1.2"/>
+                            <circle cx="17" cy="22" r="3" stroke="currentColor" strokeWidth="1.2"/>
+                            <path d="M6 32l10-8 7 6 5-4 14 10" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
+                          </svg>
                         </div>
                       )}
+                    </div>
 
-                      <div style={{ marginBottom: "0.5rem" }}>
-                        <span style={{
-                          display: "inline-block",
-                          padding: "0.2rem 0.6rem",
-                          borderRadius: "999px",
-                          fontSize: "0.7rem",
-                          fontWeight: "600",
-                          background: producto.stockActual > 0 ? "#dcfce7" : "#fee2e2",
-                          color: producto.stockActual > 0 ? "#166534" : "#dc2626",
-                        }}>
-                          {producto.stockActual > 0 ? `${producto.stockActual} disponibles` : "Agotado"}
-                        </span>
-                      </div>
-
-                      <div className="product-price-section-horizontal">
-                        <span className="product-price-horizontal">
-                          {formatCurrency(producto.precioVenta)}
-                        </span>
-                        <div className="product-buttons-container">
-                          <button
-                            className="product-action-btn-horizontal"
-                            onClick={e => {
-                              e.stopPropagation();
-                              navigate("/productos");
-                            }}
-                          >
-                            Ver más
-                          </button>
-                          {producto.descripcion && (
-                            <button
-                              className="product-description-btn-horizontal"
-                              onClick={e => toggleDescription(producto.id, e)}
-                            >
-                              {showDescriptions[producto.id] ? "Ocultar" : "Descripción"}
-                            </button>
-                          )}
-                        </div>
-                      </div>
+                    <div className="fcs-info">
+                      <p className="fcs-name">{producto.nombre}</p>
+                      <p className="fcs-price">{formatCurrency(producto.precioVenta)}</p>
                     </div>
                   </div>
                 </div>
@@ -250,14 +170,13 @@ const FeaturesSection = () => {
             })}
           </div>
 
-          {/* ── CAMBIO: inline style en botón para centrar la flecha ── */}
           <button
             className="carousel-control-horizontal next"
             onClick={nextSlide}
             aria-label="Siguiente producto"
             style={arrowBtnStyle}
           >
-            <span style={arrowIconStyle}>→</span>
+            →
           </button>
 
           <div className="carousel-indicators-horizontal">
@@ -272,28 +191,12 @@ const FeaturesSection = () => {
           </div>
         </div>
 
-        {/* ── CAMBIO: CTA con inline styles — textos separados y centrados ── */}
+        {/* CTA */}
         <div className="features-cta">
           <div className="cta-content">
-            <h3 style={{
-              textAlign: "center",
-              marginBottom: "1.25rem",
-            }}>
-              ¿Quieres ver más opciones?
-            </h3>
-            <p style={{
-              textAlign: "center",
-              marginBottom: "1.75rem",
-              maxWidth: "500px",
-              marginLeft: "auto",
-              marginRight: "auto",
-            }}>
-              Explora nuestra colección completa de productos especializados en óptica
-            </p>
-            <button
-              className="btn btn-primary btn-large"
-              onClick={() => navigate("/productos")}
-            >
+            <h3>¿Quieres ver más opciones?</h3>
+            <p>Explora nuestra colección completa de productos especializados en óptica</p>
+            <button className="btn btn-primary btn-large" onClick={() => navigate("/productos")}>
               Ver Todos los Productos →
             </button>
           </div>
