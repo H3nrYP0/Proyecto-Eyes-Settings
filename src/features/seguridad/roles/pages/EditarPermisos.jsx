@@ -1,19 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
-import RolForm          from '@seguridad/roles/components/RolForm';
-import Loading          from '@shared/components/ui/Loading';
+import RolForm from '@seguridad/roles/components/RolForm';
+import Loading from '@shared/components/ui/Loading';
 import CrudNotification from '@shared/styles/components/notifications/CrudNotification';
-import { getRolById, updateRol, getAllPermisos } from '@seguridad/roles/services/rolServices';
-import { normalizarRolInitialData } from '@seguridad/roles/utils/rolNormalizer';
+import { getRolById, updateRol, getAllPermisos, normalizarRolInitialData } from '@seguridad';
 
 export default function EditarPermisos() {
-  const { id }   = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
-
-  const [rol, setRol]                      = useState(null);
-  const [permisosDisponibles, setPermisos] = useState([]);
-  const [loading, setLoading]              = useState(true);
 
   const [notification, setNotification] = useState({
     isVisible: false, message: '', type: 'success',
@@ -23,53 +19,61 @@ export default function EditarPermisos() {
   const handleCloseNotification = () =>
     setNotification((prev) => ({ ...prev, isVisible: false }));
 
-  useEffect(() => {
-    const cargarDatos = async () => {
-      try {
-        const [rolData, permisosData] = await Promise.all([
-          getRolById(id),
-          getAllPermisos(),
-        ]);
+  // Cargar rol y permisos en paralelo con React Query
+  const {
+    data: rolData,
+    isLoading: loadingRol,
+    error: rolError,
+  } = useQuery({
+    queryKey: ['rol', id],
+    queryFn: async () => {
+      const rol = await getRolById(id);
+      if (!rol) throw new Error('Rol no encontrado');
+      return normalizarRolInitialData(rol);
+    },
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  });
 
-        if (!rolData) {
-          navigate('/admin/seguridad/roles');
-          return;
-        }
+  const { data: permisosDisponibles = [], isLoading: loadingPermisos } = useQuery({
+    queryKey: ['permisos'],
+    queryFn: getAllPermisos,
+    staleTime: 5 * 60 * 1000,
+  });
 
-        setRol(normalizarRolInitialData(rolData));
-        setPermisos(permisosData || []);
-      } catch (err) {
-        console.error('Error al cargar rol:', err);
-        navigate('/admin/seguridad/roles');
-      } finally {
-        setLoading(false);
-      }
-    };
-    cargarDatos();
-  }, [id, navigate]);
-
-  const handleUpdate = async (data) => {
-    try {
-      await updateRol(id, data);
+  // Mutación para actualizar rol
+  const updateMutation = useMutation({
+    mutationFn: (data) => updateRol(id, data),
+    onSuccess: (_, data) => {
       sessionStorage.setItem(
         'crudNotification',
         JSON.stringify({ message: `Rol "${data.nombre}" actualizado correctamente`, type: 'success' })
       );
       navigate('/admin/seguridad/roles');
-    } catch (err) {
+    },
+    onError: (err) => {
       const msg = err?.response?.data?.error || err?.message || 'Error al actualizar el rol';
       showNotification(msg, 'error');
-    }
+    },
+  });
+
+  const handleUpdate = (data) => {
+    updateMutation.mutate(data);
   };
 
-  if (loading) return <Loading message="Cargando rol..." />;
+  if (loadingRol || loadingPermisos) return <Loading message="Cargando rol..." />;
+
+  if (rolError || !rolData) {
+    navigate('/admin/seguridad/roles');
+    return null;
+  }
 
   return (
     <>
       <RolForm
         mode="edit"
         title="Editar Rol"
-        initialData={rol}
+        initialData={rolData}
         permisosDisponibles={permisosDisponibles}
         onSubmit={handleUpdate}
         onCancel={() => navigate('/admin/seguridad/roles')}
