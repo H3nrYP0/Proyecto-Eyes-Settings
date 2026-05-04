@@ -1,12 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { CrudLayout, CrudTable } from '@shared';
-import { Modal, Loading }        from '@shared';
-import CrudNotification          from '@shared/styles/components/notifications/CrudNotification';
+import { CrudLayout, CrudTable, Modal, Loading } from '@shared';
+import CrudNotification from '@shared/styles/components/notifications/CrudNotification';
 
-import { getAllRoles, deleteRol, updateEstadoRol } from '@seguridad';
-import { normalizarRoles, filtrarRoles }           from '@seguridad';
+import {
+  getAllRoles,
+  deleteRol,
+  updateEstadoRol,
+  normalizarRoles,
+  filtrarRoles,
+} from '@seguridad';
 
 const ESTADO_OPTIONS = [
   { value: '',         label: 'Todos los estados' },
@@ -21,13 +26,11 @@ const COLUMNS = [
 
 export default function Roles() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const [roles, setRoles]             = useState([]);
-  const [search, setSearch]           = useState('');
-  const [filterEstado, setFilter]     = useState('');
-  const [loading, setLoading]         = useState(true);
-  const [error, setError]             = useState(null);
-  const [modalDelete, setModalDelete] = useState({ open: false, id: null, nombre: '' });
+  const [search, setSearch] = useState('');
+  const [filterEstado, setFilterEstado] = useState('');
+  const [deleteModal, setDeleteModal] = useState({ open: false, id: null, nombre: '' });
 
   const [notification, setNotification] = useState({
     isVisible: false, message: '', type: 'success',
@@ -39,7 +42,7 @@ export default function Roles() {
   const handleCloseNotification = () =>
     setNotification((prev) => ({ ...prev, isVisible: false }));
 
-  // Lee notificaciones pendientes dejadas por Crear / Editar
+  // Leer notificaciones pendientes (desde crear/editar)
   useEffect(() => {
     const pending = sessionStorage.getItem('crudNotification');
     if (pending) {
@@ -49,43 +52,61 @@ export default function Roles() {
     }
   }, []);
 
-  useEffect(() => { cargarRoles(); }, []);
+  // React Query: cargar roles
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['roles'],
+    queryFn: async () => {
+      const rolesData = await getAllRoles();
+      return normalizarRoles(rolesData);
+    },
+    staleTime: 1000 * 60 * 5,
+  });
 
-  const cargarRoles = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await getAllRoles();
-      setRoles(normalizarRoles(data));
-    } catch {
-      setError('No se pudieron cargar los roles');
-      setRoles([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const roles = data || [];
+
+  // Eliminar rol
+  const deleteMutation = useMutation({
+    mutationFn: deleteRol,
+    onSuccess: (_, deletedId) => {
+      queryClient.setQueryData(['roles'], (oldRoles) => {
+        if (!oldRoles) return oldRoles;
+        return oldRoles.filter((rol) => rol.id !== deletedId);
+      });
+    },
+  });
+
+  // Cambiar estado
+  const estadoMutation = useMutation({
+    mutationFn: ({ id, estado }) => updateEstadoRol(id, estado),
+    onSuccess: (_, { id, estado }) => {
+      queryClient.setQueryData(['roles'], (oldRoles) => {
+        if (!oldRoles) return oldRoles;
+        return oldRoles.map((rol) =>
+          rol.id === id ? { ...rol, estado } : rol
+        );
+      });
+    },
+  });
 
   const handleDelete = (id, nombre) =>
-    setModalDelete({ open: true, id, nombre });
+    setDeleteModal({ open: true, id, nombre });
 
   const confirmDelete = async () => {
-    const nombre = modalDelete.nombre;
+    const nombre = deleteModal.nombre;
     try {
-      await deleteRol(modalDelete.id);
-      setModalDelete({ open: false, id: null, nombre: '' });
-      await cargarRoles();
+      await deleteMutation.mutateAsync(deleteModal.id);
+      setDeleteModal({ open: false, id: null, nombre: '' });
       showNotification(`Rol "${nombre}" eliminado correctamente`);
     } catch (err) {
       const msg = err?.response?.data?.error || err?.message || 'Error al eliminar el rol';
-      setModalDelete({ open: false, id: null, nombre: '' });
+      setDeleteModal({ open: false, id: null, nombre: '' });
       showNotification(msg, 'error');
     }
   };
 
   const handleChangeStatus = async (row, nuevoEstado) => {
     try {
-      await updateEstadoRol(row.id, nuevoEstado);
-      await cargarRoles();
+      await estadoMutation.mutateAsync({ id: row.id, estado: nuevoEstado });
       const label = nuevoEstado === 'activo' ? 'activado' : 'desactivado';
       showNotification(`Rol "${row.nombre}" ${label} correctamente`);
     } catch (err) {
@@ -94,7 +115,10 @@ export default function Roles() {
     }
   };
 
-  const rolesVisibles = filtrarRoles(roles, { search, estado: filterEstado });
+  const rolesVisibles = useMemo(
+    () => filtrarRoles(roles, { search, estado: filterEstado }),
+    [roles, search, filterEstado]
+  );
 
   const tableActions = [
     { label: 'Ver detalles', type: 'view',   onClick: (row) => navigate(`detalle/${row.id}`) },
@@ -102,7 +126,7 @@ export default function Roles() {
     { label: 'Eliminar',     type: 'delete', onClick: (row) => handleDelete(row.id, row.nombre) },
   ];
 
-  if (loading && roles.length === 0) {
+  if (isLoading && roles.length === 0) {
     return (
       <CrudLayout title="Roles" showSearch>
         <Loading message="Cargando roles..." />
@@ -121,11 +145,11 @@ export default function Roles() {
         onSearchChange={setSearch}
         searchFilters={ESTADO_OPTIONS}
         filterEstado={filterEstado}
-        onFilterChange={setFilter}
+        onFilterChange={setFilterEstado}
       >
         {error && (
           <div style={{ padding: '16px', backgroundColor: '#ffebee', color: '#c62828', borderRadius: '4px', marginBottom: '16px' }}>
-            ⚠️ {error}
+            ⚠️ {error?.message || 'Error al cargar roles'}
           </div>
         )}
 
@@ -142,15 +166,15 @@ export default function Roles() {
         />
 
         <Modal
-          open={modalDelete.open}
+          open={deleteModal.open}
           type="warning"
           title="¿Eliminar Rol?"
-          message={`Esta acción eliminará el rol "${modalDelete.nombre}" y no se puede deshacer.`}
+          message={`Esta acción eliminará el rol "${deleteModal.nombre}" y no se puede deshacer.`}
           confirmText="Eliminar"
           cancelText="Cancelar"
           showCancel
           onConfirm={confirmDelete}
-          onCancel={() => setModalDelete({ open: false, id: null, nombre: '' })}
+          onCancel={() => setDeleteModal({ open: false, id: null, nombre: '' })}
         />
       </CrudLayout>
 

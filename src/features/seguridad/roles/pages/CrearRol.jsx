@@ -1,16 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
-import RolForm          from '@seguridad/roles/components/RolForm';
-import Loading          from '@shared/components/ui/Loading';
+import RolForm from '@seguridad/roles/components/RolForm';
+import Loading from '@shared/components/ui/Loading';
 import CrudNotification from '@shared/styles/components/notifications/CrudNotification';
-import { createRol, getAllPermisos } from '@seguridad/roles/services/rolServices';
+import { createRol, getAllPermisos } from '@seguridad';
 
 export default function CrearRol() {
   const navigate = useNavigate();
-
-  const [permisosDisponibles, setPermisos] = useState([]);
-  const [loading, setLoading]              = useState(true);
 
   const [notification, setNotification] = useState({
     isVisible: false, message: '', type: 'success',
@@ -20,35 +18,34 @@ export default function CrearRol() {
   const handleCloseNotification = () =>
     setNotification((prev) => ({ ...prev, isVisible: false }));
 
-  useEffect(() => {
-    const cargarPermisos = async () => {
-      try {
-        const data = await getAllPermisos();
-        setPermisos(data || []);
-      } catch (err) {
-        console.error('Error al cargar permisos:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    cargarPermisos();
-  }, []);
+  // Cargar permisos con React Query (caché)
+  const { data: permisosDisponibles = [], isLoading: loadingPermisos } = useQuery({
+    queryKey: ['permisos'],
+    queryFn: getAllPermisos,
+    staleTime: 5 * 60 * 1000,
+  });
 
-  const handleCreate = async (data) => {
-    try {
-      await createRol(data);
+  // Mutación para crear rol
+  const createMutation = useMutation({
+    mutationFn: createRol,
+    onSuccess: (_, data) => {
       sessionStorage.setItem(
         'crudNotification',
         JSON.stringify({ message: `Rol "${data.nombre}" creado correctamente`, type: 'success' })
       );
       navigate('/admin/seguridad/roles');
-    } catch (err) {
+    },
+    onError: (err) => {
       const msg = err?.response?.data?.error || err?.message || 'Error al crear el rol';
       showNotification(msg, 'error');
-    }
+    },
+  });
+
+  const handleCreate = (data) => {
+    createMutation.mutate(data);
   };
 
-  if (loading) return <Loading message="Cargando permisos..." />;
+  if (loadingPermisos) return <Loading message="Cargando permisos..." />;
 
   return (
     <>
