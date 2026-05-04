@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import RolForm from '@seguridad/roles/components/RolForm';
 import Loading from '@shared/components/ui/Loading';
@@ -9,6 +9,7 @@ import { createRol, getAllPermisos } from '@seguridad';
 
 export default function CrearRol() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [notification, setNotification] = useState({
     isVisible: false, message: '', type: 'success',
@@ -18,17 +19,17 @@ export default function CrearRol() {
   const handleCloseNotification = () =>
     setNotification((prev) => ({ ...prev, isVisible: false }));
 
-  // Cargar permisos con React Query (caché)
   const { data: permisosDisponibles = [], isLoading: loadingPermisos } = useQuery({
     queryKey: ['permisos'],
     queryFn: getAllPermisos,
     staleTime: 5 * 60 * 1000,
   });
 
-  // Mutación para crear rol
   const createMutation = useMutation({
     mutationFn: createRol,
     onSuccess: (_, data) => {
+      // Invalida el caché para que la lista se refresque al volver
+      queryClient.invalidateQueries({ queryKey: ['roles'] });
       sessionStorage.setItem(
         'crudNotification',
         JSON.stringify({ message: `Rol "${data.nombre}" creado correctamente`, type: 'success' })

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import RolForm from '@seguridad/roles/components/RolForm';
 import Loading from '@shared/components/ui/Loading';
@@ -10,6 +10,7 @@ import { getRolById, updateRol, getAllPermisos, normalizarRolInitialData } from 
 export default function EditarPermisos() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [notification, setNotification] = useState({
     isVisible: false, message: '', type: 'success',
@@ -19,7 +20,6 @@ export default function EditarPermisos() {
   const handleCloseNotification = () =>
     setNotification((prev) => ({ ...prev, isVisible: false }));
 
-  // Cargar rol y permisos en paralelo con React Query
   const {
     data: rolData,
     isLoading: loadingRol,
@@ -31,7 +31,8 @@ export default function EditarPermisos() {
       if (!rol) throw new Error('Rol no encontrado');
       return normalizarRolInitialData(rol);
     },
-    enabled: !!id,
+    enabled: !!id,        // no ejecutar si id es undefined
+    retry: false,         // no reintentar en bucle si falla
     staleTime: 5 * 60 * 1000,
   });
 
@@ -41,10 +42,11 @@ export default function EditarPermisos() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Mutación para actualizar rol
   const updateMutation = useMutation({
     mutationFn: (data) => updateRol(id, data),
     onSuccess: (_, data) => {
+      queryClient.invalidateQueries({ queryKey: ['roles'] });
+      queryClient.invalidateQueries({ queryKey: ['rol', id] });
       sessionStorage.setItem(
         'crudNotification',
         JSON.stringify({ message: `Rol "${data.nombre}" actualizado correctamente`, type: 'success' })
@@ -57,9 +59,7 @@ export default function EditarPermisos() {
     },
   });
 
-  const handleUpdate = (data) => {
-    updateMutation.mutate(data);
-  };
+  const handleUpdate = (data) => updateMutation.mutate(data);
 
   if (loadingRol || loadingPermisos) return <Loading message="Cargando rol..." />;
 
