@@ -47,10 +47,12 @@ export default function Login({ setUser }) {
 
       setUser(usuario);
 
-      if (authServices.hasPermission(usuario, 'dashboard')) {
-        navigate('/admin/dashboard', { replace: true });
-      } else {
+      if (usuario.es_cliente === true) {
+        // Cliente registrado → landing page (productos)
         navigate('/productos', { replace: true });
+      } else {
+        // Empleado administrativo → panel admin
+        navigate('/admin/dashboard', { replace: true });
       }
     } catch (err) {
       setError(normalizeLoginError(err));

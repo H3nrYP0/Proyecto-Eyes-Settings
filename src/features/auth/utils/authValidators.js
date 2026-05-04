@@ -1,5 +1,5 @@
 const EMAIL_REGEX    = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d).{6,}$/;
+const PASSWORD_REGEX = /^.{6,}$/;
 
 const DOC_VALIDATIONS = {
   CC:        /^\d{8,10}$/,
@@ -15,7 +15,7 @@ const DOC_ERRORS = {
   PEP:       'El PEP debe tener entre 6 y 15 caracteres alfanuméricos',
 };
 
-// Calcula la edad a partir de una fecha de nacimiento (string YYYY-MM-DD)
+// Calcula la edad a partir de una fecha de nacimiento
 export const calcularEdad = (fechaNacimiento) => {
   if (!fechaNacimiento) return 0;
   const hoy   = new Date();
@@ -26,26 +26,50 @@ export const calcularEdad = (fechaNacimiento) => {
   return edad;
 };
 
-// Valida el formulario de registro
+// ============================================================
+// VALIDACIÓN DE LOGIN
+// ============================================================
+export const validateLoginForm = (correo, contrasenia) => {
+  if (!correo?.trim() || !contrasenia?.trim())
+    return 'Ingresa correo y contraseña para continuar';
+  if (!EMAIL_REGEX.test(correo))
+    return 'Ingresa un correo electrónico válido';
+  if (contrasenia.length < 6)
+    return 'La contraseña debe tener al menos 6 caracteres';
+  return null;
+};
+
+// ============================================================
+// VALIDACIÓN DE REGISTRO
+// ============================================================
 export const validateRegisterForm = (formData) => {
   const errors = {};
 
+  // Nombre
   if (!formData.nombre?.trim())
-    errors.nombre = 'El nombre completo es requerido';
+    errors.nombre = 'El nombre es requerido';
 
+  // Apellido
+  if (!formData.apellido?.trim())
+    errors.apellido = 'El apellido es requerido';
+
+  // Correo
   if (!formData.correo?.trim())
     errors.correo = 'El correo electrónico es requerido';
   else if (!EMAIL_REGEX.test(formData.correo))
     errors.correo = 'Ingresa un correo electrónico válido';
 
+  // Fecha de nacimiento
   if (!formData.fechaNacimiento)
     errors.fechaNacimiento = 'La fecha de nacimiento es obligatoria';
   else if (calcularEdad(formData.fechaNacimiento) < 18)
     errors.fechaNacimiento = 'Debes ser mayor de 18 años para registrarte';
 
+  // Tipo documento
   if (!formData.tipoDocumento)
     errors.tipoDocumento = 'Selecciona un tipo de documento';
 
+  // Número documento
   if (!formData.numeroDocumento?.trim()) {
     errors.numeroDocumento = 'El número de documento es requerido';
   } else if (
@@ -56,34 +80,37 @@ export const validateRegisterForm = (formData) => {
     errors.numeroDocumento = DOC_ERRORS[formData.tipoDocumento];
   }
 
+  // Contraseña
   if (!formData.contrasenia)
     errors.contrasenia = 'La contraseña es requerida';
-  else if (!PASSWORD_REGEX.test(formData.contrasenia))
-    errors.contrasenia = 'Debe tener al menos 6 caracteres, 1 mayúscula y 1 número';
+  else if (formData.contrasenia.length < 6)
+    errors.contrasenia = 'La contraseña debe tener al menos 6 caracteres';
 
+  // Confirmar contraseña
   if (formData.contrasenia !== formData.confirmContrasenia)
     errors.confirmContrasenia = 'Las contraseñas no coinciden';
 
+  // Términos
   if (!formData.agreeTerms)
     errors.agreeTerms = 'Debes aceptar los términos y condiciones';
 
   return errors;
 };
 
-// Valida el correo en el paso 1 de recuperación
+// ============================================================
+// VALIDACIÓN DE RECUPERACIÓN
+// ============================================================
 export const validateForgotEmail = (correo) => {
   if (!correo?.trim()) return 'Ingresa tu correo electrónico';
   if (!EMAIL_REGEX.test(correo)) return 'Ingresa un correo electrónico válido';
   return null;
 };
 
-// Valida el código OTP de 6 dígitos
 export const validateOtpCode = (codigo) => {
   if (!codigo?.trim() || codigo.length !== 6) return 'Ingresa el código de 6 dígitos';
   return null;
 };
 
-// Valida la nueva contraseña en el paso 3 de recuperación
 export const validateResetPassword = (nuevaContrasenia, confirmarContrasenia) => {
   if (!nuevaContrasenia?.trim())
     return 'Ingresa tu nueva contraseña';
@@ -91,16 +118,5 @@ export const validateResetPassword = (nuevaContrasenia, confirmarContrasenia) =>
     return 'La contraseña debe tener al menos 6 caracteres';
   if (nuevaContrasenia !== confirmarContrasenia)
     return 'Las contraseñas no coinciden';
-  return null;
-};
-
-// Valida el formulario de login
-export const validateLoginForm = (correo, contrasenia) => {
-  if (!correo?.trim() || !contrasenia?.trim())
-    return 'Ingresa correo y contraseña para continuar';
-  if (!EMAIL_REGEX.test(correo))
-    return 'Ingresa un correo electrónico válido';
-  if (contrasenia.length < 6)
-    return 'La contraseña debe tener al menos 6 caracteres';
   return null;
 };

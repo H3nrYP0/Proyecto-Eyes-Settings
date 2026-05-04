@@ -36,6 +36,7 @@ export default function DetalleProducto() {
     loading,
     isView,
     isCreate,
+    imagenes,
     imagePreviews,
     uploadingImages,
     handleChange,
@@ -77,6 +78,7 @@ export default function DetalleProducto() {
       categorias={categorias}
       isView={isView}
       isCreate={isCreate}
+      imagenes={imagenes}
       imagePreviews={imagePreviews}
       uploadingImages={uploadingImages}
       onOpenMarcaModal={handleOpenMarcaModal}
