@@ -8,6 +8,7 @@
 
 import { useNavigate } from "react-router-dom";
 import AuthHome from "./AuthHome";
+import authServices from "@auth/Services/authServices";
 import { hasPermiso } from "../utils/permissions";
 
 // ------------------------------------------------------------------
@@ -29,10 +30,11 @@ const LandingPage = ({ user, setUser }) => {
   const handleLogin = () => navigate("/login");
   
   const handleLogout = () => { 
+    authServices.logout(); // ← esto faltaba
     setUser(null); 
     navigate("/"); 
   };
-  
+
   const handleDashboard = () => navigate(user ? "/admin/dashboard" : "/login");
   
   // Handler para ir al perfil de usuario
