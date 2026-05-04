@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
+    //"baseUrl": ".",
     "paths": {
       // ========== FEATURES ==========
       "@auth/*": ["./src/features/auth/*"],
