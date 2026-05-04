@@ -1,20 +1,29 @@
+// =============================================================
 // ProductsGrid.jsx
-// Grid de productos con datos reales desde la API
+// UBICACIÓN: src/features/home/components/Products/ProductsGrid.jsx
+//
+// Grid de productos. Las tarjetas son clickeables y navegan
+// a /productos/:id. Sin botones de consultar, sin flip.
+// Incluye buscador y filtros de categoría.
+// =============================================================
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import ProductCard from "./ProductCard";
 import LoadingSpinner from "../Shared/LoadingSpinner";
 import { getAllProductosLanding } from "../Services/productosLandingData";
-import "/src/shared/styles/features/home/ProductsPage.css";
 
 const ProductsGrid = () => {
-  const [productos, setProductos] = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [error, setError]         = useState(null);
+  const navigate = useNavigate();
+  const [productos, setProductos]     = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [error, setError]             = useState(null);
+  const [search, setSearch]           = useState("");
+  const [categoriaFiltro, setCategoriaFiltro] = useState("Todos");
 
   useEffect(() => {
     let mounted = true;
-    const fetchProductos = async () => {
+    (async () => {
       try {
         setLoading(true);
         setError(null);
@@ -28,121 +37,129 @@ const ProductsGrid = () => {
       } finally {
         if (mounted) setLoading(false);
       }
-    };
-    fetchProductos();
+    })();
     return () => { mounted = false; };
   }, []);
 
-  const handleConsultar = (producto) => {
-    const mensaje = `Hola, me interesa el producto: *${producto.nombre}*%0APrecio: $${producto.precioVenta?.toLocaleString()}`;
-    window.open(`https://wa.me/573006139449?text=${mensaje}`, "_blank");
-  };
+  // Categorías únicas
+  const categorias = useMemo(() => {
+    const cats = [...new Set(productos.map(p => p.categoria).filter(Boolean))];
+    return ["Todos", ...cats];
+  }, [productos]);
+
+  // Productos filtrados
+  const productosFiltrados = useMemo(() => {
+    return productos.filter(p => {
+      const matchSearch = !search ||
+        p.nombre.toLowerCase().includes(search.toLowerCase()) ||
+        (p.marca || "").toLowerCase().includes(search.toLowerCase()) ||
+        (p.categoria || "").toLowerCase().includes(search.toLowerCase());
+      const matchCat = categoriaFiltro === "Todos" || p.categoria === categoriaFiltro;
+      return matchSearch && matchCat;
+    });
+  }, [productos, search, categoriaFiltro]);
 
   return (
-    <section className="products-section" id="productos">
-      <div className="products-container">
+    <section className="pg-section" id="productos">
+      <div className="pg-container">
 
-        {/* Encabezado — teal hardcoded, sin PageHeader */}
-        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <h2 style={{
-            fontSize: "clamp(1.75rem, 4vw, 2.5rem)",
-            fontWeight: 700,
-            marginBottom: "0.6rem",
-            lineHeight: 1.2,
-            background: "linear-gradient(135deg, #0d2e2e, #1a4a4a)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
-          }}>
-            Productos{" "}
-            <span style={{
-              background: "linear-gradient(135deg, #1a4a4a, #3d8080)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}>
-              Destacados
-            </span>
+        {/* Encabezado */}
+        <div className="pg-header">
+          <h2 className="pg-title">
+            Nuestra{" "}
+            <span className="pg-title-accent">Colección</span>
           </h2>
-          <p style={{
-            color: "#4e6e6e",
-            fontSize: "1rem",
-            maxWidth: "600px",
-            margin: "0 auto",
-            lineHeight: 1.6,
-          }}>
-            Calidad y estilo en cada producto. Pasa el cursor sobre una tarjeta para ver los detalles.
+          <p className="pg-subtitle">
+            Descubre cada producto en detalle — haz click para explorar
           </p>
-          <div style={{
-            width: "44px",
-            height: "3px",
-            background: "linear-gradient(90deg, #1a4a4a, #3d8080)",
-            borderRadius: "4px",
-            margin: "0.875rem auto 0",
-          }} />
         </div>
 
+        {/* Controles: búsqueda + categorías */}
+        {!loading && !error && productos.length > 0 && (
+          <div className="pg-controls">
+            <div className="pg-search-wrap">
+              <svg className="pg-search-icon" viewBox="0 0 20 20" fill="none">
+                <circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="1.5"/>
+                <path d="M14 14l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+              <input
+                type="text"
+                className="pg-search"
+                placeholder="Buscar por nombre, marca o categoría…"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+              {search && (
+                <button className="pg-search-clear" onClick={() => setSearch("")} aria-label="Limpiar búsqueda">
+                  ×
+                </button>
+              )}
+            </div>
+
+            <div className="pg-cats">
+              {categorias.map(cat => (
+                <button
+                  key={cat}
+                  className={`pg-cat-btn${categoriaFiltro === cat ? " pg-cat-btn--active" : ""}`}
+                  onClick={() => setCategoriaFiltro(cat)}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Resultados info */}
+        {!loading && !error && productosFiltrados.length > 0 && (
+          <p className="pg-results-count">
+            {productosFiltrados.length} {productosFiltrados.length === 1 ? "producto" : "productos"}
+            {(search || categoriaFiltro !== "Todos") ? " encontrados" : " en total"}
+          </p>
+        )}
+
+        {/* Estados */}
         {loading && <LoadingSpinner mensaje="Cargando productos..." />}
 
         {error && !loading && (
-          <div style={{
-            textAlign: "center",
-            padding: "2rem",
-            background: "#f3f8f8",
-            border: "1px solid #d4e6e6",
-            borderRadius: "0.75rem",
-            color: "#4e6e6e",
-            fontSize: "0.9rem",
-            maxWidth: "500px",
-            margin: "0 auto",
-          }}>
-            {error}
+          <div className="pg-error">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <p>{error}</p>
           </div>
         )}
 
-        {!loading && !error && productos.length === 0 && (
-          <div style={{ textAlign: "center", padding: "3rem", color: "#4e6e6e", fontSize: "0.95rem" }}>
-            No hay productos disponibles en este momento.
+        {!loading && !error && productosFiltrados.length === 0 && (
+          <div className="pg-empty">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <rect x="8" y="16" width="32" height="24" rx="3"/>
+              <path d="M16 16v-4a8 8 0 0116 0v4"/>
+              <line x1="20" y1="28" x2="28" y2="28"/>
+            </svg>
+            <p>No se encontraron productos{search ? ` para "${search}"` : ""}.</p>
+            {(search || categoriaFiltro !== "Todos") && (
+              <button className="pg-reset-btn" onClick={() => { setSearch(""); setCategoriaFiltro("Todos"); }}>
+                Limpiar filtros
+              </button>
+            )}
           </div>
         )}
 
-        {!loading && !error && productos.length > 0 && (
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: "1.75rem",
-            maxWidth: "1100px",
-            margin: "0 auto",
-          }}>
-            {productos.map((producto) => (
+        {/* Grid */}
+        {!loading && !error && productosFiltrados.length > 0 && (
+          <div className="pg-grid">
+            {productosFiltrados.map(producto => (
               <ProductCard
                 key={producto.id}
                 producto={producto}
-                onConsultar={handleConsultar}
               />
             ))}
           </div>
         )}
 
-        {!loading && !error && productos.length > 0 && (
-          <div className="products-cta" style={{ marginTop: "3rem" }}>
-            <div className="cta-content">
-              <h3>¿No encuentras lo que buscas?</h3>
-              <p>Contáctanos para productos personalizados y asesoría especializada</p>
-              <div className="cta-actions">
-                <a
-                  href="https://wa.me/573006139449"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-whatsapp btn-large"
-                  style={{ textDecoration: "none" }}
-                >
-                  Contactar por WhatsApp
-                </a>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </section>
   );

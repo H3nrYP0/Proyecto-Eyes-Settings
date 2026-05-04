@@ -1,20 +1,17 @@
-// ProductCard.jsx
-// Tarjeta de producto con flip 3D activado SOLO por el botón "Ver detalles".
-// Cara delantera: imagen limpia (sin badge), nombre, precio, botones.
-// Cara trasera: descripción del producto desde el backend.
+// =============================================================
+// ProductCard.jsx — Crossfade real + wishlist aislada
+// =============================================================
 
-import { useState, useCallback, useEffect } from "react";
-import { getProductoById } from "../Services/productosLandingData";
+import { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { useCart } from "./ShoppingCart";
 
-// ─── helpers ──────────────────────────────────────────────────────────────────
 const formatPrice = (price) => {
   if (!price && price !== 0) return "Consultar";
   const num = Number(price);
   if (isNaN(num)) return "Consultar";
   return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    maximumFractionDigits: 0,
+    style: "currency", currency: "COP", maximumFractionDigits: 0,
   }).format(num);
 };
 
@@ -24,152 +21,124 @@ const getStockStatus = (stock) => {
   return "in";
 };
 
-const FALLBACK_EMOJI = "👓";
+export default function ProductCard({ producto }) {
+  const navigate = useNavigate();
+  const { toggleWishlist, isInWishlist } = useCart();
 
-// ─── componente ───────────────────────────────────────────────────────────────
-export default function ProductCard({ producto, onConsultar }) {
-  const [flipped, setFlipped]           = useState(false);
-  const [descripcion, setDescripcion]   = useState(producto?.descripcion || "");
-  const [loadingDesc, setLoadingDesc]   = useState(false);
-
-  // Carga la descripción completa desde el backend cuando se voltea por primera vez
-  useEffect(() => {
-    if (!flipped || descripcion) return; // ya tiene descripción, no volver a pedir
-    if (!producto?.id) return;
-
-    let cancelled = false;
-    setLoadingDesc(true);
-
-    getProductoById(producto.id)
-      .then((data) => {
-        if (!cancelled && data?.descripcion) {
-          setDescripcion(data.descripcion);
-        }
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setLoadingDesc(false);
-      });
-
-    return () => { cancelled = true; };
-  }, [flipped, producto?.id]);
-
-  const handleVerDetalles = useCallback((e) => {
-    e.stopPropagation(); // no propagar al wrapper
-    setFlipped(true);
-  }, []);
-
-  const handleVolver = useCallback((e) => {
-    e.stopPropagation();
-    setFlipped(false);
-  }, []);
-
-  const handleConsultar = useCallback((e) => {
-    e.stopPropagation();
-    if (onConsultar) onConsultar(producto);
-  }, [onConsultar, producto]);
+  const [hovered,   setHovered]   = useState(false);
+  const [imgError1, setImgError1] = useState(false);
+  const [imgError2, setImgError2] = useState(false);
 
   if (!producto) return null;
 
   const {
+    id,
     nombre      = "Producto",
     precioVenta = 0,
     stockActual = 0,
     categoria   = "",
+    marca       = "",
     imagenes    = [],
     estado      = "activo",
   } = producto;
 
-  const stockStatus   = getStockStatus(stockActual);
-  const isActive      = estado === "activo" || estado === true;
-  const disponible    = isActive && stockStatus !== "out";
-  const primeraImagen = imagenes?.[0]?.url || null;
+  const stockStatus = getStockStatus(stockActual);
+  const isActive    = estado === "activo" || estado === true;
+  const disponible  = isActive && stockStatus !== "out";
+
+  const img1 = imagenes?.[0]?.url || null;
+  const img2 = imagenes?.[1]?.url || null;
+
+  // img2 se muestra en hover si existe y no falló
+  const showImg2 = hovered && img2 && !imgError2;
+
+  const inWish = isInWishlist(id);
+
+  const stockLabel =
+    stockStatus === "out" ? "Agotado" :
+    stockStatus === "low" ? `Últimas ${stockActual}` :
+    "Disponible";
+
+  // Wishlist: completamente aislado de la navegación
+  const handleWishClick = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleWishlist(producto);
+  }, [producto, toggleWishlist]);
+
+  // Click tarjeta: ignora si vino del botón wishlist
+  const handleCardClick = useCallback((e) => {
+    if (e.target.closest(".pc-wish-btn")) return;
+    navigate(`/productos/${id}`);
+  }, [id, navigate]);
 
   return (
-    <div className="product-card-flip-wrapper">
-      <div className={`product-card-flip ${flipped ? "flipped" : ""}`}>
+    <article
+      className={`pc-card${!disponible ? " pc-card--unavailable" : ""}`}
+      onClick={handleCardClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={e => e.key === "Enter" && navigate(`/productos/${id}`)}
+      aria-label={`Ver ${nombre}`}
+    >
+      <div className="pc-image-wrap">
 
-        {/* ════ CARA DELANTERA ════ */}
-        <div className="flip-face flip-front">
-
-          {/* Imagen — SIN badge encima */}
-          <div className="product-image">
-            {primeraImagen ? (
-              <img src={primeraImagen} alt={nombre} />
-            ) : (
-              <span className="product-emoji">{FALLBACK_EMOJI}</span>
-            )}
+        {/* Imagen principal — siempre montada, nunca desmontada → CSS anima opacity */}
+        {img1 && !imgError1 ? (
+          <img
+            src={img1}
+            alt={nombre}
+            className={`pc-image pc-image--primary${showImg2 ? " pc-image--fade-out" : ""}${hovered && !showImg2 ? " pc-image--zoomed" : ""}`}
+            onError={() => setImgError1(true)}
+            draggable={false}
+          />
+        ) : (
+          <div className="pc-placeholder">
+            <svg viewBox="0 0 48 48" fill="none">
+              <rect x="6" y="14" width="36" height="24" rx="3" stroke="currentColor" strokeWidth="1.2"/>
+              <circle cx="17" cy="22" r="3" stroke="currentColor" strokeWidth="1.2"/>
+              <path d="M6 32l10-8 7 6 5-4 14 10" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
+            </svg>
           </div>
+        )}
 
-          {/* Info */}
-          <div className="product-basic-info">
-            {categoria ? (
-              <span className="product-category">{categoria}</span>
-            ) : null}
-            <p className="product-name">{nombre}</p>
-          </div>
+        {/* Imagen secundaria — superpuesta, aparece con opacity transition */}
+        {img2 && !imgError2 && (
+          <img
+            src={img2}
+            alt={`${nombre} — vista 2`}
+            className={`pc-image pc-image--secondary${showImg2 ? " pc-image--fade-in pc-image--zoomed" : ""}`}
+            onError={() => setImgError2(true)}
+            draggable={false}
+          />
+        )}
 
-          {/* Footer: precio + botones */}
-          <div className="product-price-section">
-            <span className="product-price">{formatPrice(precioVenta)}</span>
-
-            <div className="product-btns">
-              {/* Ver detalles — activa el flip */}
-              <button
-                className="product-action-btn details"
-                onClick={handleVerDetalles}
-                aria-label={`Ver detalles de ${nombre}`}
-              >
-                Ver detalles
-              </button>
-
-              {/* Consultar — abre WhatsApp */}
-              <button
-                className={`product-action-btn ${disponible ? "available" : "sold-out"}`}
-                onClick={handleConsultar}
-                disabled={!disponible}
-                aria-label={disponible ? `Consultar ${nombre}` : "Agotado"}
-              >
-                {disponible ? "Consultar" : "Agotado"}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* ════ CARA TRASERA — solo descripción ════ */}
-        <div className="flip-face flip-back">
-
-          {/* Encabezado */}
-          <div className="back-header">
-            {categoria ? (
-              <span className="back-product-category">{categoria}</span>
-            ) : null}
-            <p className="back-product-name">{nombre}</p>
-            <div className="back-divider" />
-          </div>
-
-          {/* Descripción */}
-          <div className="back-description-text">
-            {loadingDesc ? (
-              <span className="back-description-empty">Cargando descripción…</span>
-            ) : descripcion && descripcion.trim() ? (
-              descripcion
-            ) : (
-              <span className="back-description-empty">Sin descripción disponible.</span>
-            )}
-          </div>
-
-          {/* Botón volver */}
-          <button
-            className="back-return-btn"
-            onClick={handleVolver}
-            aria-label="Volver"
-          >
-            ← Volver
-          </button>
-        </div>
-
+        {/* Botón wishlist */}
+        <button
+          className={`pc-wish-btn${inWish ? " pc-wish-btn--active" : ""}`}
+          onClick={handleWishClick}
+          onMouseDown={e => e.stopPropagation()}
+          aria-label={inWish ? "Quitar de lista de deseos" : "Añadir a lista de deseos"}
+          type="button"
+        >
+          <svg viewBox="0 0 24 24" fill={inWish ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5">
+            <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+          </svg>
+        </button>
       </div>
-    </div>
+
+      <div className="pc-body">
+        {(marca || categoria) && (
+          <p className="pc-meta">{[marca, categoria].filter(Boolean).join(" · ")}</p>
+        )}
+        <h3 className="pc-name">{nombre}</h3>
+        <div className="pc-footer">
+          <span className="pc-price">{formatPrice(precioVenta)}</span>
+          <span className={`pc-stock pc-stock--${stockStatus}`}>{stockLabel}</span>
+        </div>
+      </div>
+    </article>
   );
 }
