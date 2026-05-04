@@ -5,6 +5,7 @@ export const normalizarPermisosIds = (permisos = []) =>
   permisos.map((p) => p.id ?? p);
 
 export const normalizarRolInitialData = (data) => ({
+  id:          data.id,
   nombre:      data.nombre      ?? '',
   descripcion: data.descripcion ?? '',
   estado:      normalizarRolEstado(data.estado),

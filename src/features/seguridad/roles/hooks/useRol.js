@@ -5,34 +5,34 @@ import { getRolById, getAllPermisos, normalizarRolInitialData } from '@seguridad
 export const useRol = (id) => {
   const navigate = useNavigate();
 
-  const { data, isLoading, error } = useQuery({
+  // IMPORTANTE: queryKey ['rol', id] guarda SOLO el rol normalizado,
+  // igual que EditarPermisos — así comparten caché sin conflicto.
+  const { data: rolData, isLoading: loadingRol, error } = useQuery({
     queryKey: ['rol', id],
     queryFn: async () => {
-      const [rolData, permisosData] = await Promise.all([
-        getRolById(id),
-        getAllPermisos(),
-      ]);
-      if (!rolData) {
-        throw new Error('Rol no encontrado');
-      }
-      return {
-        rol: normalizarRolInitialData(rolData),
-        permisosDisponibles: permisosData || [],
-      };
+      const rol = await getRolById(id);
+      if (!rol) throw new Error('Rol no encontrado');
+      return normalizarRolInitialData(rol);
     },
     enabled: !!id,
+    retry: false,
     staleTime: 5 * 60 * 1000,
   });
 
-  // Redirige si el rol no existe
+  const { data: permisosDisponibles = [], isLoading: loadingPermisos } = useQuery({
+    queryKey: ['permisos'],
+    queryFn: getAllPermisos,
+    staleTime: 5 * 60 * 1000,
+  });
+
   if (error?.message === 'Rol no encontrado') {
     navigate('/admin/seguridad/roles');
   }
 
   return {
-    rol: data?.rol || null,
-    permisosDisponibles: data?.permisosDisponibles || [],
-    loading: isLoading,
+    rol: rolData || null,
+    permisosDisponibles,
+    loading: loadingRol || loadingPermisos,
     error,
   };
 };

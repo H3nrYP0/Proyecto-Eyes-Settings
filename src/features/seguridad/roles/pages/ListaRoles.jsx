@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 
-import RolForm    from '@seguridad/roles/components/RolForm';
+import RolForm from '@seguridad/roles/components/RolForm';
 import { useRol } from '@seguridad/roles/hooks/useRol';
 
 export default function DetalleRol() {
@@ -8,8 +8,8 @@ export default function DetalleRol() {
   const navigate = useNavigate();
   const { rol, permisosDisponibles, loading } = useRol(id);
 
-  if (loading || !rol) return null; 
-  
+  if (loading || !rol) return null;
+
   return (
     <RolForm
       mode="view"

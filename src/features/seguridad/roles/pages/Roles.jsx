@@ -42,7 +42,6 @@ export default function Roles() {
   const handleCloseNotification = () =>
     setNotification((prev) => ({ ...prev, isVisible: false }));
 
-  // Leer notificaciones pendientes (desde crear/editar)
   useEffect(() => {
     const pending = sessionStorage.getItem('crudNotification');
     if (pending) {
@@ -52,7 +51,6 @@ export default function Roles() {
     }
   }, []);
 
-  // React Query: cargar roles
   const { data, isLoading, error } = useQuery({
     queryKey: ['roles'],
     queryFn: async () => {
@@ -64,18 +62,22 @@ export default function Roles() {
 
   const roles = data || [];
 
-  // Eliminar rol
   const deleteMutation = useMutation({
     mutationFn: deleteRol,
     onSuccess: (_, deletedId) => {
-      queryClient.setQueryData(['roles'], (oldRoles) => {
-        if (!oldRoles) return oldRoles;
-        return oldRoles.filter((rol) => rol.id !== deletedId);
-      });
+      queryClient.invalidateQueries({ queryKey: ['roles'] });
+      const nombre = deleteModal.nombre;
+      setDeleteModal({ open: false, id: null, nombre: '' });
+      showNotification(`Rol "${nombre}" eliminado correctamente`);
+    },
+    onError: (err) => {
+      const msg = err?.response?.data?.error || err?.message || 'Error al eliminar el rol';
+      setDeleteModal({ open: false, id: null, nombre: '' });
+      showNotification(msg, 'error');
     },
   });
 
-  // Cambiar estado
+  // Cambiar estado — actualización optimista en caché
   const estadoMutation = useMutation({
     mutationFn: ({ id, estado }) => updateEstadoRol(id, estado),
     onSuccess: (_, { id, estado }) => {
@@ -91,17 +93,9 @@ export default function Roles() {
   const handleDelete = (id, nombre) =>
     setDeleteModal({ open: true, id, nombre });
 
-  const confirmDelete = async () => {
-    const nombre = deleteModal.nombre;
-    try {
-      await deleteMutation.mutateAsync(deleteModal.id);
-      setDeleteModal({ open: false, id: null, nombre: '' });
-      showNotification(`Rol "${nombre}" eliminado correctamente`);
-    } catch (err) {
-      const msg = err?.response?.data?.error || err?.message || 'Error al eliminar el rol';
-      setDeleteModal({ open: false, id: null, nombre: '' });
-      showNotification(msg, 'error');
-    }
+  // confirmDelete ya no necesita try/catch: los callbacks de la mutación lo manejan
+  const confirmDelete = () => {
+    deleteMutation.mutate(deleteModal.id);
   };
 
   const handleChangeStatus = async (row, nuevoEstado) => {
