@@ -66,7 +66,6 @@ const Navbar = ({
                   <PersonIcon sx={{ fontSize: 28, color: "rgba(255,255,255,0.85)" }} />
                 </IconButton>
               </Tooltip>
-              <span className="user-greeting">Hola, {userName}</span>
               {puedeVerDashboard && (
                 <button className="btn btn-dashboard" onClick={onDashboard}>Dashboard</button>
               )}

@@ -52,7 +52,6 @@ export default function AppHeader({ onToggleSidebar, user, onLogout }) {
             onClick={() => navigate("/admin/configuracion")}
             sx={{ textTransform: "none", fontWeight: 500 }}
           >
-            {user?.nombre || user?.name || "Mi Perfil"}
           </Button>
         </Tooltip>
 
