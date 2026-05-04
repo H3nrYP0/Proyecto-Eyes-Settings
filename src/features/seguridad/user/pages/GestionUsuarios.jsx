@@ -55,6 +55,17 @@ export default function GestionUsuarios() {
   const users = data?.users || [];
   const roles = data?.roles || [];
 
+  // Filtrar usuarios para excluir los que tienen rol "Cliente"
+  const clienteRoleId = useMemo(() => {
+    const clienteRole = roles.find(rol => rol.nombre?.toLowerCase() === "cliente");
+    return clienteRole?.id;
+  }, [roles]);
+
+  const usuariosSinClientes = useMemo(() => {
+    if (!clienteRoleId) return users;
+    return users.filter(user => user.rol_id !== clienteRoleId);
+  }, [users, clienteRoleId]);
+
   // Leer notificaciones persistidas
   useEffect(() => {
     const pending = sessionStorage.getItem("crudNotification");
@@ -143,8 +154,8 @@ export default function GestionUsuarios() {
   };
 
   const filteredUsers = useMemo(
-    () => filtrarUsuarios(users, search, filterStatus),
-    [users, search, filterStatus]
+    () => filtrarUsuarios(usuariosSinClientes, search, filterStatus),
+    [usuariosSinClientes, search, filterStatus]
   );
 
   const columns = [
