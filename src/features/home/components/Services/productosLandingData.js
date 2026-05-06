@@ -15,7 +15,7 @@ const BASE_URL = "https://optica-api-vad8.onrender.com";
 // Si el endpoint no existe (404), devuelve null para caer al fallback.
 async function fetchImagenesBatch() {
   try {
-    const res = await fetch(`${BASE_URL}/imagenes/productos`);
+    const res = await fetch(`${BASE_URL}/imagenes`);
     if (!res.ok) return null;
     const data = await res.json();
     // Espera: [{ producto_id, url, ... }] o { imagenes: [...] }
