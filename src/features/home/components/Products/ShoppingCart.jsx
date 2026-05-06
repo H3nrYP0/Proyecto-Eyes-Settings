@@ -1,21 +1,34 @@
 // =============================================================
-// ShoppingCart.jsx — Carrito negro + Wishlist negro
+// ShoppingCart.jsx — Carrito verde oscuro teal + Wishlist
 // Carrito persiste en localStorage (funciona sin login)
+// CAMBIOS v3:
+//   - Fondo del drawer: verde oscuro teal (#0d2e2e) en vez de negro
+//   - Texto "PSE · Nequi · Tarjeta" en blanco
+//   - Dirección guardada en localStorage (persiste entre sesiones)
+//   - BUG FIX: PaymentModal ahora se renderiza FUERA del drawer
+//     para que no se cierre cuando el drawer se oculta
 // =============================================================
 
-import { createContext, useContext, useState, useCallback, useEffect, Suspense } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import PaymentModal from "./PaymentModal";
 
 const BASE_URL  = "https://optica-api-vad8.onrender.com";
 const CART_KEY  = "vo_cart_items";
 const WISH_KEY  = "vo_wishlist_items";
+const ADDR_KEY  = "vo_delivery_address";   // ← nueva clave para dirección
 
 const loadFromStorage = (key) => {
-  try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : []; } catch { return []; }
+  try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : null; } catch { return null; }
 };
 const saveToStorage = (key, data) => {
   try { localStorage.setItem(key, JSON.stringify(data)); } catch {}
+};
+
+// Dirección vacía por defecto
+const emptyAddress = {
+  ciudad:"", departamento:"", direccion:"", complemento:"",
+  barrio:"", receptor:"", telefono:"", indicaciones:"",
 };
 
 const CartContext = createContext(null);
@@ -35,10 +48,14 @@ const getToken = () =>
 
 // ─── Provider ────────────────────────────────────────────────
 export const CartProvider = ({ children, user }) => {
-  const [items,    setItems]    = useState(() => loadFromStorage(CART_KEY));
-  const [wishlist, setWishlist] = useState(() => loadFromStorage(WISH_KEY));
+  const [items,    setItems]    = useState(() => loadFromStorage(CART_KEY) || []);
+  const [wishlist, setWishlist] = useState(() => loadFromStorage(WISH_KEY) || []);
   const [isOpen,   setIsOpen]   = useState(false);
   const [wishOpen, setWishOpen] = useState(false);
+
+  // ── Estado del modal de pago — vive en el Provider para sobrevivir al cierre del drawer ──
+  const [pagoModalOpen,  setPagoModalOpen]  = useState(false);
+  const [pedidoData,     setPedidoData]     = useState(null);
 
   useEffect(() => { saveToStorage(CART_KEY, items); },    [items]);
   useEffect(() => { saveToStorage(WISH_KEY, wishlist); }, [wishlist]);
@@ -70,14 +87,14 @@ export const CartProvider = ({ children, user }) => {
 
   const clearCart = useCallback(() => { setItems([]); saveToStorage(CART_KEY, []); }, []);
 
-  const toggleWishlist = useCallback((producto) => {
+  const toggleWishlist   = useCallback((producto) => {
     setWishlist(prev => {
       const existe = prev.find(i => i.id === producto.id);
       return existe ? prev.filter(i => i.id !== producto.id) : [...prev, producto];
     });
   }, []);
 
-  const isInWishlist     = useCallback((id) => wishlist.some(i => i.id === id), [wishlist]);
+  const isInWishlist      = useCallback((id) => wishlist.some(i => i.id === id), [wishlist]);
   const removeFromWishlist = useCallback((id) => setWishlist(prev => prev.filter(i => i.id !== id)), []);
 
   const toggleCart    = useCallback(() => setIsOpen(p => !p), []);
@@ -86,6 +103,17 @@ export const CartProvider = ({ children, user }) => {
   const openWishlist  = useCallback(() => { setWishOpen(true); setIsOpen(false); }, []);
   const closeWishlist = useCallback(() => setWishOpen(false), []);
 
+  // Abrir el modal de pago desde el drawer (se pasa la data del pedido)
+  const openPagoModal = useCallback((data) => {
+    setPedidoData(data);
+    setPagoModalOpen(true);
+  }, []);
+
+  const closePagoModal = useCallback(() => {
+    setPagoModalOpen(false);
+    setPedidoData(null);
+  }, []);
+
   return (
     <CartContext.Provider value={{
       items, cartCount, cartTotal, isOpen,
@@ -93,13 +121,32 @@ export const CartProvider = ({ children, user }) => {
       addToCart, removeFromCart, updateQuantity, clearCart,
       toggleWishlist, isInWishlist, removeFromWishlist,
       toggleCart, closeCart, openCart, openWishlist, closeWishlist,
+      openPagoModal, closePagoModal, pagoModalOpen, pedidoData,
+      user,
     }}>
       {children}
+
+      {/* ── PaymentModal montado FUERA de todo drawer ── */}
+      {pagoModalOpen && pedidoData && (
+        <PaymentModal
+          isOpen={pagoModalOpen}
+          onClose={closePagoModal}
+          onPedidoCreado={(id) => {
+            clearCart();
+            closePagoModal();
+          }}
+          items={pedidoData.items}
+          total={pedidoData.total}
+          metodoEntrega={pedidoData.metodoEntrega}
+          direccion={pedidoData.direccion}
+          user={user}
+        />
+      )}
     </CartContext.Provider>
   );
 };
 
-// ─── Formulario de domicilio ─────────────────────────────────
+// ─── Formulario de domicilio — guarda en localStorage ────────
 const DeliveryForm = ({ value, onChange, errors }) => (
   <div className="sc-delivery-form">
     <p className="sc-delivery-title">Dirección de entrega</p>
@@ -162,7 +209,7 @@ const DeliveryForm = ({ value, onChange, errors }) => (
   </div>
 );
 
-// ─── Wishlist Drawer — NEGRO ──────────────────────────────────
+// ─── Wishlist Drawer ──────────────────────────────────────────
 export const WishlistDrawer = ({ user }) => {
   const { wishlist, wishOpen, closeWishlist, removeFromWishlist, addToCart } = useCart();
 
@@ -221,23 +268,29 @@ export const WishlistDrawer = ({ user }) => {
   );
 };
 
-// ─── Carrito Drawer — NEGRO ───────────────────────────────────
+// ─── Carrito Drawer ───────────────────────────────────────────
 const ShoppingCart = ({ user }) => {
   const navigate = useNavigate();
-  const { items, cartTotal, isOpen, removeFromCart, updateQuantity, clearCart, closeCart } = useCart();
+  const {
+    items, cartTotal, isOpen,
+    removeFromCart, updateQuantity, clearCart, closeCart,
+    openPagoModal,
+  } = useCart();
 
-  const [metodoPago,   setMetodoPago]   = useState("wompi");   // siempre wompi ahora
   const [metodEntrega, setMetodEntrega] = useState("tienda");
-  const [delivery,     setDelivery]     = useState({
-    ciudad:"", departamento:"", direccion:"", complemento:"", barrio:"", receptor:"", telefono:"", indicaciones:"",
-  });
+
+  // Dirección: cargar desde localStorage al montar
+  const [delivery, setDelivery] = useState(
+    () => loadFromStorage(ADDR_KEY) || emptyAddress
+  );
   const [deliveryErrors, setDeliveryErrors] = useState({});
-  const [submitting,   setSubmitting]   = useState(false);
-  const [successMsg,   setSuccessMsg]   = useState("");
-  const [errorMsg,     setErrorMsg]     = useState("");
-  // Estado del modal de pago
-  const [pedidoCreado,   setPedidoCreado]   = useState(null);  // { id, total }
-  const [pagoModalOpen,  setPagoModalOpen]  = useState(false);
+  const [submitting,     setSubmitting]     = useState(false);
+  const [errorMsg,       setErrorMsg]       = useState("");
+
+  // Guardar dirección en localStorage cada vez que cambia
+  useEffect(() => {
+    saveToStorage(ADDR_KEY, delivery);
+  }, [delivery]);
 
   const validateDelivery = () => {
     const e = {};
@@ -251,7 +304,7 @@ const ShoppingCart = ({ user }) => {
     return e;
   };
 
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
     if (!user) { closeCart(); navigate("/login"); return; }
     if (items.length === 0) return;
 
@@ -262,29 +315,27 @@ const ShoppingCart = ({ user }) => {
     setDeliveryErrors({});
     setErrorMsg("");
 
-    // Preparar dirección completa para pasar al modal
     const direccionFull = metodEntrega === "domicilio"
-      ? `${delivery.direccion}${delivery.complemento ? ", " + delivery.complemento : ""}, ${delivery.barrio}, ${delivery.ciudad}, ${delivery.departamento}. Receptor: ${delivery.receptor}. Tel: ${delivery.telefono}${delivery.indicaciones ? ". " + delivery.indicaciones : ""}`
+      ? [
+          delivery.direccion,
+          delivery.complemento && `, ${delivery.complemento}`,
+          `, ${delivery.barrio}`,
+          `, ${delivery.ciudad}`,
+          `, ${delivery.departamento}`,
+          `. Receptor: ${delivery.receptor}`,
+          `. Tel: ${delivery.telefono}`,
+          delivery.indicaciones && `. ${delivery.indicaciones}`,
+        ].filter(Boolean).join("")
       : "";
 
-    // Pasar datos al modal — el modal llama a /pagos/iniciar que crea
-    // el pedido Y la transacción Wompi en un solo paso
-    setPedidoCreado({
-      items:          items,
-      total:          cartTotal,
-      metodoEntrega:  metodEntrega,
-      direccion:      direccionFull,
-    });
+    // Cerrar el drawer y abrir el modal (que vive en el Provider)
     closeCart();
-    setPagoModalOpen(true);
-  };
-
-  const handlePedidoCreado = (id) => {
-    clearCart();
-    setPedidoCreado(null);
-    setPagoModalOpen(false);
-    setSuccessMsg(`¡Pedido #${id} registrado! Te confirmaremos cuando verifiquemos tu transferencia.`);
-    setTimeout(() => setSuccessMsg(""), 8000);
+    openPagoModal({
+      items,
+      total:         cartTotal,
+      metodoEntrega: metodEntrega,
+      direccion:     direccionFull,
+    });
   };
 
   return (
@@ -305,7 +356,7 @@ const ShoppingCart = ({ user }) => {
         </div>
 
         <div className="sc-body">
-          {items.length === 0 && !successMsg && (
+          {items.length === 0 && (
             <div className="sc-empty">
               <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="1.2">
                 <path d="M8 2L2 8v40a4 4 0 004 4h44a4 4 0 004-4V8L48 2z"/>
@@ -317,18 +368,7 @@ const ShoppingCart = ({ user }) => {
             </div>
           )}
 
-          {successMsg && (
-            <div className="sc-success">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/>
-              </svg>
-              <h3>¡Listo!</h3>
-              <p>{successMsg}</p>
-              <button className="sc-success-btn" onClick={() => setSuccessMsg("")}>Seguir comprando</button>
-            </div>
-          )}
-
-          {items.length > 0 && !successMsg && (
+          {items.length > 0 && (
             <>
               <ul className="sc-items">
                 {items.map(item => (
@@ -362,7 +402,7 @@ const ShoppingCart = ({ user }) => {
               </ul>
 
               <div className="sc-options">
-                {/* Método de pago — info: se elige en el modal */}
+                {/* Texto de pago en BLANCO ← cambio solicitado */}
                 <div className="sc-option-group">
                   <label className="sc-option-label">Pago</label>
                   <div className="sc-pago-info">
@@ -396,7 +436,7 @@ const ShoppingCart = ({ user }) => {
           )}
         </div>
 
-        {items.length > 0 && !successMsg && (
+        {items.length > 0 && (
           <div className="sc-footer">
             <div className="sc-total-row">
               <span className="sc-total-label">Subtotal</span>
@@ -428,20 +468,6 @@ const ShoppingCart = ({ user }) => {
           </div>
         )}
       </div>
-
-      {/* Modal de pago — montado fuera del drawer */}
-      {pagoModalOpen && pedidoCreado && (
-        <PaymentModal
-          isOpen={pagoModalOpen}
-          onClose={() => { setPagoModalOpen(false); setPedidoCreado(null); }}
-          onPedidoCreado={handlePedidoCreado}
-          items={pedidoCreado.items}
-          total={pedidoCreado.total}
-          metodoEntrega={pedidoCreado.metodoEntrega}
-          direccion={pedidoCreado.direccion}
-          user={user}
-        />
-      )}
     </>
   );
 };
