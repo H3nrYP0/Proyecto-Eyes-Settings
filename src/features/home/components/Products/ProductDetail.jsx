@@ -6,9 +6,12 @@
 // Ruta: /productos/:id
 // Consume: GET /productos/:id + GET /imagenes/producto/:id
 // Conecta con el carrito de compras (ShoppingCart).
+//
+// Fix: scroll al inicio al montar (useEffect con scrollTo)
+// Fix: input manual de cantidad con validación de rango
 // =============================================================
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getProductoById } from "../Services/productosLandingData";
 import ShoppingCart, { useCart } from "./ShoppingCart";
@@ -52,6 +55,13 @@ const ProductDetail = ({ user }) => {
   const [addedFeedback, setAddedFeedback] = useState(false);
   const [imgErrors, setImgErrors]       = useState({});
 
+  const cantidadInputRef = useRef(null);
+
+  // Scroll al inicio cada vez que cambia el producto
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
+
   useEffect(() => {
     if (!id) return;
     let cancelled = false;
@@ -85,6 +95,7 @@ const ProductDetail = ({ user }) => {
     setTimeout(() => setAddedFeedback(false), 1800);
   };
 
+  // Cambio con botones − / +
   const handleCantidadChange = (delta) => {
     setCantidad(prev => {
       const next = prev + delta;
@@ -92,6 +103,30 @@ const ProductDetail = ({ user }) => {
       if (producto && next > producto.stockActual) return producto.stockActual;
       return next;
     });
+  };
+
+  // ── Input manual de cantidad ──────────────────────────────
+  const handleCantidadInputChange = (e) => {
+    const raw = e.target.value;
+    // Permitir solo dígitos (sin decimales, sin negativos, sin letras)
+    const digitsOnly = raw.replace(/\D/g, "");
+    setCantidad(digitsOnly === "" ? "" : Number(digitsOnly));
+  };
+
+  const handleCantidadInputBlur = () => {
+    // Validar rango al perder foco
+    if (cantidad === "" || cantidad < 1) {
+      setCantidad(1);
+    } else if (producto && cantidad > producto.stockActual) {
+      setCantidad(producto.stockActual);
+    }
+  };
+
+  const handleCantidadInputKeyDown = (e) => {
+    // Enter → confirmar (mismo comportamiento que blur)
+    if (e.key === "Enter") {
+      e.target.blur();
+    }
   };
 
   // ── Loading ──────────────────────────────────────────────
@@ -286,7 +321,7 @@ const ProductDetail = ({ user }) => {
           {/* Cantidad + Añadir al carrito */}
           {disponible && (
             <div className="pd-actions">
-              {/* Selector de cantidad */}
+              {/* Selector de cantidad con input manual */}
               <div className="pd-cantidad-wrap">
                 <span className="pd-cantidad-label">Cantidad</span>
                 <div className="pd-cantidad-ctrl">
@@ -298,7 +333,19 @@ const ProductDetail = ({ user }) => {
                   >
                     −
                   </button>
-                  <span className="pd-cantidad-val">{cantidad}</span>
+                  <input
+                    ref={cantidadInputRef}
+                    type="text"
+                    inputMode="numeric"
+                    className="pd-cantidad-input"
+                    value={cantidad}
+                    onChange={handleCantidadInputChange}
+                    onBlur={handleCantidadInputBlur}
+                    onKeyDown={handleCantidadInputKeyDown}
+                    aria-label="Cantidad de producto"
+                    min="1"
+                    max={stockActual}
+                  />
                   <button
                     className="pd-cantidad-btn"
                     onClick={() => handleCantidadChange(1)}

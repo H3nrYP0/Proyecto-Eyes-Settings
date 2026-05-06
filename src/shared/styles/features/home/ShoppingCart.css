@@ -16,7 +16,7 @@
 .sc-drawer {
   position: fixed; top: 0; right: 0; bottom: 0;
   width: 440px; max-width: 100vw;
-  background: #111;
+  background: #0d2e2e;
   z-index: 1300;
   display: flex; flex-direction: column;
   transform: translateX(100%);
@@ -257,7 +257,7 @@
   padding: 1rem 1.5rem;
   border-top: 1px solid rgba(255,255,255,0.07);
   display: flex; flex-direction: column; gap: 0.65rem;
-  flex-shrink: 0; background: #111;
+  flex-shrink: 0; background: #0d2e2e;
 }
 
 .sc-total-row { display: flex; justify-content: space-between; align-items: center; }
@@ -314,4 +314,15 @@
 @media (max-width: 480px) {
   .sc-drawer { width: 100vw; }
   .sc-field-row { grid-template-columns: 1fr; }
+}
+
+/* ─── Info método de pago (reemplaza el select) ─────────────── */
+.sc-pago-info {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 0.4rem;
+  font-size: 0.78rem; color: #ffffff;
+  font-weight: 600;
 }

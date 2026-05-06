@@ -1,5 +1,6 @@
 /* =============================================================
    ProductDetail.css — Estilo Farfetch refinado
+   Incluye input manual de cantidad con validación de rango
    ============================================================= */
 @import './landing-variables.css';
 
@@ -195,11 +196,34 @@
 .pd-cantidad-btn:hover:not(:disabled) { background:#f0f7f7; }
 .pd-cantidad-btn:disabled { color:#c4d8d8; cursor:default; }
 
-.pd-cantidad-val {
-  min-width:36px; text-align:center; font-size:0.88rem;
-  font-weight:700; color:#0c2222;
-  border-left:1px solid #e0eeee; border-right:1px solid #e0eeee;
-  line-height:34px;
+/* ── Input manual de cantidad (reemplaza al span .pd-cantidad-val) ── */
+.pd-cantidad-input {
+  width: 42px;
+  height: 34px;
+  text-align: center;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0c2222;
+  background: #fff;
+  border: none;
+  border-left: 1px solid #e0eeee;
+  border-right: 1px solid #e0eeee;
+  outline: none;
+  -moz-appearance: textfield;
+  font-family: inherit;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.pd-cantidad-input::-webkit-outer-spin-button,
+.pd-cantidad-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.pd-cantidad-input:focus {
+  background: #f9fdfd;
+  box-shadow: inset 0 0 0 1px #1a4a4a;
 }
 
 /* Botón añadir */
