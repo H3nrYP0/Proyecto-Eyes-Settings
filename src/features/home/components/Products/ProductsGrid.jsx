@@ -1,59 +1,42 @@
 // =============================================================
 // ProductsGrid.jsx
-// UBICACIÓN: src/features/home/components/Products/ProductsGrid.jsx
-//
-// Grid de productos. Las tarjetas son clickeables y navegan
-// a /productos/:id. Sin botones de consultar, sin flip.
-// Incluye buscador y filtros de categoría.
+// =============================================================
+// MIGRADO a React Query:
+// - ['productos-landing'] — caché compartido con FeaturesSection
+//   (si también migra, reutiliza los datos sin nueva petición)
+// - staleTime: 10 min — productos del landing no cambian frecuente
 // =============================================================
 
-import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import ProductCard from "./ProductCard";
 import LoadingSpinner from "../Shared/LoadingSpinner";
 import { getAllProductosLanding } from "../Services/productosLandingData";
 
 const ProductsGrid = () => {
-  const navigate = useNavigate();
-  const [productos, setProductos]     = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [error, setError]             = useState(null);
-  const [search, setSearch]           = useState("");
+  const [search, setSearch]                   = useState("");
   const [categoriaFiltro, setCategoriaFiltro] = useState("Todos");
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await getAllProductosLanding();
-        if (mounted) setProductos(data);
-      } catch (err) {
-        if (mounted) {
-          console.error("Error cargando productos:", err);
-          setError("No pudimos cargar los productos. Por favor intenta más tarde.");
-        }
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
+  const { data: productos = [], isLoading, error } = useQuery({
+    queryKey: ['productos-landing'],
+    queryFn:  getAllProductosLanding,
+    staleTime: 10 * 60 * 1000,   // 10 min — datos estables
+    retry: 2,
+  });
 
-  // Categorías únicas
+  // Categorías únicas derivadas de los datos
   const categorias = useMemo(() => {
     const cats = [...new Set(productos.map(p => p.categoria).filter(Boolean))];
     return ["Todos", ...cats];
   }, [productos]);
 
-  // Productos filtrados
   const productosFiltrados = useMemo(() => {
     return productos.filter(p => {
-      const matchSearch = !search ||
-        p.nombre.toLowerCase().includes(search.toLowerCase()) ||
-        (p.marca || "").toLowerCase().includes(search.toLowerCase()) ||
-        (p.categoria || "").toLowerCase().includes(search.toLowerCase());
+      const term = search.toLowerCase();
+      const matchSearch = !search
+        || p.nombre.toLowerCase().includes(term)
+        || (p.marca     || "").toLowerCase().includes(term)
+        || (p.categoria || "").toLowerCase().includes(term);
       const matchCat = categoriaFiltro === "Todos" || p.categoria === categoriaFiltro;
       return matchSearch && matchCat;
     });
@@ -63,7 +46,6 @@ const ProductsGrid = () => {
     <section className="pg-section" id="productos">
       <div className="pg-container">
 
-        {/* Encabezado */}
         <div className="pg-header">
           <h2 className="pg-title">
             Nuestra{" "}
@@ -75,7 +57,7 @@ const ProductsGrid = () => {
         </div>
 
         {/* Controles: búsqueda + categorías */}
-        {!loading && !error && productos.length > 0 && (
+        {!isLoading && !error && productos.length > 0 && (
           <div className="pg-controls">
             <div className="pg-search-wrap">
               <svg className="pg-search-icon" viewBox="0 0 20 20" fill="none">
@@ -110,29 +92,30 @@ const ProductsGrid = () => {
           </div>
         )}
 
-        {/* Resultados info */}
-        {!loading && !error && productosFiltrados.length > 0 && (
+        {/* Contador de resultados */}
+        {!isLoading && !error && productosFiltrados.length > 0 && (
           <p className="pg-results-count">
-            {productosFiltrados.length} {productosFiltrados.length === 1 ? "producto" : "productos"}
+            {productosFiltrados.length}{" "}
+            {productosFiltrados.length === 1 ? "producto" : "productos"}
             {(search || categoriaFiltro !== "Todos") ? " encontrados" : " en total"}
           </p>
         )}
 
         {/* Estados */}
-        {loading && <LoadingSpinner mensaje="Cargando productos..." />}
+        {isLoading && <LoadingSpinner mensaje="Cargando productos..." />}
 
-        {error && !loading && (
+        {error && !isLoading && (
           <div className="pg-error">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <circle cx="12" cy="12" r="10"/>
               <line x1="12" y1="8" x2="12" y2="12"/>
               <line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
-            <p>{error}</p>
+            <p>No pudimos cargar los productos. Por favor intenta más tarde.</p>
           </div>
         )}
 
-        {!loading && !error && productosFiltrados.length === 0 && (
+        {!isLoading && !error && productosFiltrados.length === 0 && (
           <div className="pg-empty">
             <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1.5">
               <rect x="8" y="16" width="32" height="24" rx="3"/>
@@ -141,7 +124,10 @@ const ProductsGrid = () => {
             </svg>
             <p>No se encontraron productos{search ? ` para "${search}"` : ""}.</p>
             {(search || categoriaFiltro !== "Todos") && (
-              <button className="pg-reset-btn" onClick={() => { setSearch(""); setCategoriaFiltro("Todos"); }}>
+              <button
+                className="pg-reset-btn"
+                onClick={() => { setSearch(""); setCategoriaFiltro("Todos"); }}
+              >
                 Limpiar filtros
               </button>
             )}
@@ -149,13 +135,10 @@ const ProductsGrid = () => {
         )}
 
         {/* Grid */}
-        {!loading && !error && productosFiltrados.length > 0 && (
+        {!isLoading && !error && productosFiltrados.length > 0 && (
           <div className="pg-grid">
             {productosFiltrados.map(producto => (
-              <ProductCard
-                key={producto.id}
-                producto={producto}
-              />
+              <ProductCard key={producto.id} producto={producto} />
             ))}
           </div>
         )}
