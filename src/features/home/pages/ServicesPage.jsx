@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate }from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import FooterCompact from "../components/FooterCompact";
 import ServiceCard from "../components/Services/ServiceCard";
@@ -23,6 +23,10 @@ import BuildIcon from "@mui/icons-material/Build";
 import BoltIcon from "@mui/icons-material/Bolt";
 import StarIcon from "@mui/icons-material/Star";
 import SparklesIcon from "@mui/icons-material/AutoAwesome";
+import EventIcon from "@mui/icons-material/Event";
+
+// Carrito
+import ShoppingCart, { CartProvider, WishlistDrawer } from "../../home/components/Products/ShoppingCart";
 
 // Decodificar token JWT
 const getTokenData = () => {
@@ -38,7 +42,8 @@ const getTokenData = () => {
   }
 };
 
-const ServicesPage = ({ user, setUser }) => {
+// Componente interno
+const ServicesPageContent = ({ user, setUser }) => {
   const navigate = useNavigate();
   const puedeVerDashboard = hasPermiso(user, "dashboard");
 
@@ -49,8 +54,9 @@ const ServicesPage = ({ user, setUser }) => {
   const [loadingCliente, setLoadingCliente] = useState(false);
   const [errorCliente, setErrorCliente] = useState("");
   const [isAdminMode, setIsAdminMode] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [showCitasModal, setShowCitasModal] = useState(false);
 
-  // Cargar servicios y estados
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -71,7 +77,6 @@ const ServicesPage = ({ user, setUser }) => {
     return () => { mounted = false; };
   }, []);
 
-  // Cargar perfil del cliente y detectar modo administrador
   useEffect(() => {
     if (!user) {
       setClienteActual(null);
@@ -124,11 +129,7 @@ const ServicesPage = ({ user, setUser }) => {
   const handleLogin = () => navigate("/login");
   const handleLogout = () => { setUser(null); navigate("/"); };
   const handleDashboard = () => navigate(user ? "/admin/dashboard" : "/login");
-
-  // Handler para ir al perfil de usuario
-  const handleMiPerfil = () => {
-    navigate("/cliente/perfil");
-  };
+  const handleMiPerfil = () => navigate("/cliente/perfil");
 
   const handleAgendar = () => {
     if (isAdminMode) {
@@ -138,6 +139,10 @@ const ServicesPage = ({ user, setUser }) => {
     } else {
       document.getElementById("appointment-form")?.scrollIntoView({ behavior: "smooth" });
     }
+  };
+
+  const handleCitaChange = () => {
+    setRefreshTrigger(prev => prev + 1);
   };
 
   // ========== RENDERIZADO CONDICIONAL ==========
@@ -321,27 +326,87 @@ const ServicesPage = ({ user, setUser }) => {
           <p style={{ fontSize: "0.8rem", marginTop: "0.5rem" }}>Para agendar citas, utiliza una cuenta de cliente.</p>
         </div>
       ) : (
-        <CitaForm
-          cliente={clienteActual}
-          servicios={servicios}
-          estadosCita={estadosCita}
-          preServicioId=""
-          onCitaAgendada={() => window.location.reload()}
-        />
-      )}
-
-      {isAdminMode ? (
-        <div className="admin-readonly-message">
-          <p>Lista de citas no disponible en modo administrador.</p>
-          <p style={{ fontSize: "0.8rem", marginTop: "0.5rem" }}>Las citas solo son visibles para cuentas de cliente.</p>
-        </div>
-      ) : (
-        <MisCitas onCitaCancelada={() => window.location.reload()} />
+        <>
+          {/* Botón flotante para abrir el modal de citas */}
+          <div style={{ display: "flex", justifyContent: "flex-end", maxWidth: "1200px", margin: "0 auto 0.5rem auto" }}>
+            <button
+              onClick={() => setShowCitasModal(true)}
+              className="ver-citas-btn"
+              style={{
+                background: "#0d2e2e",
+                color: "white",
+                border: "none",
+                padding: "0.5rem 1.2rem",
+                borderRadius: "2rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                cursor: "pointer",
+                fontWeight: "bold",
+                fontSize: "0.9rem",
+                transition: "transform 0.2s",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.1)"
+              }}
+              onMouseEnter={e => e.currentTarget.style.transform = "scale(1.02)"}
+              onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
+            >
+              <EventIcon sx={{ fontSize: "1.2rem" }} />
+              Ver mis citas
+            </button>
+          </div>
+          <CitaForm
+            cliente={clienteActual}
+            servicios={servicios}
+            estadosCita={estadosCita}
+            preServicioId=""
+            onCitaAgendada={handleCitaChange}
+          />
+        </>
       )}
 
       <FooterCompact />
+
+      {/* Modal de mis citas (única instancia) */}
+      {showCitasModal && (
+        <div className="success-modal-overlay" onClick={() => setShowCitasModal(false)}>
+          <div
+            className="success-modal-card"
+            style={{
+              maxWidth: "800px",
+              width: "90%",
+              maxHeight: "80vh",
+              overflowY: "auto",
+              padding: "1.5rem",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+              <h2 style={{ margin: 0, fontSize: "1.5rem" }}>Mis citas</h2>
+              <button
+                onClick={() => setShowCitasModal(false)}
+                style={{ background: "none", border: "none", fontSize: "2rem", cursor: "pointer", color: "#4e6e6e" }}
+                aria-label="Cerrar"
+              >
+                ×
+              </button>
+            </div>
+            <MisCitas
+              onCitaCancelada={handleCitaChange}
+              refreshKey={refreshTrigger}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
+const ServicesPage = ({ user, setUser }) => (
+  <CartProvider user={user}>
+    <ServicesPageContent user={user} setUser={setUser} />
+    <ShoppingCart user={user} />
+    <WishlistDrawer user={user} />
+  </CartProvider>
+);
 
 export default ServicesPage;

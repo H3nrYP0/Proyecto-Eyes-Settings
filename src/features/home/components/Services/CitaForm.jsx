@@ -106,12 +106,11 @@ const CitaForm = ({ cliente, servicios, estadosCita, preServicioId, onCitaAgenda
     setSubmitting(true);
     try {
       await crearCitaLanding({
-        clienteId: cliente.id,
         servicioId: selectedService.id,
-        empleadoId,
-        estadoCitaId: getEstadoPendienteId(),
+        empleadoId: empleadoId,
         fecha: selectedDate,
         hora: selectedTime,
+        metodo_pago: null,
       });
       setSuccessCita({
         servicio: selectedService.nombre,

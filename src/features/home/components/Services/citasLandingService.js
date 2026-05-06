@@ -355,22 +355,31 @@ export async function getHorasDisponiblesConHorario(empleadoId, fecha, servicioI
   return await getHorasDisponiblesPorEmpleado(empleadoId, fecha, servicioId, duracion, todasLasHoras);
 }
 
-// ── CREAR CITA ────────────────────────────────────────────
-export async function crearCitaLanding({
-  clienteId, servicioId, empleadoId, estadoCitaId, fecha, hora,
-}) {
-  return await apiFetch("/citas", {
+// ── CREAR CITA (para cliente autenticado) ──────────────────
+export async function crearCitaLanding(data) {
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  if (!token) throw new Error("No hay sesión activa");
+
+  const res = await fetch(`${BASE_URL}/cliente/citas`, {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
     body: JSON.stringify({
-      cliente_id: clienteId,
-      servicio_id: servicioId,
-      empleado_id: empleadoId,
-      estado_cita_id: estadoCitaId,
-      fecha,
-      hora,
-      metodo_pago: null,
-    }),
+      servicio_id: data.servicioId,
+      empleado_id: data.empleadoId,
+      fecha: data.fecha,
+      hora: data.hora,
+      metodo_pago: data.metodo_pago || null,
+      // No enviamos cliente_id porque el backend lo obtiene del token
+    })
   });
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || "Error al crear la cita");
+  }
+  return res.json();
 }
 
 // ── OBTENER EMPLEADO DISPONIBLE PARA UNA HORA ──────────────
