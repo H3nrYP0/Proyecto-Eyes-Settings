@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import {
   Box, Card, CardContent, TextField, FormControl, InputLabel,
-  Select, MenuItem, FormControlLabel, Checkbox, Button, Typography,
+  Select, MenuItem, Checkbox, Button, Typography,
   Container, Alert, Grid, CircularProgress, InputAdornment, IconButton,
 } from '@mui/material';
 import {
@@ -13,9 +13,12 @@ import {
 } from '@mui/icons-material';
 
 import { loginTheme } from '@theme';
-import authServices from '../services/authServices';
+import authServices from '@auth/Services/authServices';
 import { validateRegisterForm } from '../utils/authValidators';
-import { TIPOS_DOCUMENTO, DOC_PLACEHOLDERS, getRegisterInitialData, buildRegisterPayload } from '../utils/authNormalizer';
+import {
+  TIPOS_DOCUMENTO, DOC_PLACEHOLDERS,
+  getRegisterInitialData, buildRegisterPayload,
+} from '../utils/authNormalizer';
 import PasswordStrength from '../components/PasswordStrength';
 import VerificationCodeDialog from '../components/VerificationCodeDialog';
 
@@ -38,7 +41,7 @@ export default function Register() {
     if (error) setError('');
   };
 
-  // ── enviar código al correo ──
+  // Envia el codigo de verificacion al correo
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -61,7 +64,7 @@ export default function Register() {
     }
   };
 
-  // ── verificar código y crear cuenta ──
+  // Verifica el codigo e intenta crear la cuenta
   const handleVerifyCode = async (codigo) => {
     setLoading(true);
     try {
@@ -83,7 +86,7 @@ export default function Register() {
     }
   };
 
-  // ── Reenviar código ──
+  // Reenvía el codigo al mismo correo
   const handleResendCode = async () => {
     try {
       await authServices.sendRegisterCode(buildRegisterPayload(formData));
@@ -101,7 +104,8 @@ export default function Register() {
         py: 1,
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       }}>
-        {/* Logo */}
+
+        {/* Logo y titulo */}
         <Box sx={{ textAlign: 'center', mb: 0.5 }}>
           <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
             <Box sx={{
@@ -123,6 +127,7 @@ export default function Register() {
           sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Card elevation={2} sx={{ width: '100%', maxWidth: 520, p: 3.5 }}>
             <CardContent sx={{ p: 0 }}>
+
               <Box sx={{ textAlign: 'center', mb: 3 }}>
                 <Typography variant="h5" component="h2" color="text.primary" fontWeight="600">
                   Crear una cuenta
@@ -138,6 +143,39 @@ export default function Register() {
 
               <Box component="form" onSubmit={handleSubmit}>
                 <Grid container spacing={2}>
+
+                  {/* NOMBRES */}
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth size="small"
+                      name="nombre"
+                      label="Nombres"
+                      value={formData.nombre}
+                      onChange={handleChange}
+                      placeholder="Tus nombres"
+                      required
+                      disabled={success || loading}
+                      error={!!errors.nombre}
+                      helperText={errors.nombre}
+                    />
+                  </Grid>
+
+                  {/* APELLIDOS */}
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth size="small"
+                      name="apellido"
+                      label="Apellidos"
+                      value={formData.apellido}
+                      onChange={handleChange}
+                      placeholder="Tus apellidos"
+                      required
+                      disabled={success || loading}
+                      error={!!errors.apellido}
+                      helperText={errors.apellido}
+                    />
+                  </Grid>
+
                   {/* TIPO DE DOCUMENTO */}
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth size="small" error={!!errors.tipoDocumento}>
@@ -161,11 +199,10 @@ export default function Register() {
                     </FormControl>
                   </Grid>
 
-                  {/* NÚMERO DE DOCUMENTO */}
+                  {/* NUMERO DE DOCUMENTO */}
                   <Grid item xs={12} sm={6}>
                     <TextField
-                      fullWidth
-                      size="small"
+                      fullWidth size="small"
                       name="numeroDocumento"
                       label="Número de documento"
                       value={formData.numeroDocumento}
@@ -178,28 +215,10 @@ export default function Register() {
                     />
                   </Grid>
 
-                  {/* NOMBRE COMPLETO */}
+                  {/* CORREO ELECTRONICO */}
                   <Grid item xs={12} sm={6}>
                     <TextField
-                      fullWidth
-                      size="small"
-                      name="nombre"
-                      label="Nombre completo"
-                      value={formData.nombre}
-                      onChange={handleChange}
-                      placeholder="Tu nombre completo"
-                      required
-                      disabled={success || loading}
-                      error={!!errors.nombre}
-                      helperText={errors.nombre}
-                    />
-                  </Grid>
-
-                  {/* CORREO ELECTRÓNICO */}
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      size="small"
+                      fullWidth size="small"
                       name="correo"
                       label="Correo electrónico"
                       type="email"
@@ -213,11 +232,10 @@ export default function Register() {
                     />
                   </Grid>
 
-                  {/* TELÉFONO */}
+                  {/* TELEFONO */}
                   <Grid item xs={12} sm={6}>
                     <TextField
-                      fullWidth
-                      size="small"
+                      fullWidth size="small"
                       name="telefono"
                       label="Teléfono"
                       type="tel"
@@ -233,8 +251,7 @@ export default function Register() {
                   {/* FECHA DE NACIMIENTO */}
                   <Grid item xs={12} sm={6}>
                     <TextField
-                      fullWidth
-                      size="small"
+                      fullWidth size="small"
                       name="fechaNacimiento"
                       label="Fecha de nacimiento"
                       type="date"
@@ -248,11 +265,10 @@ export default function Register() {
                     />
                   </Grid>
 
-                  {/* CONTRASEÑA */}
+                  {/* CONTRASENIA */}
                   <Grid item xs={12} sm={6}>
                     <TextField
-                      fullWidth
-                      size="small"
+                      fullWidth size="small"
                       name="contrasenia"
                       label="Contraseña"
                       type={showPassword ? 'text' : 'password'}
@@ -267,7 +283,9 @@ export default function Register() {
                         endAdornment: (
                           <InputAdornment position="end">
                             <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small">
-                              {showPassword ? <VisibilityOffOutlinedIcon fontSize="small" /> : <VisibilityOutlinedIcon fontSize="small" />}
+                              {showPassword
+                                ? <VisibilityOffOutlinedIcon fontSize="small" />
+                                : <VisibilityOutlinedIcon fontSize="small" />}
                             </IconButton>
                           </InputAdornment>
                         ),
@@ -276,11 +294,10 @@ export default function Register() {
                     <PasswordStrength password={formData.contrasenia} />
                   </Grid>
 
-                  {/* CONFIRMAR CONTRASEÑA */}
+                  {/* CONFIRMAR CONTRASENIA */}
                   <Grid item xs={12} sm={6}>
                     <TextField
-                      fullWidth
-                      size="small"
+                      fullWidth size="small"
                       name="confirmContrasenia"
                       label="Confirmar contraseña"
                       type={showConfirmPassword ? 'text' : 'password'}
@@ -295,16 +312,19 @@ export default function Register() {
                         endAdornment: (
                           <InputAdornment position="end">
                             <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end" size="small">
-                              {showConfirmPassword ? <VisibilityOffOutlinedIcon fontSize="small" /> : <VisibilityOutlinedIcon fontSize="small" />}
+                              {showConfirmPassword
+                                ? <VisibilityOffOutlinedIcon fontSize="small" />
+                                : <VisibilityOutlinedIcon fontSize="small" />}
                             </IconButton>
                           </InputAdornment>
                         ),
                       }}
                     />
                   </Grid>
+
                 </Grid>
 
-                {/* Términos y condiciones */}
+                {/* Terminos y condiciones */}
                 <Box sx={{ mt: 2.5, mb: 1, display: 'flex', alignItems: 'flex-start' }}>
                   <Checkbox
                     name="agreeTerms"
@@ -344,6 +364,7 @@ export default function Register() {
                 </Button>
               </Box>
 
+              {/* Enlace a login */}
               <Box sx={{ textAlign: 'center' }}>
                 <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem', display: 'inline' }}>
                   ¿Ya tienes una cuenta?{' '}
@@ -358,6 +379,7 @@ export default function Register() {
                   Inicia sesión aquí
                 </Button>
               </Box>
+
             </CardContent>
           </Card>
         </Container>
