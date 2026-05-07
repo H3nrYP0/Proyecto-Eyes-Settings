@@ -21,9 +21,6 @@ const SuccessModal = ({ cita, onClose }) => {
           <p><strong>Hora:</strong> {cita.hora}</p>
           <p><strong>Paciente:</strong> {cita.cliente}</p>
         </div>
-        <p style={{ fontSize: "0.8rem", color: "#4e6e6e" }}>
-          Te enviaremos un recordatorio por WhatsApp.
-        </p>
         <button className="success-btn" onClick={onClose}>
           Entendido, gracias
         </button>

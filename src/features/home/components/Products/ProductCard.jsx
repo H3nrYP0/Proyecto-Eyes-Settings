@@ -1,5 +1,6 @@
 // =============================================================
 // ProductCard.jsx — Crossfade real + wishlist aislada
+// Fix: scroll al inicio al navegar a detalle
 // =============================================================
 
 import { useState, useCallback } from "react";
@@ -49,7 +50,6 @@ export default function ProductCard({ producto }) {
   const img1 = imagenes?.[0]?.url || null;
   const img2 = imagenes?.[1]?.url || null;
 
-  // img2 se muestra en hover si existe y no falló
   const showImg2 = hovered && img2 && !imgError2;
 
   const inWish = isInWishlist(id);
@@ -66,9 +66,10 @@ export default function ProductCard({ producto }) {
     toggleWishlist(producto);
   }, [producto, toggleWishlist]);
 
-  // Click tarjeta: ignora si vino del botón wishlist
+  // Click tarjeta: SCROLL ARRIBA antes de navegar
   const handleCardClick = useCallback((e) => {
     if (e.target.closest(".pc-wish-btn")) return;
+    window.scrollTo(0, 0);                        // ← NUEVO: scroll al top
     navigate(`/productos/${id}`);
   }, [id, navigate]);
 
@@ -80,12 +81,16 @@ export default function ProductCard({ producto }) {
       onMouseLeave={() => setHovered(false)}
       role="button"
       tabIndex={0}
-      onKeyDown={e => e.key === "Enter" && navigate(`/productos/${id}`)}
+      onKeyDown={e => {
+        if (e.key === "Enter") {
+          window.scrollTo(0, 0);                  // ← NUEVO: también con teclado
+          navigate(`/productos/${id}`);
+        }
+      }}
       aria-label={`Ver ${nombre}`}
     >
       <div className="pc-image-wrap">
 
-        {/* Imagen principal — siempre montada, nunca desmontada → CSS anima opacity */}
         {img1 && !imgError1 ? (
           <img
             src={img1}
@@ -104,7 +109,6 @@ export default function ProductCard({ producto }) {
           </div>
         )}
 
-        {/* Imagen secundaria — superpuesta, aparece con opacity transition */}
         {img2 && !imgError2 && (
           <img
             src={img2}
@@ -115,7 +119,6 @@ export default function ProductCard({ producto }) {
           />
         )}
 
-        {/* Botón wishlist */}
         <button
           className={`pc-wish-btn${inWish ? " pc-wish-btn--active" : ""}`}
           onClick={handleWishClick}

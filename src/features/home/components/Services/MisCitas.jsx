@@ -39,10 +39,10 @@ const formatTimeToAMPM = (timeString) => {
 
 // Mapeo de estado a clases CSS y texto
 const estadoInfo = {
-  1: { texto: "Confirmada", clase: "estado-confirmada", icono: <CheckCircleIcon sx={{ fontSize: "0.8rem" }} /> },
-  2: { texto: "Pendiente", clase: "estado-pendiente", icono: <ScheduleIcon sx={{ fontSize: "0.8rem" }} /> },
-  3: { texto: "Completada", clase: "estado-completada", icono: <CheckCircleIcon sx={{ fontSize: "0.8rem" }} /> },
-  4: { texto: "Cancelada", clase: "estado-cancelada", icono: <CloseIcon sx={{ fontSize: "0.8rem" }} /> },
+  1: { texto: "Confirmada", clase: "estado-confirmada", icono: <CheckCircleIcon sx={{ fontSize: "0.8rem" }} />, ordenGrupo: 1 },
+  2: { texto: "Pendiente", clase: "estado-pendiente", icono: <ScheduleIcon sx={{ fontSize: "0.8rem" }} />, ordenGrupo: 2 },
+  3: { texto: "Completada", clase: "estado-completada", icono: <CheckCircleIcon sx={{ fontSize: "0.8rem" }} />, ordenGrupo: 3 },
+  4: { texto: "Cancelada", clase: "estado-cancelada", icono: <CloseIcon sx={{ fontSize: "0.8rem" }} />, ordenGrupo: 4 },
 };
 
 // Modal de confirmación
@@ -108,7 +108,7 @@ const CancelSuccessModal = ({ cita, onClose, onSendWhatsApp }) => {
   );
 };
 
-const MisCitas = ({ readOnly = false, onCitaCancelada }) => {
+const MisCitas = ({ readOnly = false, onCitaCancelada, refreshKey }) => {
   const [citas, setCitas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -116,11 +116,40 @@ const MisCitas = ({ readOnly = false, onCitaCancelada }) => {
   const [citaParaCancelar, setCitaParaCancelar] = useState(null);
   const [citaCanceladaExito, setCitaCanceladaExito] = useState(null);
 
+  // Ordenar y agrupar las citas
+  const procesarCitas = (citasArray) => {
+    // 1. Ordenar por fecha y hora ascendente (las más cercanas primero)
+    const ordenadas = [...citasArray].sort((a, b) => {
+      // Comparar fecha completa + hora
+      const fechaHoraA = new Date(`${a.fecha}T${a.hora}`);
+      const fechaHoraB = new Date(`${b.fecha}T${b.hora}`);
+      return fechaHoraA - fechaHoraB;
+    });
+
+    // 2. Agrupar por estado según ordenGrupo (1: Confirmada, 2: Pendiente, 3: Completada, 4: Cancelada)
+    const grupos = {
+      1: [], // Confirmadas (activas)
+      2: [], // Pendientes (activas)
+      3: [], // Completadas (inactivas)
+      4: [], // Canceladas (inactivas)
+    };
+
+    ordenadas.forEach(cita => {
+      const estadoId = cita.estado_cita_id;
+      if (grupos[estadoId]) grupos[estadoId].push(cita);
+      else grupos[4].push(cita); // por si llega un estado desconocido, va a canceladas
+    });
+
+    // Unir grupos: primero activas (1 y 2), luego inactivas (3 y 4)
+    return [...grupos[1], ...grupos[2], ...grupos[3], ...grupos[4]];
+  };
+
   const cargarCitas = async () => {
     setLoading(true);
     try {
       const data = await getMisCitas();
-      setCitas(data);
+      const procesadas = procesarCitas(data);
+      setCitas(procesadas);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -128,18 +157,19 @@ const MisCitas = ({ readOnly = false, onCitaCancelada }) => {
     }
   };
 
+  // Carga inicial y cuando cambia refreshKey
   useEffect(() => {
     if (!readOnly) {
       cargarCitas();
     }
-  }, [readOnly]);
+  }, [readOnly, refreshKey]); // 👈 refreshKey ya está incluido
 
   const handleConfirmCancel = async () => {
     if (!citaParaCancelar) return;
     setCancelandoId(citaParaCancelar.id);
     try {
       await cancelarCita(citaParaCancelar.id);
-      await cargarCitas();
+      await cargarCitas(); // Recargar la lista ya ordenada
       setCitaCanceladaExito({
         servicio: citaParaCancelar.servicio_nombre,
         fecha: formatDate(citaParaCancelar.fecha),
