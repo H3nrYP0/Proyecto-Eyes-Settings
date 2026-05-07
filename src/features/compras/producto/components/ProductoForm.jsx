@@ -278,6 +278,7 @@ export default function ProductoForm({
 
   <FormCol xs={12} md={4} />
 </FormRow>
+  
 
       <BaseFormSection>
         <BaseFormField fullWidth>
@@ -365,6 +366,7 @@ export default function ProductoForm({
         cancelLabel="Cancelar"
         editLabel="Editar"
         saving={isSubmitting}
+        disabled={Object.keys(errors).length > 0 || nombreExists || isSubmitting}
       />
     </BaseFormLayout>
   );

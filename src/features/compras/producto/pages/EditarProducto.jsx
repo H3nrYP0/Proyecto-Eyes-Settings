@@ -1,17 +1,16 @@
 // src/features/compras/pages/producto/pages/EditarProducto.jsx
-import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Loading from "../../../../shared/components/ui/Loading/Loading";
 import { useProductoForm } from "../hooks/useProductoForm";
-import { getProductoById } from "../services/productosService";
+import { useProductoDetailQuery } from "../queries/useProductoDetailQuery";
 import ProductoForm from "../components/ProductoForm";
 import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
+import { useState, useCallback } from "react";
 
 export default function EditarProducto() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [initialData, setInitialData] = useState(null);
-  const [loadingInitial, setLoadingInitial] = useState(true);
+  
   const [notification, setNotification] = useState({
     message: '',
     type: 'success',
@@ -34,20 +33,13 @@ export default function EditarProducto() {
     showNotification(error, "error");
   }, [showNotification]);
 
-  useEffect(() => {
-    const loadProducto = async () => {
-      try {
-        const data = await getProductoById(parseInt(id));
-        setInitialData(data);
-      } catch (error) {
-        showNotification("Error al cargar el producto", "error");
-        navigate("/admin/compras/productos");
-      } finally {
-        setLoadingInitial(false);
-      }
-    };
-    loadProducto();
-  }, [id, navigate, showNotification]);
+  // ✅ Usar React Query para cargar el producto
+  const { data: initialData, isLoading: loadingInitial, error: loadError } = useProductoDetailQuery(parseInt(id));
+
+  if (loadError) {
+    showNotification("Error al cargar el producto", "error");
+    navigate("/admin/compras/productos");
+  }
 
   const {
     formData,

@@ -34,10 +34,12 @@ export default function Productos() {
     showEmptyState,
     notification,
     hideNotification,
+    showNotification,
     modalDelete,
     confirmDelete,
     handleCancelDelete,
     handleDelete,
+    isDeleting,
   } = useProductos();
 
   const limpiarFiltros = () => {
@@ -52,9 +54,11 @@ export default function Productos() {
   useEffect(() => {
     const savedNotification = localStorage.getItem('productoNotification');
     if (savedNotification) {
+      const { message, type } = JSON.parse(savedNotification);
+      showNotification(message, type);
       localStorage.removeItem('productoNotification');
     }
-  }, []);
+  }, [showNotification]);
 
   const columns = [
     { field: "nombre", header: "Nombre" },
@@ -221,9 +225,9 @@ export default function Productos() {
           type="warning"
           title="¿Eliminar Producto?"
           message={`Advertencia: al continuar, el producto "${modalDelete.nombre}" se eliminará permanentemente del sistema.`}
-          confirmText="Eliminar"
+          confirmText={isDeleting() ? "Eliminando..." : "Eliminar"}
           cancelText="Cancelar"
-          showCancel
+          showCancel={!isDeleting()}
           onConfirm={confirmDelete}
           onCancel={handleCancelDelete}
         />
