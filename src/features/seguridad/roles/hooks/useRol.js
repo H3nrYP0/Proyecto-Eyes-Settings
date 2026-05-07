@@ -5,8 +5,6 @@ import { getRolById, getAllPermisos, normalizarRolInitialData } from '@seguridad
 export const useRol = (id) => {
   const navigate = useNavigate();
 
-  // IMPORTANTE: queryKey ['rol', id] guarda SOLO el rol normalizado,
-  // igual que EditarPermisos — así comparten caché sin conflicto.
   const { data: rolData, isLoading: loadingRol, error } = useQuery({
     queryKey: ['rol', id],
     queryFn: async () => {
