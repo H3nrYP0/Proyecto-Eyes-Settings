@@ -2,8 +2,9 @@ import { useNavigate } from "react-router-dom";
 import CrudLayout from "../../../../shared/components/crud/CrudLayout";
 import CrudTable from "../../../../shared/components/crud/CrudTable";
 import Modal from "../../../../shared/components/ui/Modal";
+import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
 import { usePedidos } from "../hooks/usePedidos";
-import { ESTADOS_ABONABLE } from "../utils/pedidosUtils";
+import { ESTADOS_ABONABLE, COLORES_ESTADO } from "../utils/pedidosUtils";
 import "../../../../shared/styles/components/crud-table.css";
 import "../../../../shared/styles/components/modal.css";
 
@@ -14,11 +15,13 @@ export default function Pedidos() {
     search, setSearch,
     filterEstado, setFilterEstado,
     estadoFilters,
+    notification, setNotification,
     modalDelete, handleDelete, confirmDelete, closeDeleteModal,
     modalAbono, montoAbono, setMontoAbono,
     abonoLoading, handleAbonar, confirmAbono, closeAbonoModal,
     formatCurrency,
-    obtenerCantidadItems, obtenerDescripcionItems,
+    obtenerCantidadItems,
+    obtenerResumenItems,
   } = usePedidos();
 
   const columns = [
@@ -28,22 +31,50 @@ export default function Pedidos() {
       render: (row) => row.cliente || "—",
     },
     {
+      field: "fechaPedido",
+      header: "Fecha",
+      render: (row) =>
+        row.fechaPedido
+          ? new Date(row.fechaPedido).toLocaleDateString("es-CO", {
+              day: "2-digit", month: "short", year: "numeric",
+            })
+          : "—",
+    },
+    {
       field: "items",
-      header: "Productos",
+      header: "Ítems",
       render: (row) => {
-        const cantidad = obtenerCantidadItems(row);
-        if (cantidad === 0) return <span style={{ color: "#9ca3af" }}>Sin productos</span>;
-        return (
-          <span>
-            {cantidad} {cantidad === 1 ? "producto" : "productos"}
-          </span>
-        );
+        const resumen = obtenerResumenItems(row);
+        return <span style={{ fontSize: "0.85rem" }}>{resumen}</span>;
       },
     },
     {
       field: "total",
       header: "Total",
       render: (row) => formatCurrency(row.total),
+    },
+    {
+      field: "estado",
+      header: "Estado",
+      render: (row) => {
+        const col = COLORES_ESTADO[row.estado] ?? { bg: "#f3f4f6", color: "#374151" };
+        const label = row.estado
+          ? row.estado.charAt(0).toUpperCase() + row.estado.slice(1)
+          : "—";
+        return (
+          <span style={{
+            display: "inline-block",
+            padding: "3px 10px",
+            borderRadius: 12,
+            fontSize: "0.75rem",
+            fontWeight: 600,
+            background: col.bg,
+            color: col.color,
+          }}>
+            {label}
+          </span>
+        );
+      },
     },
     {
       field: "abono",
@@ -56,7 +87,7 @@ export default function Pedidos() {
             style={{ padding: "4px 10px", fontSize: "0.8rem" }}
             onClick={(e) => { e.stopPropagation(); handleAbonar(row); }}
             disabled={!puedeAbonar || abonoLoading}
-            title={!puedeAbonar ? "No disponible en este estado" : "Registrar abono"}
+            title={!puedeAbonar ? "Solo se puede abonar en pedidos pendientes" : "Registrar abono"}
           >
             Abonar
           </button>
@@ -73,12 +104,12 @@ export default function Pedidos() {
 
   return (
     <>
-      <style>{`
-        tr.row-entregado td { background-color: #f0fdf4 !important; }
-        tr.row-cancelado td { background-color: #fef2f2 !important; color: #9ca3af !important; opacity: 0.8; }
-        .crud-btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
-        .abono-row { display: flex; justify-content: space-between; font-size: 0.82rem; padding: 4px 0; border-bottom: 1px solid #f3f4f6; }
-      `}</style>
+      <CrudNotification
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.isVisible}
+        onClose={() => setNotification({ ...notification, isVisible: false })}
+      />
 
       <CrudLayout
         title="Pedidos"
@@ -90,7 +121,6 @@ export default function Pedidos() {
         searchFilters={estadoFilters}
         filterEstado={filterEstado}
         onFilterChange={setFilterEstado}
-        searchPosition="left"
       >
         {loading ? (
           <div style={{ textAlign: "center", padding: "40px", color: "#9ca3af" }}>
@@ -101,11 +131,7 @@ export default function Pedidos() {
             columns={columns}
             data={pedidos}
             actions={tableActions}
-            rowClassName={(row) =>
-              row.estado === "entregado" ? "row-entregado"
-              : row.estado === "cancelado" ? "row-cancelado"
-              : ""
-            }
+            showStatusColumn={false}
             emptyMessage={
               search || filterEstado
                 ? "No se encontraron pedidos para los filtros aplicados"
@@ -114,11 +140,12 @@ export default function Pedidos() {
           />
         )}
 
+        {/* Modal eliminar */}
         <Modal
           open={modalDelete.open}
           type="warning"
           title="¿Eliminar Pedido?"
-          message={`Esta acción eliminará el pedido de "${modalDelete.cliente}" y no se puede deshacer.`}
+          message={`Esta acción eliminará el pedido de "${modalDelete.cliente}" permanentemente.`}
           confirmText="Eliminar"
           cancelText="Cancelar"
           showCancel
@@ -126,6 +153,7 @@ export default function Pedidos() {
           onCancel={closeDeleteModal}
         />
 
+        {/* Modal abono */}
         <Modal
           open={modalAbono.open}
           type="info"
@@ -153,7 +181,11 @@ export default function Pedidos() {
                   </p>
                   <div style={{ maxHeight: 120, overflowY: "auto" }}>
                     {modalAbono.abonos.map((a) => (
-                      <div key={a.id} className="abono-row">
+                      <div key={a.id} style={{
+                        display: "flex", justifyContent: "space-between",
+                        fontSize: "0.82rem", padding: "4px 0",
+                        borderBottom: "1px solid #f3f4f6",
+                      }}>
                         <span style={{ color: "#6b7280" }}>
                           {a.fecha ? new Date(a.fecha).toLocaleDateString("es-CO") : "—"}
                         </span>

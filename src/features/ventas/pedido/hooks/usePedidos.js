@@ -7,23 +7,27 @@ export function usePedidos() {
   const [search,       setSearch]       = useState("");
   const [filterEstado, setFilterEstado] = useState("");
   const [loading,      setLoading]      = useState(true);
+  const [notification, setNotification] = useState({ isVisible: false, message: "", type: "success" });
 
   const [modalDelete, setModalDelete] = useState({ open: false, id: null, cliente: "" });
   const [modalAbono,  setModalAbono]  = useState({
-    open: false, pedidoRef: null, pedidoId: null,
+    open: false, pedidoId: null,
     cliente: "", total: 0, totalAbonado: 0, saldoPendiente: 0, abonos: [],
   });
   const [montoAbono,   setMontoAbono]   = useState("");
   const [abonoLoading, setAbonoLoading] = useState(false);
 
-  // ── Cargar pedidos ─────────────────────────────────────────────────────────
+  const showNotif = useCallback((message, type = "success") => {
+    setNotification({ isVisible: true, message, type });
+  }, []);
+
   const cargarPedidos = useCallback(async () => {
     try {
       setLoading(true);
       const data = await pedidosService.getAllPedidos();
       setPedidos(data ?? []);
     } catch (error) {
-      console.error("Error al cargar pedidos:", error?.response?.data ?? error?.message ?? error);
+      console.error("Error al cargar pedidos:", error);
       setPedidos([]);
     } finally {
       setLoading(false);
@@ -39,17 +43,26 @@ export function usePedidos() {
 
   const confirmDelete = useCallback(async () => {
     try {
+      const info = await pedidosService.getInfoAbonos(modalDelete.id, 0);
+      if (info.abonos.length > 0) {
+        showNotif(
+          `No se puede eliminar el pedido de "${modalDelete.cliente}" porque ya tiene abonos registrados. Anúlelo cambiando el estado a "Anulado".`,
+          "error"
+        );
+        setModalDelete({ open: false, id: null, cliente: "" });
+        return;
+      }
       await pedidosService.deletePedido(modalDelete.id);
       setPedidos((prev) => prev.filter((p) => p.id !== modalDelete.id));
+      showNotif(`Pedido de "${modalDelete.cliente}" eliminado correctamente`, "success");
     } catch (error) {
-      alert(
-        error?.response?.data?.error ??
-        "No se pudo eliminar el pedido. Puede que ya tenga una venta asociada."
-      );
+      const msg = error?.response?.data?.error ??
+        "No se pudo eliminar el pedido.";
+      showNotif(msg, "error");
     } finally {
       setModalDelete({ open: false, id: null, cliente: "" });
     }
-  }, [modalDelete.id]);
+  }, [modalDelete.id, modalDelete.cliente, showNotif]);
 
   const closeDeleteModal = useCallback(() => {
     setModalDelete({ open: false, id: null, cliente: "" });
@@ -61,7 +74,7 @@ export function usePedidos() {
     try {
       const info = await pedidosService.getInfoAbonos(pedido.id, pedido.total);
       setModalAbono({
-        open: true, pedidoRef: pedido,
+        open: true,
         pedidoId:       pedido.id,
         cliente:        pedido.cliente,
         total:          pedido.total,
@@ -72,49 +85,54 @@ export function usePedidos() {
       setMontoAbono("");
     } catch (error) {
       console.error("Error al cargar abonos:", error);
-      alert("Error al cargar información de abonos.");
+      showNotif("Error al cargar información de abonos.", "error");
     } finally {
       setAbonoLoading(false);
     }
-  }, []);
+  }, [showNotif]);
 
   // ── Abono: confirmar ───────────────────────────────────────────────────────
   const confirmAbono = useCallback(async () => {
     const monto = Number(montoAbono);
-
     if (!monto || monto <= 0) {
-      alert("El monto del abono debe ser mayor a 0.");
+      showNotif("El monto del abono debe ser mayor a 0.", "error");
       return;
     }
     if (monto > modalAbono.saldoPendiente) {
-      alert(`El abono no puede exceder el saldo pendiente de ${formatCurrency(modalAbono.saldoPendiente)}.`);
+      showNotif(
+        `El abono no puede exceder el saldo pendiente de ${formatCurrency(modalAbono.saldoPendiente)}.`,
+        "error"
+      );
       return;
     }
 
     setAbonoLoading(true);
     try {
-      // 1. Registrar el abono en el backend
+      // El backend ahora cambia automáticamente el estado a "pagado"
+      // cuando el abono cubre el total, así que no necesitamos hacer PUT adicional.
       const { saldoPendiente: nuevoSaldo } = await pedidosService.registrarAbono(
-        modalAbono.pedidoId,
-        monto
+        modalAbono.pedidoId, monto
       );
 
       if (nuevoSaldo <= 0) {
-        // 2. Pago completo → marcar el pedido como entregado
-        //    El backend crea la Venta automáticamente al recibir estado=entregado
-        await pedidosService.updatePedido(modalAbono.pedidoId, { estado: "entregado" });
-
-        // Actualizar fila en la tabla
+        // Actualizar estado en la lista local a "pagado"
         setPedidos((prev) =>
-          prev.map((p) => p.id === modalAbono.pedidoId ? { ...p, estado: "entregado" } : p)
+          prev.map((p) =>
+            p.id === modalAbono.pedidoId ? { ...p, estado: "pagado" } : p
+          )
         );
-        alert(`✅ Pago completo. El pedido de ${modalAbono.cliente} ha sido marcado como Entregado.`);
-        setModalAbono({ open: false, pedidoRef: null, pedidoId: null, cliente: "", total: 0, totalAbonado: 0, saldoPendiente: 0, abonos: [] });
+        showNotif(
+          `✅ Pago completo. El pedido de ${modalAbono.cliente} ha sido marcado como Pagado.`,
+          "success"
+        );
+        setModalAbono({ open: false, pedidoId: null, cliente: "", total: 0, totalAbonado: 0, saldoPendiente: 0, abonos: [] });
         setMontoAbono("");
       } else {
-        // 3. Pago parcial → refrescar historial y dejar modal abierto
         const info = await pedidosService.getInfoAbonos(modalAbono.pedidoId, modalAbono.total);
-        alert(`✅ Abono de ${formatCurrency(monto)} registrado. Saldo pendiente: ${formatCurrency(info.saldoPendiente)}.`);
+        showNotif(
+          `Abono de ${formatCurrency(monto)} registrado. Saldo pendiente: ${formatCurrency(info.saldoPendiente)}.`,
+          "success"
+        );
         setModalAbono((prev) => ({
           ...prev,
           totalAbonado:   info.totalAbonado,
@@ -124,15 +142,15 @@ export function usePedidos() {
         setMontoAbono("");
       }
     } catch (error) {
-      const msg = error?.response?.data?.error ?? error?.message ?? "Error al registrar el abono.";
-      alert(`❌ ${msg}`);
+      const msg = error?.response?.data?.error ?? "Error al registrar el abono.";
+      showNotif(msg, "error");
     } finally {
       setAbonoLoading(false);
     }
-  }, [montoAbono, modalAbono]);
+  }, [montoAbono, modalAbono, showNotif]);
 
   const closeAbonoModal = useCallback(() => {
-    setModalAbono({ open: false, pedidoRef: null, pedidoId: null, cliente: "", total: 0, totalAbonado: 0, saldoPendiente: 0, abonos: [] });
+    setModalAbono({ open: false, pedidoId: null, cliente: "", total: 0, totalAbonado: 0, saldoPendiente: 0, abonos: [] });
     setMontoAbono("");
   }, []);
 
@@ -144,23 +162,22 @@ export function usePedidos() {
   });
 
   const estadoFilters = [
-    { value: "",               label: "Todos los estados" },
-    { value: "pendiente",      label: "Pendiente" },
-    { value: "confirmado",     label: "Confirmado" },
-    { value: "en_preparacion", label: "En preparación" },
-    { value: "enviado",        label: "Enviado" },
-    { value: "entregado",      label: "Entregado" },
-    { value: "cancelado",      label: "Cancelado" },
+    { value: "",          label: "Todos los estados" },
+    { value: "pendiente", label: "Pendiente" },
+    { value: "pagado",    label: "Pagado" },
+    { value: "anulado",   label: "Anulado" },
   ];
-
-  const obtenerDescripcionItems = (pedido) => {
-    if (!pedido.items || pedido.items.length === 0) return "Sin ítems";
-    return "Productos";
-  };
 
   const obtenerCantidadItems = (pedido) => {
     if (!pedido.items || pedido.items.length === 0) return 0;
     return pedido.items.reduce((sum, item) => sum + (item.cantidad ?? 1), 0);
+  };
+
+  const obtenerResumenItems = (pedido) => {
+    if (!pedido.items || pedido.items.length === 0) return "Sin ítems";
+    const totalItems = pedido.items.length;
+    const totalCantidad = pedido.items.reduce((sum, i) => sum + (i.cantidad ?? 1), 0);
+    return `${totalItems} prod. · ${totalCantidad} und.`;
   };
 
   return {
@@ -169,12 +186,13 @@ export function usePedidos() {
     search, setSearch,
     filterEstado, setFilterEstado,
     estadoFilters,
+    notification, setNotification,
     modalDelete, handleDelete, confirmDelete, closeDeleteModal,
     modalAbono, montoAbono, setMontoAbono,
     abonoLoading, handleAbonar, confirmAbono, closeAbonoModal,
     formatCurrency,
     obtenerCantidadItems,
-    obtenerDescripcionItems,
+    obtenerResumenItems,
     ESTADOS_ABONABLE,
   };
 }
