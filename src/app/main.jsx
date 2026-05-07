@@ -7,8 +7,18 @@ import App from './App.jsx'
 import './App.css'
 import theme from "../theme/theme.js";
 
-// se crea el cliente
-const queryClient = new QueryClient();
+// Configuración óptima para evitar refetch al cambiar de módulo
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 10,   // 10 minutos sin refetch si hay caché
+      gcTime: 1000 * 60 * 30,       // 30 minutos que la caché vive en memoria (React Query v5)
+      retry: 1,
+      refetchOnWindowFocus: false,  // evita refetch al cambiar pestaña
+      refetchOnReconnect: true,    // hace refetch al recuperar internet
+    },
+  },
+});
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
