@@ -14,13 +14,13 @@ import {
 } from '@seguridad';
 
 const ESTADO_OPTIONS = [
-  { value: '',         label: 'Todos los estados' },
-  { value: 'activo',   label: 'Activos'           },
-  { value: 'inactivo', label: 'Inactivos'         },
+  { value: '', label: 'Todos los estados' },
+  { value: 'activo', label: 'Activos' },
+  { value: 'inactivo', label: 'Inactivos' },
 ];
 
 const COLUMNS = [
-  { field: 'nombre',   header: 'Nombre',   render: (item) => item.nombre },
+  { field: 'nombre', header: 'Nombre', render: (item) => item.nombre },
   { field: 'permisos', header: 'Permisos', render: (item) => `${item.permisosCount} permisos` },
 ];
 
@@ -38,7 +38,6 @@ export default function Roles() {
 
   const showNotification = (message, type = 'success') =>
     setNotification({ isVisible: true, message, type });
-
   const handleCloseNotification = () =>
     setNotification((prev) => ({ ...prev, isVisible: false }));
 
@@ -51,6 +50,7 @@ export default function Roles() {
     }
   }, []);
 
+  // Normalizar los datos ANTES de guardarlos en caché
   const { data, isLoading, error } = useQuery({
     queryKey: ['roles'],
     queryFn: async () => {
@@ -77,10 +77,11 @@ export default function Roles() {
     },
   });
 
-  // Cambiar estado — actualización optimista en caché
+  // Actualización optimista con estado normalizado a string
   const estadoMutation = useMutation({
     mutationFn: ({ id, estado }) => updateEstadoRol(id, estado),
     onSuccess: (_, { id, estado }) => {
+      // Actualización optimista: aseguramos que 'estado' es string
       queryClient.setQueryData(['roles'], (oldRoles) => {
         if (!oldRoles) return oldRoles;
         return oldRoles.map((rol) =>
@@ -93,13 +94,13 @@ export default function Roles() {
   const handleDelete = (id, nombre) =>
     setDeleteModal({ open: true, id, nombre });
 
-  // confirmDelete ya no necesita try/catch: los callbacks de la mutación lo manejan
   const confirmDelete = () => {
     deleteMutation.mutate(deleteModal.id);
   };
 
   const handleChangeStatus = async (row, nuevoEstado) => {
     try {
+      // nuevoEstado ya viene como 'activo' o 'inactivo' desde CrudTable
       await estadoMutation.mutateAsync({ id: row.id, estado: nuevoEstado });
       const label = nuevoEstado === 'activo' ? 'activado' : 'desactivado';
       showNotification(`Rol "${row.nombre}" ${label} correctamente`);
@@ -115,9 +116,9 @@ export default function Roles() {
   );
 
   const tableActions = [
-    { label: 'Ver detalles', type: 'view',   onClick: (row) => navigate(`detalle/${row.id}`) },
-    { label: 'Editar',       type: 'edit',   onClick: (row) => navigate(`editar/${row.id}`) },
-    { label: 'Eliminar',     type: 'delete', onClick: (row) => handleDelete(row.id, row.nombre) },
+    { label: 'Ver detalles', type: 'view', onClick: (row) => navigate(`detalle/${row.id}`) },
+    { label: 'Editar', type: 'edit', onClick: (row) => navigate(`editar/${row.id}`) },
+    { label: 'Eliminar', type: 'delete', onClick: (row) => handleDelete(row.id, row.nombre) },
   ];
 
   if (isLoading && roles.length === 0) {
