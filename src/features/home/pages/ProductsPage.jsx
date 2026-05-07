@@ -12,6 +12,7 @@ import { hasPermiso } from "../utils/permissions";
 import "../../../shared/styles/features/home/ProductsPage.css";
 import "../../../shared/styles/features/home/ProductDetail.css";
 import "../../../shared/styles/features/home/ShoppingCart.css";
+import "../../../shared/styles/features/home/PaymentModal.css";
 
 // Botón flotante del carrito
 const CartFab = () => {
