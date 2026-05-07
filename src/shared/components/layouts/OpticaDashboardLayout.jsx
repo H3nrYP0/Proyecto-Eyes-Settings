@@ -32,7 +32,8 @@ import {
   Pedidos, 
   CrearPedido, 
   EditarPedido, 
-  DetallePedido 
+  DetallePedido,
+  PedidoPDFView,          // ← agregado
 } from "../../../features/ventas/pedido";
 
 // NOTA: Abonos ya NO tiene rutas separadas - está integrado como modal dentro de Pedidos
@@ -191,6 +192,7 @@ export default function OpticaDashboardLayout({ user, setUser }) {
               <Route path="crear" element={<CrearPedido />} />
               <Route path="editar/:id" element={<EditarPedido />} />
               <Route path="detalle/:id" element={<DetallePedido />} />
+              <Route path="pdf/:id" element={<PedidoPDFView />} />  {/* ← agregado */}
             </Route>
 
             {/* Ventas — solo lectura, se generan desde pedidos */}

@@ -3,19 +3,20 @@ import axios from "../../../../lib/axios";
 export const pedidosService = {
 
   // ── Backend → UI ──────────────────────────────────────────────────────────
-  // El backend devuelve estado_nombre (string) en vez de estado (string)
-  // También devuelve abono_acumulado y saldo_pendiente
   _toUI(p) {
     try {
-      const clienteNombre = p.cliente_nombre
-        ?? (p.cliente ? `${p.cliente.nombre} ${p.cliente.apellido ?? ""}`.trim() : "");
+      const clienteNombre =
+        p.cliente_nombre_completo ??
+        p.cliente_nombre ??
+        (p.cliente
+          ? `${p.cliente.nombre ?? ""} ${p.cliente.apellido ?? ""}`.trim()
+          : "");
 
       return {
         id:                        p.id,
         cliente:                   clienteNombre,
         cliente_id:                p.cliente_id,
         fechaPedido:               p.fecha ? p.fecha.split("T")[0] : "",
-        // El backend devuelve estado_nombre, lo mapeamos a estado para la UI
         estado:                    p.estado_nombre ?? p.estado ?? "pendiente",
         estado_id:                 p.estado_id,
         metodo_pago:               p.metodo_pago ?? "",
@@ -28,13 +29,17 @@ export const pedidosService = {
         items: Array.isArray(p.items)
           ? p.items.map((item) => ({
               id:          item.id,
-              producto_id: item.producto_id,
-              nombre:      item.producto_nombre ?? item.nombre ?? "",
+              producto_id: item.producto_id ?? null,
+              servicio_id: item.servicio_id ?? null,
+              nombre:      item.nombre ?? item.producto_nombre ?? item.servicio_nombre ?? "",
               descripcion: item.descripcion ?? "",
               precio:      item.precio_unitario ?? item.precio ?? 0,
               cantidad:    item.cantidad ?? 1,
               subtotal:    item.subtotal ?? 0,
-              tipo:        "producto",
+              // El back ahora devuelve 'tipo' en to_dict del detalle
+              tipo:        item.tipo ?? (item.producto_id ? "producto" : "servicio"),
+              // stock solo aplica a productos
+              stock:       (item.tipo === "producto" || item.producto_id) ? (item.stock ?? null) : null,
             }))
           : [],
       };
@@ -59,15 +64,20 @@ export const pedidosService = {
       ...(data.direccion_entrega         && { direccion_entrega: data.direccion_entrega }),
       ...(data.transferencia_comprobante && { transferencia_comprobante: data.transferencia_comprobante }),
     };
-    // El backend acepta estado como string y lo convierte a estado_id internamente
+
     if (data.estado) payload.estado = data.estado;
 
     if (Array.isArray(data.items) && data.items.length > 0) {
-      payload.items = data.items.map((item) => ({
-        producto_id:     item.producto_id ?? item.id,
-        cantidad:        item.cantidad,
-        precio_unitario: item.precio ?? item.precio_unitario,
-      }));
+      payload.items = data.items.map((item) => {
+        const base = {
+          cantidad:        item.cantidad,
+          precio_unitario: item.precio ?? item.precio_unitario,
+        };
+        if (item.tipo === "servicio" || item.servicio_id) {
+          return { ...base, servicio_id: item.servicio_id ?? item.id };
+        }
+        return { ...base, producto_id: item.producto_id ?? item.id };
+      });
     }
     return payload;
   },
@@ -94,14 +104,11 @@ export const pedidosService = {
   },
 
   async updatePedido(id, data) {
-    // El backend acepta: estado (string), metodo_pago, metodo_entrega,
-    // direccion_entrega, transferencia_comprobante
-    // NO acepta: total
     const payload = {};
-    if (data.estado            !== undefined) payload.estado            = data.estado;
-    if (data.metodo_pago       !== undefined) payload.metodo_pago       = data.metodo_pago;
-    if (data.metodo_entrega    !== undefined) payload.metodo_entrega    = data.metodo_entrega;
-    if (data.direccion_entrega !== undefined) payload.direccion_entrega = data.direccion_entrega;
+    if (data.estado                    !== undefined) payload.estado                    = data.estado;
+    if (data.metodo_pago               !== undefined) payload.metodo_pago               = data.metodo_pago;
+    if (data.metodo_entrega            !== undefined) payload.metodo_entrega            = data.metodo_entrega;
+    if (data.direccion_entrega         !== undefined) payload.direccion_entrega         = data.direccion_entrega;
     if (data.transferencia_comprobante !== undefined)
       payload.transferencia_comprobante = data.transferencia_comprobante;
 
@@ -115,11 +122,6 @@ export const pedidosService = {
   },
 
   // ── ABONOS ────────────────────────────────────────────────────────────────
-  // Flujo:
-  // 1. POST /pedidos/:id/abonos  →  registra abono parcial, actualiza abono_acumulado
-  // 2. Cuando saldo_pendiente == 0 → PUT /pedidos/:id con estado=entregado
-  //    → el backend crea la Venta automáticamente y migra los abonos
-  // El botón "Abonar" solo aparece en: pendiente, confirmado, en_preparacion, enviado
 
   async getAbonosByPedido(pedidoId) {
     try {
@@ -130,9 +132,6 @@ export const pedidosService = {
     }
   },
 
-  // Registra un abono. El backend responde:
-  // { message, abono_acumulado, saldo_pendiente }
-  // Si saldo_pendiente == 0, el frontend luego llama updatePedido con estado=entregado
   async registrarAbono(pedidoId, montoAbonado) {
     const response = await axios.post(`/pedidos/${pedidoId}/abonos`, {
       monto_abonado: montoAbonado,
@@ -143,12 +142,9 @@ export const pedidosService = {
     };
   },
 
-  // Carga resumen de abonos para el modal y la vista detalle
-  // Abono.to_dict() devuelve: { id, monto, fecha, observacion, pedido_id, venta_id }
   async getInfoAbonos(pedidoId, totalPedido) {
     try {
       const abonos = await this.getAbonosByPedido(pedidoId);
-      // Normalizar campo: el modelo usa "monto", la UI espera "monto_abonado"
       const normalizado = abonos.map((a) => ({
         ...a,
         monto_abonado: a.monto ?? a.monto_abonado ?? 0,
@@ -171,14 +167,17 @@ export const pedidosService = {
     const data = Array.isArray(response.data) ? response.data : [];
     return data
       .filter((c) => c.estado !== false)
-      .map((c) => ({ id: c.id, nombre: `${c.nombre} ${c.apellido ?? ""}`.trim() }));
+      .map((c) => ({
+        id:     c.id,
+        nombre: `${c.nombre ?? ""} ${c.apellido ?? ""}`.trim(),
+      }));
   },
 
   async getProductosActivos() {
     const response = await axios.get("/productos");
     const data = Array.isArray(response.data) ? response.data : [];
     return data
-      .filter((p) => p.estado !== false)
+      .filter((p) => p.estado !== false && (p.stock ?? 0) > 0)
       .map((p) => ({
         id:          p.id,
         nombre:      p.nombre,
@@ -189,7 +188,22 @@ export const pedidosService = {
       }));
   },
 
-  // ── DETALLE PEDIDO (para edición de items) ───────────────────────────────
+  async getServiciosActivos() {
+    const response = await axios.get("/servicios");
+    const data = Array.isArray(response.data) ? response.data : [];
+    return data
+      .filter((s) => s.estado !== false)
+      .map((s) => ({
+        id:          s.id,
+        nombre:      s.nombre,
+        descripcion: s.descripcion ?? "",
+        precio:      s.precio,
+        stock:       null,   // los servicios no tienen stock
+        tipo:        "servicio",
+      }));
+  },
+
+  // ── DETALLE PEDIDO ────────────────────────────────────────────────────────
 
   async createDetallePedido(data) {
     const response = await axios.post("/detalle-pedido", data);
@@ -208,12 +222,9 @@ export const pedidosService = {
 
   getEstadoLabel(estado) {
     const labels = {
-      pendiente:      "Pendiente",
-      confirmado:     "Confirmado",
-      en_preparacion: "En preparación",
-      enviado:        "Enviado",
-      entregado:      "Entregado",
-      cancelado:      "Cancelado",
+      pendiente: "Pendiente",
+      pagado:    "Pagado",
+      anulado:   "Anulado",
     };
     return labels[estado] ?? estado;
   },
