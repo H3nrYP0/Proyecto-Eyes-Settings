@@ -2,18 +2,25 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import {
-  Box, Card, CardContent, TextField, Button, Typography,
+  Box, Card, CardContent, Button, Typography,
   Container, Alert, CircularProgress, InputAdornment, IconButton,
+  TextField,
 } from '@mui/material';
 import {
   VisibilityOutlined as VisibilityOutlinedIcon,
   VisibilityOffOutlined as VisibilityOffOutlinedIcon,
 } from '@mui/icons-material';
 
+import { TextFieldNoEmoji, TextFieldNumbers } from '@shared';
 import { loginTheme } from '@theme';
-import authServices from '../services/authServices';
-import { validateForgotEmail, validateOtpCode, validateResetPassword } from '../utils/authValidators';
-import { isInvalidCodeError } from '../utils/authNormalizer';
+import {
+  authServices,
+  validateForgotEmail,
+  validateOtpCode,
+  validateResetPassword,
+  isInvalidCodeError,
+  PasswordStrength,
+} from '@auth';
 
 const STEP_TITLES = {
   1: 'Recuperar contraseña',
@@ -22,16 +29,16 @@ const STEP_TITLES = {
 };
 
 export default function ForgotPassword() {
-  const [step, setStep] = useState(1);
-  const [correo, setCorreo] = useState('');
-  const [codigo, setCodigo] = useState('');
-  const [nuevaContrasenia, setNuevaContrasenia] = useState('');
+  const [step,                 setStep]                 = useState(1);
+  const [correo,               setCorreo]               = useState('');
+  const [codigo,               setCodigo]               = useState('');
+  const [nuevaContrasenia,     setNuevaContrasenia]     = useState('');
   const [confirmarContrasenia, setConfirmarContrasenia] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
+  const [showPassword,         setShowPassword]         = useState(false);
+  const [showConfirmPassword,  setShowConfirmPassword]  = useState(false);
+  const [loading,              setLoading]              = useState(false);
+  const [error,                setError]                = useState('');
+  const [success,              setSuccess]              = useState(false);
 
   const stepDescriptions = {
     1: 'Ingresa tu correo y te enviaremos un código para restablecer tu contraseña.',
@@ -39,14 +46,11 @@ export default function ForgotPassword() {
     3: 'Ingresa y confirma tu nueva contraseña.',
   };
 
-  // ── Paso 1: enviar código ──
   const handleSendCode = async (e) => {
     e.preventDefault();
     setError('');
-
     const err = validateForgotEmail(correo);
     if (err) { setError(err); return; }
-
     setLoading(true);
     try {
       await authServices.sendForgotPasswordCode(correo.trim().toLowerCase());
@@ -58,7 +62,6 @@ export default function ForgotPassword() {
     }
   };
 
-  // ── Paso 2: verificar código (avance local) ──
   const handleVerifyCode = (e) => {
     e.preventDefault();
     setError('');
@@ -67,14 +70,11 @@ export default function ForgotPassword() {
     setStep(3);
   };
 
-  // ── Paso 3: cambiar contraseña ──
   const handleResetPassword = async (e) => {
     e.preventDefault();
     setError('');
-
     const err = validateResetPassword(nuevaContrasenia, confirmarContrasenia);
     if (err) { setError(err); return; }
-
     setLoading(true);
     try {
       await authServices.resetPassword(
@@ -94,7 +94,6 @@ export default function ForgotPassword() {
     }
   };
 
-  // ── Reenviar código ──
   const handleResend = async () => {
     setError('');
     setLoading(true);
@@ -121,8 +120,6 @@ export default function ForgotPassword() {
           sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Card elevation={2} sx={{ width: '100%', maxWidth: 440, p: 4 }}>
             <CardContent sx={{ p: 1 }}>
-
-              {/* Header */}
               <Box sx={{ textAlign: 'center', mb: 3 }}>
                 <Typography variant="h4" component="h1" gutterBottom color="primary"
                   fontWeight="500" sx={{ letterSpacing: '-0.025em' }}>
@@ -156,14 +153,23 @@ export default function ForgotPassword() {
                 </Alert>
               )}
 
-              {/* Paso 1 */}
+              {/* Paso 1: correo */}
               {step === 1 && !success && (
                 <Box component="form" onSubmit={handleSendCode}>
-                  <TextField
-                    margin="normal" required fullWidth label="Correo Electrónico" type="email"
-                    autoComplete="email" autoFocus value={correo}
+                  <TextFieldNoEmoji
+                    margin="normal"
+                    required
+                    fullWidth
+                    label="Correo Electrónico"
+                    type="email"
+                    autoComplete="email"
+                    autoFocus
+                    value={correo}
                     onChange={(e) => setCorreo(e.target.value)}
-                    placeholder="tu@correo.com" size="small" disabled={loading}
+                    placeholder="tu@correo.com"
+                    size="small"
+                    disabled={loading}
+                    maxLength={100}
                   />
                   <Button type="submit" fullWidth variant="contained" disabled={loading}
                     sx={{ mt: 2, mb: 2, py: 1.1, textTransform: 'none', fontSize: '0.95rem', fontWeight: '600' }}>
@@ -172,14 +178,22 @@ export default function ForgotPassword() {
                 </Box>
               )}
 
-              {/* Paso 2 */}
+              {/* Paso 2: código OTP */}
               {step === 2 && !success && (
                 <Box component="form" onSubmit={handleVerifyCode}>
-                  <TextField
-                    margin="normal" required fullWidth label="Código de verificación"
-                    autoFocus value={codigo}
-                    onChange={(e) => setCodigo(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    placeholder="123456" size="small" inputProps={{ maxLength: 6 }} disabled={loading}
+                  <TextFieldNumbers
+                    margin="normal"
+                    required
+                    fullWidth
+                    label="Código de verificación"
+                    autoFocus
+                    value={codigo}
+                    onChange={(e) => setCodigo(e.target.value)}
+                    placeholder="123456"
+                    size="small"
+                    disabled={loading}
+                    maxLength={6}
+                    inputProps={{ maxLength: 6 }}
                   />
                   <Button type="submit" fullWidth variant="contained"
                     disabled={loading || codigo.length !== 6}
@@ -194,34 +208,53 @@ export default function ForgotPassword() {
                 </Box>
               )}
 
-              {/* Paso 3 */}
+              {/* Paso 3: nueva contraseña */}
               {step === 3 && !success && (
                 <Box component="form" onSubmit={handleResetPassword}>
                   <TextField
-                    margin="normal" required fullWidth label="Nueva contraseña" autoFocus
+                    margin="normal"
+                    required
+                    fullWidth
+                    label="Nueva contraseña"
+                    autoFocus
                     type={showPassword ? 'text' : 'password'}
-                    value={nuevaContrasenia} onChange={(e) => setNuevaContrasenia(e.target.value)}
-                    placeholder="········" size="small" disabled={loading}
+                    value={nuevaContrasenia}
+                    onChange={(e) => setNuevaContrasenia(e.target.value)}
+                    placeholder="········"
+                    size="small"
+                    disabled={loading}
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position="end">
                           <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small">
-                            {showPassword ? <VisibilityOffOutlinedIcon fontSize="small" /> : <VisibilityOutlinedIcon fontSize="small" />}
+                            {showPassword
+                              ? <VisibilityOffOutlinedIcon fontSize="small" />
+                              : <VisibilityOutlinedIcon fontSize="small" />}
                           </IconButton>
                         </InputAdornment>
                       ),
                     }}
                   />
+                  <PasswordStrength password={nuevaContrasenia} />
+
                   <TextField
-                    margin="normal" required fullWidth label="Confirmar contraseña"
+                    margin="normal"
+                    required
+                    fullWidth
+                    label="Confirmar contraseña"
                     type={showConfirmPassword ? 'text' : 'password'}
-                    value={confirmarContrasenia} onChange={(e) => setConfirmarContrasenia(e.target.value)}
-                    placeholder="········" size="small" disabled={loading}
+                    value={confirmarContrasenia}
+                    onChange={(e) => setConfirmarContrasenia(e.target.value)}
+                    placeholder="········"
+                    size="small"
+                    disabled={loading}
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position="end">
                           <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end" size="small">
-                            {showConfirmPassword ? <VisibilityOffOutlinedIcon fontSize="small" /> : <VisibilityOutlinedIcon fontSize="small" />}
+                            {showConfirmPassword
+                              ? <VisibilityOffOutlinedIcon fontSize="small" />
+                              : <VisibilityOutlinedIcon fontSize="small" />}
                           </IconButton>
                         </InputAdornment>
                       ),
@@ -234,7 +267,6 @@ export default function ForgotPassword() {
                 </Box>
               )}
 
-              {/* Footer */}
               {!success && (
                 <Box sx={{ textAlign: 'center', mt: 1 }}>
                   <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem', mb: 0.5 }}>
@@ -253,7 +285,6 @@ export default function ForgotPassword() {
                   </Typography>
                 </Box>
               )}
-
             </CardContent>
           </Card>
         </Container>
