@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { getAllRoles } from "@seguridad/roles/services/rolServices";
-import { getUserById, updateUser } from "../services/userServices";
+import { getAllRoles }              from "@seguridad/roles/services/rolServices";
+import { getUserById, updateUser }  from "../services/userServices";
 import { normalizeUserInitialData } from "../utils/userNormalizer";
-import { validateAdminUserForm } from "../utils/userValidators";
+import { validateAdminUserForm }    from "../utils/userValidators";
 import UserForm         from "../components/UserForm";
 import Loading          from "@shared/components/ui/Loading";
 import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
@@ -45,7 +45,7 @@ export default function EditarUsuario() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Poblar formulario cuando llegan los datos
+  // Poblar formulario solo cuando llegan los datos del servidor (primera vez)
   useEffect(() => {
     if (userData) {
       setFormData({
@@ -74,11 +74,17 @@ export default function EditarUsuario() {
   const updateMutation = useMutation({
     mutationFn: (payload) => updateUser(id, payload),
     onSuccess: () => {
+      // Invalidar lista para que refetch traiga datos frescos
       queryClient.invalidateQueries({ queryKey: ["usuarios"] });
+      // Invalidar caché individual para que Detalle también se actualice
       queryClient.invalidateQueries({ queryKey: ["usuario", id] });
+
       sessionStorage.setItem(
         "crudNotification",
-        JSON.stringify({ message: `Usuario "${formData.nombre}" actualizado correctamente`, type: "success" })
+        JSON.stringify({
+          message: `Usuario "${formData.nombre}" actualizado correctamente`,
+          type: "success",
+        })
       );
       navigate("/admin/seguridad/usuarios");
     },
@@ -98,10 +104,10 @@ export default function EditarUsuario() {
     setIsSubmitting(true);
 
     const payload = {
-      nombre:  formData.nombre,
-      correo:  formData.correo,
-      rol_id:  Number(formData.rol_id),
-      estado:  formData.estado,
+      nombre: formData.nombre,
+      correo: formData.correo,
+      rol_id: Number(formData.rol_id),
+      estado: formData.estado,
     };
     if (formData.contrasenia) payload.contrasenia = formData.contrasenia;
 

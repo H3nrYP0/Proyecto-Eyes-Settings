@@ -4,6 +4,7 @@ import { validateAdminUserForm } from '../utils/userValidators';
 export const useUserForm = (initialData = null, mode = 'create') => {
   const [formData, setFormData] = useState({
     nombre:                "",
+    apellido:              "",
     correo:                "",
     rol_id:                "",
     estado:                true,
@@ -25,6 +26,7 @@ export const useUserForm = (initialData = null, mode = 'create') => {
 
     setFormData({
       nombre:                initialData.nombre  ?? "",
+      apellido:              initialData.apellido ?? "",
       correo:                initialData.correo  ?? "",
       rol_id:                initialData.rol_id  ?? "",
       estado:                initialData.estado  ?? true,
@@ -33,6 +35,7 @@ export const useUserForm = (initialData = null, mode = 'create') => {
     });
   }, [initialData]);
 
+  // ... el resto del hook queda igual
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -52,7 +55,7 @@ export const useUserForm = (initialData = null, mode = 'create') => {
   const resetForm = useCallback(() => {
     initializedRef.current = false;
     setFormData({
-      nombre: "", correo: "", rol_id: "", estado: true,
+      nombre: "", apellido: "", correo: "", rol_id: "", estado: true,
       contrasenia: "", confirmar_contrasenia: "",
     });
     setErrors({});

@@ -6,10 +6,6 @@ import {
   FormRow
 } from "@shared";
 
-/**
- * UserForm — Formulario de usuarios administrativos
- * Modos: "create" | "edit" | "view"
- */
 export default function UserForm({
   mode = "create",
   title,
@@ -29,8 +25,7 @@ export default function UserForm({
   return (
     <BaseFormLayout title={title}>
       <FormRow>
-
-        {/* NOMBRE */}
+        {/* NOMBRE COMPLETO */}
         <FormCol>
           <BaseInputField
             label="Nombre completo"
@@ -100,7 +95,7 @@ export default function UserForm({
           </FormCol>
         )}
 
-        {/* CONTRASEÑA — oculta en vista */}
+        {/* CONTRASEÑA */}
         {!isView && (
           <>
             <FormCol>
@@ -130,7 +125,6 @@ export default function UserForm({
             </FormCol>
           </>
         )}
-
       </FormRow>
 
       <BaseFormActions
