@@ -1,18 +1,18 @@
-// ==================== PÁGINAS ====================
-export { default as Login }          from './auth/pages/Login';
-export { default as Register }       from './auth/pages/Register';
-export { default as ForgotPassword } from './auth/pages/ForgotPassword';
-
 // ==================== SERVICIOS ====================
-export { default as authServices }   from './auth/services/authServices';
-
-// ==================== HOOKS ====================
-export * from './auth/hooks/useAuth';
-
-// ==================== COMPONENTES ====================
-export { default as PasswordStrength }        from './auth/components/PasswordStrength';
-export { default as VerificationCodeDialog }  from './auth/components/VerificationCodeDialog';
+export { default as authServices } from './services/authServices';
 
 // ==================== UTILS ====================
-export * from './auth/utils/authValidators';
-export * from './auth/utils/authNormalizer';
+export * from './utils/authValidators';
+export * from './utils/authNormalizer';
+
+// ==================== HOOKS ====================
+export { useAuth } from './hooks/useAuth';
+
+// ==================== COMPONENTES INTERNOS ====================
+export { default as PasswordStrength } from './components/PasswordStrength';
+export { default as VerificationCodeDialog } from './components/VerificationCodeDialog';
+
+// ==================== PÁGINAS ====================
+export { default as Login } from './pages/Login';
+export { default as Register } from './pages/Register';
+export { default as ForgotPassword } from './pages/ForgotPassword';
