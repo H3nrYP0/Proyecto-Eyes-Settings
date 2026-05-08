@@ -10,6 +10,7 @@ import {
   deleteRol,
   updateEstadoRol,
   normalizarRoles,
+  normalizarRolEstado,
   filtrarRoles,
 } from '@seguridad';
 
@@ -28,13 +29,10 @@ export default function Roles() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [search, setSearch] = useState('');
+  const [search,       setSearch]       = useState('');
   const [filterEstado, setFilterEstado] = useState('');
-  const [deleteModal, setDeleteModal] = useState({ open: false, id: null, nombre: '' });
-
-  const [notification, setNotification] = useState({
-    isVisible: false, message: '', type: 'success',
-  });
+  const [deleteModal,  setDeleteModal]  = useState({ open: false, id: null, nombre: '' });
+  const [notification, setNotification] = useState({ isVisible: false, message: '', type: 'success' });
 
   const showNotification = (message, type = 'success') =>
     setNotification({ isVisible: true, message, type });
@@ -50,7 +48,6 @@ export default function Roles() {
     }
   }, []);
 
-  // Normalizar los datos ANTES de guardarlos en caché
   const { data, isLoading, error } = useQuery({
     queryKey: ['roles'],
     queryFn: async () => {
@@ -58,13 +55,15 @@ export default function Roles() {
       return normalizarRoles(rolesData);
     },
     staleTime: 1000 * 60 * 5,
+    // select garantiza normalización incluso cuando los datos vienen del caché
+    select: (data) => normalizarRoles(data),
   });
 
   const roles = data || [];
 
   const deleteMutation = useMutation({
     mutationFn: deleteRol,
-    onSuccess: (_, deletedId) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
       const nombre = deleteModal.nombre;
       setDeleteModal({ open: false, id: null, nombre: '' });
@@ -77,15 +76,15 @@ export default function Roles() {
     },
   });
 
-  // Actualización optimista con estado normalizado a string
   const estadoMutation = useMutation({
     mutationFn: ({ id, estado }) => updateEstadoRol(id, estado),
     onSuccess: (_, { id, estado }) => {
-      // Actualización optimista: aseguramos que 'estado' es string
+      // Garantizar que el estado en caché siempre sea string normalizado
+      const estadoNormalizado = normalizarRolEstado(estado);
       queryClient.setQueryData(['roles'], (oldRoles) => {
         if (!oldRoles) return oldRoles;
         return oldRoles.map((rol) =>
-          rol.id === id ? { ...rol, estado } : rol
+          rol.id === id ? { ...rol, estado: estadoNormalizado } : rol
         );
       });
     },
@@ -100,7 +99,6 @@ export default function Roles() {
 
   const handleChangeStatus = async (row, nuevoEstado) => {
     try {
-      // nuevoEstado ya viene como 'activo' o 'inactivo' desde CrudTable
       await estadoMutation.mutateAsync({ id: row.id, estado: nuevoEstado });
       const label = nuevoEstado === 'activo' ? 'activado' : 'desactivado';
       showNotification(`Rol "${row.nombre}" ${label} correctamente`);
@@ -116,9 +114,9 @@ export default function Roles() {
   );
 
   const tableActions = [
-    { label: 'Ver detalles', type: 'view', onClick: (row) => navigate(`detalle/${row.id}`) },
-    { label: 'Editar', type: 'edit', onClick: (row) => navigate(`editar/${row.id}`) },
-    { label: 'Eliminar', type: 'delete', onClick: (row) => handleDelete(row.id, row.nombre) },
+    { label: 'Ver detalles', type: 'view',   onClick: (row) => navigate(`detalle/${row.id}`) },
+    { label: 'Editar',       type: 'edit',   onClick: (row) => navigate(`editar/${row.id}`) },
+    { label: 'Eliminar',     type: 'delete', onClick: (row) => handleDelete(row.id, row.nombre) },
   ];
 
   if (isLoading && roles.length === 0) {
