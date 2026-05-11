@@ -8,6 +8,7 @@ const authServices = {
   async login(correo, contrasenia, recordarme = false) {
     const response = await api.post("/auth/login", { correo, contrasenia });
     const { token, usuario } = response.data;
+    console.log("🔐 Login: token recibido", token ? "SÍ" : "NO");
 
     // Limpiar ambos storages antes de guardar
     localStorage.removeItem("token");
@@ -20,6 +21,7 @@ const authServices = {
     storage.setItem("token", token);
     storage.setItem("user", JSON.stringify(usuario));
 
+    console.log("🔐 Login: token guardado en", storage === localStorage ? "localStorage" : "sessionStorage");
     return usuario;
   },
 
