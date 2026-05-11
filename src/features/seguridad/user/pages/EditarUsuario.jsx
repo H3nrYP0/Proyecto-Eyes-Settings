@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -14,6 +14,10 @@ export default function EditarUsuario() {
   const { id }      = useParams();
   const navigate    = useNavigate();
   const queryClient = useQueryClient();
+
+  // Ref para poblar el formulario solo una vez (evita que un refetch del caché
+  // invalide y sobreescriba los cambios que el usuario ya escribió)
+  const initializedRef = useRef(false);
 
   const [formData, setFormData] = useState({
     nombre:                "",
@@ -45,9 +49,12 @@ export default function EditarUsuario() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Poblar formulario solo cuando llegan los datos del servidor (primera vez)
+  // Poblar formulario solo la primera vez que llegan los datos del servidor.
+  // El ref impide que un refetch posterior (por invalidación del caché) pise
+  // los valores que el usuario ya modificó en el formulario.
   useEffect(() => {
-    if (userData) {
+    if (userData && !initializedRef.current) {
+      initializedRef.current = true;
       setFormData({
         nombre:                userData.nombre  || "",
         correo:                userData.correo  || "",
@@ -74,11 +81,6 @@ export default function EditarUsuario() {
   const updateMutation = useMutation({
     mutationFn: (payload) => updateUser(id, payload),
     onSuccess: () => {
-      // Invalidar lista para que refetch traiga datos frescos
-      queryClient.invalidateQueries({ queryKey: ["usuarios"] });
-      // Invalidar caché individual para que Detalle también se actualice
-      queryClient.invalidateQueries({ queryKey: ["usuario", id] });
-
       sessionStorage.setItem(
         "crudNotification",
         JSON.stringify({
@@ -87,6 +89,8 @@ export default function EditarUsuario() {
         })
       );
       navigate("/admin/seguridad/usuarios");
+      queryClient.invalidateQueries({ queryKey: ["usuarios"] });
+      queryClient.invalidateQueries({ queryKey: ["usuario", id] });
     },
     onError: (error) => {
       const msg = error.message || "Error al editar usuario";
