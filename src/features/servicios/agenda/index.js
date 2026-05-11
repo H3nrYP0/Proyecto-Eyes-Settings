@@ -11,10 +11,11 @@ export { default as AgendaCalendar } from "./components/AgendaCalendar";
 // Hooks
 export { useAgenda } from "./hooks/useAgenda";
 
+// Context (stub — datos migrados a React Query)
+export { AgendaDataProvider } from "./context/AgendaDataContext";
+
 // Services
 export * as agendaService from "./services/agendaService";
 
 // Utils
 export * as agendaUtils from "./utils/agendaUtils";
-
-// Nota: ListaHorarios NO está en este módulo, está en horario
