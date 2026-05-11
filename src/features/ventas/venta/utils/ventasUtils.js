@@ -1,16 +1,19 @@
+export const ESTADOS_VENTA = [
+  { value: "completada", label: "Completada" },
+  { value: "anulada",    label: "Anulada"    },
+];
+
+export const METODOS_PAGO    = ["efectivo", "transferencia", "tarjeta"];
+export const METODOS_ENTREGA = ["tienda", "domicilio"];
+
 export const COLORES_ESTADO_VENTA = {
-  completada:    { bg: "#dcfce7", color: "#166534" },
-  anulada:       { bg: "#fee2e2", color: "#991b1b" },
-  pendiente_pago: { bg: "#fef3c7", color: "#92400e" },
+  completada: { bg: "#dcfce7", color: "#166534" },
+  anulada:    { bg: "#fee2e2", color: "#991b1b" },
 };
 
 export const getEstadoLabelVenta = (estado) => {
-  const labels = {
-    completada:     "Completada",
-    anulada:        "Anulada",
-    pendiente_pago: "Pendiente de pago",
-  };
-  return labels[estado] ?? estado;
+  const labels = { completada: "Completada", anulada: "Anulada" };
+  return labels[estado] ?? estado ?? "—";
 };
 
 export const formatCurrency = (amount) =>

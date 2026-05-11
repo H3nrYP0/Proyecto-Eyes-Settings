@@ -1,4 +1,3 @@
-// Solo 3 estados
 export const ESTADOS_PEDIDO = [
   { value: "pendiente", label: "Pendiente" },
   { value: "pagado",    label: "Pagado"    },
@@ -8,7 +7,6 @@ export const ESTADOS_PEDIDO = [
 export const METODOS_PAGO    = ["efectivo", "transferencia"];
 export const METODOS_ENTREGA = ["tienda", "domicilio"];
 
-// Solo se puede abonar cuando está pendiente
 export const ESTADOS_ABONABLE = ["pendiente"];
 
 export const COLORES_ESTADO = {
