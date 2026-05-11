@@ -1,5 +1,6 @@
 // src/features/ventas/venta/index.js
 export { default as Ventas }       from "./pages/Ventas";
+export { default as CrearVenta }   from "./pages/CrearVenta";
 export { default as DetalleVenta } from "./pages/DetalleVenta";
 export { useVentas }               from "./hooks/useVentas";
 export { ventasService }           from "./services/ventasService";

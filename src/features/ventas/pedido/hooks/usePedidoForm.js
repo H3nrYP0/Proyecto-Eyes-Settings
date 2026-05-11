@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { pedidosService } from "../services/pedidosService";
 import { ESTADOS_PEDIDO, METODOS_PAGO, METODOS_ENTREGA, formatCurrency } from "../utils/pedidosUtils";
 
@@ -7,12 +8,29 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
   const isEdit   = mode === "edit";
   const isCreate = mode === "create";
 
-  const [clientes,       setClientes]       = useState([]);
-  const [productos,      setProductos]      = useState([]);
-  const [servicios,      setServicios]      = useState([]);
-  const [catalogLoading, setCatalogLoading] = useState(true);
-  const [abonosInfo,     setAbonosInfo]     = useState(null);
-  const [stockWarning,   setStockWarning]   = useState("");
+  const queryClient = useQueryClient();
+
+  // ── Catálogos con React Query ─────────────────────────────────────────────
+  const { data: clientes = [],  isLoading: loadingClientes  } = useQuery({
+    queryKey: ["clientes-activos"],
+    queryFn:  () => pedidosService.getClientesActivos(),
+    staleTime: 60_000,
+  });
+  const { data: productos = [], isLoading: loadingProductos } = useQuery({
+    queryKey: ["productos-activos"],
+    queryFn:  () => pedidosService.getProductosActivos(),
+    staleTime: 60_000,
+  });
+  const { data: servicios = [], isLoading: loadingServicios } = useQuery({
+    queryKey: ["servicios-activos"],
+    queryFn:  () => pedidosService.getServiciosActivos(),
+    staleTime: 60_000,
+  });
+
+  const catalogLoading = loadingClientes || loadingProductos || loadingServicios;
+
+  const [abonosInfo,   setAbonosInfo]   = useState(null);
+  const [stockWarning, setStockWarning] = useState("");
 
   const [formData, setFormData] = useState({
     cliente_id:                "",
@@ -26,27 +44,6 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
   const [itemsSeleccionados, setItemsSeleccionados] = useState([]);
   const [notification, setNotification] = useState({ isVisible: false, message: "", type: "success" });
   const [saving, setSaving] = useState(false);
-
-  // ── Cargar catálogos ──────────────────────────────────────────────────────
-  useEffect(() => {
-    const cargar = async () => {
-      try {
-        const [cli, prod, serv] = await Promise.all([
-          pedidosService.getClientesActivos(),
-          pedidosService.getProductosActivos(),
-          pedidosService.getServiciosActivos(),
-        ]);
-        setClientes(cli);
-        setProductos(prod);
-        setServicios(serv);
-      } catch (err) {
-        console.error("Error cargando catálogos:", err);
-      } finally {
-        setCatalogLoading(false);
-      }
-    };
-    cargar();
-  }, []);
 
   // ── Cargar datos iniciales ────────────────────────────────────────────────
   useEffect(() => {
@@ -74,7 +71,7 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
   const calcularTotal = () =>
     itemsSeleccionados.reduce((sum, item) => sum + (item.precio ?? 0) * item.cantidad, 0);
 
-  // ── Agregar item (producto o servicio) ────────────────────────────────────
+  // ── Agregar item ──────────────────────────────────────────────────────────
   const agregarItem = (item) => {
     setStockWarning("");
     const esProducto = item.tipo === "producto";
@@ -82,7 +79,6 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
 
     const existente = itemsSeleccionados.find((i) => i[keyId] === item.id);
     if (existente) {
-      // Los servicios no tienen límite de stock
       if (esProducto && existente.cantidad >= (item.stock ?? Infinity)) {
         setStockWarning(`Límite de stock alcanzado para "${item.nombre}" (${item.stock} disponibles)`);
         return;
@@ -119,7 +115,6 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
     setStockWarning("");
     if (nuevaCantidad < 1) { removerItem(index); return; }
     const item = itemsSeleccionados[index];
-    // Solo validar stock para productos
     if (item.tipo === "producto" && item.stock !== null && nuevaCantidad > item.stock) {
       setStockWarning(`No hay más unidades disponibles de "${item.nombre}" (stock máx: ${item.stock})`);
       return;
@@ -157,22 +152,23 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
       const payload = { ...formData, items: itemsSeleccionados };
 
       if (isEdit && initialData?.id) {
+        const estadoAnterior = initialData.estado;
+        const estadoNuevo    = payload.estado;
+
         await pedidosService.updatePedido(initialData.id, {
           metodo_pago:               payload.metodo_pago,
           metodo_entrega:            payload.metodo_entrega,
           direccion_entrega:         payload.direccion_entrega,
           transferencia_comprobante: payload.transferencia_comprobante,
-          estado:                    payload.estado,
+          estado:                    estadoNuevo,
         });
 
+        // Sincronizar items
         const itemsOriginales = initialData.items ?? [];
-
-        // Eliminar los que ya no están
         for (const orig of itemsOriginales) {
           const aun = itemsSeleccionados.find((i) => i.id === orig.id);
           if (!aun) await pedidosService.deleteDetallePedido(orig.id);
         }
-        // Actualizar cantidades de existentes
         for (const item of itemsSeleccionados) {
           if (!item.id) continue;
           const orig = itemsOriginales.find((o) => o.id === item.id);
@@ -182,36 +178,45 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
             });
           }
         }
-        // Crear los nuevos
         for (const item of itemsSeleccionados) {
           if (item.id) continue;
-          const detallePayload = {
+          await pedidosService.createDetallePedido({
             pedido_id:       initialData.id,
+            ...(item.producto_id && { producto_id: item.producto_id }),
+            ...(item.servicio_id && { servicio_id: item.servicio_id }),
             cantidad:        item.cantidad,
             precio_unitario: item.precio,
-          };
-          if (item.tipo === "servicio" || item.servicio_id) {
-            detallePayload.servicio_id = item.servicio_id ?? item.id;
-          } else {
-            detallePayload.producto_id = item.producto_id ?? item.id;
-          }
-          await pedidosService.createDetallePedido(detallePayload);
+          });
         }
+
+        // Si cambió a pagado → el back crea la venta, invalidar cache de ventas
+        if (estadoNuevo === "pagado" && estadoAnterior !== "pagado") {
+          await queryClient.invalidateQueries({ queryKey: ["ventas"] });
+        }
+        // Siempre refrescar pedidos
+        await queryClient.invalidateQueries({ queryKey: ["pedidos"] });
 
         setNotification({ isVisible: true, message: "Pedido actualizado correctamente.", type: "success" });
         if (onSuccess) setTimeout(() => onSuccess(payload), 1200);
 
       } else {
+        // CREAR pedido
         const nuevoPedido = await pedidosService.createPedido(payload);
         const abonoInicial = parseFloat(formData.abono_inicial);
 
         if (!isNaN(abonoInicial) && abonoInicial > 0 && nuevoPedido?.id) {
-          const total = calcularTotal();
+          const total      = calcularTotal();
           const montoAbono = Math.min(abonoInicial, total);
-          // El back cambia automáticamente a "pagado" si el abono cubre el total
           await pedidosService.registrarAbono(nuevoPedido.id, montoAbono);
+
+          // Si el abono cubre el total → marcar pagado → el back crea la venta
+          if (montoAbono >= total) {
+            await pedidosService.updatePedido(nuevoPedido.id, { estado: "pagado" });
+            await queryClient.invalidateQueries({ queryKey: ["ventas"] });
+          }
         }
 
+        await queryClient.invalidateQueries({ queryKey: ["pedidos"] });
         setNotification({ isVisible: true, message: "Pedido creado correctamente.", type: "success" });
         setTimeout(() => { if (onSuccess) onSuccess(); }, 1200);
       }

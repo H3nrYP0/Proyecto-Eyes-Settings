@@ -1,27 +1,17 @@
-import { useState, useEffect, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { ventasService } from "../services/ventasService";
 import { formatCurrency, COLORES_ESTADO_VENTA, getEstadoLabelVenta } from "../utils/ventasUtils";
 
 export function useVentas() {
-  const [ventas,       setVentas]       = useState([]);
   const [search,       setSearch]       = useState("");
   const [filterEstado, setFilterEstado] = useState("");
-  const [loading,      setLoading]      = useState(true);
 
-  const cargarVentas = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await ventasService.getAllVentas();
-      setVentas(data ?? []);
-    } catch (err) {
-      console.error("Error cargando ventas:", err);
-      setVentas([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { cargarVentas(); }, [cargarVentas]);
+  const { data: ventas = [], isLoading: loading } = useQuery({
+    queryKey: ["ventas"],
+    queryFn:  () => ventasService.getAllVentas(),
+    staleTime: 30_000,
+  });
 
   const filteredVentas = ventas.filter((v) => {
     const matchesSearch = (v.cliente_nombre || "")
@@ -30,11 +20,11 @@ export function useVentas() {
     return matchesSearch && matchesEstado;
   });
 
+  // Solo completada y anulada
   const estadoFilters = [
-    { value: "",               label: "Todos los estados" },
-    { value: "completada",     label: "Completada" },
-    { value: "anulada",        label: "Anulada" },
-    { value: "pendiente_pago", label: "Pendiente de pago" },
+    { value: "",            label: "Todos los estados" },
+    { value: "completada",  label: "Completada"        },
+    { value: "anulada",     label: "Anulada"           },
   ];
 
   return {
