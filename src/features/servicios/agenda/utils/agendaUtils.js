@@ -1,21 +1,15 @@
-import { apiToFCDay } from '@servicios/horario';
+import { apiToFCDay } from '@servicios/horario/utils/horariosUtils';
 
-// ============================
-// CONSTANTES DE COLORES
-// ============================
 export const COLORES_ESTADO = {
-  cancelada: "#ef4444",
-  completada: "#10b981",
-  pendiente: "#f59e0b",
-  confirmada: "#3b82f6",
-  default: "#6b7280"
+  cancelada: '#ef4444',
+  completada: '#10b981',
+  pendiente: '#f59e0b',
+  confirmada: '#3b82f6',
+  default: '#6b7280',
 };
 
-export const COLOR_NOVEDAD = "#fffb00"; // naranja
+export const COLOR_NOVEDAD = '#fffb00';
 
-// ============================
-// CREAR FECHA PARA EVENTO (sin zona horaria)
-// ============================
 export const crearFechaEvento = (fecha, hora) => {
   try {
     const [year, month, day] = fecha.split('-');
@@ -27,55 +21,48 @@ export const crearFechaEvento = (fecha, hora) => {
     } else {
       return null;
     }
-    return new Date(year, month-1, day, hours, minutes);
+    return new Date(year, month - 1, day, hours, minutes);
   } catch (error) {
-    console.error("Error creando fecha evento:", error);
+    console.error('Error creando fecha evento:', error);
     return null;
   }
 };
 
-// ============================
-// MAPEAR HORARIOS A EVENTOS DE CALENDARIO
-// ============================
 export const mapearHorariosEventos = (horarios, empleados) => {
   if (!horarios?.length) return [];
-  
+
   return horarios
-    .filter(h => h.activo)
-    .map(h => {
-      const empleado = empleados.find(e => e.id === h.empleado_id);
-      
+    .filter((h) => h.activo)
+    .map((h) => {
+      const empleado = empleados.find((e) => e.id === h.empleado_id);
       return {
         id: `horario-${h.id}`,
-        title: `Disponible`,
+        title: 'Disponible',
         daysOfWeek: [apiToFCDay(h.dia)],
         startTime: h.hora_inicio?.slice(0, 5),
         endTime: h.hora_final?.slice(0, 5),
         display: 'background',
         backgroundColor: '#93c5fd',
         classNames: ['horario-disponible'],
-        extendedProps: { 
-          tipo: 'horario', 
+        extendedProps: {
+          tipo: 'horario',
           empleado_id: h.empleado_id,
-          empleado_nombre: empleado?.nombre
-        }
+          empleado_nombre: empleado?.nombre,
+        },
       };
     });
 };
 
-// ============================
-// MAPEAR CITAS A EVENTOS DE CALENDARIO
-// ============================
 export const mapearCitasEventos = (citas, empleados, estados) => {
   if (!citas?.length) return [];
-  
+
   return citas
-    .filter(c => c.fecha && c.hora)
-    .map(c => {
-      const empleado = empleados.find(e => e.id === c.empleado_id);
-      const estado = estados.find(e => e.id === c.estado_cita_id);
+    .filter((c) => c.fecha && c.hora)
+    .map((c) => {
+      const empleado = empleados.find((e) => e.id === c.empleado_id);
+      const estado = estados.find((e) => e.id === c.estado_cita_id);
       const fechaEvento = crearFechaEvento(c.fecha, c.hora);
-      
+
       if (!fechaEvento) return null;
 
       const estadoLower = estado?.nombre?.toLowerCase() || '';
@@ -101,27 +88,24 @@ export const mapearCitasEventos = (citas, empleados, estados) => {
           empleado_nombre: empleado?.nombre,
           cliente: c.cliente_nombre,
           servicio: c.servicio_nombre,
-          estado: estado?.nombre
-        }
+          estado: estado?.nombre,
+        },
       };
     })
     .filter(Boolean);
 };
 
-// ============================
-// MAPEAR NOVEDADES A EVENTOS DE CALENDARIO
-// ============================
 export const mapearNovedadesEventos = (novedades, empleados) => {
   if (!novedades?.length) return [];
 
   return novedades
-    .filter(n => n.activo)
-    .map(n => {
-      const empleado = empleados.find(e => e.id === n.empleado_id);
+    .filter((n) => n.activo)
+    .map((n) => {
+      const empleado = empleados.find((e) => e.id === n.empleado_id);
       const fechaInicio = n.fecha_inicio;
       const fechaFin = n.fecha_fin;
-      
-      // Si la novedad tiene horas específicas
+
+      // Con horas específicas
       if (n.hora_inicio && n.hora_fin) {
         const fechaEvento = crearFechaEvento(fechaInicio, n.hora_inicio);
         if (!fechaEvento) return null;
@@ -142,14 +126,14 @@ export const mapearNovedadesEventos = (novedades, empleados) => {
             empleado_nombre: empleado?.nombre,
             tipo_novedad: n.tipo,
             motivo: n.motivo,
-            rango_completo: false
-          }
+            rango_completo: false,
+          },
         };
       } else {
-        // Novedad de día completo (rango de fechas)
+        // Día completo
         const startDate = new Date(fechaInicio);
         const endDate = new Date(fechaFin);
-        endDate.setDate(endDate.getDate() + 1); // end excluyente
+        endDate.setDate(endDate.getDate() + 1);
         return {
           id: `novedad-${n.id}`,
           title: `${n.tipo} - ${empleado?.nombre || 'Empleado'}`,
@@ -167,17 +151,16 @@ export const mapearNovedadesEventos = (novedades, empleados) => {
             empleado_nombre: empleado?.nombre,
             tipo_novedad: n.tipo,
             motivo: n.motivo,
-            rango_completo: true
-          }
+            rango_completo: true,
+          },
         };
       }
     })
     .filter(Boolean);
 };
 
-// Función auxiliar para calcular duración en minutos entre dos horas
 function calcularMinutos(horaInicio, horaFin) {
   const [h1, m1] = horaInicio.split(':').map(Number);
   const [h2, m2] = horaFin.split(':').map(Number);
-  return (h2 * 60 + m2) - (h1 * 60 + m1);
+  return h2 * 60 + m2 - (h1 * 60 + m1);
 }
