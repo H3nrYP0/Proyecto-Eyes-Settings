@@ -221,32 +221,7 @@ const ContactSection = () => {
                   de tu negocio desde el primer día.
                 </p>
               </div>
-
-              <div className="contact-details">
-                <div className="contact-item">
-                  <div className="contact-icon">📧</div>
-                  <div className="contact-text">
-                    <strong>Email</strong>
-                    <span>visualoutlet2000@gmail.com</span>
-                  </div>
-                </div>
-                <div className="contact-item">
-                  <div className="contact-icon">📱</div>
-                  <div className="contact-text">
-                    <strong>WhatsApp</strong>
-                    <span>300 613 9449</span>
-                  </div>
-                </div>
-                <div className="contact-item">
-                  <div className="contact-icon">📞</div>
-                  <div className="contact-text">
-                    <strong>Teléfono Fijo</strong>
-                    <span>(+57) 604 579 9276</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
+        </div>
             {/* ── Formulario ── */}
             <div className="contact-form">
               <form className="form" onSubmit={handleSubmit} noValidate>

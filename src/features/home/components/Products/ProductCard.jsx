@@ -1,6 +1,6 @@
 // =============================================================
 // ProductCard.jsx — Crossfade real + wishlist aislada
-// Fix: scroll al inicio al navegar a detalle
+// Fix definitivo scroll: scroll síncrono antes de navegar
 // =============================================================
 
 import { useState, useCallback } from "react";
@@ -66,12 +66,25 @@ export default function ProductCard({ producto }) {
     toggleWishlist(producto);
   }, [producto, toggleWishlist]);
 
-  // Click tarjeta: SCROLL ARRIBA antes de navegar
-  const handleCardClick = useCallback((e) => {
-    if (e.target.closest(".pc-wish-btn")) return;
-    window.scrollTo(0, 0);                        // ← NUEVO: scroll al top
+  // Función que fuerza scroll al top en TODOS los contenedores posibles
+  // y luego navega. Se llama de forma síncrona antes del navigate.
+  const irAlDetalle = useCallback(() => {
+    // Resetear todos los posibles contenedores de scroll
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    // Buscar cualquier contenedor con scroll activo y resetearlo
+    const scrollables = document.querySelectorAll("*");
+    scrollables.forEach((el) => {
+      if (el.scrollTop > 0) el.scrollTop = 0;
+    });
     navigate(`/productos/${id}`);
   }, [id, navigate]);
+
+  const handleCardClick = useCallback((e) => {
+    if (e.target.closest(".pc-wish-btn")) return;
+    irAlDetalle();
+  }, [irAlDetalle]);
 
   return (
     <article
@@ -82,10 +95,7 @@ export default function ProductCard({ producto }) {
       role="button"
       tabIndex={0}
       onKeyDown={e => {
-        if (e.key === "Enter") {
-          window.scrollTo(0, 0);                  // ← NUEVO: también con teclado
-          navigate(`/productos/${id}`);
-        }
+        if (e.key === "Enter") irAlDetalle();
       }}
       aria-label={`Ver ${nombre}`}
     >
