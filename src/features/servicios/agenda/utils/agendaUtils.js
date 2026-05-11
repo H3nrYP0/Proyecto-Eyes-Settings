@@ -1,4 +1,4 @@
-import { diasSemanaMap, apiToFCDay } from "../../horario/utils/horariosUtils";
+import { apiToFCDay } from '@servicios/horario';
 
 // ============================
 // CONSTANTES DE COLORES
