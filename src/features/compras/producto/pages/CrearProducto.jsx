@@ -64,6 +64,7 @@ export default function CrearProducto() {
     loading,
     isView,
     isCreate,
+    isFullCreate,
     imagenes,
     imagePreviews,
     uploadingImages,
@@ -210,6 +211,7 @@ export default function CrearProducto() {
         categorias={categorias}
         isView={isView}
         isCreate={isCreate}
+        isFullCreate={isFullCreate}
         imagenes={imagenes}
         imagePreviews={imagePreviews}
         uploadingImages={uploadingImages}

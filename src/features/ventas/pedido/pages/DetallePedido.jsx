@@ -22,9 +22,11 @@ export default function DetallePedido() {
   return (
     <PedidoForm
       mode="view"
-      title="Detalle del Pedido"
+      title={`Detalle del Pedido #${id}`}
       initialData={pedido}
       onCancel={() => navigate(-1)}
+      onEdit={() => navigate(`/admin/ventas/pedidos/editar/${id}`)}
+      onPdf={() => navigate(`/admin/ventas/pedidos/pdf/${id}`)}
     />
   );
 }

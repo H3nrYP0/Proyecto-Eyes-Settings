@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import RolForm from '@seguridad/roles/components/RolForm';
 import Loading from '@shared/components/ui/Loading';
 import CrudNotification from '@shared/styles/components/notifications/CrudNotification';
-import { createRol, getAllPermisos } from '@seguridad';
+import { createRol, getAllPermisos, buildRolCreatePayload } from '@seguridad';
 
 export default function CrearRol() {
   const navigate = useNavigate();
@@ -28,7 +28,6 @@ export default function CrearRol() {
   const createMutation = useMutation({
     mutationFn: createRol,
     onSuccess: (_, data) => {
-      // Invalida el caché para que la lista se refresque al volver
       queryClient.invalidateQueries({ queryKey: ['roles'] });
       sessionStorage.setItem(
         'crudNotification',
@@ -43,7 +42,9 @@ export default function CrearRol() {
   });
 
   const handleCreate = (data) => {
-    createMutation.mutate(data);
+    // Si tu backend espera estado booleano, usa buildRolCreatePayload
+    const payload = buildRolCreatePayload(data);
+    createMutation.mutate(payload);
   };
 
   if (loadingPermisos) return <Loading message="Cargando permisos..." />;
@@ -57,7 +58,6 @@ export default function CrearRol() {
         onSubmit={handleCreate}
         onCancel={() => navigate('/admin/seguridad/roles')}
       />
-
       <CrudNotification
         isVisible={notification.isVisible}
         message={notification.message}

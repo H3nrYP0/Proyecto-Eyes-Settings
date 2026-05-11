@@ -62,7 +62,7 @@ export default function ImageDropzone({ onDrop, previews, onRemove, disabled, up
         <Box sx={{ textAlign: 'center', mt: 2, py: 2 }}>
           <CircularProgress size={24} />
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            Subiendo imágenes...
+            Guardando...
           </Typography>
         </Box>
       )}

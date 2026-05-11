@@ -1,31 +1,16 @@
 // src/features/compras/pages/producto/pages/DetalleProducto.jsx
-import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Loading from "../../../../shared/components/ui/Loading/Loading";
 import { useProductoForm } from "../hooks/useProductoForm";
-import { getProductoById } from "../services/productosService";
+import { useProductoDetailQuery } from "../queries/useProductoDetailQuery";
 import ProductoForm from "../components/ProductoForm";
 
 export default function DetalleProducto() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [initialData, setInitialData] = useState(null);
-  const [loadingInitial, setLoadingInitial] = useState(true);
-
-  useEffect(() => {
-    const loadProducto = async () => {
-      try {
-        const data = await getProductoById(parseInt(id));
-        setInitialData(data);
-      } catch (error) {
-        alert("Error al cargar el producto");
-        navigate("/admin/compras/productos");
-      } finally {
-        setLoadingInitial(false);
-      }
-    };
-    loadProducto();
-  }, [id, navigate]);
+  
+  // ✅ Usar React Query para cargar el producto
+  const { data: initialData, isLoading: loadingInitial } = useProductoDetailQuery(parseInt(id));
 
   const {
     formData,

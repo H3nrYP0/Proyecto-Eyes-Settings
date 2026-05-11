@@ -1,24 +1,15 @@
 // src/features/ventas/pedido/index.js
 
-/**
- * Módulo de Pedidos
- */
+export { default as Pedidos }        from "./pages/Pedidos";
+export { default as CrearPedido }    from "./pages/CrearPedido";
+export { default as EditarPedido }   from "./pages/EditarPedido";
+export { default as DetallePedido }  from "./pages/DetallePedido";
+export { default as PedidoPDFView }  from "./pages/PedidoPDFView";
 
-// Pages
-export { default as Pedidos } from "./pages/Pedidos";
-export { default as CrearPedido } from "./pages/CrearPedido";
-export { default as EditarPedido } from "./pages/EditarPedido";
-export { default as DetallePedido } from "./pages/DetallePedido";
+export { default as PedidoForm }     from "./components/PedidoForm";
 
-// Components
-export { default as PedidoForm } from "./components/PedidoForm";
+export { usePedidos }                from "./hooks/usePedidos";
+export { usePedidoForm }             from "./hooks/usePedidoForm";
 
-// Hooks
-export { usePedidos } from "./hooks/usePedidos";
-export { usePedidoForm } from "./hooks/usePedidoForm";
-
-// Services
-export * as pedidosService from "./services/pedidosService";
-
-// Utils
-export * as pedidosUtils from "./utils/pedidosUtils";
+export * as pedidosService           from "./services/pedidosService";
+export * as pedidosUtils             from "./utils/pedidosUtils";
