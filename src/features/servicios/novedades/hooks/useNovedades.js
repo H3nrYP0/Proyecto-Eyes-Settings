@@ -1,102 +1,70 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getAllNovedades,
+  createNovedad,
+  updateNovedad,
   deleteNovedad,
-  updateNovedad,          // ← agregar esta importación
-} from "../services/novedadesService";
-import { getAllEmpleados } from "../../empleado/services/empleadosService";
-import { normalizeNovedadesForList } from "../utils/novedadesUtils";
+} from '../services/novedadesService';
+import { getEmpleadosAgenda } from '@servicios/agenda'; // ✔️ nombre correcto
+import { normalizeNovedadesForList } from '../utils/novedadesUtils';
 
 export function useNovedades() {
-  const [novedades, setNovedades] = useState([]);
-  const [empleados, setEmpleados] = useState([]);
-  const [search, setSearch] = useState("");
-  const [filterEstado, setFilterEstado] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const queryClient = useQueryClient();
+
+  // Empleados (comparte caché con agenda)
+  const { data: empleados = [] } = useQuery({
+    queryKey: ['empleados-agenda'],
+    queryFn: getEmpleadosAgenda, // ✔️ corregido
+    staleTime: 10 * 60 * 1000,
+  });
+
+  // Novedades
+  const {
+    data: novedadesRaw = [],
+    isLoading: loadingNovedades,
+    error: novedadesError,
+  } = useQuery({
+    queryKey: ['novedades'],
+    queryFn: getAllNovedades,
+    staleTime: 2 * 60 * 1000,
+  });
+
+  const novedadesNormalizadas = normalizeNovedadesForList(novedadesRaw, empleados);
+
+  // Mutaciones
+  const createMutation = useMutation({
+    mutationFn: createNovedad,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['novedades'] }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => updateNovedad(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['novedades'] }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteNovedad,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['novedades'] }),
+  });
+
+  // Estados de UI (filtros y modales)
+  const [search, setSearch] = useState('');
+  const [filterEstado, setFilterEstado] = useState('');
   const [modalForm, setModalForm] = useState({
     open: false,
-    mode: "create",
-    title: "",
+    mode: 'create',
+    title: '',
     initialData: null,
   });
   const [modalDelete, setModalDelete] = useState({
     open: false,
     id: null,
-    descripcion: "",
+    descripcion: '',
   });
 
-  const cargarDatos = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const [novedadesData, empleadosData] = await Promise.all([
-        getAllNovedades(),
-        getAllEmpleados(),
-      ]);
-      setEmpleados(Array.isArray(empleadosData) ? empleadosData : []);
-      const novedadesNormalizadas = normalizeNovedadesForList(
-        Array.isArray(novedadesData) ? novedadesData : [],
-        empleadosData
-      );
-      setNovedades(novedadesNormalizadas);
-    } catch (error) {
-      console.error("Error cargando novedades:", error);
-      setError("No se pudieron cargar las novedades");
-      setNovedades([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const eliminarNovedad = useCallback(async (id) => {
-    try {
-      const result = await deleteNovedad(id);
-      if (result.success) {
-        await cargarDatos();
-        return { success: true };
-      } else {
-        return { success: false, error: result.error };
-      }
-    } catch (error) {
-      console.error("Error al eliminar:", error);
-      return { success: false, error: "Error al eliminar la novedad" };
-    }
-  }, [cargarDatos]);
-
-  // ============================
-  // Cambiar estado (activo/inactivo)
-  // ============================
-  const cambiarEstado = useCallback(async (item, nuevoEstado) => {
-    const nuevoValor = nuevoEstado === "activo";
-    if (item.activo === nuevoValor) return { success: true };
-
-    try {
-      // Construir payload con los datos actuales más el nuevo estado
-      const payload = {
-        empleado_id: item.empleado_id,
-        fecha_inicio: item.fecha_inicio,
-        fecha_fin: item.fecha_fin,
-        hora_inicio: item.hora_inicio || null,
-        hora_fin: item.hora_fin || null,
-        tipo: item.tipo,
-        motivo: item.motivo,
-        activo: nuevoValor,
-      };
-      const result = await updateNovedad(item.id, payload);
-      if (result.success) {
-        await cargarDatos();
-        return { success: true };
-      } else {
-        return { success: false, error: result.error };
-      }
-    } catch (error) {
-      console.error("Error al cambiar estado:", error);
-      return { success: false, error: "Error al cambiar el estado" };
-    }
-  }, [cargarDatos]);
-
-  const novedadesFiltradas = novedades.filter((n) => {
+  // Filtrado
+  const novedadesFiltradas = novedadesNormalizadas.filter((n) => {
     const matchesSearch =
       n.empleado_nombre?.toLowerCase().includes(search.toLowerCase()) ||
       n.tipo_label?.toLowerCase().includes(search.toLowerCase()) ||
@@ -105,19 +73,48 @@ export function useNovedades() {
     return matchesSearch && matchesEstado;
   });
 
+  // Wrappers
+  const crearNovedad = useCallback(async (data) => {
+    const result = await createMutation.mutateAsync(data);
+    return result;
+  }, [createMutation]);
+
+  const editarNovedad = useCallback(async (id, data) => {
+    const result = await updateMutation.mutateAsync({ id, data });
+    return result;
+  }, [updateMutation]);
+
+  const eliminarNovedad = useCallback(async (id) => {
+    const result = await deleteMutation.mutateAsync(id);
+    return result;
+  }, [deleteMutation]);
+
+  const cambiarEstado = useCallback(async (item, nuevoEstado) => {
+    const activo = nuevoEstado === 'activo';
+    if (item.activo === activo) return { success: true };
+    const payload = {
+      empleado_id: item.empleado_id,
+      fecha_inicio: item.fecha_inicio,
+      fecha_fin: item.fecha_fin,
+      hora_inicio: item.hora_inicio || null,
+      hora_fin: item.hora_fin || null,
+      tipo: item.tipo,
+      motivo: item.motivo,
+      activo,
+    };
+    const result = await updateMutation.mutateAsync({ id: item.id, data: payload });
+    return result;
+  }, [updateMutation]);
+
+  // Handlers de modales
   const openCreateModal = useCallback(() => {
-    setModalForm({
-      open: true,
-      mode: "create",
-      title: "Crear Novedad",
-      initialData: null,
-    });
+    setModalForm({ open: true, mode: 'create', title: 'Crear Novedad', initialData: null });
   }, []);
 
   const openEditModal = useCallback((item) => {
     setModalForm({
       open: true,
-      mode: "edit",
+      mode: 'edit',
       title: `Editar Novedad: ${item.descripcion}`,
       initialData: {
         id: item.id,
@@ -136,7 +133,7 @@ export function useNovedades() {
   const openViewModal = useCallback((item) => {
     setModalForm({
       open: true,
-      mode: "view",
+      mode: 'view',
       title: `Detalle Novedad: ${item.descripcion}`,
       initialData: {
         id: item.id,
@@ -154,7 +151,7 @@ export function useNovedades() {
   }, []);
 
   const closeFormModal = useCallback(() => {
-    setModalForm({ open: false, mode: "create", title: "", initialData: null });
+    setModalForm({ open: false, mode: 'create', title: '', initialData: null });
   }, []);
 
   const openDeleteModal = useCallback((id, descripcion) => {
@@ -162,32 +159,34 @@ export function useNovedades() {
   }, []);
 
   const closeDeleteModal = useCallback(() => {
-    setModalDelete({ open: false, id: null, descripcion: "" });
+    setModalDelete({ open: false, id: null, descripcion: '' });
   }, []);
 
   const estadoFilters = [
-    { value: "", label: "Todos los estados" },
-    { value: "activo", label: "Activos" },
-    { value: "inactivo", label: "Inactivos" },
+    { value: '', label: 'Todos los estados' },
+    { value: 'activo', label: 'Activos' },
+    { value: 'inactivo', label: 'Inactivos' },
   ];
 
-  useEffect(() => {
-    cargarDatos();
-  }, [cargarDatos]);
+  const recargar = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['novedades'] });
+  }, [queryClient]);
 
   return {
     novedades: novedadesFiltradas,
     empleados,
-    loading,
-    error,
+    loading: loadingNovedades,
+    error: novedadesError,
     search,
     setSearch,
     filterEstado,
     setFilterEstado,
     estadoFilters,
     eliminarNovedad,
-    cambiarEstado,               // ← exportar la función
-    recargar: cargarDatos,
+    cambiarEstado,
+    crearNovedad,
+    editarNovedad,
+    recargar,
     modalForm,
     modalDelete,
     openCreateModal,
