@@ -18,17 +18,17 @@ export default defineConfig({
     extensions: ['.jsx', '.js', '.json'],
     alias: {
       // ========== FEATURES ==========
-      '@auth': path.resolve(__dirname, './src/features/auth'),
-      '@compras': path.resolve(__dirname, './src/features/compras'),
+      '@auth': path.resolve(__dirname,                   './src/features/auth'),
+      '@compras': path.resolve(__dirname,             './src/features/compras'),
       '@configuracion': path.resolve(__dirname, './src/features/configuracion'),
-      '@dashboard': path.resolve(__dirname, './src/features/dashboard'),
-      '@home': path.resolve(__dirname, './src/features/home'),
-      '@purchases': path.resolve(__dirname, './src/features/purchases'),
-      '@sales': path.resolve(__dirname, './src/features/sales'),
-      '@seguridad': path.resolve(__dirname, './src/features/seguridad'),
-      '@servicios': path.resolve(__dirname, './src/features/servicios'),
-      '@horario': path.resolve(__dirname, './src/features/servicios/horario'),
-      '@ventas': path.resolve(__dirname, './src/features/ventas'),
+      '@dashboard': path.resolve(__dirname,         './src/features/dashboard'),
+      '@home': path.resolve(__dirname,                   './src/features/home'),
+      '@purchases': path.resolve(__dirname,         './src/features/purchases'),
+      '@sales': path.resolve(__dirname,                 './src/features/sales'),
+      '@seguridad': path.resolve(__dirname,         './src/features/seguridad'),
+      '@servicios': path.resolve(__dirname,         './src/features/servicios'),
+      '@horario': path.resolve(__dirname,   './src/features/servicios/horario'),
+      '@ventas': path.resolve(__dirname,               './src/features/ventas'),
 
       // ========== LIB ==========
       '@lib': path.resolve(__dirname, './src/lib'),
