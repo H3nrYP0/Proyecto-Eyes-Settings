@@ -2,16 +2,14 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Button } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import CrudLayout from "../../../../shared/components/crud/CrudLayout";
+import CrudLayout from "@shared/components/crud/CrudLayout";
 import UnifiedCrudTable from "@shared/components/crud/CrudTable";
-import Modal from "../../../../shared/components/ui/Modal";
-import Loading from "../../../../shared/components/ui/Loading";
-import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
-import { useHorarios } from "../hooks/useHorarios";
-import { useHorarioForm } from "../hooks/useHorarioForm";
-import HorarioForm from "../components/HorarioForm";
-import "../../../../shared/styles/components/crud-table.css";
-import "../../../../shared/styles/components/modal.css";
+import Modal from "@shared/components/ui/Modal";
+import Loading from "@shared/components/ui/Loading";
+import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
+import { useHorarios, useHorarioForm, HorarioForm } from "@horario";
+import "@shared/styles/components/crud-table.css";
+import "@shared/styles/components/modal.css";
 
 export default function Horarios() {
   const navigate = useNavigate();
@@ -40,6 +38,8 @@ export default function Horarios() {
     estadoFilters,
     eliminarHorario,
     cambiarEstado,
+    crearHorario,
+    editarHorario,
     recargar,
     modalForm,
     modalDelete,
@@ -56,27 +56,38 @@ export default function Horarios() {
     errors,
     submitting,
     handleChange,
-    handleSubmit,
+    handleSubmit: formHandleSubmit,
     resetForm,
   } = useHorarioForm({
     mode: modalForm.mode,
     initialData: modalForm.initialData,
-    onSubmitSuccess: () => {
+  });
+
+  const handleSave = async () => {
+    const payload = await formHandleSubmit();
+    if (!payload) return;
+
+    let result;
+    if (modalForm.mode === "create") {
+      result = await crearHorario(payload);
+    } else {
+      result = await editarHorario(modalForm.initialData?.id, payload);
+    }
+
+    if (result?.success) {
       showNotification("Horario guardado correctamente", "success");
       closeFormModal();
-      recargar();
-    },
-    onError: (errorMsg) => {
-      showNotification(errorMsg, "error");
-    },
-  });
+      resetForm();
+    } else {
+      showNotification(result?.error || "Error al guardar el horario", "error");
+    }
+  };
 
   const handleModalConfirm = () => {
     if (modalForm.mode === "view") {
       closeFormModal();
     } else {
-      const formElement = document.getElementById("horario-form");
-      if (formElement) formElement.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+      handleSave();
     }
   };
 
@@ -85,14 +96,13 @@ export default function Horarios() {
     if (result.success) {
       showNotification("Horario eliminado correctamente", "success");
       closeDeleteModal();
-      recargar();
     } else {
       showNotification(result.error, "error");
     }
   };
 
   const handleChangeStatus = async (row, nuevoEstado) => {
-    const result = await cambiarEstado(row.id, nuevoEstado);
+    const result = await cambiarEstado(row, nuevoEstado);
     if (result.success) {
       showNotification("Estado actualizado correctamente", "success");
     } else {
@@ -111,7 +121,7 @@ export default function Horarios() {
     {
       label: "Cambiar estado",
       type: "toggle-status",
-      onClick: (item) => handleChangeStatus(item),
+      onClick: (item) => handleChangeStatus(item, item.estado === "activo" ? "inactivo" : "activo"),
     },
     { label: "Ver Detalles", type: "view", onClick: (item) => openViewModal(item) },
     { label: "Editar", type: "edit", onClick: (item) => openEditModal(item) },
@@ -130,13 +140,12 @@ export default function Horarios() {
     <>
       <Box sx={{ p: 2, pb: 0 }}>
         <Button
-          startIcon={<ArrowBackIcon />}
           onClick={() => navigate("/admin/servicios/agenda")}
           variant="outlined"
           size="small"
           sx={{ mb: 2 }}
         >
-          Volver a Agenda
+        Volver a Agenda
         </Button>
       </Box>
 
@@ -185,7 +194,6 @@ export default function Horarios() {
           </Box>
         )}
 
-        {/* Modal Eliminar */}
         <Modal
           open={modalDelete.open}
           type="warning"
@@ -198,7 +206,6 @@ export default function Horarios() {
           onCancel={closeDeleteModal}
         />
 
-        {/* Modal Formulario */}
         <Modal
           open={modalForm.open}
           type="info"
@@ -218,8 +225,8 @@ export default function Horarios() {
             errors={errors}
             submitting={submitting}
             handleChange={handleChange}
-            handleSubmit={handleSubmit}
-            resetForm={resetForm} 
+            handleSubmit={formHandleSubmit}
+            resetForm={resetForm}
           />
         </Modal>
       </CrudLayout>

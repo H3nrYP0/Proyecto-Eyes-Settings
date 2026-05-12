@@ -11,6 +11,7 @@
       "@purchases/*": ["./src/features/purchases/*"],
       "@sales/*": ["./src/features/sales/*"],
       "@seguridad/*": ["./src/features/seguridad/*"],
+      "@horario/*": ["./src/features/servicios/horario/*"],
       "@servicios/*": ["./src/features/servicios/*"],
       "@ventas/*": ["./src/features/ventas/*"],
 
