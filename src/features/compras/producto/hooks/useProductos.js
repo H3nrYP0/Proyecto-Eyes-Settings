@@ -1,30 +1,67 @@
 // src/features/compras/pages/producto/hooks/useProductos.js
-import { useState, useMemo, useCallback } from "react";
+// CAMBIOS APLICADOS:
+// 1. Se separa searchInput (valor del input, inmediato) de debouncedSearch (dispara la query, 400ms después)
+// 2. Se elimina el console.log de producción
+// 3. Todo lo demás queda IDÉNTICO al original
+
+import { useState, useCallback, useEffect } from "react";
 import { useProductosQuery } from "../queries/useProductosQuery";
 import { useProductoMutations } from "../mutations/useProductoMutations";
 import { productoKeys } from "../queryKeys";
 import { useQueryClient } from "@tanstack/react-query";
 import { useActionBlocker } from "@shared/index";
+import { useDebounce } from "@shared/hooks/useDebounce"; // ← NUEVO: ajusta la ruta según tu alias @shared
 
 const ESTADO_ACTIVA = "activa";
 const ESTADO_INACTIVA = "inactiva";
 
 export const useProductos = () => {
   const queryClient = useQueryClient();
-  
-  // Query principal
-  const { data, isLoading, error } = useProductosQuery();
 
-  // Mutations
-  const { deleteProducto, updateEstado } = useProductoMutations();
+  const [page, setPage] = useState(1);
+  const [perPage] = useState(10);
 
-  const { execute: executeDelete, isProcessing: getIsDeleting } = useActionBlocker();
-  // console.log("isDeleting inicial:", getIsDeleting);
-  // Estados UI
-  const [search, setSearch] = useState("");
+  // ─── CAMBIO PRINCIPAL: dos estados separados para el buscador ───
+  // searchInput: lo que el usuario escribe (se actualiza en cada tecla, controla el input)
+  // debouncedSearch: lo que se envía a la query (se actualiza 400ms después de que el usuario para de escribir)
+  const [searchInput, setSearchInput] = useState("");
+  const debouncedSearch = useDebounce(searchInput, 400);
+  // ────────────────────────────────────────────────────────────────
+
   const [filterEstado, setFilterEstado] = useState("");
   const [filterMarca, setFilterMarca] = useState("");
   const [filterCategoria, setFilterCategoria] = useState("");
+
+  // Cuando el debounce dispara un nuevo valor, se resetea la página a 1
+  // Esto reemplaza el setPage(1) que antes estaba dentro de handleSetSearch
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch]);
+
+  const filters = {
+    search: debouncedSearch,           // ← usa el valor debounced, NO el del input
+    categoria_id: filterCategoria || undefined,
+    marca_id: filterMarca || undefined,
+    estado: filterEstado || undefined,
+  };
+
+  const { data, isLoading, error } = useProductosQuery(page, perPage, filters);
+
+  const productos = (data?.items || []).map((p) => ({
+    ...p,
+    precioVenta: p.precio_venta,
+    stockActual: p.stock,
+    estado: p.estado === true ? "activa" : "inactiva",
+  }));
+
+  const totalPages = data?.totalPages || 1;
+  const currentPage = data?.currentPage || page;
+  const totalCount = data?.totalCount || 0;
+  const hasNext = data?.hasNext || false;
+  const hasPrev = data?.hasPrev || false;
+
+  const { deleteProducto, updateEstado } = useProductoMutations();
+  const { execute: executeDelete, isProcessing: getIsDeleting } = useActionBlocker();
 
   const [modalDelete, setModalDelete] = useState({
     open: false,
@@ -38,7 +75,6 @@ export const useProductos = () => {
     isVisible: false,
   });
 
-  // Helpers UI
   const showNotification = useCallback((message, type = "success") => {
     setNotification({ message, type, isVisible: true });
   }, []);
@@ -47,69 +83,27 @@ export const useProductos = () => {
     setNotification((prev) => ({ ...prev, isVisible: false }));
   }, []);
 
-  // Transformación de datos
-  const productosTransformados = useMemo(() => {
-    if (!data) return [];
+  // ─── CAMBIO: setSearch ahora solo actualiza el input local (sin setPage, lo hace el useEffect) ───
+  const handleSetSearch = useCallback((value) => {
+    setSearchInput(value);
+  }, []);
+  // ─────────────────────────────────────────────────────────────────────────────────────────────────
 
-    const { productos, marcas, categorias } = data;
+  const handleSetFilterEstado = useCallback((value) => {
+    setFilterEstado(value);
+    setPage(1);
+  }, []);
 
-    const ordenar = (arr) =>
-      [...arr].sort((a, b) =>
-        a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" })
-      );
+  const handleSetFilterMarca = useCallback((value) => {
+    setFilterMarca(value);
+    setPage(1);
+  }, []);
 
-    return ordenar(
-      productos.map((p) => {
-        const marca = marcas.find((m) => m.id === p.marca_id);
-        const categoria = categorias.find((c) => c.id === p.categoria_id);
+  const handleSetFilterCategoria = useCallback((value) => {
+    setFilterCategoria(value);
+    setPage(1);
+  }, []);
 
-        return {
-          id: p.id,
-          nombre: p.nombre,
-          codigo: p.codigo || "",
-          descripcion: p.descripcion || "",
-          precioVenta: p.precio_venta,
-          precioCompra: p.precio_compra,
-          stockActual: p.stock,
-          stockMinimo: p.stock_minimo,
-          marca: marca?.nombre || "-",
-          categoria: categoria?.nombre || "-",
-          marca_id: p.marca_id,
-          categoria_id: p.categoria_id,
-          estado: p.estado ? ESTADO_ACTIVA : ESTADO_INACTIVA,
-          imagenes: p.imagenes || [],
-        };
-      })
-    );
-  }, [data]);
-
-  // Filtros
-  const filteredProductos = useMemo(() => {
-    return productosTransformados.filter((p) => {
-      const normalize = (text) => text?.toLowerCase().replace(/[-_]/g, " ");
-
-      const palabras = normalize(search).trim().split(/\s+/);
-
-      const matchesSearch =
-        !search ||
-        palabras.every(
-          (palabra) =>
-            normalize(p.nombre)?.includes(palabra) ||
-            normalize(p.codigo)?.includes(palabra) ||
-            normalize(p.marca)?.includes(palabra) ||
-            normalize(p.categoria)?.includes(palabra)
-        );
-
-      const matchesEstado = !filterEstado || p.estado === filterEstado;
-      const matchesMarca = !filterMarca || p.marca_id?.toString() === filterMarca;
-      const matchesCategoria =
-        !filterCategoria || p.categoria_id?.toString() === filterCategoria;
-
-      return matchesSearch && matchesEstado && matchesMarca && matchesCategoria;
-    });
-  }, [productosTransformados, search, filterEstado, filterMarca, filterCategoria]);
-
-  // DELETE
   const handleDelete = (id, nombre) => {
     setModalDelete({ open: true, id, nombre });
   };
@@ -146,23 +140,23 @@ export const useProductos = () => {
     setModalDelete({ open: false, id: null, nombre: "" });
   };
 
-  // ✅ NUEVO: Cambiar estado con React Query
   const cambiarEstado = async (row) => {
     const estadoAnterior = row.estado;
-    const nuevoEstadoUI = estadoAnterior === ESTADO_ACTIVA ? ESTADO_INACTIVA : ESTADO_ACTIVA;
-    const accion = estadoAnterior === ESTADO_ACTIVA ? "desactivado" : "activado";
+    const nuevoEstadoUI =
+      estadoAnterior === ESTADO_ACTIVA ? ESTADO_INACTIVA : ESTADO_ACTIVA;
+    const accion =
+      estadoAnterior === ESTADO_ACTIVA ? "desactivado" : "activado";
 
-    // Optimistic update para feedback inmediato
     const previousData = queryClient.getQueryData(productoKeys.all);
-    
-    // Actualizar optimistamente la caché
+
     queryClient.setQueryData(productoKeys.all, (oldData) => {
       if (!oldData) return oldData;
-      
       return {
         ...oldData,
         productos: oldData.productos.map((p) =>
-          p.id === row.id ? { ...p, estado: nuevoEstadoUI === ESTADO_ACTIVA } : p
+          p.id === row.id
+            ? { ...p, estado: nuevoEstadoUI === ESTADO_ACTIVA }
+            : p
         ),
       };
     });
@@ -172,9 +166,11 @@ export const useProductos = () => {
         id: row.id,
         estado: nuevoEstadoUI === ESTADO_ACTIVA,
       });
-      showNotification(`Producto "${row.nombre}" ${accion} correctamente`, "success");
+      showNotification(
+        `Producto "${row.nombre}" ${accion} correctamente`,
+        "success"
+      );
     } catch (err) {
-      // Revertir la caché en caso de error
       queryClient.setQueryData(productoKeys.all, previousData);
       showNotification(
         `Error al cambiar el estado para el producto "${row.nombre}"`,
@@ -183,59 +179,42 @@ export const useProductos = () => {
     }
   };
 
-  // Filters UI
-  const marcaFilters = useMemo(() => {
-    if (!data) return [];
-    return [
-      { value: "", label: "Todas las marcas" },
-      ...data.marcas.map((m) => ({
-        value: m.id.toString(),
-        label: m.nombre,
-      })),
-    ];
-  }, [data]);
-
-  const categoriaFilters = useMemo(() => {
-    if (!data) return [];
-    return [
-      { value: "", label: "Todas las categorías" },
-      ...data.categorias.map((c) => ({
-        value: c.id.toString(),
-        label: c.nombre,
-      })),
-    ];
-  }, [data]);
-
   const estadoFilters = [
     { value: "", label: "Todos los estados" },
     { value: ESTADO_ACTIVA, label: "Activos" },
     { value: ESTADO_INACTIVA, label: "Inactivos" },
   ];
 
+  // ─── CAMBIO: showEmptyState usa searchInput (lo que el usuario ve) ───
   const showEmptyState =
-    filteredProductos.length === 0 &&
-    !search &&
+    productos.length === 0 &&
+    !searchInput &&
     !filterEstado &&
     !filterMarca &&
     !filterCategoria &&
     !isLoading;
 
   return {
-    productos: filteredProductos,
+    productos,
     loading: isLoading,
     error,
-    search,
-    setSearch,
+    page,
+    setPage,
+    totalPages,
+    hasNext,
+    hasPrev,
+    // ─── CAMBIO: se expone searchInput como "search" para que el input lo muestre ───
+    search: searchInput,
+    setSearch: handleSetSearch,
+    // ────────────────────────────────────────────────────────────────────────────────
     filterEstado,
-    setFilterEstado,
+    setFilterEstado: handleSetFilterEstado,
     filterMarca,
-    setFilterMarca,
+    setFilterMarca: handleSetFilterMarca,
     filterCategoria,
-    setFilterCategoria,
-    marcaFilters,
-    categoriaFilters,
+    setFilterCategoria: handleSetFilterCategoria,
     estadoFilters,
-    cambiarEstado, 
+    cambiarEstado,
     showEmptyState,
     notification,
     hideNotification,

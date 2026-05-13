@@ -1,6 +1,7 @@
+// src/features/compras/pages/producto/pages/Productos.jsx
 import { useEffect } from "react";
+import { Pagination, Typography, Box, Button, Stack } from "@mui/material"; // ← Typography agregado
 import { useNavigate } from "react-router-dom";
-import { Box, Button, Stack, Select, MenuItem } from "@mui/material";
 import ClearIcon from '@mui/icons-material/Clear';
 import CrudLayout from "../../../../shared/components/crud/CrudLayout";
 import CrudTable from "../../../../shared/components/crud/CrudTable";
@@ -27,8 +28,6 @@ export default function Productos() {
     setFilterMarca,
     filterCategoria,
     setFilterCategoria,
-    marcaFilters,
-    categoriaFilters,
     estadoFilters,
     cambiarEstado,
     showEmptyState,
@@ -40,16 +39,10 @@ export default function Productos() {
     handleCancelDelete,
     handleDelete,
     isDeleting,
+    page,
+    setPage,
+    totalPages,
   } = useProductos();
-
-  const limpiarFiltros = () => {
-    setSearch("");
-    setFilterEstado("");
-    setFilterMarca("");
-    setFilterCategoria("");
-  };
-
-  const hayFiltrosActivos = search !== "" || filterEstado !== "" || filterMarca !== "" || filterCategoria !== "";
 
   useEffect(() => {
     const savedNotification = localStorage.getItem('productoNotification');
@@ -62,8 +55,6 @@ export default function Productos() {
 
   const columns = [
     { field: "nombre", header: "Nombre" },
-    // { field: "marca", header: "Marca" },
-    // { field: "categoria", header: "Categoría" },
     {
       field: "precioVenta",
       header: "Precio Venta",
@@ -79,7 +70,7 @@ export default function Productos() {
       header: "Imágenes",
       render: (item) => (
         <ImageGallery 
-          key={`img-gallery-${item.id}`}  // ← clave única por producto
+          key={`img-gallery-${item.id}`}
           images={item.imagenes} 
           size="small" 
           showAsButton 
@@ -135,66 +126,15 @@ export default function Productos() {
         title="Productos"
         onAddClick={onCreateClick}
         showSearch
-        searchPlaceholder="Buscar por nombre marca o categoría..."
+        searchPlaceholder="Buscar por nombre..."
         searchValue={search}
         onSearchChange={setSearch}
         searchFilters={estadoFilters}
         filterEstado={filterEstado}
         onFilterChange={setFilterEstado}
       >
-        {/* <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2, flexWrap: 'wrap' }}> */}
-          {/* <Select
-            value={filterMarca}
-            onChange={(e) => setFilterMarca(e.target.value)}
-            displayEmpty
-            size="small"
-            sx={{ minWidth: 150 }}
-          >
-            {marcaFilters.map((filter) => (
-              <MenuItem key={filter.value} value={filter.value}>
-                {filter.label}
-              </MenuItem>
-            ))}
-          </Select>
-
-          <Select
-            value={filterCategoria}
-            onChange={(e) => setFilterCategoria(e.target.value)}
-            displayEmpty
-            size="small"
-            sx={{ minWidth: 150 }}
-          >
-            {categoriaFilters.map((filter) => (
-              <MenuItem key={filter.value} value={filter.value}>
-                {filter.label}
-              </MenuItem>
-            ))}
-          </Select> */}
-
-          {/* {hayFiltrosActivos && (
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<ClearIcon />}
-              onClick={limpiarFiltros}
-              color="error"
-              sx={{ height: 40 }}
-            >
-              Limpiar filtros
-            </Button>
-          )}
-        </Stack> */}
-
         {error && (
-          <Box
-            sx={{
-              p: 2,
-              bgcolor: '#ffebee',
-              color: '#c62828',
-              borderRadius: 1,
-              mb: 2,
-            }}
-          >
+          <Box sx={{ p: 2, bgcolor: '#ffebee', color: '#c62828', borderRadius: 1, mb: 2 }}>
             {error}
           </Box>
         )}
@@ -211,6 +151,23 @@ export default function Productos() {
           }
           onChangeStatus={cambiarEstado}
         />
+        
+        {/* ✅ Paginación - ahora funcionará porque Typography está importado */}
+        {totalPages > 1 && (
+          <Stack spacing={2} alignItems="center" sx={{ mt: 3, mb: 2 }}>
+            <Pagination
+              count={totalPages}
+              page={page}
+              onChange={(e, value) => setPage(value)}
+              color="primary"
+              showFirstButton
+              showLastButton
+            />
+            <Typography variant="body2" color="text.secondary">
+              Página {page} de {totalPages}
+            </Typography>
+          </Stack>
+        )}
 
         {showEmptyState && (
           <Box sx={{ textAlign: 'center', mt: 3 }}>
@@ -224,7 +181,7 @@ export default function Productos() {
           open={modalDelete.open}
           type="warning"
           title="¿Eliminar Producto?"
-          message={`Advertencia: al continuar, el producto "${modalDelete.nombre}" se eliminará permanentemente del sistema.`}
+          message={`¿Estás seguro de eliminar "${modalDelete.nombre}"?`}
           confirmText={isDeleting() ? "Eliminando..." : "Eliminar"}
           cancelText="Cancelar"
           showCancel={!isDeleting()}

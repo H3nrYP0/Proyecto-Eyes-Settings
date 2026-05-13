@@ -2,12 +2,12 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ProductoData } from "../services/productosService";
-import { marcasService as MarcaData } from "/src/features/compras/marca/services/marcasService.js";
-import { getAllCategorias } from "../../categoria/services/categoriasService";
 import { UploadData } from "../../../../lib/data/uploadData";
 import { useProductoExists } from "../queries/useProductoExists";
 import { productoKeys } from "../queryKeys";
 import { useActionBlocker } from "@shared/index";
+import { useMarcasQuery } from "../queries/useMarcasQuery";
+import { useCategoriasQuery } from "../queries/useCategoriasQuery";
 
 export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshCategorias = 0, onSubmitSuccess, onError }) => {
   const isView = mode === "view";
@@ -38,48 +38,16 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
   const [imagenesAEliminar, setImagenesAEliminar] = useState([]);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
 
-  const [marcas, setMarcas] = useState([]);
-  const [categorias, setCategorias] = useState([]);
-  const [loading, setLoading] = useState(true);
-  
-  const initialLoadDoneRef = useRef(false);
-  const nombreOriginal = initialData?.nombre || ""; 
+  // ✅ Usar React Query para marcas y categorías
+  const { data: marcas = [], isLoading: loadingMarcas } = useMarcasQuery();
+  const { data: categorias = [], isLoading: loadingCategorias } = useCategoriasQuery();
 
-  useEffect(() => {
-    let isMounted = true;
-    
-    const loadData = async () => {
-      const shouldLoad = !initialLoadDoneRef.current || refreshMarcas > 0 || refreshCategorias > 0;
-      if (!shouldLoad) return;
-      
-      try {
-        const [marcasData, categoriasData] = await Promise.all([
-          MarcaData.getAllMarcas(),
-          getAllCategorias()
-        ]);
-        
-        if (isMounted) {
-          setMarcas(marcasData.filter(m => m.estado === true));
-          setCategorias(categoriasData.filter(c => c.estado === true));
-          setLoading(false);
-          initialLoadDoneRef.current = true;
-        }
-      } catch (error) {
-        if (isMounted) {
-          onError?.("Error cargando datos");
-          setLoading(false);
-        }
-      }
-    };
-    
-    loadData();
-    
-    return () => { isMounted = false; };
-  }, [refreshMarcas, refreshCategorias]);
+  const loading = loadingMarcas || loadingCategorias;
+  
+  const nombreOriginal = initialData?.nombre || ""; 
 
   const nombreTrimmed = formData.nombre?.trim();
   const excludeId = isEdit ? initialData?.id : null;
-
   const shouldCheckExists = !isView && 
     ((isCreate || isFullCreate) || (isEdit && nombreTrimmed !== nombreOriginal));
 
@@ -89,6 +57,7 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
     { enabled: shouldCheckExists && nombreTrimmed?.length >= 3 }
   );
 
+  // ✅ Cargar datos iniciales cuando hay initialData
   useEffect(() => {
     if (initialData && !initialDataLoaded) {
       setFormData({
@@ -185,7 +154,6 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
 
   const validateForm = () => {
     const newErrors = {};
-
     const nombreTrimmed = formData.nombre.trim().replace(/\s+/g, " ");
     
     if (!nombreTrimmed) {
@@ -194,7 +162,7 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
       newErrors.nombre = "El nombre debe tener al menos 3 caracteres";
     } else if (nombreTrimmed.length > 50) {
       newErrors.nombre = "El nombre no puede exceder 50 caracteres";
-    }  else if (!isView && nombreExists && nombreTrimmed !== nombreOriginal) {
+    } else if (!isView && nombreExists && nombreTrimmed !== nombreOriginal) {
       newErrors.nombre = "Ya existe un producto con este nombre";
     }
 
@@ -263,7 +231,6 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
         setErrors(validationErrors);
         return;
       }
-
       if (nombreExists) {
         setErrors(prev => ({ ...prev, nombre: "Ya existe un producto con este nombre" }));
         return;
@@ -310,24 +277,26 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
       };
 
       if (isEdit) {
+        dataToSubmit.stockMinimo = parseInt(formData.stockMinimo, 10);
+        dataToSubmit.estado = formData.estado;
+        
         if (formData.categoria !== initialData?.categoria?.toString()) {
           dataToSubmit.categoria = formData.categoria;
         }
         if (formData.marca !== initialData?.marca?.toString()) {
           dataToSubmit.marca = formData.marca;
         }
+      } else if (isCreate || isFullCreate) {
+        dataToSubmit.categoria = formData.categoria;
+        dataToSubmit.marca = formData.marca;
+        dataToSubmit.precioVenta = parseInt(formData.precioVenta, 10) || 0;
+        dataToSubmit.precioCompra = parseInt(formData.precioCompra, 10) || 0;
+        dataToSubmit.stockActual = parseInt(formData.stockActual, 10) || 0;
+        dataToSubmit.stockMinimo = parseInt(formData.stockMinimo, 10) || 0;
+        dataToSubmit.estado = formData.estado;
       } else {
         dataToSubmit.categoria = formData.categoria;
         dataToSubmit.marca = formData.marca;
-      }
-      
-      if (!isCreate || isFullCreate) {
-        dataToSubmit.precioVenta = parseInt(formData.precioVenta, 10);
-        dataToSubmit.precioCompra = parseInt(formData.precioCompra, 10);
-        dataToSubmit.stockActual = parseInt(formData.stockActual, 10);
-        dataToSubmit.stockMinimo = parseInt(formData.stockMinimo, 10);
-        dataToSubmit.estado = formData.estado;
-      } else {
         dataToSubmit.precioVenta = 0;
         dataToSubmit.precioCompra = 0;
         dataToSubmit.stockActual = 0;
@@ -356,7 +325,6 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
         setTimeout(() => {
           onSubmitSuccess?.(result);
         }, 300);
-        
       } catch (error) {
         let errorMessage = "Error al guardar el producto";
         

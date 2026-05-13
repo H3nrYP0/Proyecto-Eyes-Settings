@@ -3,7 +3,11 @@ import { ProductoData } from "../services/productosService";
 import { productoKeys } from "../queryKeys";
 
 export const useProductoExists = (nombre, excludeId, options = {}) => {
-  const isEnabled = nombre?.trim().length >= 3 && options.enabled !== false;
+  const isEnabled = nombre?.trim().length >= 3 && 
+                    options.enabled !== false && 
+                    excludeId !== undefined &&  // 👈 Agrega esto
+                    excludeId !== null;         // 👈 Agrega esto
+  
   
   return useQuery({
     queryKey: productoKeys.exists(nombre),
