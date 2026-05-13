@@ -1,13 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createCompra } from "../services/comprasService";
 import { getProveedoresActivos } from "../../proveedor/services/proveedoresService";
 import { getAllProductos } from "../../producto/services/productosService";
 
+// ── CAMBIO 1: cantidad vacía ("") para que el usuario siempre la ingrese ──────
 const EMPTY_ROW = {
   productoId: "",
   nombre: "",
   stockActual: 0,
-  cantidad: 1,
+  cantidad: "",          // era 1 → ahora vacío
   precioCompra: 0,
   precioVenta: 0,
   total: 0,
@@ -27,6 +29,7 @@ function parseCOP(value) {
 export function useCompraForm({ mode = "create", initialData = null, onSubmitSuccess, onError }) {
   const isView = mode === "view";
   const isCreate = mode === "create";
+  const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState({
     proveedorId: "",
@@ -35,61 +38,56 @@ export function useCompraForm({ mode = "create", initialData = null, onSubmitSuc
   });
 
   const [errors, setErrors] = useState({});
-  const [proveedores, setProveedores] = useState([]);
-  const [catalogo, setCatalogo] = useState([]);
-  const [loadingData, setLoadingData] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState("");
 
-  // ============================
-  // Cargar proveedores (reutilizable para refrescar)
-  // ============================
-  const cargarProveedores = useCallback(async () => {
-    const data = await getProveedoresActivos();
-    setProveedores(
-      data.map((p) => ({
-        ...p,
-        razonSocial: p.razon_social_o_nombre || p.razonSocial || p.nombre || "Sin nombre",
-      }))
-    );
-  }, []);
+  // ── REACT QUERY: Proveedores ───────────────────────────────────────────────
+  const {
+    data: proveedoresRaw = [],
+    isLoading: loadingProveedores,
+    refetch: recargarProveedores,
+  } = useQuery({
+    queryKey: ["proveedores-activos"],
+    queryFn: getProveedoresActivos,
+    staleTime: 1000 * 60 * 5, // 5 min — los proveedores no cambian muy seguido
+  });
 
-  // ============================
-  // Cargar todos los datos iniciales
-  // ============================
+  const proveedores = proveedoresRaw.map((p) => ({
+    ...p,
+    razonSocial: p.razon_social_o_nombre || p.razonSocial || p.nombre || "Sin nombre",
+  }));
+
+  // ── REACT QUERY: Catálogo de productos ────────────────────────────────────
+  const {
+    data: productosRaw = [],
+    isLoading: loadingProductos,
+  } = useQuery({
+    queryKey: ["productos-activos"],
+    queryFn: getAllProductos,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const catalogo = productosRaw
+    .filter((p) => {
+      const activo = p.estado ?? p.activo ?? p.estado_producto ?? true;
+      return activo === true || activo === "activo" || activo === 1;
+    })
+    .map((p) => ({
+      id: p.id,
+      nombre: p.nombre,
+      stockActual: Number(p.stock ?? p.stockActual ?? 0),
+      precioCompra: Number(p.precio_compra ?? p.precioCompra ?? 0),
+      precioVenta: Number(p.precio_venta ?? p.precioVenta ?? 0),
+    }));
+
+  const loadingData = loadingProveedores || loadingProductos;
+
+  // Error de carga (sin romper el hook)
+  const [apiErrorCarga, setApiErrorCarga] = useState("");
   useEffect(() => {
-    const cargar = async () => {
-      try {
-        setLoadingData(true);
-        const [productosData] = await Promise.all([
-          getAllProductos(),
-          cargarProveedores(),
-        ]);
-
-        setCatalogo(
-          productosData
-            .filter((p) => {
-              // Cubrir los campos que puede mandar el backend para "activo"
-              const activo = p.estado ?? p.activo ?? p.estado_producto ?? true;
-              return activo === true || activo === "activo" || activo === 1;
-            })
-            .map((p) => ({
-              id: p.id,
-              nombre: p.nombre,
-              stockActual: Number(p.stock ?? p.stockActual ?? 0),
-              precioCompra: Number(p.precio_compra ?? p.precioCompra ?? 0),
-              precioVenta: Number(p.precio_venta ?? p.precioVenta ?? 0),
-            }))
-        );
-      } catch (err) {
-        console.error("Error cargando datos:", err);
-        setApiError("No se pudieron cargar proveedores o productos.");
-      } finally {
-        setLoadingData(false);
-      }
-    };
-    cargar();
-  }, [cargarProveedores]);
+    if (!loadingData && proveedoresRaw.length === 0 && productosRaw.length === 0) {
+      // silencioso — React Query ya reintenta automáticamente
+    }
+  }, [loadingData, proveedoresRaw, productosRaw]);
 
   // ============================
   // Cargar datos iniciales en vista/edición
@@ -105,7 +103,7 @@ export function useCompraForm({ mode = "create", initialData = null, onSubmitSuc
             productoId: p.productoId ?? "",
             nombre: p.nombre ?? "",
             stockActual: p.stockActual ?? 0,
-            cantidad: p.cantidad,
+            cantidad: p.cantidad,         // en vista/edición viene del backend → se respeta
             precioCompra: p.precioCompra ?? p.precioUnitario ?? 0,
             precioVenta: p.precioVenta ?? 0,
             total: p.total,
@@ -129,6 +127,8 @@ export function useCompraForm({ mode = "create", initialData = null, onSubmitSuc
 
   // ============================
   // Cambios en fila de producto
+  // ── CAMBIO 1 aplicado aquí: al seleccionar un producto,
+  //    cantidad queda vacía para que el usuario la ingrese
   // ============================
   const handleProductoChange = useCallback(
     (index, field, value) => {
@@ -143,19 +143,21 @@ export function useCompraForm({ mode = "create", initialData = null, onSubmitSuc
           row.stockActual = found?.stockActual ?? 0;
           row.precioCompra = found?.precioCompra ?? 0;
           row.precioVenta = found?.precioVenta ?? 0;
-          row.cantidad = 1;
-          row.total = row.cantidad * row.precioCompra;
+          row.cantidad = "";             // era 1 → vacío para que el usuario lo defina
+          row.total = 0;                 // sin cantidad definida, total = 0
           setErrors((e) => ({ ...e, [`prod_${index}`]: "" }));
         } else if (field === "cantidad") {
-          const qty = Math.max(1, parseInt(value) || 1);
+          // Permitir vacío mientras escribe; calcular total solo con valor válido
+          const raw = String(value).replace(/[^0-9]/g, "");
+          const qty = raw === "" ? "" : Math.max(1, parseInt(raw, 10));
           row.cantidad = qty;
-          row.total = qty * row.precioCompra;
+          row.total = qty === "" ? 0 : qty * row.precioCompra;
           setErrors((e) => ({ ...e, [`qty_${index}`]: "" }));
         } else if (field === "precioCompra") {
-          // Parsear desde formato COP
           const precio = Math.max(0, parseCOP(value));
           row.precioCompra = precio;
-          row.total = row.cantidad * precio;
+          const qty = parseInt(row.cantidad, 10) || 0;
+          row.total = qty * precio;
           setErrors((e) => ({ ...e, [`precioC_${index}`]: "" }));
         } else if (field === "precioVenta") {
           const precio = Math.max(0, parseCOP(value));
@@ -192,6 +194,7 @@ export function useCompraForm({ mode = "create", initialData = null, onSubmitSuc
 
   // ============================
   // Validación
+  // ── CAMBIO 1: cantidad vacía ("") ya es inválida → mensaje claro
   // ============================
   const validate = useCallback(() => {
     const newErrors = {};
@@ -201,40 +204,29 @@ export function useCompraForm({ mode = "create", initialData = null, onSubmitSuc
     } else {
       formData.productos.forEach((p, i) => {
         if (!p.productoId) newErrors[`prod_${i}`] = "Selecciona el producto.";
-        if (!p.cantidad || p.cantidad < 1) newErrors[`qty_${i}`] = "Mínimo 1.";
-        if (!p.precioCompra || p.precioCompra <= 0) newErrors[`precioC_${i}`] = "Precio de compra requerido.";
-        if (!p.precioVenta || p.precioVenta <= 0) newErrors[`precioV_${i}`] = "Precio de venta requerido.";
+        const qty = parseInt(p.cantidad, 10);
+        if (p.cantidad === "" || isNaN(qty) || qty < 1)
+          newErrors[`qty_${i}`] = "Ingresa una cantidad (mínimo 1).";
+        if (!p.precioCompra || p.precioCompra <= 0)
+          newErrors[`precioC_${i}`] = "Precio de compra requerido.";
+        if (!p.precioVenta || p.precioVenta <= 0)
+          newErrors[`precioV_${i}`] = "Precio de venta requerido.";
       });
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }, [formData]);
 
-  // ============================
-  // Submit — manda todo al backend en un solo POST /compras
-  // El backend (Flask) incrementa el stock internamente
-  // ============================
-  const handleSubmit = useCallback(async () => {
-    if (!validate()) return;
-
-    setSubmitting(true);
-    setApiError("");
-    try {
-      const result = await createCompra({
-        proveedorId: formData.proveedorId,
-        observaciones: formData.observaciones,
-        productos: formData.productos.map((p) => ({
-          productoId: Number(p.productoId),
-          cantidad: Number(p.cantidad),
-          precioCompra: Number(p.precioCompra),
-          precioVenta: Number(p.precioVenta),
-          stockActual: Number(p.stockActual),
-        })),
-      });
+  // ── REACT QUERY: Mutación para crear compra ────────────────────────────────
+  const crearCompraMutation = useMutation({
+    mutationFn: createCompra,
+    onSuccess: (result) => {
+      // Invalidar listas que dependen de compras y stock
+      queryClient.invalidateQueries({ queryKey: ["compras"] });
+      queryClient.invalidateQueries({ queryKey: ["productos-activos"] });
       onSubmitSuccess?.(result);
-      return { success: true, data: result };
-    } catch (error) {
-      console.error("Error al guardar compra:", error);
+    },
+    onError: (error) => {
       const msg =
         error.response?.data?.message ||
         error.response?.data?.error ||
@@ -242,11 +234,28 @@ export function useCompraForm({ mode = "create", initialData = null, onSubmitSuc
         "Error al guardar la compra";
       setApiError(msg);
       onError?.(msg);
-      return { success: false, error: msg };
-    } finally {
-      setSubmitting(false);
-    }
-  }, [formData, validate, onSubmitSuccess, onError]);
+    },
+  });
+
+  // ============================
+  // Submit
+  // ============================
+  const handleSubmit = useCallback(async () => {
+    if (!validate()) return;
+
+    setApiError("");
+    crearCompraMutation.mutate({
+      proveedorId: formData.proveedorId,
+      observaciones: formData.observaciones,
+      productos: formData.productos.map((p) => ({
+        productoId: Number(p.productoId),
+        cantidad: Number(p.cantidad),
+        precioCompra: Number(p.precioCompra),
+        precioVenta: Number(p.precioVenta),
+        stockActual: Number(p.stockActual),
+      })),
+    });
+  }, [formData, validate, crearCompraMutation]);
 
   return {
     formData,
@@ -254,8 +263,8 @@ export function useCompraForm({ mode = "create", initialData = null, onSubmitSuc
     proveedores,
     catalogo,
     loadingData,
-    submitting,
-    apiError,
+    submitting: crearCompraMutation.isPending,
+    apiError: apiError || apiErrorCarga,
     subtotal,
     iva,
     total,
@@ -267,6 +276,6 @@ export function useCompraForm({ mode = "create", initialData = null, onSubmitSuc
     removeRow,
     handleSubmit,
     setFormData,
-    recargarProveedores: cargarProveedores,
+    recargarProveedores,
   };
 }
