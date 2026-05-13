@@ -39,8 +39,8 @@ export const EMPTY_PRODUCT_ROW = {
 // ============================
 // Normalizar compra para formulario
 // estado_compra:
-//   true  → "Completada"
-//   false / null / undefined → null (sin estado asignado aún, fila gris)
+//   false EXPLÍCITO → null  (Anulada — fila gris)
+//   true / null / undefined → "Completada"  (estado por defecto al crear)
 // ============================
 export const normalizeCompraForForm = (compra) => ({
   id: compra.id,
@@ -48,8 +48,8 @@ export const normalizeCompraForForm = (compra) => ({
   proveedorNombre: compra.proveedor_nombre || compra.proveedorNombre || "",
   observaciones: compra.observaciones || "",
   fecha: compra.fecha,
-  // null cuando estado_compra es null/undefined/false salvo true
-  estado: compra.estado_compra === true ? "Completada" : null,
+  // Solo false EXPLÍCITO del backend = anulada; null / undefined / true = Completada
+  estado: compra.estado_compra === false ? null : "Completada",
   numeroCompra: compra.numeroCompra || `C-${compra.id}`,
   subtotal: compra.subtotal || 0,
   iva: compra.iva || 0,

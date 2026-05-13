@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import {
-  Box, Card, CardContent, TextField, FormControl, InputLabel,
+  Box, Card, CardContent, FormControl, InputLabel,
   Select, MenuItem, Checkbox, Button, Typography,
   Container, Alert, Grid, CircularProgress, InputAdornment, IconButton,
+  TextField,
 } from '@mui/material';
 import {
   PersonAddOutlined as PersonAddIcon,
@@ -12,27 +13,30 @@ import {
   VisibilityOffOutlined as VisibilityOffOutlinedIcon,
 } from '@mui/icons-material';
 
+import { TextFieldLetters, TextFieldNumbers, TextFieldAlphanumeric, TextFieldNoEmoji } from '@shared';
 import { loginTheme } from '@theme';
-import authServices from '@auth/Services/authServices';
-import { validateRegisterForm } from '../utils/authValidators';
 import {
-  TIPOS_DOCUMENTO, DOC_PLACEHOLDERS,
-  getRegisterInitialData, buildRegisterPayload,
-} from '../utils/authNormalizer';
-import PasswordStrength from '../components/PasswordStrength';
-import VerificationCodeDialog from '../components/VerificationCodeDialog';
+  authServices,
+  validateRegisterForm,
+  TIPOS_DOCUMENTO,
+  DOC_PLACEHOLDERS,
+  getRegisterInitialData,
+  buildRegisterPayload,
+  PasswordStrength,
+  VerificationCodeDialog,
+} from '@auth';
 
 export default function Register() {
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState(getRegisterInitialData());
-  const [errors, setErrors] = useState({});
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [formData,              setFormData]              = useState(getRegisterInitialData());
+  const [errors,                setErrors]                = useState({});
+  const [error,                 setError]                 = useState('');
+  const [success,               setSuccess]               = useState(false);
+  const [loading,               setLoading]               = useState(false);
   const [showVerificationDialog, setShowVerificationDialog] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showPassword,          setShowPassword]          = useState(false);
+  const [showConfirmPassword,   setShowConfirmPassword]   = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -41,7 +45,6 @@ export default function Register() {
     if (error) setError('');
   };
 
-  // Envia el codigo de verificacion al correo
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -64,7 +67,6 @@ export default function Register() {
     }
   };
 
-  // Verifica el codigo e intenta crear la cuenta
   const handleVerifyCode = async (codigo) => {
     setLoading(true);
     try {
@@ -86,13 +88,33 @@ export default function Register() {
     }
   };
 
-  // Reenvía el codigo al mismo correo
   const handleResendCode = async () => {
     try {
       await authServices.sendRegisterCode(buildRegisterPayload(formData));
     } catch {
       setError('Error al reenviar el código');
     }
+  };
+
+  const renderDocumentoField = () => {
+    const commonProps = {
+      fullWidth: true,
+      size: 'small',
+      name: 'numeroDocumento',
+      value: formData.numeroDocumento,
+      onChange: handleChange,
+      placeholder: DOC_PLACEHOLDERS[formData.tipoDocumento] || 'Ingrese su número de documento',
+      required: true,
+      disabled: success || loading,
+      error: !!errors.numeroDocumento,
+      helperText: errors.numeroDocumento,
+      maxLength: formData.tipoDocumento === 'CC' ? 10 : 15,
+    };
+
+    if (formData.tipoDocumento === 'CC' || formData.tipoDocumento === 'CE') {
+      return <TextFieldNumbers {...commonProps} />;
+    }
+    return <TextFieldAlphanumeric {...commonProps} />;
   };
 
   return (
@@ -105,7 +127,6 @@ export default function Register() {
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       }}>
 
-        {/* Logo y titulo */}
         <Box sx={{ textAlign: 'center', mb: 0.5 }}>
           <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
             <Box sx={{
@@ -127,7 +148,6 @@ export default function Register() {
           sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Card elevation={2} sx={{ width: '100%', maxWidth: 520, p: 3.5 }}>
             <CardContent sx={{ p: 0 }}>
-
               <Box sx={{ textAlign: 'center', mb: 3 }}>
                 <Typography variant="h5" component="h2" color="text.primary" fontWeight="600">
                   Crear una cuenta
@@ -144,9 +164,8 @@ export default function Register() {
               <Box component="form" onSubmit={handleSubmit}>
                 <Grid container spacing={2}>
 
-                  {/* NOMBRES */}
                   <Grid item xs={12} sm={6}>
-                    <TextField
+                    <TextFieldLetters
                       fullWidth size="small"
                       name="nombre"
                       label="Nombres"
@@ -157,12 +176,12 @@ export default function Register() {
                       disabled={success || loading}
                       error={!!errors.nombre}
                       helperText={errors.nombre}
+                      maxLength={50}
                     />
                   </Grid>
 
-                  {/* APELLIDOS */}
                   <Grid item xs={12} sm={6}>
-                    <TextField
+                    <TextFieldLetters
                       fullWidth size="small"
                       name="apellido"
                       label="Apellidos"
@@ -173,18 +192,18 @@ export default function Register() {
                       disabled={success || loading}
                       error={!!errors.apellido}
                       helperText={errors.apellido}
+                      maxLength={50}
                     />
                   </Grid>
 
-                  {/* TIPO DE DOCUMENTO */}
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth size="small" error={!!errors.tipoDocumento}>
-                      <InputLabel>Tipo de documento *</InputLabel>
+                      <InputLabel>Tipo de documento</InputLabel>
                       <Select
                         name="tipoDocumento"
                         value={formData.tipoDocumento}
-                        label="Tipo de documento *"
                         onChange={handleChange}
+                        label="Tipo de documento"
                         disabled={success || loading}
                       >
                         {Object.entries(TIPOS_DOCUMENTO).map(([key, value]) => (
@@ -199,25 +218,12 @@ export default function Register() {
                     </FormControl>
                   </Grid>
 
-                  {/* NUMERO DE DOCUMENTO */}
                   <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth size="small"
-                      name="numeroDocumento"
-                      label="Número de documento"
-                      value={formData.numeroDocumento}
-                      onChange={handleChange}
-                      placeholder={DOC_PLACEHOLDERS[formData.tipoDocumento] || 'Ingrese su número de documento'}
-                      required
-                      disabled={success || loading}
-                      error={!!errors.numeroDocumento}
-                      helperText={errors.numeroDocumento}
-                    />
+                    {renderDocumentoField()}
                   </Grid>
 
-                  {/* CORREO ELECTRONICO */}
                   <Grid item xs={12} sm={6}>
-                    <TextField
+                    <TextFieldNoEmoji
                       fullWidth size="small"
                       name="correo"
                       label="Correo electrónico"
@@ -229,26 +235,25 @@ export default function Register() {
                       disabled={success || loading}
                       error={!!errors.correo}
                       helperText={errors.correo}
+                      maxLength={100}
                     />
                   </Grid>
 
-                  {/* TELEFONO */}
                   <Grid item xs={12} sm={6}>
-                    <TextField
+                    <TextFieldNumbers
                       fullWidth size="small"
                       name="telefono"
                       label="Teléfono"
-                      type="tel"
                       value={formData.telefono}
                       onChange={handleChange}
                       placeholder="+57 300 123 4567"
                       disabled={success || loading}
                       error={!!errors.telefono}
                       helperText={errors.telefono}
+                      maxLength={15}
                     />
                   </Grid>
 
-                  {/* FECHA DE NACIMIENTO */}
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth size="small"
@@ -265,7 +270,6 @@ export default function Register() {
                     />
                   </Grid>
 
-                  {/* CONTRASENIA */}
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth size="small"
@@ -294,7 +298,6 @@ export default function Register() {
                     <PasswordStrength password={formData.contrasenia} />
                   </Grid>
 
-                  {/* CONFIRMAR CONTRASENIA */}
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth size="small"
@@ -324,7 +327,6 @@ export default function Register() {
 
                 </Grid>
 
-                {/* Terminos y condiciones */}
                 <Box sx={{ mt: 2.5, mb: 1, display: 'flex', alignItems: 'flex-start' }}>
                   <Checkbox
                     name="agreeTerms"
@@ -364,7 +366,6 @@ export default function Register() {
                 </Button>
               </Box>
 
-              {/* Enlace a login */}
               <Box sx={{ textAlign: 'center' }}>
                 <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem', display: 'inline' }}>
                   ¿Ya tienes una cuenta?{' '}
@@ -379,7 +380,6 @@ export default function Register() {
                   Inicia sesión aquí
                 </Button>
               </Box>
-
             </CardContent>
           </Card>
         </Container>

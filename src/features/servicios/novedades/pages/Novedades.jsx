@@ -1,17 +1,18 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Button } from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import CrudLayout from "../../../../shared/components/crud/CrudLayout";
+import CrudLayout from "@shared/components/crud/CrudLayout";
 import UnifiedCrudTable from "@shared/components/crud/CrudTable";
-import Modal from "../../../../shared/components/ui/Modal";
-import Loading from "../../../../shared/components/ui/Loading";
-import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
-import { useNovedades } from "../hooks/useNovedades";
-import { useNovedadForm } from "../hooks/useNovedadForm";
-import NovedadForm from "../components/NovedadForm";
-import "../../../../shared/styles/components/crud-table.css";
-import "../../../../shared/styles/components/modal.css";
+import Modal from "@shared/components/ui/Modal";
+import Loading from "@shared/components/ui/Loading";
+import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
+import { useNovedades, useNovedadForm, NovedadForm } from "@servicios/novedades"; // ✔️ alias corregido
+import "@shared/styles/components/crud-table.css";
+import "@shared/styles/components/modal.css";
+
+// Colores personalizados (mismo estilo que Horarios)
+const BRAND_COLOR = "#1a2540";
+const BRAND_HOVER = "#2d3a6b";
 
 export default function Novedades() {
   const navigate = useNavigate();
@@ -39,8 +40,9 @@ export default function Novedades() {
     setFilterEstado,
     estadoFilters,
     eliminarNovedad,
-    cambiarEstado, 
-    recargar,
+    cambiarEstado,
+    crearNovedad,
+    editarNovedad,
     modalForm,
     modalDelete,
     openCreateModal,
@@ -56,26 +58,48 @@ export default function Novedades() {
     errors,
     submitting,
     handleChange,
-    handleSubmit,
+    handleSubmit: formHandleSubmit,
+    resetForm,
   } = useNovedadForm({
     mode: modalForm.mode,
     initialData: modalForm.initialData,
-    onSubmitSuccess: () => {
+  });
+
+  const handleSave = async () => {
+    const payload = await formHandleSubmit();
+    if (!payload) return;
+
+    let result;
+    if (modalForm.mode === "create") {
+      result = await crearNovedad(payload);
+    } else {
+      result = await editarNovedad(modalForm.initialData?.id, payload);
+    }
+
+    if (result?.success) {
       showNotification("Novedad guardada correctamente", "success");
       closeFormModal();
-      recargar();
-    },
-    onError: (errorMsg) => {
-      showNotification(errorMsg, "error");
-    },
-  });
+      resetForm();
+    } else {
+      showNotification(result?.error || "Error al guardar la novedad", "error");
+    }
+  };
+
+  // Vista → Editar
+  const handleEditFromView = () => {
+    const viewData = modalForm.initialData;
+    closeFormModal();
+    openEditModal({
+      ...viewData,
+      estado: viewData.activo ? "activo" : "inactivo",
+    });
+  };
 
   const handleModalConfirm = () => {
     if (modalForm.mode === "view") {
-      closeFormModal();
+      handleEditFromView();
     } else {
-      const formElement = document.getElementById("novedad-form");
-      if (formElement) formElement.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+      handleSave();
     }
   };
 
@@ -84,13 +108,20 @@ export default function Novedades() {
     if (result.success) {
       showNotification("Novedad eliminada correctamente", "success");
       closeDeleteModal();
-      recargar();
     } else {
       showNotification(result.error, "error");
     }
   };
 
-  // Columnas esenciales
+  const handleChangeStatus = async (row, nuevoEstado) => {
+    const result = await cambiarEstado(row, nuevoEstado);
+    if (result.success) {
+      showNotification("Estado actualizado correctamente", "success");
+    } else {
+      showNotification(result.error, "error");
+    }
+  };
+
   const columns = [
     { field: "empleado_nombre", header: "Empleado" },
     { field: "tipo_label", header: "Tipo" },
@@ -99,6 +130,11 @@ export default function Novedades() {
   ];
 
   const tableActions = [
+    {
+      label: "Cambiar estado",
+      type: "toggle-status",
+      onClick: (item) => handleChangeStatus(item, item.estado === "activo" ? "inactivo" : "activo"),
+    },
     { label: "Ver Detalles", type: "view", onClick: (item) => openViewModal(item) },
     { label: "Editar", type: "edit", onClick: (item) => openEditModal(item) },
     { label: "Eliminar", type: "delete", onClick: (item) => openDeleteModal(item.id, item.descripcion) },
@@ -116,11 +152,18 @@ export default function Novedades() {
     <>
       <Box sx={{ p: 2, pb: 0 }}>
         <Button
-          startIcon={<ArrowBackIcon />}
           onClick={() => navigate("/admin/servicios/agenda")}
           variant="outlined"
           size="small"
-          sx={{ mb: 2 }}
+          sx={{
+            mb: 2,
+            borderColor: BRAND_COLOR,
+            color: BRAND_COLOR,
+            '&:hover': {
+              borderColor: BRAND_HOVER,
+              backgroundColor: 'rgba(26, 37, 64, 0.04)'
+            }
+          }}
         >
           Volver a Agenda
         </Button>
@@ -157,7 +200,7 @@ export default function Novedades() {
           columns={columns}
           data={novedades}
           actions={tableActions}
-          onChangeStatus={cambiarEstado} 
+          onChangeStatus={cambiarEstado}
           emptyMessage={
             search || filterEstado
               ? "No se encontraron novedades para los filtros aplicados"
@@ -167,7 +210,16 @@ export default function Novedades() {
 
         {novedades.length === 0 && !search && !filterEstado && !loading && (
           <Box sx={{ textAlign: 'center', marginTop: '24px' }}>
-            <Button variant="contained" onClick={openCreateModal}>Crear Primera Novedad</Button>
+            <Button
+              variant="contained"
+              onClick={openCreateModal}
+              sx={{
+                backgroundColor: BRAND_COLOR,
+                '&:hover': { backgroundColor: BRAND_HOVER }
+              }}
+            >
+              Crear Primera Novedad
+            </Button>
           </Box>
         )}
 
@@ -189,11 +241,13 @@ export default function Novedades() {
           open={modalForm.open}
           type="info"
           title={modalForm.title}
-          confirmText={modalForm.mode === "view" ? "Cerrar" : "Guardar"}
-          cancelText="Cancelar"
-          showCancel={modalForm.mode !== "view"}
+          confirmText={modalForm.mode === "view" ? "Editar" : "Guardar"}
+          cancelText={modalForm.mode === "view" ? "Cerrar" : "Cancelar"}
+          showCancel
           onConfirm={handleModalConfirm}
           onCancel={closeFormModal}
+          confirmButtonColor={BRAND_COLOR}
+          confirmButtonHoverColor={BRAND_HOVER}
         >
           <NovedadForm
             id="novedad-form"
@@ -203,7 +257,7 @@ export default function Novedades() {
             errors={errors}
             submitting={submitting}
             handleChange={handleChange}
-            handleSubmit={handleSubmit}
+            handleSubmit={formHandleSubmit}
             submitError={notificacion.type === "error" && notificacion.visible ? notificacion.message : null}
           />
         </Modal>

@@ -1,63 +1,134 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ventasService } from "../services/ventasService";
 import { ESTADOS_VENTA, METODOS_PAGO, METODOS_ENTREGA, formatCurrency } from "../utils/ventasUtils";
 
 export function useVentaForm({ mode = "view", initialData = null, onSuccess, onError }) {
-  const isView = mode === "view";
-  const isEdit = mode === "edit";
+  const isView   = mode === "view";
+  const isCreate = mode === "create";
 
-  const [formData, setFormData] = useState({
-    estado: "completada",
-    metodo_pago: "",
-    metodo_entrega: "",
-    direccion_entrega: "",
-    transferencia_comprobante: "",
-    total: 0,
+  const queryClient = useQueryClient();
+
+  // ── Catálogos — solo en crear ─────────────────────────────────────────────
+  const { data: clientes = [],  isLoading: loadingClientes  } = useQuery({
+    queryKey: ["clientes-activos"],
+    queryFn:  () => ventasService.getClientesActivos(),
+    enabled:  isCreate,
+    staleTime: 60_000,
   });
-  const [detalles, setDetalles] = useState([]);
-  const [abonos, setAbonos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const { data: productos = [], isLoading: loadingProductos } = useQuery({
+    queryKey: ["productos-activos"],
+    queryFn:  () => ventasService.getProductosActivos(),
+    enabled:  isCreate,
+    staleTime: 60_000,
+  });
+  const { data: servicios = [], isLoading: loadingServicios } = useQuery({
+    queryKey: ["servicios-activos"],
+    queryFn:  () => ventasService.getServiciosActivos(),
+    enabled:  isCreate,
+    staleTime: 60_000,
+  });
+
+  const catalogLoading = isCreate && (loadingClientes || loadingProductos || loadingServicios);
+
+  // ── Estado del formulario ─────────────────────────────────────────────────
+  const [formData, setFormData] = useState({
+    cliente_id:                "",
+    metodo_pago:               "efectivo",
+    metodo_entrega:            "tienda",
+    direccion_entrega:         "",
+    transferencia_comprobante: "",
+  });
+  const [itemsSeleccionados, setItemsSeleccionados] = useState([]);
+  const [stockWarning, setStockWarning] = useState("");
+  const [saving,       setSaving]       = useState(false);
   const [notification, setNotification] = useState({ isVisible: false, message: "", type: "success" });
 
-  useEffect(() => {
-    if (initialData) {
-      setFormData({
-        estado: initialData.estado || "completada",
-        metodo_pago: initialData.metodo_pago || "",
-        metodo_entrega: initialData.metodo_entrega || "",
-        direccion_entrega: initialData.direccion_entrega || "",
-        transferencia_comprobante: initialData.transferencia_comprobante || "",
-        total: initialData.total || 0,
-      });
-      setDetalles(initialData.detalles || []);
-      setAbonos(initialData.abonos || []);
-      setLoading(false);
-    }
-  }, [initialData]);
+  // ── Para view: leer de initialData directamente ───────────────────────────
+  const detalles = initialData?.detalles ?? [];
+  const abonos   = initialData?.abonos   ?? [];
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  // ── Total ─────────────────────────────────────────────────────────────────
+  const calcularTotal = () =>
+    itemsSeleccionados.reduce((s, i) => s + (i.precio ?? 0) * i.cantidad, 0);
+
+  const calcularTotalAbonado = () =>
+    abonos.reduce((s, a) => s + (a.monto_abonado || 0), 0);
+
+  const saldoPendiente = (initialData?.total ?? 0) - calcularTotalAbonado();
+
+  // ── Agregar item ──────────────────────────────────────────────────────────
+  const agregarItem = (item) => {
+    setStockWarning("");
+    const esProducto = item.tipo === "producto";
+    const keyId = esProducto ? "producto_id" : "servicio_id";
+    const existente = itemsSeleccionados.find((i) => i[keyId] === item.id);
+
+    if (existente) {
+      if (esProducto && existente.cantidad >= (item.stock ?? Infinity)) {
+        setStockWarning(`Límite de stock alcanzado para "${item.nombre}" (${item.stock} disponibles)`);
+        return;
+      }
+      setItemsSeleccionados((prev) =>
+        prev.map((i) => i[keyId] === item.id ? { ...i, cantidad: i.cantidad + 1 } : i)
+      );
+    } else {
+      setItemsSeleccionados((prev) => [
+        ...prev,
+        { [keyId]: item.id, nombre: item.nombre, descripcion: item.descripcion,
+          precio: item.precio, cantidad: 1,
+          stock: esProducto ? (item.stock ?? null) : null,
+          tipo: item.tipo },
+      ]);
+    }
   };
 
-  const guardarVenta = async () => {
+  const removerItem = (index) => {
+    setStockWarning("");
+    setItemsSeleccionados((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const actualizarCantidad = (index, nuevaCantidad) => {
+    setStockWarning("");
+    if (nuevaCantidad < 1) { removerItem(index); return; }
+    const item = itemsSeleccionados[index];
+    if (item.tipo === "producto" && item.stock !== null && nuevaCantidad > item.stock) {
+      setStockWarning(`Stock máx. para "${item.nombre}": ${item.stock}`);
+      return;
+    }
+    setItemsSeleccionados((prev) =>
+      prev.map((it, i) => i === index ? { ...it, cantidad: nuevaCantidad } : it)
+    );
+  };
+
+  // ── Crear venta directa ───────────────────────────────────────────────────
+  const crearVenta = async () => {
+    if (!formData.cliente_id) {
+      setNotification({ isVisible: true, message: "Seleccione un cliente.", type: "error" });
+      return;
+    }
+    if (itemsSeleccionados.length === 0) {
+      setNotification({ isVisible: true, message: "Agregue al menos un producto o servicio.", type: "error" });
+      return;
+    }
+    if (!formData.metodo_pago) {
+      setNotification({ isVisible: true, message: "Seleccione el método de pago.", type: "error" });
+      return;
+    }
+    if (formData.metodo_entrega === "domicilio" && !formData.direccion_entrega.trim()) {
+      setNotification({ isVisible: true, message: "Ingrese la dirección de entrega.", type: "error" });
+      return;
+    }
+
     setSaving(true);
     try {
-      const payload = {
-        estado: formData.estado,
-        metodo_pago: formData.metodo_pago,
-        metodo_entrega: formData.metodo_entrega,
-        direccion_entrega: formData.direccion_entrega,
-        transferencia_comprobante: formData.transferencia_comprobante,
-        total: formData.total,
-      };
-      await ventasService.updateVenta(initialData.id, payload);
-      setNotification({ isVisible: true, message: "Venta actualizada correctamente.", type: "success" });
-      if (onSuccess) onSuccess();
-      setTimeout(() => setNotification(prev => ({ ...prev, isVisible: false })), 3000);
+      await ventasService.createVenta({ ...formData, items: itemsSeleccionados });
+      // Invalidar cache para que la lista se actualice con la nueva venta al inicio
+      await queryClient.invalidateQueries({ queryKey: ["ventas"] });
+      setNotification({ isVisible: true, message: "Venta registrada correctamente.", type: "success" });
+      setTimeout(() => { if (onSuccess) onSuccess(); }, 1200);
     } catch (error) {
-      const msg = error?.response?.data?.error || "Error al actualizar la venta";
+      const msg = error?.response?.data?.error ?? "Error al crear la venta.";
       setNotification({ isVisible: true, message: msg, type: "error" });
       if (onError) onError(msg);
     } finally {
@@ -65,30 +136,26 @@ export function useVentaForm({ mode = "view", initialData = null, onSuccess, onE
     }
   };
 
-  const calcularTotalAbonado = () => {
-    return abonos.reduce((sum, a) => sum + (a.monto_abonado || 0), 0);
-  };
+  const clienteNombreVisible =
+    clientes.find((c) => c.id === Number(formData.cliente_id))?.nombre ?? "";
 
-  const saldoPendiente = formData.total - calcularTotalAbonado();
+  const mostrarTabla = itemsSeleccionados.length > 0;
 
   return {
-    formData,
-    setFormData,
-    detalles,
-    abonos,
-    loading,
+    clientes, productos, servicios, catalogLoading,
+    stockWarning,
+    formData, setFormData,
+    itemsSeleccionados,
+    detalles, abonos,
     saving,
-    notification,
-    setNotification,
-    isView,
-    isEdit,
-    handleChange,
-    guardarVenta,
-    calcularTotalAbonado,
+    notification, setNotification,
+    isView, isCreate,
+    clienteNombreVisible, mostrarTabla,
+    agregarItem, removerItem, actualizarCantidad,
+    crearVenta,
+    calcularTotal, calcularTotalAbonado,
     saldoPendiente,
     formatCurrency,
-    ESTADOS_VENTA,
-    METODOS_PAGO,
-    METODOS_ENTREGA,
+    ESTADOS_VENTA, METODOS_PAGO, METODOS_ENTREGA,
   };
 }

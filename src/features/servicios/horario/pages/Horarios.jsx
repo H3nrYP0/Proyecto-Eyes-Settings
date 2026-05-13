@@ -1,17 +1,18 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Button } from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import CrudLayout from "../../../../shared/components/crud/CrudLayout";
+import CrudLayout from "@shared/components/crud/CrudLayout";
 import UnifiedCrudTable from "@shared/components/crud/CrudTable";
-import Modal from "../../../../shared/components/ui/Modal";
-import Loading from "../../../../shared/components/ui/Loading";
-import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
-import { useHorarios } from "../hooks/useHorarios";
-import { useHorarioForm } from "../hooks/useHorarioForm";
-import HorarioForm from "../components/HorarioForm";
-import "../../../../shared/styles/components/crud-table.css";
-import "../../../../shared/styles/components/modal.css";
+import Modal from "@shared/components/ui/Modal";
+import Loading from "@shared/components/ui/Loading";
+import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
+import { useHorarios, useHorarioForm, HorarioForm } from "@horario";
+import "@shared/styles/components/crud-table.css";
+import "@shared/styles/components/modal.css";
+
+// Colores personalizados
+const BRAND_COLOR = "#1a2540";
+const BRAND_HOVER = "#2d3a6b";
 
 export default function Horarios() {
   const navigate = useNavigate();
@@ -40,7 +41,8 @@ export default function Horarios() {
     estadoFilters,
     eliminarHorario,
     cambiarEstado,
-    recargar,
+    crearHorario,
+    editarHorario,
     modalForm,
     modalDelete,
     openCreateModal,
@@ -56,27 +58,45 @@ export default function Horarios() {
     errors,
     submitting,
     handleChange,
-    handleSubmit,
+    handleSubmit: formHandleSubmit,
     resetForm,
   } = useHorarioForm({
     mode: modalForm.mode,
     initialData: modalForm.initialData,
-    onSubmitSuccess: () => {
+  });
+
+  const handleSave = async () => {
+    const payload = await formHandleSubmit();
+    if (!payload) return;
+
+    let result;
+    if (modalForm.mode === "create") {
+      result = await crearHorario(payload);
+    } else {
+      result = await editarHorario(modalForm.initialData?.id, payload);
+    }
+
+    if (result?.success) {
       showNotification("Horario guardado correctamente", "success");
       closeFormModal();
-      recargar();
-    },
-    onError: (errorMsg) => {
-      showNotification(errorMsg, "error");
-    },
-  });
+      resetForm();
+    } else {
+      showNotification(result?.error || "Error al guardar el horario", "error");
+    }
+  };
+
+  // Al hacer clic en "Editar" desde el modal de vista, cerramos vista y abrimos edición
+  const handleEditFromView = () => {
+    const viewData = modalForm.initialData;
+    closeFormModal();
+    openEditModal({ ...viewData, estado: viewData.activo ? "activo" : "inactivo" });
+  };
 
   const handleModalConfirm = () => {
     if (modalForm.mode === "view") {
-      closeFormModal();
+      handleEditFromView();
     } else {
-      const formElement = document.getElementById("horario-form");
-      if (formElement) formElement.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+      handleSave();
     }
   };
 
@@ -85,14 +105,13 @@ export default function Horarios() {
     if (result.success) {
       showNotification("Horario eliminado correctamente", "success");
       closeDeleteModal();
-      recargar();
     } else {
       showNotification(result.error, "error");
     }
   };
 
   const handleChangeStatus = async (row, nuevoEstado) => {
-    const result = await cambiarEstado(row.id, nuevoEstado);
+    const result = await cambiarEstado(row, nuevoEstado);
     if (result.success) {
       showNotification("Estado actualizado correctamente", "success");
     } else {
@@ -111,7 +130,7 @@ export default function Horarios() {
     {
       label: "Cambiar estado",
       type: "toggle-status",
-      onClick: (item) => handleChangeStatus(item),
+      onClick: (item) => handleChangeStatus(item, item.estado === "activo" ? "inactivo" : "activo"),
     },
     { label: "Ver Detalles", type: "view", onClick: (item) => openViewModal(item) },
     { label: "Editar", type: "edit", onClick: (item) => openEditModal(item) },
@@ -130,11 +149,18 @@ export default function Horarios() {
     <>
       <Box sx={{ p: 2, pb: 0 }}>
         <Button
-          startIcon={<ArrowBackIcon />}
           onClick={() => navigate("/admin/servicios/agenda")}
           variant="outlined"
           size="small"
-          sx={{ mb: 2 }}
+          sx={{
+            mb: 2,
+            borderColor: BRAND_COLOR,
+            color: BRAND_COLOR,
+            '&:hover': {
+              borderColor: BRAND_HOVER,
+              backgroundColor: 'rgba(26, 37, 64, 0.04)'
+            }
+          }}
         >
           Volver a Agenda
         </Button>
@@ -181,11 +207,20 @@ export default function Horarios() {
 
         {horarios.length === 0 && !search && !filterEstado && !loading && (
           <Box sx={{ textAlign: 'center', marginTop: '24px' }}>
-            <Button variant="contained" onClick={openCreateModal}>Crear Primer Horario</Button>
+            <Button
+              variant="contained"
+              onClick={openCreateModal}
+              sx={{
+                backgroundColor: BRAND_COLOR,
+                '&:hover': { backgroundColor: BRAND_HOVER }
+              }}
+            >
+              Crear Primer Horario
+            </Button>
           </Box>
         )}
 
-        {/* Modal Eliminar */}
+        {/* Modal Eliminar (tipo warning → botón rojo por defecto, no se modifica) */}
         <Modal
           open={modalDelete.open}
           type="warning"
@@ -198,16 +233,18 @@ export default function Horarios() {
           onCancel={closeDeleteModal}
         />
 
-        {/* Modal Formulario */}
+        {/* Modal Formulario (tipo info → botón con colores personalizados) */}
         <Modal
           open={modalForm.open}
           type="info"
           title={modalForm.title}
-          confirmText={modalForm.mode === "view" ? "Cerrar" : "Guardar"}
-          cancelText="Cancelar"
-          showCancel={modalForm.mode !== "view"}
+          confirmText={modalForm.mode === "view" ? "Editar" : "Guardar"}
+          cancelText={modalForm.mode === "view" ? "Cerrar" : "Cancelar"}
+          showCancel
           onConfirm={handleModalConfirm}
           onCancel={closeFormModal}
+          confirmButtonColor={BRAND_COLOR}
+          confirmButtonHoverColor={BRAND_HOVER}
         >
           <HorarioForm
             id="horario-form"
@@ -218,8 +255,8 @@ export default function Horarios() {
             errors={errors}
             submitting={submitting}
             handleChange={handleChange}
-            handleSubmit={handleSubmit}
-            resetForm={resetForm} 
+            handleSubmit={formHandleSubmit}
+            resetForm={resetForm}
           />
         </Modal>
       </CrudLayout>

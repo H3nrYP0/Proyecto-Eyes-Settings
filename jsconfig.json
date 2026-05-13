@@ -3,16 +3,17 @@
     //"baseUrl": ".",
     "paths": {
       // ========== FEATURES ==========
-      "@auth/*": ["./src/features/auth/*"],
-      "@compras/*": ["./src/features/compras/*"],
-      "@configuracion/*": ["./src/features/configuracion/*"],
-      "@dashboard/*": ["./src/features/dashboard/*"],
-      "@home/*": ["./src/features/home/*"],
-      "@purchases/*": ["./src/features/purchases/*"],
-      "@sales/*": ["./src/features/sales/*"],
-      "@seguridad/*": ["./src/features/seguridad/*"],
-      "@servicios/*": ["./src/features/servicios/*"],
-      "@ventas/*": ["./src/features/ventas/*"],
+      "@auth/*":                    ["./src/features/auth/*"],
+      "@compras/*":              ["./src/features/compras/*"],
+      "@configuracion/*":  ["./src/features/configuracion/*"],
+      "@dashboard/*":          ["./src/features/dashboard/*"],
+      "@home/*":                    ["./src/features/home/*"],
+      "@purchases/*":          ["./src/features/purchases/*"],
+      "@sales/*":                  ["./src/features/sales/*"],
+      "@seguridad/*":          ["./src/features/seguridad/*"],
+      "@servicios/*":          ["./src/features/servicios/*"],
+      "@horario/*":    ["./src/features/servicios/horario/*"],
+      "@ventas/*":                ["./src/features/ventas/*"],
 
       // ========== LIB ==========
       "@lib/*": ["./src/lib/*"],

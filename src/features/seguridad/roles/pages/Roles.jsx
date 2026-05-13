@@ -10,17 +10,18 @@ import {
   deleteRol,
   updateEstadoRol,
   normalizarRoles,
+  normalizarRolEstado,
   filtrarRoles,
 } from '@seguridad';
 
 const ESTADO_OPTIONS = [
-  { value: '',         label: 'Todos los estados' },
-  { value: 'activo',   label: 'Activos'           },
-  { value: 'inactivo', label: 'Inactivos'         },
+  { value: '', label: 'Todos los estados' },
+  { value: 'activo', label: 'Activos' },
+  { value: 'inactivo', label: 'Inactivos' },
 ];
 
 const COLUMNS = [
-  { field: 'nombre',   header: 'Nombre',   render: (item) => item.nombre },
+  { field: 'nombre', header: 'Nombre', render: (item) => item.nombre },
   { field: 'permisos', header: 'Permisos', render: (item) => `${item.permisosCount} permisos` },
 ];
 
@@ -28,17 +29,13 @@ export default function Roles() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [search, setSearch] = useState('');
+  const [search,       setSearch]       = useState('');
   const [filterEstado, setFilterEstado] = useState('');
-  const [deleteModal, setDeleteModal] = useState({ open: false, id: null, nombre: '' });
-
-  const [notification, setNotification] = useState({
-    isVisible: false, message: '', type: 'success',
-  });
+  const [deleteModal,  setDeleteModal]  = useState({ open: false, id: null, nombre: '' });
+  const [notification, setNotification] = useState({ isVisible: false, message: '', type: 'success' });
 
   const showNotification = (message, type = 'success') =>
     setNotification({ isVisible: true, message, type });
-
   const handleCloseNotification = () =>
     setNotification((prev) => ({ ...prev, isVisible: false }));
 
@@ -58,13 +55,15 @@ export default function Roles() {
       return normalizarRoles(rolesData);
     },
     staleTime: 1000 * 60 * 5,
+    // select garantiza normalización incluso cuando los datos vienen del caché
+    select: (data) => normalizarRoles(data),
   });
 
   const roles = data || [];
 
   const deleteMutation = useMutation({
     mutationFn: deleteRol,
-    onSuccess: (_, deletedId) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
       const nombre = deleteModal.nombre;
       setDeleteModal({ open: false, id: null, nombre: '' });
@@ -77,14 +76,15 @@ export default function Roles() {
     },
   });
 
-  // Cambiar estado — actualización optimista en caché
   const estadoMutation = useMutation({
     mutationFn: ({ id, estado }) => updateEstadoRol(id, estado),
     onSuccess: (_, { id, estado }) => {
+      // Garantizar que el estado en caché siempre sea string normalizado
+      const estadoNormalizado = normalizarRolEstado(estado);
       queryClient.setQueryData(['roles'], (oldRoles) => {
         if (!oldRoles) return oldRoles;
         return oldRoles.map((rol) =>
-          rol.id === id ? { ...rol, estado } : rol
+          rol.id === id ? { ...rol, estado: estadoNormalizado } : rol
         );
       });
     },
@@ -93,7 +93,6 @@ export default function Roles() {
   const handleDelete = (id, nombre) =>
     setDeleteModal({ open: true, id, nombre });
 
-  // confirmDelete ya no necesita try/catch: los callbacks de la mutación lo manejan
   const confirmDelete = () => {
     deleteMutation.mutate(deleteModal.id);
   };

@@ -1,14 +1,14 @@
-// Función para filtrar usuarios por nombre y estado
+// Filtra usuarios por nombre o correo, y por estado
 export const filtrarUsuarios = (usuarios, search, estado) => {
-  // 1. Forzamos que sea un string. Si search es null/undefined, usamos ""
-  const term = (search || "").toString().toLowerCase();
+  const term = (search || "").toString().toLowerCase().trim();
 
   return usuarios.filter((user) => {
-    // 2. Usamos Optional Chaining (?.) por si user.nombre no existe
-    const nombreUser = (user.nombre || "").toLowerCase();
+    const nombre = (user.nombre || "").toLowerCase();
+    const correo = (user.correo || "").toLowerCase();
 
+    const matchSearch = !term || nombre.includes(term) || correo.includes(term);
     const matchEstado = !estado || user.estado === estado;
 
-    return nombreUser.includes(term) && matchEstado;
+    return matchSearch && matchEstado;
   });
 };

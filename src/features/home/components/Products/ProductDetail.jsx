@@ -1,17 +1,15 @@
 // =============================================================
 // ProductDetail.jsx — Ruta: /productos/:id
-// MIGRADO a React Query:
-// - ['producto', id] — caché por producto individual
-// - Si el usuario viene del grid, categorias/marcas ya están en
-//   caché del navegador (fetch nativo) — la petición del producto
-//   es la única nueva.
+// Mejoras: todo más compacto, botón volver arriba derecha,
+// input cantidad con límite estricto al escribir,
+// addToCart NO abre el drawer automáticamente
 // =============================================================
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getProductoById } from "../Services/productosLandingData";
-import ShoppingCart, { useCart } from "./ShoppingCart";
+import { useCart } from "./ShoppingCart";
 import LoadingSpinner from "../Shared/LoadingSpinner";
 
 const formatPrice = (price) => {
@@ -36,6 +34,7 @@ const ImagePlaceholder = () => (
 const ProductDetail = ({ user }) => {
   const { id }       = useParams();
   const navigate     = useNavigate();
+  // Solo usamos addToCart y cartCount — NO toggleCart para no abrir el drawer
   const { addToCart, cartCount, toggleCart } = useCart();
 
   const [imagenActiva,  setImagenActiva]  = useState(0);
@@ -45,8 +44,12 @@ const ProductDetail = ({ user }) => {
 
   const cantidadInputRef = useRef(null);
 
-  // Scroll al inicio al cambiar de producto
-  useEffect(() => { window.scrollTo(0, 0); }, [id]);
+  // Scroll al top ANTES del paint al cambiar de producto
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [id]);
 
   // Resetear estado de UI cuando cambia el producto
   useEffect(() => {
@@ -65,6 +68,7 @@ const ProductDetail = ({ user }) => {
 
   const handleImgError = (idx) => setImgErrors(p => ({ ...p, [idx]: true }));
 
+  // Añade al carrito pero NO abre el drawer
   const handleAddToCart = () => {
     if (!producto || producto.stockActual < 1) return;
     addToCart({ ...producto, cantidad });
@@ -72,6 +76,7 @@ const ProductDetail = ({ user }) => {
     setTimeout(() => setAddedFeedback(false), 1800);
   };
 
+  // Botones +/- con límite estricto
   const handleCantidadChange = (delta) => {
     setCantidad(prev => {
       const next = prev + delta;
@@ -81,14 +86,19 @@ const ProductDetail = ({ user }) => {
     });
   };
 
+  // Input manual: solo deja escribir dígitos y no supera el stock
   const handleCantidadInputChange = (e) => {
-    const digitsOnly = e.target.value.replace(/\D/g, "");
-    setCantidad(digitsOnly === "" ? "" : Number(digitsOnly));
+    const raw = e.target.value.replace(/\D/g, "");
+    if (raw === "") { setCantidad(""); return; }
+    const num = Number(raw);
+    // Si el número ingresado supera el stock, no lo acepta — queda igual
+    if (producto && num > producto.stockActual) return;
+    setCantidad(num);
   };
 
+  // Al salir del input: si está vacío o es 0, vuelve a 1
   const handleCantidadInputBlur = () => {
     if (cantidad === "" || cantidad < 1) setCantidad(1);
-    else if (producto && cantidad > producto.stockActual) setCantidad(producto.stockActual);
   };
 
   const handleCantidadInputKeyDown = (e) => {
@@ -128,22 +138,33 @@ const ProductDetail = ({ user }) => {
     categoria = "", marca = "", codigo = "", imagenes = [],
   } = producto;
 
-  const disponible         = stockActual > 0;
-  const stockBajo          = disponible && stockActual <= stockMinimo;
-  const imagenesFiltradas  = imagenes.filter(img => img?.url);
-  const tieneImagenes      = imagenesFiltradas.length > 0;
+  const disponible        = stockActual > 0;
+  const stockBajo         = disponible && stockActual <= stockMinimo;
+  const imagenesFiltradas = imagenes.filter(img => img?.url);
+  const tieneImagenes     = imagenesFiltradas.length > 0;
 
   return (
     <div className="pd-page">
 
-      <nav className="pd-breadcrumb">
-        <button onClick={() => navigate("/")} className="pd-bread-link">Inicio</button>
-        <span className="pd-bread-sep">›</span>
-        <button onClick={() => navigate("/productos")} className="pd-bread-link">Productos</button>
-        <span className="pd-bread-sep">›</span>
-        <span className="pd-bread-current">{nombre}</span>
-      </nav>
+      {/* ─── Barra superior: breadcrumb izquierda + botón volver derecha ── */}
+      <div className="pd-topbar">
+        <nav className="pd-breadcrumb">
+          <button onClick={() => navigate("/")} className="pd-bread-link">Inicio</button>
+          <span className="pd-bread-sep">›</span>
+          <button onClick={() => navigate("/productos")} className="pd-bread-link">Productos</button>
+          <span className="pd-bread-sep">›</span>
+          <span className="pd-bread-current">{nombre}</span>
+        </nav>
 
+        <button onClick={() => navigate("/productos")} className="pd-back-products">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          Volver a productos
+        </button>
+      </div>
+
+      {/* ─── Layout galería + info ─────────────────────────────────────── */}
       <div className="pd-layout">
 
         {/* Galería */}
@@ -187,9 +208,17 @@ const ProductDetail = ({ user }) => {
 
             {tieneImagenes && imagenesFiltradas.length > 1 && (
               <div className="pd-img-nav">
-                <button className="pd-img-arrow" onClick={() => setImagenActiva(p => p === 0 ? imagenesFiltradas.length - 1 : p - 1)} aria-label="Imagen anterior">‹</button>
+                <button
+                  className="pd-img-arrow"
+                  onClick={() => setImagenActiva(p => p === 0 ? imagenesFiltradas.length - 1 : p - 1)}
+                  aria-label="Imagen anterior"
+                >‹</button>
                 <span className="pd-img-counter">{imagenActiva + 1} / {imagenesFiltradas.length}</span>
-                <button className="pd-img-arrow" onClick={() => setImagenActiva(p => (p + 1) % imagenesFiltradas.length)} aria-label="Imagen siguiente">›</button>
+                <button
+                  className="pd-img-arrow"
+                  onClick={() => setImagenActiva(p => (p + 1) % imagenesFiltradas.length)}
+                  aria-label="Imagen siguiente"
+                >›</button>
               </div>
             )}
           </div>
@@ -231,7 +260,12 @@ const ProductDetail = ({ user }) => {
               <div className="pd-cantidad-wrap">
                 <span className="pd-cantidad-label">Cantidad</span>
                 <div className="pd-cantidad-ctrl">
-                  <button className="pd-cantidad-btn" onClick={() => handleCantidadChange(-1)} disabled={cantidad <= 1} aria-label="Reducir cantidad">−</button>
+                  <button
+                    className="pd-cantidad-btn"
+                    onClick={() => handleCantidadChange(-1)}
+                    disabled={cantidad <= 1}
+                    aria-label="Reducir cantidad"
+                  >−</button>
                   <input
                     ref={cantidadInputRef}
                     type="text"
@@ -242,25 +276,42 @@ const ProductDetail = ({ user }) => {
                     onBlur={handleCantidadInputBlur}
                     onKeyDown={handleCantidadInputKeyDown}
                     aria-label="Cantidad de producto"
-                    min="1"
-                    max={stockActual}
                   />
-                  <button className="pd-cantidad-btn" onClick={() => handleCantidadChange(1)} disabled={cantidad >= stockActual} aria-label="Aumentar cantidad">+</button>
+                  <button
+                    className="pd-cantidad-btn"
+                    onClick={() => handleCantidadChange(1)}
+                    disabled={cantidad >= stockActual}
+                    aria-label="Aumentar cantidad"
+                  >+</button>
                 </div>
               </div>
 
+              {/* Añadir al carrito — NO abre el drawer */}
               <button
                 className={`pd-add-btn${addedFeedback ? " pd-add-btn--added" : ""}`}
                 onClick={handleAddToCart}
                 disabled={!disponible}
               >
                 {addedFeedback ? (
-                  <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>Añadido al carrito</>
+                  <>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Añadido al carrito
+                  </>
                 ) : (
-                  <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>Añadir al carrito</>
+                  <>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                      <line x1="3" y1="6" x2="21" y2="6"/>
+                      <path d="M16 10a4 4 0 01-8 0"/>
+                    </svg>
+                    Añadir al carrito
+                  </>
                 )}
               </button>
 
+              {/* Ver carrito solo si hay items — lo abre manualmente */}
               {cartCount > 0 && (
                 <button className="pd-view-cart-btn" onClick={toggleCart}>
                   Ver carrito ({cartCount})
@@ -272,7 +323,8 @@ const ProductDetail = ({ user }) => {
           {!disponible && (
             <div className="pd-agotado-msg">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/>
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
               </svg>
               Este producto no está disponible actualmente.
             </div>
@@ -281,23 +333,14 @@ const ProductDetail = ({ user }) => {
           <div className="pd-ficha">
             <h3 className="pd-ficha-title">Detalles del producto</h3>
             <dl className="pd-ficha-list">
-              {marca    && <><dt>Marca</dt><dd>{marca}</dd></>}
+              {marca     && <><dt>Marca</dt><dd>{marca}</dd></>}
               {categoria && <><dt>Categoría</dt><dd>{categoria}</dd></>}
-              {codigo   && <><dt>Referencia</dt><dd>{codigo}</dd></>}
+              {codigo    && <><dt>Referencia</dt><dd>{codigo}</dd></>}
               <dt>Disponibilidad</dt>
               <dd>{disponible ? `${stockActual} unidades` : "Sin stock"}</dd>
             </dl>
           </div>
         </div>
-      </div>
-
-      <div className="pd-bottom-nav">
-        <button onClick={() => navigate("/productos")} className="pd-back-products">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
-          Volver a productos
-        </button>
       </div>
 
     </div>

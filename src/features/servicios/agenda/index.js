@@ -2,19 +2,34 @@
  * Módulo de Agenda
  */
 
-// Pages
+// ============================
+// RE-EXPORTAR SERVICIOS Y UTILS como named exports
+// ============================
+export * from './services/agendaService';
+export * from './utils/agendaUtils';
+
+// ============================
+// PAGES
+// ============================
 export { default as Agenda } from "./pages/Agenda";
 
-// Components
+// ============================
+// COMPONENTS
+// ============================
 export { default as AgendaCalendar } from "./components/AgendaCalendar";
 
-// Hooks
+// ============================
+// HOOKS
+// ============================
 export { useAgenda } from "./hooks/useAgenda";
 
-// Services
+// ============================
+// CONTEXT (stub)
+// ============================
+export { AgendaDataProvider } from "./context/AgendaDataContext";
+
+// ============================
+// NAMESPACES (opcional, por compatibilidad)
+// ============================
 export * as agendaService from "./services/agendaService";
-
-// Utils
 export * as agendaUtils from "./utils/agendaUtils";
-
-// Nota: ListaHorarios NO está en este módulo, está en horario

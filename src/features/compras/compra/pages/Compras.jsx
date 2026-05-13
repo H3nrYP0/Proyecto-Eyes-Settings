@@ -112,7 +112,6 @@ export default function Compras() {
           .compras-tabla tr:has(button[disabled][style*="9ca3af"]) {
             background-color: #f9fafb !important;
             opacity: 0.65;
-            pointer-events: none;
           }
           .compras-tabla tr:has(button[disabled][style*="9ca3af"]) td {
             color: #9ca3af !important;

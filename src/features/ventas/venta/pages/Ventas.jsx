@@ -24,8 +24,16 @@ export default function Ventas() {
     },
     {
       field: "fecha_venta",
-      header: "Fecha",
+      header: "Fecha de Venta",
       render: (row) => row.fecha_venta || "—",
+    },
+    {
+      header: "Tipo",
+      render: (row) => {
+        if (row.esCita)    return <span style={{ fontSize: "0.8rem", color: "#6366f1", fontWeight: 600 }}>Cita</span>;
+        if (row.esPedido)  return <span style={{ fontSize: "0.8rem", color: "#0891b2", fontWeight: 600 }}>Pedido</span>;
+        return <span style={{ fontSize: "0.8rem", color: "#10b981", fontWeight: 600 }}>Directa</span>;
+      },
     },
     {
       field: "total",
@@ -67,6 +75,8 @@ export default function Ventas() {
   return (
     <CrudLayout
       title="Ventas"
+      onAddClick={() => navigate("crear")}
+      addButtonLabel="Nueva Venta"
       showSearch
       searchPlaceholder="Buscar por cliente..."
       searchValue={search}
