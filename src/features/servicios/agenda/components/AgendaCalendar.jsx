@@ -3,8 +3,7 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import esLocale from "@fullcalendar/core/locales/es";
-import '../../../../shared/styles/features/agenda-calendar.css';
-
+import '@shared/styles/features/agenda-calendar.css';
 /**
  * Componente de calendario para la agenda
  * @param {Array} events - Lista de eventos (citas y horarios)

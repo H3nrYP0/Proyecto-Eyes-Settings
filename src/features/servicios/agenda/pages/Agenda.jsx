@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAgenda } from '../hooks/useAgenda';
-import AgendaCalendar from '../components/AgendaCalendar';
+import { useAgenda, AgendaCalendar } from '@servicios/agenda';
 import Loading from '@shared/components/ui/Loading';
 import CrudNotification from '@shared/styles/components/notifications/CrudNotification';
-import '../../../../shared/styles/features/agenda-calendar.css';
+import '@shared/styles/features/agenda-calendar.css';
 
 export default function Agenda() {
   const navigate = useNavigate();

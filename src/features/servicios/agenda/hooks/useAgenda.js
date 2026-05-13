@@ -1,76 +1,111 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useAgendaData } from '../context/AgendaDataContext';
-import { getHorariosAgenda, getCitasAgenda, getNovedadesAgenda } from '../services/agendaService';
-import { mapearHorariosEventos, mapearCitasEventos, mapearNovedadesEventos } from '../utils/agendaUtils';
+import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import {
+  getEmpleadosAgenda,
+  getEstadosCitaAgenda,
+  getHorariosAgenda,
+  getCitasAgenda,
+  getNovedadesAgenda,
+} from '@servicios/agenda';
+import {
+  mapearHorariosEventos,
+  mapearCitasEventos,
+  mapearNovedadesEventos,
+} from '@servicios/agenda';
 
 export function useAgenda() {
-  const { empleados, estadosCita, loading: dataLoading } = useAgendaData();
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [selectedEmpleado, setSelectedEmpleado] = useState('todos');
   const [errorModal, setErrorModal] = useState({ open: false, message: '' });
 
-  const cargarDatos = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const [horariosRes, citasRes, novedadesRes] = await Promise.allSettled([
-        getHorariosAgenda(),
-        getCitasAgenda(),
-        getNovedadesAgenda(),
-      ]);
+  // Datos estáticos – cambian poco
+  const {
+    data: empleados = [],
+    error: errorEmpleados,
+  } = useQuery({
+    queryKey: ['empleados-agenda'],
+    queryFn: getEmpleadosAgenda,
+    staleTime: 10 * 60 * 1000,
+  });
 
-      const horarios = horariosRes.status === 'fulfilled' && Array.isArray(horariosRes.value) ? horariosRes.value : [];
-      const citas = citasRes.status === 'fulfilled' && Array.isArray(citasRes.value) ? citasRes.value : [];
-      const novedades = novedadesRes.status === 'fulfilled' && Array.isArray(novedadesRes.value) ? novedadesRes.value : [];
+  const {
+    data: estadosCita = [],
+    error: errorEstados,
+  } = useQuery({
+    queryKey: ['estados-cita'],
+    queryFn: getEstadosCitaAgenda,
+    staleTime: 10 * 60 * 1000,
+  });
 
-      const errores = [];
-      if (horariosRes.status === 'rejected') errores.push('horarios');
-      if (citasRes.status === 'rejected') errores.push('citas');
-      if (novedadesRes.status === 'rejected') errores.push('novedades');
+  const baseDatosLista = empleados.length > 0;
 
-      if (errores.length) {
-        setErrorModal({
-          open: true,
-          message: `No se pudieron cargar: ${errores.join(', ')}`
-        });
-      }
+  const {
+    data: horarios = [],
+    isLoading: loadingHorarios,
+    error: errorHorarios,
+  } = useQuery({
+    queryKey: ['horarios-agenda'],
+    queryFn: getHorariosAgenda,
+    enabled: baseDatosLista,
+    staleTime: 5 * 60 * 1000,
+  });
 
-      const horariosEventos = mapearHorariosEventos(horarios, empleados);
-      const citasEventos = mapearCitasEventos(citas, empleados, estadosCita);
-      const novedadesEventos = mapearNovedadesEventos(novedades, empleados);
-      
-      setEvents([...horariosEventos, ...citasEventos, ...novedadesEventos]);
-    } catch (err) {
-      console.error(err);
-      setError('Error al cargar la agenda');
-    } finally {
-      setLoading(false);
-    }
-  }, [empleados, estadosCita]);
+  const {
+    data: citas = [],
+    isLoading: loadingCitas,
+    error: errorCitas,
+  } = useQuery({
+    queryKey: ['citas-agenda'],
+    queryFn: getCitasAgenda,
+    enabled: baseDatosLista,
+    staleTime: 2 * 60 * 1000,
+  });
 
-  // Filtrar eventos por empleado seleccionado
-  const eventosFiltrados = selectedEmpleado === 'todos' 
-    ? events 
-    : events.filter(e => e.extendedProps?.empleado_id === parseInt(selectedEmpleado));
+  const {
+    data: novedades = [],
+    isLoading: loadingNovedades,
+    error: errorNovedades,
+  } = useQuery({
+    queryKey: ['novedades-agenda'],
+    queryFn: getNovedadesAgenda,
+    enabled: baseDatosLista,
+    staleTime: 5 * 60 * 1000,
+  });
 
-  useEffect(() => {
-    if (!dataLoading && empleados.length > 0) {
-      cargarDatos();
-    }
-  }, [dataLoading, empleados, cargarDatos]);
+  // Error combinado
+  const error =
+    errorEmpleados ||
+    errorEstados ||
+    errorHorarios ||
+    errorCitas ||
+    errorNovedades;
+
+  // Mapeo de eventos
+  const events = useMemo(() => {
+    if (!empleados.length) return [];
+    return [
+      ...mapearHorariosEventos(horarios, empleados),
+      ...mapearCitasEventos(citas, empleados, estadosCita),
+      ...mapearNovedadesEventos(novedades, empleados),
+    ];
+  }, [horarios, citas, novedades, empleados, estadosCita]);
+
+  const eventosFiltrados = useMemo(() => {
+    if (selectedEmpleado === 'todos') return events;
+    return events.filter(
+      (e) => e.extendedProps?.empleado_id === parseInt(selectedEmpleado)
+    );
+  }, [events, selectedEmpleado]);
+
+  const loading = loadingHorarios || loadingCitas || loadingNovedades;
 
   return {
     events: eventosFiltrados,
     empleados,
-    loading: loading || dataLoading,
+    loading,
     error,
     selectedEmpleado,
     setSelectedEmpleado,
     errorModal,
     setErrorModal,
-    recargar: cargarDatos,
   };
 }
