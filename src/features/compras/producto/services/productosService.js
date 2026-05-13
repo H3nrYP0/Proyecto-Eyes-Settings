@@ -1,5 +1,5 @@
 // src/features/compras/pages/producto/services/productosService.js
-import api from "../../../../lib/axios";
+import api from "@lib/axios";
 
 export const ProductoData = {
   async getAllProductos() {
@@ -12,61 +12,29 @@ export const ProductoData = {
   },
 
   async getProductoById(id) {
-    try {
-      const response = await api.get(`/productos/${id}`);
-      const producto = response.data;
-      
-      let categoriaNombre = '';
-      let marcaNombre = '';
-
-      try {
-        const categorias = await api.get('/categorias');
-        const categoria = categorias.data.find(c => c.id === producto.categoria_id);
-        categoriaNombre = categoria?.nombre || 'Categoría no disponible';
-      } catch (e) {
-        categoriaNombre = 'Categoría no disponible';
-      }
-
-      try {
-        const marcas = await api.get('/marcas');
-        const marca = marcas.data.find(m => m.id === producto.marca_id);
-        marcaNombre = marca?.nombre || 'Marca no disponible';
-      } catch (e) {
-        marcaNombre = 'Marca no disponible';
-      }
-      
-      let imagenes = [];
-      try {
-        const imagenesResponse = await api.get(`/imagenes/producto/${id}`);
-        if (imagenesResponse.data && Array.isArray(imagenesResponse.data.imagenes)) {
-          imagenes = imagenesResponse.data.imagenes;
-        } else if (Array.isArray(imagenesResponse.data)) {
-          imagenes = imagenesResponse.data;
-        }
-      } catch (error) {
-        // Sin imágenes asociadas
-      }
-      
-      return {
-        id: producto.id,
-        nombre: producto.nombre,
-        codigo: producto.codigo || '',
-        descripcion: producto.descripcion || '',
-        precioVenta: producto.precio_venta,
-        precioCompra: producto.precio_compra,
-        stockActual: producto.stock,
-        stockMinimo: producto.stock_minimo,
-        categoria: producto.categoria_id?.toString(),
-        categoriaNombre: categoriaNombre,
-        marca: producto.marca_id?.toString(),
-        marcaNombre: marcaNombre,
-        estado: producto.estado ? 'activo' : 'inactivo',
-        imagenes: imagenes
-      };
-    } catch (error) {
-      throw error;
-    }
-  },
+  try {
+    const response = await api.get(`/productos/lista-completa/${id}`);
+    const producto = response.data;
+    
+    return {
+      id: producto.id,
+      nombre: producto.nombre,
+      descripcion: producto.descripcion || '',
+      precioVenta: producto.precio_venta,
+      precioCompra: producto.precio_compra,
+      stockActual: producto.stock,
+      stockMinimo: producto.stock_minimo,
+      categoria: producto.categoria_id?.toString(),
+      categoriaNombre: producto.categoria_nombre || 'Categoría no disponible',
+      marca: producto.marca_id?.toString(),
+      marcaNombre: producto.marca_nombre || 'Marca no disponible',
+      estado: producto.estado ? 'activo' : 'inactivo',
+      imagenes: producto.imagenes || []
+    };
+  } catch (error) {
+    throw error;
+  }
+},
 
 async createProducto(data) {
     try {
@@ -120,15 +88,18 @@ async createProducto(data) {
     }
     try {
       const productoData = {
-        nombre: data.nombre,
-        descripcion: data.descripcion || '',
-        precio_venta: Number(data.precioVenta) || 0,
-        precio_compra: Number(data.precioCompra) || 0,
-        stock: Number(data.stockActual) || 0,
-        stock_minimo: Number(data.stockMinimo) || 0,
-        estado: data.estado === true || data.estado === 'activo'
+        // nombre: data.nombre,
+        // descripcion: data.descripcion || '',
+        // precio_venta: Number(data.precioVenta) || 0,
+        // precio_compra: Number(data.precioCompra) || 0,
+        // stock: Number(data.stockActual) || 0,
+        // stock_minimo: Number(data.stockMinimo) || 0,
+        // estado: data.estado === true || data.estado === 'activo'
       };
-
+      if (data.nombre !== undefined) productoData.nombre = data.nombre;
+      if (data.descripcion !== undefined) productoData.descripcion = data.descripcion;
+      if (data.stockMinimo !== undefined) productoData.stock_minimo = Number(data.stockMinimo);
+       if (data.estado !== undefined) productoData.estado = data.estado === true || data.estado === 'activo';
       if (data.categoria !== undefined && data.categoria !== null && data.categoria !== '') {
         productoData.categoria_id = parseInt(data.categoria, 10);
       }
@@ -207,25 +178,20 @@ async createProducto(data) {
   },
 
   async hasProductoAsociaciones(id) {
-    try {
-      const [tieneVentas, tieneCompras, tienePedidos] = await Promise.all([
-        this.hasProductoVentasAsociadas(id).catch(() => false),
-        this.hasProductoComprasAsociadas(id).catch(() => false),
-        this.hasProductoPedidosAsociados(id).catch(() => false)
-      ]);
-      
-      return {
-        tieneAsociaciones: tieneVentas || tieneCompras || tienePedidos,
-        detalles: {
-          ventas: tieneVentas,
-          compras: tieneCompras,
-          pedidos: tienePedidos
-        }
-      };
-    } catch (error) {
-      return { tieneAsociaciones: false, detalles: { ventas: false, compras: false, pedidos: false } };
-    }
-  },
+  try {
+    const response = await api.get(`/productos/${id}/asociaciones`);
+    return {
+      tieneAsociaciones: response.data.tiene_asociaciones,
+      detalles: {
+        ventas: response.data.tiene_ventas,
+        compras: response.data.tiene_compras,
+        pedidos: response.data.tiene_pedidos
+      }
+    };
+  } catch (error) {
+    return { tieneAsociaciones: false, detalles: { ventas: false, compras: false, pedidos: false } };
+  }
+},
 
   async updateEstadoProducto(id, nuevoEstado) {
     if (!id) {
@@ -243,19 +209,15 @@ async createProducto(data) {
   },
 
   async checkProductoExists(nombre, excludeId = null) {
-    try {
-      const response = await api.get('/productos');
-      const productos = response.data;
-      const nombreTrimmed = nombre.trim().toLowerCase();
-      
-      return productos.some(producto => 
-        producto.nombre?.toLowerCase().trim() === nombreTrimmed &&
-        (excludeId ? producto.id !== excludeId : true)
-      );
-    } catch (error) {
-      return false;
-    }
-  }
+    if (!nombre || nombre.trim().length < 3) return false;
+    const params = new URLSearchParams({
+      nombre: nombre.trim()
+    });
+    if (excludeId) params.append('exclude_id', excludeId);
+    
+    const response = await api.get(`/productos/verificar-existencia?${params}`);
+    return response.data.exists;
+}
 };
 
 export const getAllProductos = () => ProductoData.getAllProductos();

@@ -13,7 +13,9 @@ export default function ImageDropzone({ onDrop, previews, onRemove, disabled, up
           errorMessage = `El archivo es demasiado grande. Tamaño máximo permitido: 2 MB.`;
         } else if (firstError.code === "file-invalid-type") {
           errorMessage = `Formato no permitido. Solo se aceptan JPG, PNG o WEBP.`;
-        } else {
+        } else if (firstError.code === "too-many-files") {
+          errorMessage = `Máximo 5 imágenes permitidas.`;
+       } else {
           errorMessage = firstError.message;
         }
         if (onError) onError(errorMessage);
