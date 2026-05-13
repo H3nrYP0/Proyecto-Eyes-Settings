@@ -604,6 +604,7 @@ const DeliveryForm = ({ value, onChange, errors }) => (
 // ─────────────────────────────────────────────────────────────
 export const WishlistDrawer = () => {
   const { wishlist,wishOpen,closeWishlist,removeFromWishlist,addToCart } = useCart();
+  const navigate = useNavigate();
   return (
     <>
       {wishOpen && <div className="sc-backdrop" onClick={closeWishlist} aria-hidden="true" />}
@@ -624,7 +625,7 @@ export const WishlistDrawer = () => {
                 <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
               </svg>
               <p>Tu lista de deseos está vacía</p>
-              <button className="wl-empty-btn" onClick={closeWishlist}>Explorar productos</button>
+              <button className="wl-empty-btn" onClick={()=>{ closeWishlist(); navigate("/productos"); }}>Explorar productos</button>
             </div>
           ) : (
             <ul className="wl-items">

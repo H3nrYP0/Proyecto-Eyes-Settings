@@ -442,10 +442,14 @@ export default function ComprasForm({
                                 type="number"
                                 inputMode="numeric"
                                 min={1}
+                                placeholder="0"
                                 value={row.cantidad}
                                 onChange={(e) => {
+                                  // CAMBIO 1: se pasa el valor crudo (puede ser "")
+                                  // handleProductoChange lo acepta y deja vacío hasta que el
+                                  // usuario ingrese un número; ya NO se fuerza "1" como fallback
                                   const val = e.target.value.replace(/[^0-9]/g, "");
-                                  handleProductoChange(i, "cantidad", val || "1");
+                                  handleProductoChange(i, "cantidad", val);
                                 }}
                                 disabled={!row.productoId}
                                 style={{ ...cellSt(!!errors[`qty_${i}`]), textAlign: "center", opacity: row.productoId ? 1 : 0.4 }}
