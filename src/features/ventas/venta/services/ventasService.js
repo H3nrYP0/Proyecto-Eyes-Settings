@@ -3,8 +3,13 @@ import api from "../../../../lib/axios";
 export const ventasService = {
 
   _toUI(v) {
+    // ── Determinar origen de la venta ─────────────────────────────────────
+    // El back devuelve pedido_id y cita_id; ambos pueden ser null.
+    // esPedido: tiene pedido_id  (venta generada desde un pedido pagado)
+    // esCita:   tiene cita_id    (venta generada desde una cita)
+    // esDirecta: ni pedido ni cita
     const esCita    = !!v.cita_id   && !v.pedido_id;
-    const esPedido  = !!v.pedido_id && !v.cita_id;
+    const esPedido  = !!v.pedido_id;              // ← no excluir esCita, pero un pedido nunca tiene cita_id
     const esDirecta = !v.cita_id    && !v.pedido_id;
 
     const detalles = Array.isArray(v.detalles)
@@ -19,7 +24,9 @@ export const ventasService = {
       id:                        v.id,
       cita_id:                   v.cita_id   ?? null,
       pedido_id:                 v.pedido_id ?? null,
-      esCita, esPedido, esDirecta,
+      esCita,
+      esPedido,
+      esDirecta,
       cliente_id:                v.cliente_id,
       cliente_nombre:            v.cliente_nombre ?? "—",
       fecha_venta: v.fecha_venta
@@ -32,7 +39,7 @@ export const ventasService = {
       metodo_entrega:            v.metodo_entrega             ?? "",
       direccion_entrega:         v.direccion_entrega          ?? "",
       transferencia_comprobante: v.transferencia_comprobante  ?? "",
-      // normalizar: solo completada / anulada
+      // Normalizar estado: cancelada → anulada  (compatibilidad back viejo)
       estado: (() => {
         const n = v.estado_nombre ?? v.estado ?? "completada";
         if (n === "cancelada") return "anulada";

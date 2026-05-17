@@ -1,13 +1,73 @@
 import { useNavigate } from "react-router-dom";
-import CrudLayout from "../../../../shared/components/crud/CrudLayout";
-import CrudTable from "../../../../shared/components/crud/CrudTable";
-import Modal from "../../../../shared/components/ui/Modal";
+import CrudLayout       from "../../../../shared/components/crud/CrudLayout";
+import CrudTable        from "../../../../shared/components/crud/CrudTable";
+import Modal            from "../../../../shared/components/ui/Modal";
 import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
-import { usePedidos } from "../hooks/usePedidos";
+import { usePedidos }   from "../hooks/usePedidos";
 import { ESTADOS_ABONABLE, COLORES_ESTADO } from "../utils/pedidosUtils";
 import "../../../../shared/styles/components/crud-table.css";
 import "../../../../shared/styles/components/modal.css";
 
+/* ── Thumbnail del comprobante en la tabla ─────────────────────────────── */
+function ComprobanteBadge({ url }) {
+  if (!url) {
+    return <span style={{ color: "#d1d5db", fontSize: "0.8rem" }}>—</span>;
+  }
+
+  const esImagen =
+    /\.(jpg|jpeg|png|webp)(\?|$)/i.test(url) ||
+    url.includes("cloudinary.com") ||
+    url.includes("res.cloudinary");
+
+  if (esImagen) {
+    return (
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Ver comprobante"
+        onClick={(e) => e.stopPropagation()}
+        style={{ display: "inline-block", lineHeight: 0 }}
+      >
+        <img
+          src={url}
+          alt="Comprobante"
+          style={{
+            width: 40, height: 40,
+            objectFit: "cover",
+            borderRadius: 6,
+            border: "1px solid #e5e7eb",
+            cursor: "zoom-in",
+            transition: "transform 0.15s, box-shadow 0.15s",
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.transform = "scale(1.12)";
+            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.transform = "scale(1)";
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        />
+      </a>
+    );
+  }
+
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(e) => e.stopPropagation()}
+      style={{ fontSize: "0.75rem", color: "#6366f1", textDecoration: "none" }}
+      title={url}
+    >
+      🔗 Ver
+    </a>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════════ */
 export default function Pedidos() {
   const navigate = useNavigate();
   const {
@@ -20,7 +80,6 @@ export default function Pedidos() {
     modalAbono, montoAbono, setMontoAbono,
     abonoLoading, handleAbonar, confirmAbono, closeAbonoModal,
     formatCurrency,
-    obtenerCantidadItems,
     obtenerResumenItems,
   } = usePedidos();
 
@@ -43,10 +102,9 @@ export default function Pedidos() {
     {
       field: "items",
       header: "Ítems",
-      render: (row) => {
-        const resumen = obtenerResumenItems(row);
-        return <span style={{ fontSize: "0.85rem" }}>{resumen}</span>;
-      },
+      render: (row) => (
+        <span style={{ fontSize: "0.85rem" }}>{obtenerResumenItems(row)}</span>
+      ),
     },
     {
       field: "total",
@@ -54,10 +112,15 @@ export default function Pedidos() {
       render: (row) => formatCurrency(row.total),
     },
     {
+      field: "transferencia_comprobante",
+      header: "Comprobante",
+      render: (row) => <ComprobanteBadge url={row.transferencia_comprobante} />,
+    },
+    {
       field: "estado",
       header: "Estado",
       render: (row) => {
-        const col = COLORES_ESTADO[row.estado] ?? { bg: "#f3f4f6", color: "#374151" };
+        const col   = COLORES_ESTADO[row.estado] ?? { bg: "#f3f4f6", color: "#374151" };
         const label = row.estado
           ? row.estado.charAt(0).toUpperCase() + row.estado.slice(1)
           : "—";
