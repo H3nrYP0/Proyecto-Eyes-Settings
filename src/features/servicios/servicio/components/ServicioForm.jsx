@@ -1,11 +1,11 @@
-import { Box, Grid, FormHelperText } from "@mui/material";
-import BaseInputField from "../../../../shared/components/base/BaseInputField";
-import { useServicioForm } from "../hooks/useServicioForm";
-import { formatCOP } from "../../../../shared/utils/formatCOP";
-import { TextFieldNoEmoji, TextFieldLetters, TextFieldNumbers } from "@shared/index";
+import { Box, Grid, FormHelperText } from '@mui/material';
+import BaseInputField from '@shared/components/base/BaseInputField';
+import { useServicioForm } from '../hooks/useServicioForm';
+import { formatCOP } from '@shared/utils/formatCOP';
+import { TextFieldNoEmoji, TextFieldLetters, TextFieldNumbers } from '@shared/index';
 
 export default function ServicioForm({
-  mode = "create",
+  mode = 'create',
   initialData,
   onSubmit,
   onCancel,
@@ -36,7 +36,7 @@ export default function ServicioForm({
               disabled={isView}
               required={!isView}
               error={!!errors.nombre || nombreExists}
-              helperText={errors.nombre || (nombreExists ? "Ya existe un servicio con este nombre" : "")}
+              helperText={errors.nombre || (nombreExists ? 'Ya existe un servicio con este nombre' : '')}
               maxLength={65}
             />
           </Grid>
@@ -46,7 +46,7 @@ export default function ServicioForm({
               <BaseInputField
                 label="Precio"
                 value={formatCOP(formData.precio)}
-                disabled={true}
+                disabled
               />
             ) : (
               <>
@@ -59,7 +59,7 @@ export default function ServicioForm({
                   required
                   error={!!errors.precio}
                   helperText={errors.precio}
-                  inputProps={{ inputMode: "numeric", min: 0 }}
+                  inputProps={{ inputMode: 'numeric', min: 0 }}
                 />
                 {formData.precio && !errors.precio && (
                   <FormHelperText sx={{ mt: 0.5 }}>
@@ -80,21 +80,21 @@ export default function ServicioForm({
               required={!isView}
               error={!!errors.duracion_min}
               helperText={errors.duracion_min}
-              inputProps={{ inputMode: "numeric", min: 1, max: 480 }}
+              inputProps={{ inputMode: 'numeric', min: 1, max: 480 }}
             />
           </Grid>
 
-          {mode !== "create" && (
+          {mode !== 'create' && (
             <Grid item xs={12} sm={6}>
               <BaseInputField
                 label="Estado del Servicio"
                 name="estado"
-                value={formData.estado ? "true" : "false"}
+                value={formData.estado ? 'true' : 'false'}
                 onChange={handleChange}
                 select
                 options={[
-                  { value: "true", label: "Activo" },
-                  { value: "false", label: "Inactivo" }
+                  { value: 'true', label: 'Activo' },
+                  { value: 'false', label: 'Inactivo' }
                 ]}
                 disabled={isView}
               />
@@ -120,9 +120,9 @@ export default function ServicioForm({
           </Grid>
         </Grid>
       </Box>
-      <button 
-        type="submit" 
-        ref={submitButtonRef} 
+      <button
+        type="submit"
+        ref={submitButtonRef}
         style={{ display: 'none' }}
         disabled={submitting}
       />
