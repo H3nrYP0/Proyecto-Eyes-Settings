@@ -1,5 +1,4 @@
-// src/features/servicios/pages/servicio/services/serviciosService.js
-import axios from "../../../../lib/axios";
+import axios from '@lib/axios';
 
 export const ServicioData = {
   async getAllServicios() {
@@ -10,7 +9,6 @@ export const ServicioData = {
       throw error;
     }
   },
-
   async getServicioById(id) {
     try {
       const response = await axios.get(`/servicios/${id}`);
@@ -19,7 +17,6 @@ export const ServicioData = {
       throw error;
     }
   },
-
   async createServicio(data) {
     try {
       const response = await axios.post('/servicios', {
@@ -34,8 +31,7 @@ export const ServicioData = {
       throw error;
     }
   },
-
-   async updateServicio(id, data) {
+  async updateServicio(id, data) {
     try {
       const payload = {
         nombre: data.nombre,
@@ -44,24 +40,12 @@ export const ServicioData = {
         precio: Number(data.precio),
         estado: data.estado === true
       };
-      
-      // Solo validar si los valores existen
-      if (isNaN(payload.duracion_min) || payload.duracion_min <= 0) {
-        console.warn('Duración inválida, usando valor existente');
-        // No lanzar error, dejar que el backend maneje
-      }
-      if (isNaN(payload.precio) || payload.precio <= 0) {
-        console.warn('Precio inválido, usando valor existente');
-      }
-      
       const response = await axios.put(`/servicios/${id}`, payload);
       return response.data;
     } catch (error) {
-      console.error('Error en updateServicio:', error);
       throw error;
     }
   },
-
   async deleteServicio(id) {
     try {
       await axios.delete(`/servicios/${id}`);
@@ -76,23 +60,6 @@ export const ServicioData = {
       throw error;
     }
   },
-
-  async toggleServicioEstado(id, nuevoEstado) {
-    try {
-      const servicioActual = await this.getServicioById(id);
-      const response = await axios.put(`/servicios/${id}`, {
-        nombre: servicioActual.nombre,
-        duracion_min: servicioActual.duracion_min,
-        precio: servicioActual.precio,
-        descripcion: servicioActual.descripcion || '',
-        estado: nuevoEstado
-      });
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
   async checkServicioExists(nombre, excludeId = null) {
     try {
       const response = await axios.get('/servicios');
@@ -106,11 +73,6 @@ export const ServicioData = {
       throw error;
     }
   },
-
-  /**
-   * Obtiene todos los estados de cita disponibles
-   * @returns {Promise<Array>} Lista de estados de cita
-   */
   async getEstadosCita() {
     try {
       const response = await axios.get('/estado-cita');
@@ -119,11 +81,6 @@ export const ServicioData = {
       throw error;
     }
   },
-
-  /**
-   * Obtiene los IDs de los estados de cita que bloquean la desactivación de servicios
-   * @returns {Promise<Array<number>>} Lista de IDs de estados bloqueantes
-   */
   async getEstadosQueBloquean() {
     try {
       const estados = await this.getEstadosCita();
@@ -136,11 +93,9 @@ export const ServicioData = {
       return [1, 2];
     }
   },
-
   getEstadoTexto(estado) {
     return estado ? 'activo' : 'inactivo';
   },
-
   getEstadoBadge(estado) {
     return estado ? 'success' : 'error';
   }
