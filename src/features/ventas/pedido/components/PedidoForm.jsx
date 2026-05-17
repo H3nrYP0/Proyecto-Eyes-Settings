@@ -7,13 +7,16 @@ import {
   MenuItem,
 } from "@mui/material";
 
-import BaseFormLayout from "../../../../shared/components/base/BaseFormLayout";
-import BaseFormSection from "../../../../shared/components/base/BaseFormSection";
-import BaseFormField from "../../../../shared/components/base/BaseFormField";
-import BaseFormActions from "../../../../shared/components/base/BaseFormActions";
-import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
-import { usePedidoForm } from "../hooks/usePedidoForm";
+import BaseFormLayout      from "../../../../shared/components/base/BaseFormLayout";
+import BaseFormSection     from "../../../../shared/components/base/BaseFormSection";
+import BaseFormField       from "../../../../shared/components/base/BaseFormField";
+import BaseFormActions     from "../../../../shared/components/base/BaseFormActions";
+import CrudNotification    from "../../../../shared/styles/components/notifications/CrudNotification";
+import { usePedidoForm }   from "../hooks/usePedidoForm";
+import ComprobanteDropzone from "./ComprobanteDropzone";
+import { useComprobanteUpload } from "../hooks/useComprobanteUpload";
 
+/* ── Estilos reutilizables ─────────────────────────────────────────────── */
 const viewFieldStyle = {
   backgroundColor: "#f3f4f6",
   color: "#6b7280",
@@ -21,17 +24,59 @@ const viewFieldStyle = {
   userSelect: "none",
 };
 
-const bannerStyle = (color, bg, border) => ({
-  background: bg,
-  border: `1px solid ${border}`,
-  borderRadius: 8,
-  padding: "10px 16px",
-  marginBottom: 16,
-  color,
-  fontWeight: 600,
-  fontSize: "0.9rem",
+const banner = (color, bg, border) => ({
+  background: bg, border: `1px solid ${border}`,
+  borderRadius: 8, padding: "10px 16px", marginBottom: 16,
+  color, fontWeight: 600, fontSize: "0.9rem",
 });
 
+/* ── Visor readonly del comprobante (modo ver) ─────────────────────────── */
+function ComprobanteViewer({ url }) {
+  if (!url) return (
+    <div style={{
+      background: "#f9fafb", border: "1px dashed #d1d5db",
+      borderRadius: 10, padding: "24px 16px",
+      textAlign: "center", color: "#9ca3af", fontSize: "0.85rem",
+    }}>
+      Sin comprobante adjunto
+    </div>
+  );
+
+  const esImagen = /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(url) ||
+    url.includes("cloudinary.com") || url.includes("res.cloudinary");
+
+  if (esImagen) {
+    return (
+      <div>
+        <a href={url} target="_blank" rel="noopener noreferrer">
+          <img src={url} alt="Comprobante"
+            style={{
+              width: "100%", maxHeight: 240,
+              objectFit: "contain", borderRadius: 10,
+              border: "1px solid #e5e7eb", display: "block", cursor: "pointer",
+            }}
+          />
+        </a>
+        <div style={{ marginTop: 4, textAlign: "right" }}>
+          <a href={url} target="_blank" rel="noopener noreferrer"
+            style={{ fontSize: "0.75rem", color: "#6366f1", textDecoration: "none" }}>
+            Ver imagen completa ↗
+          </a>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer"
+      style={{ fontSize: "0.85rem", color: "#6366f1", wordBreak: "break-all" }}>
+      {url}
+    </a>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   COMPONENTE PRINCIPAL
+══════════════════════════════════════════════════════════════════════════ */
 export default function PedidoForm({
   mode = "create",
   title = "Pedido",
@@ -53,41 +98,62 @@ export default function PedidoForm({
     ESTADOS_PEDIDO, METODOS_PAGO, METODOS_ENTREGA,
   } = usePedidoForm({ mode, initialData, onSuccess });
 
+  /* ── Hook comprobante ── */
+  const comprobante = useComprobanteUpload();
+
+  useEffect(() => {
+    if (initialData?.transferencia_comprobante) {
+      comprobante.setExistingUrl(initialData.transferencia_comprobante);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData?.transferencia_comprobante]);
+
   useEffect(() => {
     if (notification.isVisible) {
-      const timer = setTimeout(
-        () => setNotification({ ...notification, isVisible: false }),
-        5000
-      );
-      return () => clearTimeout(timer);
+      const t = setTimeout(() => setNotification({ ...notification, isVisible: false }), 5000);
+      return () => clearTimeout(t);
     }
   }, [notification, setNotification]);
+
+  const isDisabled      = isView || pedidoAnulado || pedidoPagado || saving;
+  const esTransferencia = formData.metodo_pago === "transferencia";
+  const tieneComprobante = !!(comprobante.preview || initialData?.transferencia_comprobante);
 
   const fechaHoy = new Date().toLocaleDateString("es-CO", {
     day: "2-digit", month: "long", year: "numeric",
   });
 
-  // Bloquear edición si está anulado O pagado (un pedido pagado ya generó venta)
-  const isDisabled = isView || pedidoAnulado || pedidoPagado || saving;
+  /* ── Guardar con subida de imagen incluida ── */
+  const handleGuardar = async () => {
+    if (comprobante.hasChanges) {
+      try {
+        const url = await comprobante.uploadAndGetUrl();
+        await guardarPedido({ transferencia_comprobante: url });
+      } catch {
+        // el hook ya muestra el error
+      }
+      return;
+    }
+    guardarPedido();
+  };
 
   return (
     <>
       <BaseFormLayout title={title}>
 
-        {/* Banner anulado */}
+        {/* Banners de estado */}
         {pedidoAnulado && (
-          <div style={bannerStyle("#991b1b", "#fee2e2", "#fecaca")}>
+          <div style={banner("#991b1b", "#fee2e2", "#fecaca")}>
             🚫 Este pedido está anulado y no puede ser modificado.
           </div>
         )}
-
-        {/* Banner pagado */}
         {pedidoPagado && !isView && (
-          <div style={bannerStyle("#166534", "#dcfce7", "#bbf7d0")}>
+          <div style={banner("#166534", "#dcfce7", "#bbf7d0")}>
             ✅ Este pedido está pagado. Ya generó una venta y no puede ser modificado.
           </div>
         )}
 
+        {/* ══ SECCIÓN PRINCIPAL ══ */}
         <BaseFormSection title="Información del Pedido">
 
           {/* Fecha */}
@@ -188,21 +254,7 @@ export default function PedidoForm({
             </BaseFormField>
           )}
 
-          {/* Comprobante transferencia */}
-          {(formData.metodo_pago === "transferencia" || (isView && formData.transferencia_comprobante)) && (
-            <BaseFormField>
-              <TextField fullWidth label="URL Comprobante de Transferencia"
-                value={formData.transferencia_comprobante}
-                InputLabelProps={{ shrink: true }}
-                InputProps={{ readOnly: isView, style: isView ? viewFieldStyle : {} }}
-                onChange={!isDisabled
-                  ? (e) => setFormData({ ...formData, transferencia_comprobante: e.target.value })
-                  : undefined}
-                placeholder="https://…" />
-            </BaseFormField>
-          )}
-
-          {/* Estado (edit/view) */}
+          {/* Estado (edit / view) */}
           {(isEdit || isView) && (
             <BaseFormField>
               {isView ? (
@@ -224,7 +276,7 @@ export default function PedidoForm({
             </BaseFormField>
           )}
 
-          {/* Selector de productos (solo en crear/editar sobre pedidos pendientes) */}
+          {/* Selector de productos (crear / editar) */}
           {!isView && !pedidoAnulado && !pedidoPagado && (
             <>
               <BaseFormField>
@@ -238,7 +290,7 @@ export default function PedidoForm({
                     {catalogLoading ? (
                       <MenuItem disabled><em>Cargando…</em></MenuItem>
                     ) : productos.length === 0 ? (
-                      <MenuItem disabled><em>No hay productos con stock disponible</em></MenuItem>
+                      <MenuItem disabled><em>Sin stock disponible</em></MenuItem>
                     ) : (
                       productos.map((p) => (
                         <MenuItem key={p.id} value={p.id}>
@@ -253,7 +305,6 @@ export default function PedidoForm({
                 </FormControl>
               </BaseFormField>
 
-              {/* Advertencia stock */}
               {stockWarning && (
                 <div style={{
                   background: "#fef3c7", border: "1px solid #f59e0b",
@@ -285,9 +336,43 @@ export default function PedidoForm({
               />
             </BaseFormField>
           )}
+
+          {/* ── COMPROBANTE — AL FINAL DE LA SECCIÓN ── */}
+          {(esTransferencia || (isView && tieneComprobante)) && (
+            <BaseFormField fullWidth>
+              {/* separador visual */}
+              <div style={{
+                borderTop: "1px solid #f3f4f6",
+                paddingTop: 20,
+                marginTop: 8,
+              }}>
+                <div style={{
+                  fontSize: "0.72rem", color: "#9ca3af",
+                  fontWeight: 700, textTransform: "uppercase",
+                  letterSpacing: "0.06em", marginBottom: 10,
+                }}>
+                  Comprobante de Transferencia
+                </div>
+
+                {isView ? (
+                  <ComprobanteViewer url={comprobante.preview || initialData?.transferencia_comprobante} />
+                ) : (
+                  <ComprobanteDropzone
+                    preview={comprobante.preview}
+                    uploading={comprobante.uploading}
+                    error={comprobante.error}
+                    onDrop={comprobante.handleDrop}
+                    onRemove={comprobante.removePreview}
+                    disabled={isDisabled}
+                  />
+                )}
+              </div>
+            </BaseFormField>
+          )}
+
         </BaseFormSection>
 
-        {/* ── TABLA DE ITEMS ── */}
+        {/* ══ TABLA DE ITEMS ══ */}
         {mostrarTabla && (
           <BaseFormSection title={isView ? "Ítems del Pedido" : "Resumen del Pedido"}>
             <div style={{
@@ -302,7 +387,6 @@ export default function PedidoForm({
             }}>
               {/* Tabla items */}
               <div>
-                {/* Cabecera */}
                 <div style={{
                   display: "grid",
                   gridTemplateColumns: isView ? "3fr 1fr 1.2fr 1.2fr" : "3fr 1fr 1.2fr 1.2fr 36px",
@@ -317,9 +401,8 @@ export default function PedidoForm({
                   {!isView && <div />}
                 </div>
 
-                {/* Filas */}
                 {itemsSeleccionados.map((item, index) => (
-                  <div key={`${item.producto_id}-${index}`}
+                  <div key={`${item.producto_id ?? item.servicio_id}-${index}`}
                     style={{
                       display: "grid",
                       gridTemplateColumns: isView ? "3fr 1fr 1.2fr 1.2fr" : "3fr 1fr 1.2fr 1.2fr 36px",
@@ -336,8 +419,6 @@ export default function PedidoForm({
                         </span>
                       )}
                     </div>
-
-                    {/* Cantidad */}
                     <div>
                       {!isView && !pedidoAnulado && !pedidoPagado ? (
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
@@ -358,12 +439,10 @@ export default function PedidoForm({
                         </div>
                       ) : item.cantidad}
                     </div>
-
                     <div style={{ textAlign: "right" }}>{formatCurrency(item.precio)}</div>
                     <div style={{ textAlign: "right", fontWeight: 600 }}>
                       {formatCurrency((item.precio ?? 0) * item.cantidad)}
                     </div>
-
                     {!isView && !pedidoAnulado && !pedidoPagado && (
                       <button type="button" onClick={() => removerItem(index)}
                         style={{ background: "none", border: "none", cursor: "pointer", color: "#ef4444", fontSize: "1rem" }}>
@@ -398,7 +477,6 @@ export default function PedidoForm({
                   <strong style={{ float: "right" }}>{formatCurrency(calcularTotal())}</strong>
                 </div>
 
-                {/* Preview abono inicial en crear */}
                 {isCreate && formData.abono_inicial && parseFloat(formData.abono_inicial) > 0 && (
                   <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid #e5e7eb" }}>
                     <span style={{ color: "#9ca3af" }}>Abono inicial</span>
@@ -418,7 +496,6 @@ export default function PedidoForm({
                   </div>
                 )}
 
-                {/* Abonos en vista / edición */}
                 {(isView || isEdit) && abonosInfo && (
                   <div style={{ marginTop: 10, borderTop: "2px solid #e5e7eb", paddingTop: 10 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
@@ -465,27 +542,51 @@ export default function PedidoForm({
           </BaseFormSection>
         )}
 
-        {/* ── ACCIONES ── */}
-        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 36 }}>
+        {/* ══ ACCIONES ══ */}
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 36 }}>
           {isView ? (
-            <div style={{ display: "flex", gap: 12 }}>
-              <button className="crud-btn crud-btn-secondary" onClick={onCancel}>Volver</button>
-              {onPdf && (
-                <button className="crud-btn crud-btn-primary" onClick={onPdf}>
+            <>
+              {/* Volver — color primario del sistema */}
+              <button className="crud-btn crud-btn-secondary" onClick={onCancel}>
+                Volver
+              </button>
+
+              {/* PDF — rojo, solo si el pedido está pagado */}
+              {onPdf && formData.estado === "pagado" && (
+                <button
+                  onClick={onPdf}
+                  style={{
+                    padding: "8px 20px",
+                    borderRadius: 8,
+                    border: "none",
+                    background: "#ef4444",
+                    color: "#fff",
+                    fontWeight: 600,
+                    fontSize: "0.9rem",
+                    cursor: "pointer",
+                    transition: "background 0.15s",
+                  }}
+                  onMouseOver={(e) => { e.currentTarget.style.background = "#dc2626"; }}
+                  onMouseOut={(e)  => { e.currentTarget.style.background = "#ef4444"; }}
+                >
                   Generar PDF
                 </button>
               )}
+
+              {/* Editar — color primario, solo si no está cerrado */}
               {onEdit && !pedidoAnulado && !pedidoPagado && (
-                <button className="crud-btn crud-btn-primary" onClick={onEdit}>Editar</button>
+                <button className="crud-btn crud-btn-primary" onClick={onEdit}>
+                  Editar
+                </button>
               )}
-            </div>
+            </>
           ) : (
             <BaseFormActions
               onCancel={onCancel}
-              onSave={guardarPedido}
-              saveLabel={saving ? "Guardando…" : "Guardar"}
+              onSave={handleGuardar}
+              saveLabel={comprobante.uploading || saving ? "Guardando…" : "Guardar"}
               showSave={!pedidoAnulado && !pedidoPagado}
-              saveDisabled={saving || pedidoAnulado || pedidoPagado}
+              saveDisabled={comprobante.uploading || saving || pedidoAnulado || pedidoPagado}
             />
           )}
         </div>

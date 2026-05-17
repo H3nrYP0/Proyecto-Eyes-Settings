@@ -185,7 +185,7 @@ export default function VentaForm({ mode = "view", title = "Venta", initialData 
                 InputLabelProps={{ shrink: true }} />
             ) : (
               <FormControl fullWidth>
-                <InputLabel>Método de Pago *</InputLabel>
+                <InputLabel>Método de Pago</InputLabel>
                 <Select value={formData.metodo_pago} label="Método de Pago *"
                   onChange={(e) => setFormData((p) => ({ ...p, metodo_pago: e.target.value }))}>
                   {METODOS_PAGO.map((m) => (

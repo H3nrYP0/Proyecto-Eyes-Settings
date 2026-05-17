@@ -125,7 +125,9 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
   };
 
   // ── Guardar ───────────────────────────────────────────────────────────────
-  const guardarPedido = async () => {
+  // overrides: objeto con campos extra para inyectar justo antes de guardar
+  // (usado por PedidoForm para pasar la URL del comprobante recién subida)
+  const guardarPedido = async (overrides = {}) => {
     if (!formData.cliente_id) {
       setNotification({ isVisible: true, message: "Por favor seleccione un cliente.", type: "error" });
       return;
@@ -149,7 +151,7 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
 
     setSaving(true);
     try {
-      const payload = { ...formData, items: itemsSeleccionados };
+      const payload = { ...formData, ...overrides, items: itemsSeleccionados };
 
       if (isEdit && initialData?.id) {
         const estadoAnterior = initialData.estado;

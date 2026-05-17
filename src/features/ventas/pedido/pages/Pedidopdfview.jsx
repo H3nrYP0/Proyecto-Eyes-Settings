@@ -124,7 +124,6 @@ export default function PedidoPDFView() {
           <h2 style={{ margin: 0, fontSize: "1.6rem", color: "var(--primary-color, #1a2540)", letterSpacing: 1 }}>
             VISUAL OUTLET
           </h2>
-          <p style={{ margin: "6px 0 2px", color: "#6b7280", fontSize: "0.88rem" }}>NIT: 901.234.567-8</p>
           <p style={{ margin: "2px 0", color: "#6b7280", fontSize: "0.88rem" }}>
             Carrera 45 50-48 Edificio El Doral Oficina 102, Medellín, Antioquia
           </p>
