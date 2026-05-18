@@ -30,6 +30,7 @@ export default function Servicios() {
     crearServicio,
     editarServicio,
     eliminarServicio,
+    cambiarEstado,
     handleOpenCreate,
     handleOpenEdit,      // para abrir edición desde vista
     handleCloseForm,
@@ -97,7 +98,7 @@ export default function Servicios() {
           columns={columns}
           data={servicios}
           actions={tableActions}
-          onChangeStatus={null}
+          onChangeStatus={(item, nuevoEstado) => cambiarEstado(item, nuevoEstado)}
           emptyMessage={
             search || filterEstado
               ? 'No se encontraron servicios para los filtros aplicados'
