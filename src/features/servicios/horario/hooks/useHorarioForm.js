@@ -12,7 +12,6 @@ export function useHorarioForm({ mode = "create", initialData = null } = {}) {
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
-  // Cargar datos iniciales
   useEffect(() => {
     if (initialData) {
       setFormData({
@@ -31,47 +30,24 @@ export function useHorarioForm({ mode = "create", initialData = null } = {}) {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
-
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   }, [errors]);
 
   const validate = useCallback(() => {
     const newErrors = {};
-
-    if (!formData.empleado_id) {
-      newErrors.empleado_id = "Debe seleccionar un empleado";
-    }
-
-    if (formData.dia === "") {
-      newErrors.dia = "Debe seleccionar un día";
-    }
-
-    if (!formData.hora_inicio) {
-      newErrors.hora_inicio = "Debe ingresar hora de inicio";
-    }
-
-    if (!formData.hora_final) {
-      newErrors.hora_final = "Debe ingresar hora final";
-    }
-
-    if (
-      formData.hora_inicio &&
-      formData.hora_final &&
-      formData.hora_final <= formData.hora_inicio
-    ) {
+    if (!formData.empleado_id) newErrors.empleado_id = "Debe seleccionar un empleado";
+    if (formData.dia === "") newErrors.dia = "Debe seleccionar un día";
+    if (!formData.hora_inicio) newErrors.hora_inicio = "Debe ingresar hora de inicio";
+    if (!formData.hora_final) newErrors.hora_final = "Debe ingresar hora final";
+    if (formData.hora_inicio && formData.hora_final && formData.hora_final <= formData.hora_inicio) {
       newErrors.hora_final = "La hora final debe ser mayor que la hora de inicio";
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }, [formData]);
 
-  // Solo valida y retorna los datos (no hace la petición HTTP)
   const handleSubmit = useCallback(async () => {
     if (!validate()) return null;
-
     setSubmitting(true);
     const payload = {
       empleado_id: Number(formData.empleado_id),
