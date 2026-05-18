@@ -1,25 +1,17 @@
+import { forwardRef } from "react";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import esLocale from "@fullcalendar/core/locales/es";
-import '@shared/styles/features/agenda-calendar.css';
-/**
- * Componente de calendario para la agenda
- * @param {Array} events - Lista de eventos (citas y horarios)
- * @param {Function} onEventClick - Manejador al hacer clic en un evento
- * @param {string} height - Altura del calendario (por defecto "100%")
- * @param {string} initialView - Vista inicial (timeGridWeek, timeGridDay, dayGridMonth)
- * @param {boolean} selectable - Permitir selección de fechas/horas
- */
-export default function AgendaCalendar({
+
+const AgendaCalendar = forwardRef(({
   events = [],
   onEventClick,
   height = "100%",
   initialView = "timeGridWeek",
   selectable = true,
-}) {
-  // Configuración de botones según idioma
+}, ref) => {
   const buttonText = {
     today: "Hoy",
     month: "Mes",
@@ -27,7 +19,6 @@ export default function AgendaCalendar({
     day: "Día",
   };
 
-  // Formato de hora para slots y eventos (12h AM/PM)
   const timeFormat = {
     hour: "numeric",
     minute: "2-digit",
@@ -36,13 +27,14 @@ export default function AgendaCalendar({
 
   return (
     <FullCalendar
+      ref={ref}
       plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
       locale={esLocale}
       initialView={initialView}
       headerToolbar={{
-        left: "prev,next today",
+        left: "prev,next",
         center: "title",
-        right: "timeGridDay,timeGridWeek,dayGridMonth",
+        right: "timeGridDay,timeGridWeek,dayGridMonth",  // botones Día, Semana, Mes
       }}
       buttonText={buttonText}
       allDaySlot={false}
@@ -61,6 +53,7 @@ export default function AgendaCalendar({
       dayMaxEvents={true}
       weekends={true}
       nowIndicator={true}
+      nowIndicatorClassNames="fc-now-indicator-custom"
       eventDisplay="block"
       eventBackgroundColor="transparent"
       eventBorderColor="transparent"
@@ -71,9 +64,11 @@ export default function AgendaCalendar({
       displayEventEnd={true}
       windowResizeDelay={200}
       handleWindowResize={true}
-      // Nuevas propiedades para la vista de mes:
-      showNonCurrentDates={false}      // Oculta días de meses anteriores/siguientes
-      fixedWeekCount={false}           // No fuerza 6 semanas; se ajusta al contenido real
+      showNonCurrentDates={false}
+      fixedWeekCount={false}
     />
   );
-}
+});
+
+AgendaCalendar.displayName = 'AgendaCalendar';
+export default AgendaCalendar;
