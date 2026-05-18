@@ -4,6 +4,7 @@ import { Box, Button, Select, MenuItem, FormControl, InputLabel } from '@mui/mat
 import { useAgenda, AgendaCalendar } from '@servicios/agenda';
 import Loading from '@shared/components/ui/Loading';
 import CrudNotification from '@shared/styles/components/notifications/CrudNotification';
+import '@shared/styles/features/agenda-calendar.css';
 
 // Colores corporativos
 const BRAND_COLOR = '#1a2540';

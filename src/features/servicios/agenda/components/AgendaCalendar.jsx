@@ -4,6 +4,7 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import esLocale from "@fullcalendar/core/locales/es";
+import '@shared/styles/features/agenda-calendar.css';
 
 const AgendaCalendar = forwardRef(({
   events = [],
