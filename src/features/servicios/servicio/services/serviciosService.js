@@ -73,6 +73,22 @@ export const ServicioData = {
       throw error;
     }
   },
+  async updateEstadoServicio(id, nuevoEstado) {
+    try {
+      if (!id || isNaN(Number(id))) {
+        throw new Error('ID de servicio inválido');
+      }
+      const estado = nuevoEstado === 'activo';
+      const response = await axios.put(`/servicios/${id}`, { estado });
+      return response.data;
+    } catch (error) {
+      console.error(`Error en updateEstadoServicio(${id}):`, error);
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw error;
+    }
+  },
   async getEstadosCita() {
     try {
       const response = await axios.get('/estado-cita');

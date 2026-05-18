@@ -2,11 +2,24 @@ import { useState, useCallback, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ServicioData } from '../services/serviciosService';
 import { useActionBlocker } from '@shared/hooks/useActionBlocker';
-import axios from '@lib/axios';
 import { formatCOP } from '@shared/utils/formatCOP';
+import axios from '@lib/axios';
+
+const ESTADO = {
+  ACTIVO: 'activo',
+  INACTIVO: 'inactivo'
+};
+
+const MODAL_MODE = {
+  CREATE: 'create',
+  EDIT: 'edit',
+  VIEW: 'view'
+};
 
 export const useServicios = () => {
   const queryClient = useQueryClient();
+  const { execute: executeDelete } = useActionBlocker();
+  const { execute: executeStatusChange } = useActionBlocker();
 
   const [search, setSearch] = useState('');
   const [filterEstado, setFilterEstado] = useState('');
@@ -17,7 +30,7 @@ export const useServicios = () => {
   });
   const [modalForm, setModalForm] = useState({
     open: false,
-    mode: 'create',
+    mode: MODAL_MODE.CREATE,
     title: '',
     initialData: null,
   });
@@ -30,8 +43,6 @@ export const useServicios = () => {
   const clickLockRef = useRef(false);
   const submitButtonRef = useRef(null);
 
-  const { execute: executeDelete } = useActionBlocker();
-
   // ---------- Queries ----------
   const { data: serviciosRaw = [], isLoading, error: queryError } = useQuery({
     queryKey: ['servicios'],
@@ -39,14 +50,16 @@ export const useServicios = () => {
     staleTime: 2 * 60 * 1000,
   });
 
-  const servicios = serviciosRaw.map(servicio => ({
-    id: servicio.id,
-    nombre: servicio.nombre,
-    descripcion: servicio.descripcion || '',
-    duracion_min: servicio.duracion_min,
-    precio: servicio.precio,
-    estado: servicio.estado ? 'activo' : 'inactivo'
-  })).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
+  const servicios = serviciosRaw
+    .map(servicio => ({
+      id: servicio.id,
+      nombre: servicio.nombre,
+      descripcion: servicio.descripcion || '',
+      duracion_min: servicio.duracion_min,
+      precio: servicio.precio,
+      estado: servicio.estado ? ESTADO.ACTIVO : ESTADO.INACTIVO
+    }))
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
 
   // ---------- Mutations ----------
   const createMutation = useMutation({
@@ -64,7 +77,7 @@ export const useServicios = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['servicios'] }),
   });
 
-  // ---------- UI helpers ----------
+  // ---------- UI Helpers ----------
   const showNotification = useCallback((message, type = 'success') => {
     setNotification({ isVisible: true, message, type });
   }, []);
@@ -82,11 +95,11 @@ export const useServicios = () => {
   }, []);
 
   const handleCloseForm = useCallback(() => {
-    setModalForm({ open: false, mode: 'create', title: '', initialData: null });
+    setModalForm({ open: false, mode: MODAL_MODE.CREATE, title: '', initialData: null });
     cleanupModalState();
   }, [cleanupModalState]);
 
-  // ---------- Wrappers de mutaciones ----------
+  // ---------- CRUD Wrappers ----------
   const crearServicio = useCallback(async (data) => {
     setIsSaving(true);
     try {
@@ -138,19 +151,21 @@ export const useServicios = () => {
     });
   }, [deleteMutation, executeDelete, showNotification, cleanupModalState]);
 
-  // ✅ Cambio de estado SIN useActionBlocker (directamente)
-  const cambiarEstado = useCallback(async (row, nuevoEstado) => {
-    const shouldActivate = nuevoEstado === 'activo';
-    
-    // Validar si se puede desactivar (citas pendientes/confirmadas)
-    if (!shouldActivate) {
-      try {
+  // Función de cambio de estado con validación de citas que bloquean (igual que la versión anterior)
+  const cambiarEstado = useCallback(async (row) => {
+    await executeStatusChange(async () => {
+      const shouldActivate = row.estado !== ESTADO.ACTIVO;
+
+      // Validación antes de desactivar: verificar citas en estados que bloquean
+      if (!shouldActivate) {
         const estadosQueBloquean = await ServicioData.getEstadosQueBloquean();
         const citasResponse = await axios.get('/citas');
         const citasList = citasResponse.data.data || citasResponse.data || [];
-        const citasQueBloquean = citasList.filter(cita => 
+
+        const citasQueBloquean = citasList.filter(cita =>
           cita.servicio_id === row.id && estadosQueBloquean.includes(cita.estado_cita_id)
         );
+
         if (citasQueBloquean.length > 0) {
           const estadosUnicos = [...new Set(citasQueBloquean.map(c => c.estado_nombre))];
           showNotification(
@@ -159,41 +174,38 @@ export const useServicios = () => {
           );
           return;
         }
-      } catch (err) {
-        showNotification('Error al verificar citas asociadas', 'error');
-        return;
       }
-    }
-    
-    const payload = {
-      nombre: row.nombre,
-      duracion_min: Number(row.duracion_min) || 0,
-      precio: Number(row.precio) || 0,
-      descripcion: row.descripcion || '',
-      estado: shouldActivate
-    };
-    
-    try {
-      await updateMutation.mutateAsync({ id: row.id, data: payload });
-      showNotification(`Servicio "${row.nombre}" ${shouldActivate ? 'activado' : 'desactivado'} exitosamente`, 'success');
-    } catch (error) {
-      showNotification(error.message || 'Error al cambiar el estado', 'error');
-    }
-  }, [updateMutation, showNotification]);
 
-  // ---------- Handlers de modales ----------
+      // Preparar payload con todos los campos (igual que updateServicio)
+      const payload = {
+        nombre: row.nombre,
+        duracion_min: Number(row.duracion_min) || 0,
+        precio: Number(row.precio) || 0,
+        descripcion: row.descripcion || '',
+        estado: shouldActivate
+      };
+
+      await updateMutation.mutateAsync({ id: row.id, data: payload });
+      showNotification(
+        `Servicio "${row.nombre}" ${shouldActivate ? 'activado' : 'desactivado'} exitosamente`,
+        'success'
+      );
+    });
+  }, [executeStatusChange, updateMutation, showNotification]);
+
+  // ---------- Modal Handlers ----------
   const handleOpenCreate = useCallback(() => {
-    setModalForm({ open: true, mode: 'create', title: 'Crear Nuevo Servicio', initialData: null });
+    setModalForm({ open: true, mode: MODAL_MODE.CREATE, title: 'Crear Nuevo Servicio', initialData: null });
     cleanupModalState();
   }, [cleanupModalState]);
 
   const handleOpenEdit = useCallback((item) => {
-    setModalForm({ open: true, mode: 'edit', title: `Editar Servicio: ${item.nombre}`, initialData: item });
+    setModalForm({ open: true, mode: MODAL_MODE.EDIT, title: `Editar Servicio: ${item.nombre}`, initialData: item });
     cleanupModalState();
   }, [cleanupModalState]);
 
   const handleOpenView = useCallback((item) => {
-    setModalForm({ open: true, mode: 'view', title: `Detalle de Servicio: ${item.nombre}`, initialData: item });
+    setModalForm({ open: true, mode: MODAL_MODE.VIEW, title: `Detalle de Servicio: ${item.nombre}`, initialData: item });
     cleanupModalState();
   }, [cleanupModalState]);
 
@@ -206,7 +218,7 @@ export const useServicios = () => {
     cleanupModalState();
   }, [cleanupModalState]);
 
-  // ---------- Filtros y tabla ----------
+  // ---------- Filtros y Tabla ----------
   const filteredServicios = servicios.filter((servicio) => {
     const matchesSearch = servicio.nombre.toLowerCase().includes(search.toLowerCase()) ||
       (servicio.descripcion && servicio.descripcion.toLowerCase().includes(search.toLowerCase()));
@@ -216,8 +228,8 @@ export const useServicios = () => {
 
   const searchFilters = [
     { value: '', label: 'Todos' },
-    { value: 'activo', label: 'Activos' },
-    { value: 'inactivo', label: 'Inactivos' }
+    { value: ESTADO.ACTIVO, label: 'Activos' },
+    { value: ESTADO.INACTIVO, label: 'Inactivos' }
   ];
 
   const columns = [
@@ -226,8 +238,8 @@ export const useServicios = () => {
     { field: 'precio', header: 'Precio', render: (row) => formatCOP(row.precio) }
   ];
 
+  // Acciones de tabla: ya no incluimos "Cambiar estado" porque CrudTable usa onChangeStatus
   const tableActions = [
-    { label: 'Cambiar estado', type: 'toggle-status', onClick: (item) => cambiarEstado(item, item.estado === 'activo' ? 'inactivo' : 'activo') },
     { label: 'Ver Detalles', type: 'view', onClick: (item) => handleOpenView(item) },
     { label: 'Editar', type: 'edit', onClick: (item) => handleOpenEdit(item) },
     { label: 'Eliminar', type: 'delete', onClick: (item) => handleDelete(item.id, item.nombre) },
@@ -235,11 +247,7 @@ export const useServicios = () => {
 
   const handleModalConfirm = useCallback(() => {
     if (clickLockRef.current) return;
-    if (modalForm.mode === 'view') {
-      // En vista, no hacemos nada aquí; el botón ahora dirá "Editar" y su handler es otro.
-      // El click en "Editar" se manejará en el componente.
-      return;
-    }
+    if (modalForm.mode === MODAL_MODE.VIEW) return;
     if (submitButtonRef.current) {
       clickLockRef.current = true;
       submitButtonRef.current.click();
@@ -254,23 +262,24 @@ export const useServicios = () => {
     setSearch,
     filterEstado,
     setFilterEstado,
+    searchFilters,
     notification,
+    handleCloseNotification,
     modalForm,
     modalDelete,
     submitButtonRef,
     isSaving,
-    searchFilters,
     columns,
     tableActions,
     crearServicio,
     editarServicio,
     eliminarServicio,
+    cambiarEstado,
     handleOpenCreate,
-    handleOpenEdit,      // necesario para edición desde vista
+    handleOpenEdit,
     handleOpenView,
     handleCloseForm,
     handleCancelDelete,
-    handleCloseNotification,
     handleModalConfirm,
   };
 };
