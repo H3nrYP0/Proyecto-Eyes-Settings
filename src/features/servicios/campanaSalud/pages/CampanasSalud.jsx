@@ -5,7 +5,6 @@ import CrudTable from '../../../../shared/components/crud/CrudTable';
 import Modal from '../../../../shared/components/ui/Modal';
 import CrudNotification from '../../../../shared/styles/components/notifications/CrudNotification';
 import { useCampanasSalud } from '../hooks/useCampanasSalud';
-import { ESTADO_CITA_FILTERS, ESTADO_CITA } from '../utils/constants';
 
 export default function CampanasSalud() {
   const navigate = useNavigate();
@@ -13,19 +12,23 @@ export default function CampanasSalud() {
     campanas,
     loading,
     notification,
+    estadosCita,
     handleDelete,
     handleCambioEstado,
     hideNotification,
-    showNotification, 
+    showNotification,
   } = useCampanasSalud();
 
   const [search, setSearch] = useState('');
   const [filterEstado, setFilterEstado] = useState('');
-  const [deleteModal, setDeleteModal] = useState({
-    open: false,
-    id: null,
-    empresa: '',
-  });
+
+  // Construir opciones de filtro dinámicamente usando los estados reales del backend
+  const estadoFilterOptions = [
+    { value: '', label: 'Todos los estados' },
+    ...estadosCita
+      .filter(est => ['Pendiente', 'Completada', 'Cancelada'].includes(est.nombre))
+      .map(est => ({ value: est.id, label: est.nombre }))
+  ];
 
   const filteredCampanas = campanas.filter((campana) => {
     const matchesSearch =
@@ -35,18 +38,8 @@ export default function CampanasSalud() {
         campana.contacto.toLowerCase().includes(search.toLowerCase()));
 
     let matchesFilter = true;
-    if (filterEstado === 'proxima') {
-      const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
-      const diferenciaDias = Math.ceil(
-        (campana.fechaObj - hoy) / (1000 * 60 * 60 * 24)
-      );
-      matchesFilter =
-        diferenciaDias <= 2 &&
-        diferenciaDias >= 0 &&
-        campana.estado_cita_id === ESTADO_CITA.PENDIENTE;
-    } else if (filterEstado) {
-      matchesFilter = campana.estado_cita_id === parseInt(filterEstado, 10);
+    if (filterEstado !== '' && filterEstado !== null && filterEstado !== undefined) {
+      matchesFilter = Number(campana.estado_cita_id) === Number(filterEstado);
     }
     return matchesSearch && matchesFilter;
   });
@@ -95,6 +88,12 @@ export default function CampanasSalud() {
     },
   ];
 
+  const [deleteModal, setDeleteModal] = useState({
+    open: false,
+    id: null,
+    empresa: '',
+  });
+
   const confirmDelete = async () => {
     if (deleteModal.id) {
       await handleDelete(deleteModal.id);
@@ -118,7 +117,7 @@ export default function CampanasSalud() {
         searchPlaceholder="Buscar por empresa, contacto..."
         searchValue={search}
         onSearchChange={setSearch}
-        searchFilters={ESTADO_CITA_FILTERS}
+        searchFilters={estadoFilterOptions}
         filterEstado={filterEstado}
         onFilterChange={setFilterEstado}
       >

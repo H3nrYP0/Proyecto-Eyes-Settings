@@ -7,11 +7,6 @@ import CrudNotification from '@shared/styles/components/notifications/CrudNotifi
 import { TextFieldAlphanumeric, TextFieldNoEmoji } from '@shared/index';
 import { ESTADOS_BLOQUEADOS } from '../utils/constants';
 
-/**
- * Componente formulario para Campañas de Salud.
- * Soporta creación, edición y visualización.
- * En modo vista (isView=true) muestra el botón "Editar" si el estado no está bloqueado.
- */
 const CampanaSaludForm = ({
   formData,
   empleados,
@@ -19,14 +14,14 @@ const CampanaSaludForm = ({
   horasDisponibles,
   loading,
   saving,
-  error,        // siempre string gracias al fix en el hook
+  error,
   isEdit,
   isView,
   notification,
   handleChange,
   handleSubmit,
   handleCancel,
-  handleEdit,   // navega a /editar/:id — lo expone el hook
+  handleEdit,
   hideNotification,
 }) => {
   if (loading) {
@@ -38,10 +33,11 @@ const CampanaSaludForm = ({
   }
 
   const isDisabled = isView;
-
-  // Fix: usar ESTADOS_BLOQUEADOS en lugar de valores hardcodeados (3 y 4)
-  // para que sea consistente con constants.js
+  // Debug: mostrar en consola el estado actual
+  console.log('[CampanaSaludForm] isView:', isView, 'estado_cita_id:', formData.estado_cita_id, 'bloqueados:', ESTADOS_BLOQUEADOS);
+  
   const isEstadoBloqueado = isView && ESTADOS_BLOQUEADOS.includes(formData.estado_cita_id);
+  const showEditButton = isView && !isEstadoBloqueado; // más explícito
 
   const opcionesHora =
     horasDisponibles.length > 0
@@ -54,6 +50,8 @@ const CampanaSaludForm = ({
       : [{ value: '', label: '-- Seleccione empleado y fecha primero --' }];
 
   const opcionesEstado = estadosCita.map((e) => ({ value: e.id, label: e.nombre }));
+
+  const cancelButtonLabel = isView ? 'Cancelar' : 'Cancelar';
 
   return (
     <>
@@ -69,14 +67,12 @@ const CampanaSaludForm = ({
       <BaseFormLayout
         title={isView ? 'Detalle de Campaña' : isEdit ? 'Editar Campaña' : 'Nueva Campaña de Salud'}
       >
-        {/* Fix: error es siempre string; nunca se pasa un objeto Error como hijo */}
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
         )}
 
-        {/* Empresa, NIT, Contacto */}
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={4}>
             <TextFieldAlphanumeric
@@ -130,7 +126,6 @@ const CampanaSaludForm = ({
           </Grid>
         </Grid>
 
-        {/* Empleado, Fecha, Hora */}
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={4}>
             <BaseInputField
@@ -190,7 +185,6 @@ const CampanaSaludForm = ({
           </Grid>
         </Grid>
 
-        {/* Dirección y Estado */}
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={4}>
             <TextFieldNoEmoji
@@ -217,7 +211,6 @@ const CampanaSaludForm = ({
           )}
         </Grid>
 
-        {/* Observaciones */}
         <Grid container spacing={2}>
           <Grid item xs={12}>
             <TextFieldNoEmoji
@@ -234,18 +227,13 @@ const CampanaSaludForm = ({
           </Grid>
         </Grid>
 
-        {/*
-           Fix botón Editar en vista detalle:
-          - showEdit={isView && !isEstadoBloqueado} → aparece en modo vista si el estado lo permite
-          - handleEdit navega a /editar/:id (viene del hook)
-        */}
         <BaseFormActions
           onCancel={handleCancel}
           onSave={handleSubmit}
           onEdit={handleEdit}
           showSave={!isView}
-          showEdit={isView && !isEstadoBloqueado}
-          cancelLabel={isView ? 'Salir' : 'Cancelar'}
+          showEdit={showEditButton}
+          cancelLabel={cancelButtonLabel}
           saveLabel={saving ? 'Guardando...' : 'Guardar'}
           disabled={saving}
         />

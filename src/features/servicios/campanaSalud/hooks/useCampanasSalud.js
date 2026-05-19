@@ -232,6 +232,7 @@ export const useCampanasSalud = () => {
     loading: isLoading,
     error,
     notification,
+    estadosCita, 
     showNotification,
     handleDelete,
     handleCambioEstado,
