@@ -48,12 +48,18 @@ export default function CrudLayout({
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3 }, overflow: "hidden" }}>
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        alignItems={{ xs: "stretch", sm: "center" }}
-        gap={1.5}
-        mb={description ? 1 : 3}
+      {/* ── HEADER ── */}
+      <Box
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",           // permite salto de línea natural
+          alignItems: "center",
+          gap: 1.5,
+          mb: description ? 1 : 3,
+          minWidth: 0,                // evita que flex-children desborden
+        }}
       >
+        {/* Título: nunca se encoge, siempre ocupa su espacio */}
         <Typography
           variant="h5"
           sx={{ fontWeight: 600, flexShrink: 0 }}
@@ -62,19 +68,32 @@ export default function CrudLayout({
         </Typography>
 
         {showSearch && (
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            spacing={1.5}
-            alignItems={{ xs: "stretch", sm: "center" }}
-            sx={{ ml: { sm: "auto" } }}
-          >
-            <Stack direction="row" spacing={1.5} alignItems="center">
+          <>
+            {/* Spacer: empuja los controles a la derecha en pantallas grandes */}
+            <Box sx={{ flexGrow: 1 }} />
+
+            {/* Bloque de controles: se apila verticalmente en móvil */}
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                gap: 1.5,
+                // En móvil ocupa todo el ancho disponible
+                width: { xs: "100%", sm: "auto" },
+                minWidth: 0,
+              }}
+            >
+              {/* Campo de búsqueda */}
               <TextField
                 size="small"
                 placeholder={searchPlaceholder}
                 value={searchTerm}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                sx={{ flex: 1, width: { sm: 200 } }}
+                sx={{
+                  flex: "1 1 160px",   // crece/encoge pero mínimo 160 px
+                  minWidth: 0,
+                }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -83,7 +102,10 @@ export default function CrudLayout({
                   ),
                   endAdornment: searchTerm ? (
                     <InputAdornment position="end">
-                      <IconButton size="small" onClick={() => handleSearchChange("")}>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleSearchChange("")}
+                      >
                         <ClearIcon fontSize="small" />
                       </IconButton>
                     </InputAdornment>
@@ -91,13 +113,17 @@ export default function CrudLayout({
                 }}
               />
 
+              {/* Select de filtro */}
               {searchFilters && (
                 <Select
                   value={filterValue}
                   onChange={(e) => handleFilterChange(e.target.value)}
                   displayEmpty
                   size="small"
-                  sx={{ flexShrink: 0, minWidth: 130 }}
+                  sx={{
+                    flexShrink: 0,
+                    minWidth: 120,
+                  }}
                 >
                   {searchFilters.map((filter) => (
                     <MenuItem key={filter.value} value={filter.value}>
@@ -106,26 +132,49 @@ export default function CrudLayout({
                   ))}
                 </Select>
               )}
-            </Stack>
 
-            {onAddClick && (
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={onAddClick}
-                sx={{
-                  whiteSpace: "nowrap",
-                  width: { xs: "100%", sm: "auto" },
-                  backgroundColor: BRAND_COLOR,
-                  "&:hover": { backgroundColor: BRAND_HOVER },
-                }}
-              >
-                Agregar
-              </Button>
-            )}
-          </Stack>
+              {/* Botón Agregar */}
+              {onAddClick && (
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={onAddClick}
+                  sx={{
+                    flexShrink: 0,
+                    whiteSpace: "nowrap",
+                    // En móvil ocupa todo el ancho si está solo en su "línea"
+                    width: { xs: "100%", sm: "auto" },
+                    backgroundColor: BRAND_COLOR,
+                    "&:hover": { backgroundColor: BRAND_HOVER },
+                  }}
+                >
+                  Agregar
+                </Button>
+              )}
+            </Box>
+          </>
         )}
-      </Stack>
+
+        {/* Botón Agregar cuando NO hay buscador */}
+        {!showSearch && onAddClick && (
+          <>
+            <Box sx={{ flexGrow: 1 }} />
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={onAddClick}
+              sx={{
+                flexShrink: 0,
+                whiteSpace: "nowrap",
+                backgroundColor: BRAND_COLOR,
+                "&:hover": { backgroundColor: BRAND_HOVER },
+              }}
+            >
+              Agregar
+            </Button>
+          </>
+        )}
+      </Box>
 
       {description && (
         <Typography color="text.secondary" sx={{ mb: 3 }}>

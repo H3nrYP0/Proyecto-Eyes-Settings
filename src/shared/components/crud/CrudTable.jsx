@@ -14,7 +14,7 @@ import {
   MenuItem,
   Box,
 } from "@mui/material";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import CrudActions from "../ui/CrudActions";
 import Modal from "../ui/Modal";
 
@@ -43,6 +43,25 @@ export default function UnifiedCrudTable({
 
   const scrollRef = useRef(null);
 
+  // El evento wheel de React es pasivo por defecto y no permite preventDefault().
+  // Se registra manualmente con { passive: false } para poder redirigir el scroll
+  // vertical a scroll horizontal en la tabla.
+  const handleWheel = useCallback((e) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const canScrollH = el.scrollWidth > el.clientWidth;
+    if (!canScrollH) return;
+    e.preventDefault();
+    el.scrollLeft += e.deltaY;
+  }, []);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, [handleWheel]);
+
   // Determinar si se usa paginación externa
   const useExternalPagination = totalCount !== null && onPageChange !== null;
 
@@ -65,15 +84,6 @@ export default function UnifiedCrudTable({
       setInternalRowsPerPage(newRows);
       setInternalPage(0);
     }
-  };
-
-  const handleWheel = (e) => {
-    if (!scrollRef.current) return;
-    const el = scrollRef.current;
-    const canScrollH = el.scrollWidth > el.clientWidth;
-    if (!canScrollH) return;
-    e.preventDefault();
-    el.scrollLeft += e.deltaY;
   };
 
   if (loading) {
@@ -151,7 +161,6 @@ export default function UnifiedCrudTable({
       <Paper sx={{ width: "100%", overflow: "hidden" }}>
         <Box
           ref={scrollRef}
-          onWheel={handleWheel}
           sx={{
             overflowX: "auto",
             overflowY: "hidden",
