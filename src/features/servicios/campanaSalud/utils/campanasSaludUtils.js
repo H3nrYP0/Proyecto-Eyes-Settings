@@ -57,3 +57,36 @@ export const getEstadoLabel = (estadoCitaId) => {
   };
   return labels[estadoCitaId] || 'Desconocido';
 };
+
+/**
+ * Convierte un objeto Date a número de día según backend (0=Lunes, 6=Domingo)
+ * @param {Date} date - Fecha
+ * @returns {number|null} Día en formato backend o null si no hay fecha
+ */
+export const getBackendDay = (date) => {
+  if (!date) return null;
+  const jsDay = date.getDay();
+  return jsDay === 0 ? 6 : jsDay - 1;
+};
+
+/**
+ * Genera slots de 30 minutos entre horaInicio y horaFinal
+ * @param {string} horaInicio - Formato 'HH:MM'
+ * @param {string} horaFinal - Formato 'HH:MM'
+ * @returns {Array<{value: string, label: string}>} Lista de slots disponibles
+ */
+export const generarSlotsHorarios = (horaInicio, horaFinal) => {
+  const slots = [];
+  const [hI, mI] = horaInicio.split(':').map(Number);
+  const [hF, mF] = horaFinal.split(':').map(Number);
+  let minutos = hI * 60 + mI;
+  const minFinal = hF * 60 + mF;
+  while (minutos < minFinal) {
+    const h = Math.floor(minutos / 60);
+    const m = minutos % 60;
+    const valor = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    slots.push({ value: valor, label: horaA12(valor) });
+    minutos += 30;
+  }
+  return slots;
+};

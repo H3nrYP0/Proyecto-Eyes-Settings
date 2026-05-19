@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import CrudLayout from '../../../../shared/components/crud/CrudLayout';
-import CrudTable from '../../../../shared/components/crud/CrudTable';
-import Modal from '../../../../shared/components/ui/Modal';
-import CrudNotification from '../../../../shared/styles/components/notifications/CrudNotification';
+import CrudLayout from '@shared/components/crud/CrudLayout';
+import CrudTable from '@shared/components/crud/CrudTable';
+import Modal from '@shared/components/ui/Modal';
+import CrudNotification from '@shared/styles/components/notifications/CrudNotification';
 import { useCampanasSalud } from '../hooks/useCampanasSalud';
 
 export default function CampanasSalud() {
@@ -21,24 +21,23 @@ export default function CampanasSalud() {
 
   const [search, setSearch] = useState('');
   const [filterEstado, setFilterEstado] = useState('');
+  const [deleteModal, setDeleteModal] = useState({ open: false, id: null, empresa: '' });
 
-  // Construir opciones de filtro dinámicamente usando los estados reales del backend
+  // Opciones de filtro basadas en los estados reales del backend
   const estadoFilterOptions = [
     { value: '', label: 'Todos los estados' },
     ...estadosCita
       .filter(est => ['Pendiente', 'Completada', 'Cancelada'].includes(est.nombre))
-      .map(est => ({ value: est.id, label: est.nombre }))
+      .map(est => ({ value: est.id, label: est.nombre })),
   ];
 
   const filteredCampanas = campanas.filter((campana) => {
     const matchesSearch =
       campana.empresa.toLowerCase().includes(search.toLowerCase()) ||
-      (campana.contacto &&
-        campana.contacto !== '-' &&
-        campana.contacto.toLowerCase().includes(search.toLowerCase()));
+      (campana.contacto && campana.contacto !== '-' && campana.contacto.toLowerCase().includes(search.toLowerCase()));
 
     let matchesFilter = true;
-    if (filterEstado !== '' && filterEstado !== null && filterEstado !== undefined) {
+    if (filterEstado) {
       matchesFilter = Number(campana.estado_cita_id) === Number(filterEstado);
     }
     return matchesSearch && matchesFilter;
@@ -87,12 +86,6 @@ export default function CampanasSalud() {
       },
     },
   ];
-
-  const [deleteModal, setDeleteModal] = useState({
-    open: false,
-    id: null,
-    empresa: '',
-  });
 
   const confirmDelete = async () => {
     if (deleteModal.id) {

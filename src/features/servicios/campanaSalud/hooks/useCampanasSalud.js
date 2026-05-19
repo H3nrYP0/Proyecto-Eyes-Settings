@@ -37,15 +37,11 @@ export const useCampanasSalud = () => {
   });
 
   // ---------- Transformación de una campaña ----------
-  // Fix principal: recibe estadosCita como parámetro directo en lugar de leerlo
-  // desde un ref. Así siempre usa el valor sincronizado del render actual,
-  // evitando el flash a "Pendiente" cuando el ref aún está vacío.
   const transformCampana = useCallback(
     (campana, estadosActuales) => {
       const hoy = new Date();
       hoy.setHours(0, 0, 0, 0);
 
-      // Parsear fecha sin desfase de zona horaria
       const [y, m, d] = (campana.fecha || '').split('T')[0].split('-').map(Number);
       const fechaCampana = new Date(y, m - 1, d);
       fechaCampana.setHours(0, 0, 0, 0);
@@ -60,8 +56,6 @@ export const useCampanasSalud = () => {
       }
 
       const estadoObj = estadosActuales.find((e) => e.id === estadoCitaId);
-      // Fix: solo usar 'Pendiente' como fallback si estadosCita aún no cargó;
-      // en ese caso preferimos mostrar el nombre real del estado original si existe.
       const estadoObjOriginal = estadosActuales.find((e) => e.id === campana.estado_cita_id);
       const estadoNombre = estadoObj?.nombre || estadoObjOriginal?.nombre || 'Pendiente';
       const bloqueada = ESTADOS_BLOQUEADOS.includes(estadoCitaId);
@@ -103,9 +97,7 @@ export const useCampanasSalud = () => {
     staleTime: 2 * 60 * 1000,
   });
 
-  // Fix flash: persistir en backend las campañas vencidas SOLO después de que
-  // estadosCita esté cargado. El UI ya las muestra correctamente desde
-  // transformCampana; esto solo sincroniza el backend en segundo plano.
+  // Actualización de campañas vencidas en segundo plano
   useEffect(() => {
     if (!rawCampanas.length || !estadosCita.length) return;
 
@@ -126,7 +118,6 @@ export const useCampanasSalud = () => {
           promises.push(updateCampanaSalud(campana.id, { estado_cita_id: completadaId }));
         }
       }
-
       if (promises.length) {
         await Promise.all(promises);
         queryClient.invalidateQueries({ queryKey: ['campanas-salud'] });
@@ -136,27 +127,20 @@ export const useCampanasSalud = () => {
     updateVencidas();
   }, [rawCampanas, estadosCita, queryClient]);
 
-  // Fix principal: pasar estadosCita directamente a transformCampana en cada render,
-  // en lugar de depender del ref. Así el estado siempre es correcto desde el
-  // primer render, sin importar el orden de resolución de las queries.
+  // Transformar campañas usando los estados actuales
   const campanas = rawCampanas.map((c) => transformCampana(c, estadosCita));
 
   // ---------- Mutaciones ----------
   const deleteMutation = useMutation({
     mutationFn: deleteCampanaSalud,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['campanas-salud'] });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['campanas-salud'] }),
   });
 
   const updateEstadoMutation = useMutation({
     mutationFn: ({ id, estado_cita_id }) => updateCampanaSalud(id, { estado_cita_id }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['campanas-salud'] });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['campanas-salud'] }),
   });
 
-  // Funciones wrapper
   const handleDelete = useCallback(
     async (id) => {
       const campana = campanas.find((c) => c.id === id);
@@ -232,7 +216,7 @@ export const useCampanasSalud = () => {
     loading: isLoading,
     error,
     notification,
-    estadosCita, 
+    estadosCita,
     showNotification,
     handleDelete,
     handleCambioEstado,

@@ -11,13 +11,12 @@ import { getEmpleadosAgenda } from '@servicios/agenda';
 import { getHorariosByEmpleado } from '@servicios/horario';
 import { getEstadosCita } from '../services/estadosCitaCampanaService';
 import { ESTADO_CITA } from '../utils/constants';
-import { formatearHora24, horaA12 } from '../utils/campanasSaludUtils';
-
-const getBackendDay = (date) => {
-  if (!date) return null;
-  const jsDay = date.getDay();
-  return jsDay === 0 ? 6 : jsDay - 1;
-};
+import {
+  formatearHora24,
+  horaA12,
+  getBackendDay,
+  generarSlotsHorarios,
+} from '../utils/campanasSaludUtils';
 
 const INITIAL_FORM_DATA = {
   empleado_id: '',
@@ -50,18 +49,19 @@ export const useCampanaSaludForm = (id, mode = 'create') => {
   const [horariosEmpleado, setHorariosEmpleado] = useState([]);
   const [horasDisponibles, setHorasDisponibles] = useState([]);
   const [notification, setNotification] = useState({ open: false, type: 'success', message: '' });
-  // Fix: guardar el mensaje de error como string, nunca como objeto Error
   const [errorMessage, setErrorMessage] = useState('');
 
   const showNotification = (type, message) => setNotification({ open: true, type, message });
   const hideNotification = () => setNotification((prev) => ({ ...prev, open: false }));
 
   // ---------- Consultas con React Query ----------
-  const { data: empleados = [] } = useQuery({
+  const { data: empleadosRaw = [] } = useQuery({
     queryKey: ['empleados-agenda'],
     queryFn: getEmpleadosAgenda,
     staleTime: 10 * 60 * 1000,
   });
+  // Filtrar solo empleados activos (asumimos campo 'activo' o 'estado')
+  const empleados = empleadosRaw.filter(emp => emp.activo === true || emp.estado === true);
 
   const { data: estadosCita = [] } = useQuery({
     queryKey: ['estados-cita'],
@@ -84,8 +84,6 @@ export const useCampanaSaludForm = (id, mode = 'create') => {
         empresa: campanaData.empresa || '',
         nit_empresa: campanaData.nit_empresa || 'PENDIENTE',
         contacto: campanaData.contacto || '',
-        // Fix timezone: la fecha viene como "YYYY-MM-DDTHH:mm:ss" o "YYYY-MM-DD",
-        // tomamos solo los primeros 10 caracteres para evitar desfase de zona horaria
         fecha: campanaData.fecha ? campanaData.fecha.substring(0, 10) : '',
         hora: campanaData.hora ? formatearHora24(campanaData.hora) : '',
         direccion: campanaData.direccion || '',
@@ -118,31 +116,12 @@ export const useCampanaSaludForm = (id, mode = 'create') => {
     }
   }, [formData.empleado_id, loadHorariosEmpleado]);
 
-  // Generar slots de 30 minutos
-  const generarSlots = (horaInicio, horaFinal) => {
-    const slots = [];
-    const [hI, mI] = horaInicio.split(':').map(Number);
-    const [hF, mF] = horaFinal.split(':').map(Number);
-    let minutos = hI * 60 + mI;
-    const minFinal = hF * 60 + mF;
-    while (minutos < minFinal) {
-      const h = Math.floor(minutos / 60);
-      const m = minutos % 60;
-      const valor = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-      slots.push({ value: valor, label: horaA12(valor) });
-      minutos += 30;
-    }
-    return slots;
-  };
-
   // Calcular horas disponibles según empleado y fecha
   useEffect(() => {
     if (!formData.empleado_id || !formData.fecha) {
       setHorasDisponibles([]);
       return;
     }
-    // Fix timezone: construir la fecha con año/mes/día explícitos para evitar
-    // que el constructor de Date interprete la cadena como UTC y reste un día.
     const [y, m, d] = formData.fecha.split('-').map(Number);
     const fechaObj = new Date(y, m - 1, d);
     const diaSemana = getBackendDay(fechaObj);
@@ -155,10 +134,9 @@ export const useCampanaSaludForm = (id, mode = 'create') => {
 
     let slots = [];
     horariosDelDia.forEach((h) => {
-      slots = slots.concat(generarSlots(h.hora_inicio, h.hora_final));
+      slots = slots.concat(generarSlotsHorarios(h.hora_inicio, h.hora_final));
     });
-
-    // Eliminar duplicados
+    // Eliminar duplicados por valor
     const vistos = new Set();
     slots = slots.filter((s) => {
       if (vistos.has(s.value)) return false;
@@ -244,11 +222,7 @@ export const useCampanaSaludForm = (id, mode = 'create') => {
       setTimeout(() => navigate('/admin/servicios/campanas-salud'), 1200);
     },
     onError: (err) => {
-      // Fix: extraer siempre un string, nunca pasar el objeto Error directamente
-      const msg =
-        err?.response?.data?.error ||
-        err?.message ||
-        'Error al crear la campaña';
+      const msg = err?.response?.data?.error || err?.message || 'Error al crear la campaña';
       setErrorMessage(msg);
       showNotification('error', msg);
     },
@@ -264,11 +238,7 @@ export const useCampanaSaludForm = (id, mode = 'create') => {
       setTimeout(() => navigate('/admin/servicios/campanas-salud'), 1200);
     },
     onError: (err) => {
-      // Fix: extraer siempre un string
-      const msg =
-        err?.response?.data?.error ||
-        err?.message ||
-        'Error al actualizar la campaña';
+      const msg = err?.response?.data?.error || err?.message || 'Error al actualizar la campaña';
       setErrorMessage(msg);
       showNotification('error', msg);
     },
@@ -319,12 +289,11 @@ export const useCampanaSaludForm = (id, mode = 'create') => {
 
   return {
     formData,
-    empleados: empleados.filter((emp) => emp.estado === true),
+    empleados,
     estadosCita,
     horasDisponibles,
     loading: isLoading,
     saving: createMutation.isPending || updateMutation.isPending,
-    // Fix: error siempre es un string (nunca un objeto Error que React no puede renderizar)
     error: errorMessage,
     isEdit,
     isView,

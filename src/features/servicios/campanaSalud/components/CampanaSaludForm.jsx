@@ -7,6 +7,10 @@ import CrudNotification from '@shared/styles/components/notifications/CrudNotifi
 import { TextFieldAlphanumeric, TextFieldNoEmoji } from '@shared/index';
 import { ESTADOS_BLOQUEADOS } from '../utils/constants';
 
+/**
+ * Componente formulario para Campañas de Salud.
+ * Soporta creación, edición y visualización.
+ */
 const CampanaSaludForm = ({
   formData,
   empleados,
@@ -33,25 +37,18 @@ const CampanaSaludForm = ({
   }
 
   const isDisabled = isView;
-  // Debug: mostrar en consola el estado actual
-  console.log('[CampanaSaludForm] isView:', isView, 'estado_cita_id:', formData.estado_cita_id, 'bloqueados:', ESTADOS_BLOQUEADOS);
-  
   const isEstadoBloqueado = isView && ESTADOS_BLOQUEADOS.includes(formData.estado_cita_id);
-  const showEditButton = isView && !isEstadoBloqueado; // más explícito
+  const showEditButton = isView && !isEstadoBloqueado;
 
+  // Opciones para el selector de hora
   const opcionesHora =
     horasDisponibles.length > 0
-      ? [
-          { value: '', label: '-- Seleccione una hora --' },
-          ...horasDisponibles.map((slot) => ({ value: slot.value, label: slot.label })),
-        ]
+      ? [{ value: '', label: '-- Seleccione una hora --' }, ...horasDisponibles]
       : formData.empleado_id && formData.fecha
       ? [{ value: '', label: 'Sin horario disponible para este día' }]
       : [{ value: '', label: '-- Seleccione empleado y fecha primero --' }];
 
   const opcionesEstado = estadosCita.map((e) => ({ value: e.id, label: e.nombre }));
-
-  const cancelButtonLabel = isView ? 'Cancelar' : 'Cancelar';
 
   return (
     <>
@@ -73,6 +70,7 @@ const CampanaSaludForm = ({
           </Alert>
         )}
 
+        {/* Fila 1: Empresa, NIT, Contacto */}
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={4}>
             <TextFieldAlphanumeric
@@ -84,7 +82,6 @@ const CampanaSaludForm = ({
               required
             />
           </Grid>
-
           <Grid item xs={12} sm={6} md={4}>
             <BaseInputField
               label="NIT de la Empresa"
@@ -104,7 +101,6 @@ const CampanaSaludForm = ({
               inputProps={{ inputMode: 'numeric', minLength: 8 }}
             />
           </Grid>
-
           <Grid item xs={12} sm={6} md={4}>
             <BaseInputField
               label="Contacto"
@@ -126,6 +122,7 @@ const CampanaSaludForm = ({
           </Grid>
         </Grid>
 
+        {/* Fila 2: Empleado, Fecha, Hora */}
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={4}>
             <BaseInputField
@@ -145,7 +142,6 @@ const CampanaSaludForm = ({
               ]}
             />
           </Grid>
-
           <Grid item xs={12} sm={6} md={4}>
             <BaseInputField
               label="Fecha"
@@ -157,7 +153,6 @@ const CampanaSaludForm = ({
               required
             />
           </Grid>
-
           <Grid item xs={12} sm={6} md={4}>
             {isView ? (
               <BaseInputField label="Hora" name="hora" value={formData.hora} disabled />
@@ -185,6 +180,7 @@ const CampanaSaludForm = ({
           </Grid>
         </Grid>
 
+        {/* Fila 3: Dirección, Estado */}
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={4}>
             <TextFieldNoEmoji
@@ -195,7 +191,6 @@ const CampanaSaludForm = ({
               disabled={isDisabled}
             />
           </Grid>
-
           {(isEdit || isView) && opcionesEstado.length > 0 && (
             <Grid item xs={12} sm={6} md={4}>
               <BaseInputField
@@ -211,6 +206,7 @@ const CampanaSaludForm = ({
           )}
         </Grid>
 
+        {/* Fila 4: Observaciones */}
         <Grid container spacing={2}>
           <Grid item xs={12}>
             <TextFieldNoEmoji
@@ -233,7 +229,7 @@ const CampanaSaludForm = ({
           onEdit={handleEdit}
           showSave={!isView}
           showEdit={showEditButton}
-          cancelLabel={cancelButtonLabel}
+          cancelLabel="Cancelar"
           saveLabel={saving ? 'Guardando...' : 'Guardar'}
           disabled={saving}
         />
