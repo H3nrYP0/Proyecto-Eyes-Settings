@@ -1,5 +1,3 @@
-// features/servicios/campanaSalud/utils/campanasSaludUtils.js
-
 import { ESTADO_CITA } from './constants';
 
 export const formatearFechaLocal = (fechaStr) => {
@@ -9,11 +7,7 @@ export const formatearFechaLocal = (fechaStr) => {
   const [year, month, day] = partes;
   const fecha = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
   if (isNaN(fecha.getTime())) return '-';
-  return fecha.toLocaleDateString('es-CO', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
+  return fecha.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
 
 export const horaA12 = (hora) => {
@@ -37,66 +31,9 @@ export const formatearHora24 = (hora) => {
       }
     }
   } catch (e) {
-    // Silencio
+    // silencio
   }
   return hora;
-};
-
-export const transformCampanaFromBackend = (campana) => {
-  if (!campana) return null;
-  return {
-    id: campana.id,
-    empleado_id: campana.empleado_id,
-    // nit_empresa: campana.nit_empresa || '',
-    empleado_nombre: campana.empleado_nombre || 'No asignado',
-    empresa: campana.empresa || '',
-    contacto: campana.contacto || '',
-    fecha: campana.fecha ? campana.fecha.split('T')[0] : '',
-    hora: campana.hora || '',
-    direccion: campana.direccion || '',
-    observaciones: campana.observaciones || '',
-    estado_cita_id: campana.estado_cita_id || ESTADO_CITA.PENDIENTE,
-    estado_nombre: campana.estado_nombre || 'Pendiente',
-  };
-};
-
-export const transformCampanaToBackend = (formData, isEdit = false, originalData = null) => {
-  if (isEdit && originalData) {
-    const changed = {};
-    if (formData.empleado_id !== originalData.empleado_id)
-      changed.empleado_id = parseInt(formData.empleado_id, 10);
-    if (formData.empresa !== originalData.empresa)
-      changed.empresa = formData.empresa.trim();
-    if (formData.contacto !== originalData.contacto)
-      changed.contacto = formData.contacto?.trim() || null;
-    if (formData.fecha !== originalData.fecha)
-      changed.fecha = formData.fecha;
-    if (formData.hora !== originalData.hora)
-      changed.hora = formatearHora24(formData.hora);
-    if (formData.direccion !== originalData.direccion)
-      changed.direccion = formData.direccion?.trim() || null;
-    if (formData.observaciones !== originalData.observaciones)
-      changed.observaciones = formData.observaciones?.trim() || null;
-    if (formData.estado_cita_id !== originalData.estado_cita_id)
-      changed.estado_cita_id = parseInt(formData.estado_cita_id, 10);
-    return changed;
-  }
-
-  const empresaValue = formData.empresa?.trim();
-  if (!empresaValue) {
-    throw new Error('El nombre de la empresa es requerido');
-  }
-
-  return {
-    empleado_id: parseInt(formData.empleado_id, 10),
-    empresa: empresaValue,
-    ...(formData.contacto?.trim() && { contacto: formData.contacto.trim() }),
-    fecha: formData.fecha,
-    hora: formatearHora24(formData.hora),
-    ...(formData.direccion?.trim() && { direccion: formData.direccion.trim() }),
-    ...(formData.observaciones?.trim() && { observaciones: formData.observaciones.trim() }),
-    estado_cita_id: ESTADO_CITA.PENDIENTE,
-  };
 };
 
 export const getEstadoBadgeColor = (estadoCitaId) => {

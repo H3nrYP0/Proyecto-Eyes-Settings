@@ -1,5 +1,3 @@
-// features/servicios/campanaSalud/utils/constants.js
-
 export const ESTADO_CITA = {
   PENDIENTE: 1,
   CONFIRMADA: 2,

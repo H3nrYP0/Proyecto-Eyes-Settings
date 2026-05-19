@@ -1,5 +1,3 @@
-// features/servicios/campanaSalud/pages/CampanasSalud.jsx
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CrudLayout from '../../../../shared/components/crud/CrudLayout';
@@ -18,7 +16,7 @@ export default function CampanasSalud() {
     handleDelete,
     handleCambioEstado,
     hideNotification,
-    showNotification,
+    showNotification, // ✅ Fix: ahora el hook lo expone correctamente
   } = useCampanasSalud();
 
   const [search, setSearch] = useState('');
@@ -71,6 +69,7 @@ export default function CampanasSalud() {
       type: 'edit',
       onClick: (item) => {
         if (!item.esEditable) {
+          // Fix: showNotification ahora viene del hook correctamente
           showNotification(
             'warning',
             `La campaña "${item.empresa}" está ${item.estado.toLowerCase()} y no puede ser editada.`
