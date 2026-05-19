@@ -1,5 +1,3 @@
-// features/servicios/campanaSalud/utils/constants.js
-
 export const ESTADO_CITA = {
   PENDIENTE: 1,
   CONFIRMADA: 2,
@@ -27,7 +25,6 @@ export const ESTADO_CITA_COLORS = {
 export const ESTADO_CITA_FILTERS = [
   { value: '', label: 'Todos los estados' },
   { value: ESTADO_CITA.PENDIENTE, label: 'Pendiente' },
-  { value: 'proxima', label: 'Próxima' },
   { value: ESTADO_CITA.COMPLETADA, label: 'Completada' },
   { value: ESTADO_CITA.CANCELADA, label: 'Cancelada' },
 ];

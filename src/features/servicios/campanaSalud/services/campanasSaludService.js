@@ -1,38 +1,18 @@
-// features/servicios/campanaSalud/services/campanasSaludService.js
-
-import api from '../../../../lib/axios';
+import api from '@lib/axios';
 
 const BASE_URL = '/campanas-salud';
 
 export const campanasSaludService = {
-  async getAll() {
-    const response = await api.get(BASE_URL);
-    return response.data;
-  },
-
-  async getById(id) {
-    const response = await api.get(`${BASE_URL}/${id}`);
-    return response.data;
-  },
-
-  async create(data) {
-    const response = await api.post(BASE_URL, data);
-    return response.data;
-  },
-
-  async update(id, data) {
-    const response = await api.put(`${BASE_URL}/${id}`, data);
-    return response.data;
-  },
-
-  async delete(id) {
-    await api.delete(`${BASE_URL}/${id}`);
-    return true;
-  }
+  getAll: () => api.get(BASE_URL).then(res => res.data),
+  getById: (id) => api.get(`${BASE_URL}/${id}`).then(res => res.data),
+  create: (data) => api.post(BASE_URL, data).then(res => res.data),
+  update: (id, data) => api.put(`${BASE_URL}/${id}`, data).then(res => res.data),
+  delete: (id) => api.delete(`${BASE_URL}/${id}`).then(() => true),
 };
 
-export const getAllCampanasSalud = () => campanasSaludService.getAll();
-export const getCampanaSaludById = (id) => campanasSaludService.getById(id);
-export const createCampanaSalud = (data) => campanasSaludService.create(data);
-export const updateCampanaSalud = (id, data) => campanasSaludService.update(id, data);
-export const deleteCampanaSalud = (id) => campanasSaludService.delete(id);
+// Exportaciones directas para comodidad
+export const getAllCampanasSalud = campanasSaludService.getAll;
+export const getCampanaSaludById = campanasSaludService.getById;
+export const createCampanaSalud = campanasSaludService.create;
+export const updateCampanaSalud = campanasSaludService.update;
+export const deleteCampanaSalud = campanasSaludService.delete;

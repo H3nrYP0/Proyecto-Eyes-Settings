@@ -1,9 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Box, Button, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import { useAgenda, AgendaCalendar } from '@servicios/agenda';
 import Loading from '@shared/components/ui/Loading';
 import CrudNotification from '@shared/styles/components/notifications/CrudNotification';
 import '@shared/styles/features/agenda-calendar.css';
+
+// Colores corporativos
+const BRAND_COLOR = '#1a2540';
+const BRAND_HOVER = '#2d3a6b';
 
 export default function Agenda() {
   const navigate = useNavigate();
@@ -18,6 +23,7 @@ export default function Agenda() {
     setErrorModal,
   } = useAgenda();
 
+  // Notificaciones de errores modales
   const [notification, setNotification] = useState({ visible: false, message: '', type: 'error' });
 
   const showNotification = (message, type = 'error') => {
@@ -25,10 +31,9 @@ export default function Agenda() {
     setTimeout(() => setNotification(prev => ({ ...prev, visible: false })), 5000);
   };
 
-  const handleCloseNotification = () => {
-    setNotification(prev => ({ ...prev, visible: false }));
-  };
+  const handleCloseNotification = () => setNotification(prev => ({ ...prev, visible: false }));
 
+  // Escucha errores del modal y los muestra como notificación
   useEffect(() => {
     if (errorModal.open && errorModal.message) {
       showNotification(errorModal.message, 'error');
@@ -36,6 +41,7 @@ export default function Agenda() {
     }
   }, [errorModal]);
 
+  // Maneja clic en evento del calendario
   const handleEventClick = (info) => {
     const props = info.event.extendedProps;
     if (props?.tipo === 'cita') {
@@ -51,39 +57,45 @@ export default function Agenda() {
 
   if (loading) {
     return (
-      <div style={{ padding: '2rem' }}>
+      <Box sx={{ p: 2 }}>
         <Loading message="Cargando agenda..." />
-      </div>
+      </Box>
     );
   }
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '1rem' }}>
-      {/* Barra superior con título y selector */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 2 }}>
+      {/* Barra superior con título, filtro y botón nueva cita */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
         <h2 style={{ margin: 0 }}>Agenda</h2>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <label htmlFor="empleado-select" style={{ fontWeight: 'bold' }}>Empleado:</label>
-          <select
-            id="empleado-select"
-            value={selectedEmpleado}
-            onChange={handleFilterChange}
-            style={{ padding: '0.3rem 0.6rem', borderRadius: '0.375rem', border: '1px solid #ccc' }}
-          >
-            <option value="todos">Todos los empleados</option>
-            {empleados.map(emp => (
-              <option key={emp.id} value={emp.id}>{emp.nombre}</option>
-            ))}
-          </select>
-          <button
-            className="agenda-btn"
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          <FormControl size="small" sx={{ minWidth: 180 }}>
+            <InputLabel id="empleado-select-label">Empleado</InputLabel>
+            <Select
+              labelId="empleado-select-label"
+              value={selectedEmpleado}
+              onChange={handleFilterChange}
+              label="Empleado"
+            >
+              <MenuItem value="todos">Todos los empleados</MenuItem>
+              {empleados.map(emp => (
+                <MenuItem key={emp.id} value={emp.id}>{emp.nombre}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Button
+            variant="contained"
             onClick={() => navigate('/admin/servicios/citas/crear')}
-            style={{ background: '#0d2e2e', color: 'white', border: 'none', padding: '0.3rem 0.8rem', borderRadius: '0.375rem', cursor: 'pointer' }}
+            sx={{
+              backgroundColor: BRAND_COLOR,
+              '&:hover': { backgroundColor: BRAND_HOVER },
+              textTransform: 'none'
+            }}
           >
-            + Nueva cita
-          </button>
-        </div>
-      </div>
+            Nueva cita
+          </Button>
+        </Box>
+      </Box>
 
       {/* Notificaciones */}
       <CrudNotification
@@ -94,7 +106,7 @@ export default function Agenda() {
       />
       {error && (
         <CrudNotification
-          message={`⚠️ Error al cargar datos: ${error}`}
+          message={`Error al cargar datos: ${error}`}
           type="error"
           isVisible={true}
           onClose={() => {}}
@@ -102,35 +114,38 @@ export default function Agenda() {
       )}
 
       {/* Calendario y leyenda */}
-      <div className="agenda-two-columns">
-        <div className="agenda-calendar-wrapper">
+      <Box className="agenda-two-columns" sx={{ flex: 1, display: 'flex', gap: 2 }}>
+        <Box className="agenda-calendar-wrapper" sx={{ flex: 3, minHeight: 0 }}>
           <AgendaCalendar
             events={events}
             onEventClick={handleEventClick}
             height="100%"
           />
-        </div>
+        </Box>
 
-        <aside className="agenda-legend-sidebar">
-          <div className="legend-section">
+        <Box component="aside" className="agenda-legend-sidebar" sx={{ flex: 1, minWidth: 200 }}>
+          {/* Horarios */}
+          <Box className="legend-section" sx={{ mb: 2 }}>
             <div className="legend-subtitle">Horarios</div>
             <div className="legend-item">
               <span className="legend-color disponible"></span>
               <span>Disponibilidad</span>
             </div>
-          </div>
+          </Box>
 
-          <div className="legend-section">
+          {/* Novedades */}
+          <Box className="legend-section" sx={{ mb: 2 }}>
             <div className="legend-subtitle">Novedades</div>
             <div className="legend-item">
               <span className="legend-color novedad"></span>
               <span>Vacaciones / Incapacidades</span>
             </div>
-          </div>
+          </Box>
 
-          <div className="legend-section">
+          {/* Citas */}
+          <Box className="legend-section" sx={{ mb: 2 }}>
             <div className="legend-subtitle">Citas</div>
-            <div className="legend-items-grid">
+            <Box className="legend-items-grid" sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
               <div className="legend-item">
                 <span className="legend-color pendiente"></span>
                 <span>Pendiente</span>
@@ -147,24 +162,39 @@ export default function Agenda() {
                 <span className="legend-color cancelada"></span>
                 <span>Cancelada</span>
               </div>
-            </div>
-          </div>
+            </Box>
+          </Box>
 
-          <button
-            className="agenda-btn"
+          {/* Botones de acceso rápido */}
+          <Button
+            variant="outlined"
+            fullWidth
             onClick={() => navigate('/admin/servicios/horarios')}
+            sx={{
+              borderColor: BRAND_COLOR,
+              color: BRAND_COLOR,
+              '&:hover': { borderColor: BRAND_HOVER, backgroundColor: 'rgba(26, 37, 64, 0.04)' },
+              mb: 1,
+              textTransform: 'none'
+            }}
           >
             Ver Horarios
-          </button>
-          <button
-            className="agenda-btn"
-            style={{ marginTop: '8px' }}
+          </Button>
+          <Button
+            variant="outlined"
+            fullWidth
             onClick={() => navigate('/admin/servicios/citas/novedades')}
+            sx={{
+              borderColor: BRAND_COLOR,
+              color: BRAND_COLOR,
+              '&:hover': { borderColor: BRAND_HOVER, backgroundColor: 'rgba(26, 37, 64, 0.04)' },
+              textTransform: 'none'
+            }}
           >
             Ver Novedades
-          </button>
-        </aside>
-      </div>
-    </div>
+          </Button>
+        </Box>
+      </Box>
+    </Box>
   );
 }

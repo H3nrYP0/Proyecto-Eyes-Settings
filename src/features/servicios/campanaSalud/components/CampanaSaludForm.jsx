@@ -1,13 +1,16 @@
-// features/servicios/campanaSalud/components/CampanaSaludForm.jsx
-
 import React from 'react';
 import { Grid, Box, CircularProgress, Alert } from '@mui/material';
-import BaseFormLayout from '../../../../shared/components/base/BaseFormLayout';
-import BaseInputField from '../../../../shared/components/base/BaseInputField';
-import BaseFormActions from '../../../../shared/components/base/BaseFormActions';
-import CrudNotification from '../../../../shared/styles/components/notifications/CrudNotification';
+import BaseFormLayout from '@shared/components/base/BaseFormLayout';
+import BaseInputField from '@shared/components/base/BaseInputField';
+import BaseFormActions from '@shared/components/base/BaseFormActions';
+import CrudNotification from '@shared/styles/components/notifications/CrudNotification';
 import { TextFieldAlphanumeric, TextFieldNoEmoji } from '@shared/index';
+import { ESTADOS_BLOQUEADOS } from '../utils/constants';
 
+/**
+ * Componente formulario para Campañas de Salud.
+ * Soporta creación, edición y visualización.
+ */
 const CampanaSaludForm = ({
   formData,
   empleados,
@@ -24,7 +27,6 @@ const CampanaSaludForm = ({
   handleCancel,
   handleEdit,
   hideNotification,
-  isEstadoBloqueado,
 }) => {
   if (loading) {
     return (
@@ -35,24 +37,18 @@ const CampanaSaludForm = ({
   }
 
   const isDisabled = isView;
+  const isEstadoBloqueado = isView && ESTADOS_BLOQUEADOS.includes(formData.estado_cita_id);
+  const showEditButton = isView && !isEstadoBloqueado;
 
+  // Opciones para el selector de hora
   const opcionesHora =
     horasDisponibles.length > 0
-      ? [
-          { value: '', label: '-- Seleccione una hora --' },
-          ...horasDisponibles.map((slot) => ({
-            value: slot.value,
-            label: slot.label,
-          })),
-        ]
+      ? [{ value: '', label: '-- Seleccione una hora --' }, ...horasDisponibles]
       : formData.empleado_id && formData.fecha
       ? [{ value: '', label: 'Sin horario disponible para este día' }]
       : [{ value: '', label: '-- Seleccione empleado y fecha primero --' }];
 
-  const opcionesEstado = estadosCita.map((e) => ({
-    value: e.id,
-    label: e.nombre,
-  }));
+  const opcionesEstado = estadosCita.map((e) => ({ value: e.id, label: e.nombre }));
 
   return (
     <>
@@ -66,13 +62,7 @@ const CampanaSaludForm = ({
       )}
 
       <BaseFormLayout
-        title={
-          isView
-            ? 'Detalle de Campaña'
-            : isEdit
-            ? 'Editar Campaña'
-            : 'Nueva Campaña de Salud'
-        }
+        title={isView ? 'Detalle de Campaña' : isEdit ? 'Editar Campaña' : 'Nueva Campaña de Salud'}
       >
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -80,7 +70,7 @@ const CampanaSaludForm = ({
           </Alert>
         )}
 
-        {/* FILA 1: Empresa, NIT, Contacto */}
+        {/* Fila 1: Empresa, NIT, Contacto */}
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={4}>
             <TextFieldAlphanumeric
@@ -92,7 +82,6 @@ const CampanaSaludForm = ({
               required
             />
           </Grid>
-
           <Grid item xs={12} sm={6} md={4}>
             <BaseInputField
               label="NIT de la Empresa"
@@ -106,13 +95,12 @@ const CampanaSaludForm = ({
               required
               helperText={
                 formData.nit_empresa?.length > 0 && formData.nit_empresa.length < 8
-                  ?      'El NIT debe tener al menos 8 dígitos'
+                  ? 'El NIT debe tener al menos 8 dígitos'
                   : ''
               }
               inputProps={{ inputMode: 'numeric', minLength: 8 }}
             />
           </Grid>
-
           <Grid item xs={12} sm={6} md={4}>
             <BaseInputField
               label="Contacto"
@@ -129,12 +117,12 @@ const CampanaSaludForm = ({
                   : ''
               }
               error={formData.contacto?.length > 0 && formData.contacto.length !== 10}
-              inputProps={{ inputMode: 'numeric', maxLength: 10, minLength: 10 }}
+              inputProps={{ inputMode: 'numeric', maxLength: 10 }}
             />
           </Grid>
         </Grid>
 
-        {/* FILA 2: Empleado, Fecha, Hora */}
+        {/* Fila 2: Empleado, Fecha, Hora */}
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={4}>
             <BaseInputField
@@ -154,7 +142,6 @@ const CampanaSaludForm = ({
               ]}
             />
           </Grid>
-
           <Grid item xs={12} sm={6} md={4}>
             <BaseInputField
               label="Fecha"
@@ -166,15 +153,9 @@ const CampanaSaludForm = ({
               required
             />
           </Grid>
-
           <Grid item xs={12} sm={6} md={4}>
             {isView ? (
-              <BaseInputField
-                label="Hora"
-                name="hora"
-                value={formData.hora}
-                disabled={true}
-              />
+              <BaseInputField label="Hora" name="hora" value={formData.hora} disabled />
             ) : (
               <BaseInputField
                 label="Hora"
@@ -199,7 +180,7 @@ const CampanaSaludForm = ({
           </Grid>
         </Grid>
 
-        {/* FILA 3: Dirección, Estado */}
+        {/* Fila 3: Dirección, Estado */}
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={4}>
             <TextFieldNoEmoji
@@ -210,7 +191,6 @@ const CampanaSaludForm = ({
               disabled={isDisabled}
             />
           </Grid>
-
           {(isEdit || isView) && opcionesEstado.length > 0 && (
             <Grid item xs={12} sm={6} md={4}>
               <BaseInputField
@@ -226,7 +206,7 @@ const CampanaSaludForm = ({
           )}
         </Grid>
 
-        {/* FILA 4: Observaciones */}
+        {/* Fila 4: Observaciones */}
         <Grid container spacing={2}>
           <Grid item xs={12}>
             <TextFieldNoEmoji
@@ -248,9 +228,9 @@ const CampanaSaludForm = ({
           onSave={handleSubmit}
           onEdit={handleEdit}
           showSave={!isView}
-          showEdit={isView && !isEstadoBloqueado} 
-          cancelLabel={isView ? "Salir" : "Cancelar"}
-          saveLabel={saving ? 'Guardando...' : isEdit ? 'Guardar' : 'Guardar'}
+          showEdit={showEditButton}
+          cancelLabel="Cancelar"
+          saveLabel={saving ? 'Guardando...' : 'Guardar'}
           disabled={saving}
         />
       </BaseFormLayout>

@@ -1,6 +1,3 @@
-// features/servicios/campanaSalud/pages/EditarCampanaSalud.jsx
-
-import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useCampanaSaludForm } from '../hooks/useCampanaSaludForm';
 import CampanaSaludForm from '../components/CampanaSaludForm';

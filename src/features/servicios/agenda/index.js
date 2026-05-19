@@ -1,5 +1,8 @@
 /**
  * Módulo de Agenda
+ * 
+ * Este módulo gestiona el calendario de citas, horarios y novedades.
+ * Utiliza React Query para el manejo de datos y caché compartida.
  */
 
 // ============================
@@ -24,12 +27,12 @@ export { default as AgendaCalendar } from "./components/AgendaCalendar";
 export { useAgenda } from "./hooks/useAgenda";
 
 // ============================
-// CONTEXT (stub)
+// CONTEXT (stub - ya no se usa, se mantiene por compatibilidad)
 // ============================
 export { AgendaDataProvider } from "./context/AgendaDataContext";
 
 // ============================
-// NAMESPACES (opcional, por compatibilidad)
+// NAMESPACES (compatibilidad con importaciones antiguas)
 // ============================
 export * as agendaService from "./services/agendaService";
 export * as agendaUtils from "./utils/agendaUtils";

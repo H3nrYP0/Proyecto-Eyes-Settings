@@ -13,31 +13,38 @@ import {
   mapearNovedadesEventos,
 } from '@servicios/agenda';
 
+/**
+ * Hook personalizado para la lógica de la agenda.
+ * Obtiene empleados, estados, horarios, citas y novedades mediante React Query,
+ * los normaliza a eventos de FullCalendar y filtra por empleado.
+ * 
+ * @returns {Object} - Eventos listos para el calendario, empleados, estado de carga, errores y filtros.
+ */
 export function useAgenda() {
+  // Estado local del filtro por empleado
   const [selectedEmpleado, setSelectedEmpleado] = useState('todos');
+  // Estado para mostrar errores en modal
   const [errorModal, setErrorModal] = useState({ open: false, message: '' });
 
-  // Datos estáticos – cambian poco
-  const {
-    data: empleados = [],
-    error: errorEmpleados,
-  } = useQuery({
+  // ============================ CONSULTAS ============================
+  // Empleados (staleTime 10 minutos)
+  const { data: empleados = [], error: errorEmpleados } = useQuery({
     queryKey: ['empleados-agenda'],
     queryFn: getEmpleadosAgenda,
     staleTime: 10 * 60 * 1000,
   });
 
-  const {
-    data: estadosCita = [],
-    error: errorEstados,
-  } = useQuery({
+  // Estados de cita (staleTime 10 minutos)
+  const { data: estadosCita = [], error: errorEstados } = useQuery({
     queryKey: ['estados-cita'],
     queryFn: getEstadosCitaAgenda,
     staleTime: 10 * 60 * 1000,
   });
 
+  // Solo después de tener empleados, se habilitan las siguientes consultas
   const baseDatosLista = empleados.length > 0;
 
+  // Horarios (depende de empleados)
   const {
     data: horarios = [],
     isLoading: loadingHorarios,
@@ -49,6 +56,7 @@ export function useAgenda() {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Citas (depende de empleados)
   const {
     data: citas = [],
     isLoading: loadingCitas,
@@ -60,6 +68,7 @@ export function useAgenda() {
     staleTime: 2 * 60 * 1000,
   });
 
+  // Novedades (depende de empleados)
   const {
     data: novedades = [],
     isLoading: loadingNovedades,
@@ -71,15 +80,10 @@ export function useAgenda() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Error combinado
-  const error =
-    errorEmpleados ||
-    errorEstados ||
-    errorHorarios ||
-    errorCitas ||
-    errorNovedades;
+  // Combina cualquier error que ocurra
+  const error = errorEmpleados || errorEstados || errorHorarios || errorCitas || errorNovedades;
 
-  // Mapeo de eventos
+  // ============================ MAPEO A EVENTOS ============================
   const events = useMemo(() => {
     if (!empleados.length) return [];
     return [
@@ -89,6 +93,7 @@ export function useAgenda() {
     ];
   }, [horarios, citas, novedades, empleados, estadosCita]);
 
+  // ============================ FILTRADO POR EMPLEADO ============================
   const eventosFiltrados = useMemo(() => {
     if (selectedEmpleado === 'todos') return events;
     return events.filter(

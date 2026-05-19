@@ -1,6 +1,3 @@
-// features/servicios/campanaSalud/pages/CrearCampanaSalud.jsx
-
-import React from 'react';
 import { useCampanaSaludForm } from '../hooks/useCampanaSaludForm';
 import CampanaSaludForm from '../components/CampanaSaludForm';
 

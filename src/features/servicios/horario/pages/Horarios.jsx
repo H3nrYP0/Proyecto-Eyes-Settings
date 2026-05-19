@@ -10,7 +10,6 @@ import { useHorarios, useHorarioForm, HorarioForm } from "@horario";
 import "@shared/styles/components/crud-table.css";
 import "@shared/styles/components/modal.css";
 
-// Colores personalizados
 const BRAND_COLOR = "#1a2540";
 const BRAND_HOVER = "#2d3a6b";
 
@@ -85,7 +84,6 @@ export default function Horarios() {
     }
   };
 
-  // Al hacer clic en "Editar" desde el modal de vista, cerramos vista y abrimos edición
   const handleEditFromView = () => {
     const viewData = modalForm.initialData;
     closeFormModal();
@@ -186,7 +184,7 @@ export default function Horarios() {
 
         {error && (
           <CrudNotification
-            message={`⚠️ Error al cargar datos: ${error}`}
+            message={`Error al cargar datos: ${error}`}
             type="error"
             isVisible={true}
             onClose={() => {}}
@@ -220,7 +218,6 @@ export default function Horarios() {
           </Box>
         )}
 
-        {/* Modal Eliminar (tipo warning → botón rojo por defecto, no se modifica) */}
         <Modal
           open={modalDelete.open}
           type="warning"
@@ -233,7 +230,6 @@ export default function Horarios() {
           onCancel={closeDeleteModal}
         />
 
-        {/* Modal Formulario (tipo info → botón con colores personalizados) */}
         <Modal
           open={modalForm.open}
           type="info"

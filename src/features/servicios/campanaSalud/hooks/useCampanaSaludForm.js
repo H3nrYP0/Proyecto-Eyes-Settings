@@ -1,25 +1,22 @@
-// features/servicios/campanaSalud/hooks/useCampanaSaludForm.js
-
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   createCampanaSalud,
   updateCampanaSalud,
   getCampanaSaludById,
   getAllCampanasSalud,
 } from '../services/campanasSaludService';
-import { getAllEmpleados } from '../../empleado/services/empleadosService';
-import { getHorariosByEmpleado } from '../../horario/services/horariosService';
+import { getEmpleadosAgenda } from '@servicios/agenda';
+import { getHorariosByEmpleado } from '@servicios/horario';
 import { getEstadosCita } from '../services/estadosCitaCampanaService';
 import { ESTADO_CITA } from '../utils/constants';
-import { formatearHora24, horaA12 } from '../utils/campanasSaludUtils';
-
-const getBackendDay = (date) => {
-  if (!date) return null;
-  const jsDay = date.getDay();
-  if (jsDay === 0) return 6;
-  return jsDay - 1;
-};
+import {
+  formatearHora24,
+  horaA12,
+  getBackendDay,
+  generarSlotsHorarios,
+} from '../utils/campanasSaludUtils';
 
 const INITIAL_FORM_DATA = {
   empleado_id: '',
@@ -33,105 +30,93 @@ const INITIAL_FORM_DATA = {
   estado_cita_id: ESTADO_CITA.PENDIENTE,
 };
 
+/**
+ * Hook para el formulario de campaña de salud (crear, editar, ver).
+ * Maneja estado local del formulario, validaciones, carga de horarios disponibles,
+ * y las mutaciones con React Query.
+ *
+ * @param {number|null} id - ID de la campaña (si es edición o vista)
+ * @param {string} mode - 'create', 'edit', 'view'
+ */
 export const useCampanaSaludForm = (id, mode = 'create') => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState(INITIAL_FORM_DATA);
-  const [originalData, setOriginalData] = useState(null);
-  const [empleados, setEmpleados] = useState([]);
-  const [estadosCita, setEstadosCita] = useState([]);
-  const [horariosEmpleado, setHorariosEmpleado] = useState([]);
-  const [horasDisponibles, setHorasDisponibles] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
-  const [notification, setNotification] = useState({
-    open: false,
-    type: 'success',
-    message: '',
-  });
-
+  const queryClient = useQueryClient();
   const isEdit = mode === 'edit';
   const isView = mode === 'view';
 
-  const showNotification = (type, message) => {
-    setNotification({ open: true, type, message });
-  };
+  const [formData, setFormData] = useState(INITIAL_FORM_DATA);
+  const [originalData, setOriginalData] = useState(null);
+  const [horariosEmpleado, setHorariosEmpleado] = useState([]);
+  const [horasDisponibles, setHorasDisponibles] = useState([]);
+  const [notification, setNotification] = useState({ open: false, type: 'success', message: '' });
+  const [errorMessage, setErrorMessage] = useState('');
 
-const hideNotification = () => {
-  setNotification((prev) => ({ ...prev, open: false }));
-};
+  const showNotification = (type, message) => setNotification({ open: true, type, message });
+  const hideNotification = () => setNotification((prev) => ({ ...prev, open: false }));
 
-  const generarSlots = (horaInicio, horaFinal) => {
-    const slots = [];
-    const [hI, mI] = horaInicio.split(':').map(Number);
-    const [hF, mF] = horaFinal.split(':').map(Number);
-    let minutos = hI * 60 + mI;
-    const minFinal = hF * 60 + mF;
-    while (minutos < minFinal) {
-      const h = Math.floor(minutos / 60);
-      const m = minutos % 60;
-      const valor = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-      slots.push({ value: valor, label: horaA12(valor) });
-      minutos += 30;
-    }
-    return slots;
-  };
+  // ---------- Consultas con React Query ----------
+  const { data: empleadosRaw = [] } = useQuery({
+    queryKey: ['empleados-agenda'],
+    queryFn: getEmpleadosAgenda,
+    staleTime: 10 * 60 * 1000,
+  });
+  // Filtrar solo empleados activos (asumimos campo 'activo' o 'estado')
+  const empleados = empleadosRaw.filter(emp => emp.activo === true || emp.estado === true);
 
-  const loadEmpleados = useCallback(async () => {
-    try {
-      const data = await getAllEmpleados();
-      setEmpleados(data.filter((emp) => emp.estado === true));
-    } catch (err) {
-      setError('Error al cargar la lista de empleados');
-    }
-  }, []);
+  const { data: estadosCita = [] } = useQuery({
+    queryKey: ['estados-cita'],
+    queryFn: getEstadosCita,
+    staleTime: 10 * 60 * 1000,
+  });
 
-  const loadEstadosCita = useCallback(async () => {
-    try {
-      const data = await getEstadosCita();
-      setEstadosCita(data);
-    } catch (err) {
-      // Silencio
-    }
-  }, []);
+  const { data: campanaData, isLoading: loadingCampana } = useQuery({
+    queryKey: ['campana-salud', id],
+    queryFn: () => getCampanaSaludById(id),
+    enabled: (isEdit || isView) && !!id,
+    staleTime: 5 * 60 * 1000,
+  });
 
-  const loadCampana = useCallback(async () => {
-    if (!id) return;
-    try {
-      const data = await getCampanaSaludById(id);
+  // Cargar datos iniciales al obtener la campaña
+  useEffect(() => {
+    if (campanaData && (isEdit || isView)) {
       const loaded = {
-        empleado_id: data.empleado_id || '',
-        empresa: data.empresa || '',
-        nit_empresa: data.nit_empresa || 'PENDIENTE',
-        contacto: data.contacto || '',
-        fecha: data.fecha ? data.fecha.split('T')[0] : '',
-        hora: data.hora ? formatearHora24(data.hora) : '',
-        direccion: data.direccion || '',
-        observaciones: data.observaciones || '',
-        estado_cita_id: data.estado_cita_id || ESTADO_CITA.PENDIENTE,
+        empleado_id: campanaData.empleado_id || '',
+        empresa: campanaData.empresa || '',
+        nit_empresa: campanaData.nit_empresa || 'PENDIENTE',
+        contacto: campanaData.contacto || '',
+        fecha: campanaData.fecha ? campanaData.fecha.substring(0, 10) : '',
+        hora: campanaData.hora ? formatearHora24(campanaData.hora) : '',
+        direccion: campanaData.direccion || '',
+        observaciones: campanaData.observaciones || '',
+        estado_cita_id: campanaData.estado_cita_id || ESTADO_CITA.PENDIENTE,
       };
       setFormData(loaded);
       setOriginalData(loaded);
-    } catch (err) {
-      setError(err.response?.data?.error || 'Error al cargar la campaña');
     }
-  }, [id]);
+  }, [campanaData, isEdit, isView]);
 
+  // ---------- Carga de horarios del empleado ----------
   const loadHorariosEmpleado = useCallback(async (empleadoId) => {
     if (!empleadoId) {
       setHorariosEmpleado([]);
-      setHorasDisponibles([]);
       return;
     }
     try {
       const data = await getHorariosByEmpleado(empleadoId);
       const activos = (data || []).filter((h) => h.activo !== false);
       setHorariosEmpleado(activos);
-    } catch (err) {
+    } catch {
       setHorariosEmpleado([]);
     }
   }, []);
 
+  useEffect(() => {
+    if (formData.empleado_id) {
+      loadHorariosEmpleado(formData.empleado_id);
+    }
+  }, [formData.empleado_id, loadHorariosEmpleado]);
+
+  // Calcular horas disponibles según empleado y fecha
   useEffect(() => {
     if (!formData.empleado_id || !formData.fecha) {
       setHorasDisponibles([]);
@@ -149,8 +134,9 @@ const hideNotification = () => {
 
     let slots = [];
     horariosDelDia.forEach((h) => {
-      slots = slots.concat(generarSlots(h.hora_inicio, h.hora_final));
+      slots = slots.concat(generarSlotsHorarios(h.hora_inicio, h.hora_final));
     });
+    // Eliminar duplicados por valor
     const vistos = new Set();
     slots = slots.filter((s) => {
       if (vistos.has(s.value)) return false;
@@ -160,30 +146,11 @@ const hideNotification = () => {
     slots.sort((a, b) => a.value.localeCompare(b.value));
     setHorasDisponibles(slots);
 
+    // Si la hora seleccionada ya no está disponible, limpiarla
     if (formData.hora && !slots.find((s) => s.value === formData.hora)) {
       setFormData((prev) => ({ ...prev, hora: '' }));
     }
   }, [formData.empleado_id, formData.fecha, horariosEmpleado]);
-
-  useEffect(() => {
-    if (formData.empleado_id) {
-      loadHorariosEmpleado(formData.empleado_id);
-    }
-  }, [formData.empleado_id, loadHorariosEmpleado]);
-
-  useEffect(() => {
-    const init = async () => {
-      setLoading(true);
-      await Promise.all([
-        loadEmpleados(),
-        loadEstadosCita(),
-        isEdit || isView ? loadCampana() : Promise.resolve(),
-      ]);
-      setLoading(false);
-    };
-    init();
-    return () => {};
-  }, [loadEmpleados, loadEstadosCita, loadCampana, isEdit, isView]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -198,8 +165,8 @@ const hideNotification = () => {
     if (!formData.fecha) return 'La fecha es requerida';
     if (!formData.hora) return 'La hora es requerida';
     if (formData.contacto?.trim() && formData.contacto.trim().length !== 10) {
-    return 'El teléfono de contacto debe tener exactamente 10 dígitos';
-  }
+      return 'El teléfono de contacto debe tener exactamente 10 dígitos';
+    }
     return null;
   };
 
@@ -208,13 +175,14 @@ const hideNotification = () => {
       const todas = await getAllCampanasSalud();
       const empresaNorm = formData.empresa.trim().toLowerCase();
       const fecha = formData.fecha;
-      const duplicado = todas.find((c) => {
-        const mismaEmpresa = c.empresa.trim().toLowerCase() === empresaNorm;
-        const mismaFecha = (c.fecha || '').split('T')[0] === fecha;
-        const esOtro = isEdit ? c.id !== parseInt(id, 10) : true;
-        return mismaEmpresa && mismaFecha && esOtro;
-      });
-      return duplicado || null;
+      return (
+        todas.find((c) => {
+          const mismaEmpresa = c.empresa.trim().toLowerCase() === empresaNorm;
+          const mismaFecha = (c.fecha || '').substring(0, 10) === fecha;
+          const esOtro = isEdit ? c.id !== parseInt(id, 10) : true;
+          return mismaEmpresa && mismaFecha && esOtro;
+        }) || null
+      );
     } catch {
       return null;
     }
@@ -225,14 +193,16 @@ const hideNotification = () => {
     const changed = {};
     if (formData.empleado_id !== originalData.empleado_id)
       changed.empleado_id = parseInt(formData.empleado_id, 10);
-    if (formData.empresa !== originalData.empresa) changed.empresa = formData.empresa.trim();
-    if (formData.nit_empresa !== originalData.nit_empresa) {
-  changed.nit_empresa = formData.nit_empresa?.trim() || originalData.nit_empresa || 'PENDIENTE';
-}
+    if (formData.empresa !== originalData.empresa)
+      changed.empresa = formData.empresa.trim();
+    if (formData.nit_empresa !== originalData.nit_empresa)
+      changed.nit_empresa = formData.nit_empresa?.trim() || originalData.nit_empresa || 'PENDIENTE';
     if (formData.contacto !== originalData.contacto)
       changed.contacto = formData.contacto?.trim() || null;
-    if (formData.fecha !== originalData.fecha) changed.fecha = formData.fecha;
-    if (formData.hora !== originalData.hora) changed.hora = formatearHora24(formData.hora);
+    if (formData.fecha !== originalData.fecha)
+      changed.fecha = formData.fecha;
+    if (formData.hora !== originalData.hora)
+      changed.hora = formatearHora24(formData.hora);
     if (formData.direccion !== originalData.direccion)
       changed.direccion = formData.direccion?.trim() || null;
     if (formData.observaciones !== originalData.observaciones)
@@ -242,11 +212,42 @@ const hideNotification = () => {
     return changed;
   };
 
+  // ---------- Mutaciones ----------
+  const createMutation = useMutation({
+    mutationFn: createCampanaSalud,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['campanas-salud'] });
+      setErrorMessage('');
+      showNotification('success', 'Campaña de salud creada correctamente');
+      setTimeout(() => navigate('/admin/servicios/campanas-salud'), 1200);
+    },
+    onError: (err) => {
+      const msg = err?.response?.data?.error || err?.message || 'Error al crear la campaña';
+      setErrorMessage(msg);
+      showNotification('error', msg);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => updateCampanaSalud(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['campanas-salud'] });
+      queryClient.invalidateQueries({ queryKey: ['campana-salud', id] });
+      setErrorMessage('');
+      showNotification('success', 'Campaña actualizada correctamente');
+      setTimeout(() => navigate('/admin/servicios/campanas-salud'), 1200);
+    },
+    onError: (err) => {
+      const msg = err?.response?.data?.error || err?.message || 'Error al actualizar la campaña';
+      setErrorMessage(msg);
+      showNotification('error', msg);
+    },
+  });
+
   const handleSubmit = async () => {
     const validationError = validate();
     if (validationError) {
       showNotification('error', validationError);
-      setError(validationError);
       return;
     }
 
@@ -254,69 +255,46 @@ const hideNotification = () => {
     if (duplicado) {
       const msg = `Ya existe una campaña para "${duplicado.empresa}" en la fecha ${formData.fecha}. No se pueden registrar dos campañas para la misma empresa en el mismo día.`;
       showNotification('error', msg);
-      setError(msg);
       return;
     }
 
-    setSaving(true);
-    setError(null);
-
-    try {
-      if (isEdit) {
-        const changedFields = getChangedFields();
-        if (Object.keys(changedFields).length === 0) {
-          showNotification('info', 'No hay cambios para guardar');
-          setSaving(false);
-          return;
-        }
-        await updateCampanaSalud(parseInt(id, 10), changedFields);
-        showNotification('success', 'Campaña actualizada correctamente');
-      } else {
-        const horaFormateada = formatearHora24(formData.hora);
-        const dataToSubmit = {
-          empleado_id: parseInt(formData.empleado_id, 10),
-          empresa: formData.empresa.trim(),
-          nit_empresa: formData.nit_empresa.trim() || 'PENDIENTE',
-          fecha: formData.fecha,
-          hora: horaFormateada,
-          estado_cita_id: ESTADO_CITA.PENDIENTE,
-        };
-        if (formData.contacto?.trim()) dataToSubmit.contacto = formData.contacto.trim();
-        if (formData.direccion?.trim()) dataToSubmit.direccion = formData.direccion.trim();
-        if (formData.observaciones?.trim())
-          dataToSubmit.observaciones = formData.observaciones.trim();
-        await createCampanaSalud(dataToSubmit);
-        showNotification('success', 'Campaña de salud creada correctamente');
+    if (isEdit) {
+      const changedFields = getChangedFields();
+      if (Object.keys(changedFields).length === 0) {
+        showNotification('info', 'No hay cambios para guardar');
+        return;
       }
-
-      setTimeout(() => {
-        navigate('/admin/servicios/campanas-salud');
-      }, 1200);
-    } catch (err) {
-      const msg = err.response?.data?.error || 'Error al guardar la campaña';
-      setError(msg);
-      showNotification('error', msg);
-    } finally {
-      setSaving(false);
+      updateMutation.mutate({ id: parseInt(id, 10), data: changedFields });
+    } else {
+      const horaFormateada = formatearHora24(formData.hora);
+      const dataToSubmit = {
+        empleado_id: parseInt(formData.empleado_id, 10),
+        empresa: formData.empresa.trim(),
+        nit_empresa: formData.nit_empresa.trim() || 'PENDIENTE',
+        fecha: formData.fecha,
+        hora: horaFormateada,
+        estado_cita_id: ESTADO_CITA.PENDIENTE,
+      };
+      if (formData.contacto?.trim()) dataToSubmit.contacto = formData.contacto.trim();
+      if (formData.direccion?.trim()) dataToSubmit.direccion = formData.direccion.trim();
+      if (formData.observaciones?.trim()) dataToSubmit.observaciones = formData.observaciones.trim();
+      createMutation.mutate(dataToSubmit);
     }
   };
 
-  const handleCancel = () => {
-    navigate('/admin/servicios/campanas-salud');
-  };
+  const handleCancel = () => navigate('/admin/servicios/campanas-salud');
+  const handleEdit = () => navigate(`/admin/servicios/campanas-salud/editar/${id}`);
 
-  const handleEdit = () => {
-    navigate(`/admin/servicios/campanas-salud/editar/${id}`);
-  };
+  const isLoading = (isEdit || isView) && loadingCampana;
 
   return {
     formData,
     empleados,
     estadosCita,
     horasDisponibles,
-    loading,
-    saving,
-    error,
+    loading: isLoading,
+    saving: createMutation.isPending || updateMutation.isPending,
+    error: errorMessage,
     isEdit,
     isView,
     notification,
