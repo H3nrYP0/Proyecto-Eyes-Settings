@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getAllCampanasSalud,
@@ -19,9 +19,7 @@ import { formatearFechaLocal, horaA12 } from '../utils/campanasSaludUtils';
 export const useCampanasSalud = () => {
   const queryClient = useQueryClient();
   const [notification, setNotification] = useState({ open: false, type: 'success', message: '' });
-  const estadosCitaRef = useRef([]);
 
-  // Fix: exponer showNotification para que CampanasSalud.jsx pueda usarla
   const showNotification = useCallback(
     (type, message) => setNotification({ open: true, type, message }),
     []
@@ -38,41 +36,36 @@ export const useCampanasSalud = () => {
     staleTime: 10 * 60 * 1000,
   });
 
-  useEffect(() => {
-    estadosCitaRef.current = estadosCita;
-  }, [estadosCita]);
-
   // ---------- Transformación de una campaña ----------
-  // Fix flash: la transformación aplica la lógica de "vencida → Completada"
-  // directamente en el render, sin esperar al efecto asíncrono de mutación.
+  // Fix principal: recibe estadosCita como parámetro directo en lugar de leerlo
+  // desde un ref. Así siempre usa el valor sincronizado del render actual,
+  // evitando el flash a "Pendiente" cuando el ref aún está vacío.
   const transformCampana = useCallback(
-    (campana) => {
+    (campana, estadosActuales) => {
       const hoy = new Date();
       hoy.setHours(0, 0, 0, 0);
 
-      // Parsear fecha sin desfase de zona horaria (solo fecha, sin hora)
+      // Parsear fecha sin desfase de zona horaria
       const [y, m, d] = (campana.fecha || '').split('T')[0].split('-').map(Number);
       const fechaCampana = new Date(y, m - 1, d);
       fechaCampana.setHours(0, 0, 0, 0);
 
-      // Fix flash: si la campaña ya venció y no está bloqueada, la mostramos
-      // como "Completada" inmediatamente en el UI, sin esperar la mutación.
       const completadaId =
-        estadosCitaRef.current.find((e) => e.nombre?.toLowerCase() === 'completada')?.id ||
+        estadosActuales.find((e) => e.nombre?.toLowerCase() === 'completada')?.id ||
         ESTADO_CITA.COMPLETADA;
 
       let estadoCitaId = campana.estado_cita_id;
-      if (
-        fechaCampana < hoy &&
-        !ESTADOS_BLOQUEADOS.includes(estadoCitaId)
-      ) {
+      if (fechaCampana < hoy && !ESTADOS_BLOQUEADOS.includes(estadoCitaId)) {
         estadoCitaId = completadaId;
       }
 
-      const estadoObj = estadosCitaRef.current.find((e) => e.id === estadoCitaId);
-      const estadoNombre = estadoObj?.nombre || 'Pendiente';
+      const estadoObj = estadosActuales.find((e) => e.id === estadoCitaId);
+      // Fix: solo usar 'Pendiente' como fallback si estadosCita aún no cargó;
+      // en ese caso preferimos mostrar el nombre real del estado original si existe.
+      const estadoObjOriginal = estadosActuales.find((e) => e.id === campana.estado_cita_id);
+      const estadoNombre = estadoObj?.nombre || estadoObjOriginal?.nombre || 'Pendiente';
       const bloqueada = ESTADOS_BLOQUEADOS.includes(estadoCitaId);
-      const todosLosEstados = estadosCitaRef.current.map((e) => e.nombre);
+      const todosLosEstados = estadosActuales.map((e) => e.nombre);
 
       return {
         id: campana.id,
@@ -87,15 +80,15 @@ export const useCampanasSalud = () => {
         horaRaw: campana.hora || '',
         direccion: campana.direccion || '-',
         observaciones: campana.observaciones || '-',
-        estado_cita_id: estadoCitaId,        // estado efectivo (ya corregido si venció)
-        estadoOriginal: campana.estado_cita_id, // para saber si necesita persistirse
+        estado_cita_id: estadoCitaId,
+        estadoOriginal: campana.estado_cita_id,
         estado: estadoNombre,
         estadosDisponibles: todosLosEstados,
         esEditable: !bloqueada,
         esEliminable: !bloqueada,
       };
     },
-    [] // estadosCitaRef es un ref, no necesita ir como dependencia
+    []
   );
 
   // ---------- Consulta de campañas ----------
@@ -110,8 +103,8 @@ export const useCampanasSalud = () => {
     staleTime: 2 * 60 * 1000,
   });
 
-  // Fix flash: persistir en backend las campañas vencidas, pero SOLO después
-  // de que estadosCita esté cargado. El UI ya las muestra correctamente desde
+  // Fix flash: persistir en backend las campañas vencidas SOLO después de que
+  // estadosCita esté cargado. El UI ya las muestra correctamente desde
   // transformCampana; esto solo sincroniza el backend en segundo plano.
   useEffect(() => {
     if (!rawCampanas.length || !estadosCita.length) return;
@@ -143,8 +136,10 @@ export const useCampanasSalud = () => {
     updateVencidas();
   }, [rawCampanas, estadosCita, queryClient]);
 
-  // Transformar campañas (estado efectivo ya corregido en tiempo de render)
-  const campanas = rawCampanas.map(transformCampana);
+  // Fix principal: pasar estadosCita directamente a transformCampana en cada render,
+  // en lugar de depender del ref. Así el estado siempre es correcto desde el
+  // primer render, sin importar el orden de resolución de las queries.
+  const campanas = rawCampanas.map((c) => transformCampana(c, estadosCita));
 
   // ---------- Mutaciones ----------
   const deleteMutation = useMutation({
@@ -199,7 +194,7 @@ export const useCampanasSalud = () => {
         return { success: false };
       }
 
-      const estadoSeleccionado = estadosCitaRef.current.find((e) => e.nombre === estadoNombre);
+      const estadoSeleccionado = estadosCita.find((e) => e.nombre === estadoNombre);
       if (!estadoSeleccionado) {
         showNotification('error', 'Estado no válido');
         return { success: false };
@@ -229,7 +224,7 @@ export const useCampanasSalud = () => {
         return { success: false, error: msg };
       }
     },
-    [campanas, updateEstadoMutation, showNotification]
+    [campanas, estadosCita, updateEstadoMutation, showNotification]
   );
 
   return {
@@ -237,7 +232,7 @@ export const useCampanasSalud = () => {
     loading: isLoading,
     error,
     notification,
-    showNotification, // Fix: expuesto para CampanasSalud.jsx
+    showNotification,
     handleDelete,
     handleCambioEstado,
     hideNotification,

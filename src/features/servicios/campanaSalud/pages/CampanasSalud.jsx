@@ -16,7 +16,7 @@ export default function CampanasSalud() {
     handleDelete,
     handleCambioEstado,
     hideNotification,
-    showNotification, // ✅ Fix: ahora el hook lo expone correctamente
+    showNotification, 
   } = useCampanasSalud();
 
   const [search, setSearch] = useState('');
@@ -69,7 +69,6 @@ export default function CampanasSalud() {
       type: 'edit',
       onClick: (item) => {
         if (!item.esEditable) {
-          // Fix: showNotification ahora viene del hook correctamente
           showNotification(
             'warning',
             `La campaña "${item.empresa}" está ${item.estado.toLowerCase()} y no puede ser editada.`
