@@ -12,6 +12,7 @@ import BaseFormSection     from "../../../../shared/components/base/BaseFormSect
 import BaseFormField       from "../../../../shared/components/base/BaseFormField";
 import BaseFormActions     from "../../../../shared/components/base/BaseFormActions";
 import CrudNotification    from "../../../../shared/styles/components/notifications/CrudNotification";
+import Modal               from "../../../../shared/components/ui/Modal";
 import { usePedidoForm }   from "../hooks/usePedidoForm";
 import ComprobanteDropzone from "./ComprobanteDropzone";
 import { useComprobanteUpload } from "../hooks/useComprobanteUpload";
@@ -30,6 +31,36 @@ const banner = (color, bg, border) => ({
   color, fontWeight: 600, fontSize: "0.9rem",
 });
 
+// Estilo base para todos los botones de acción del formulario
+const btnBase = {
+  padding: "8px 22px",
+  borderRadius: 8,
+  border: "none",
+  fontWeight: 600,
+  fontSize: "0.9rem",
+  cursor: "pointer",
+  transition: "background 0.15s",
+};
+
+const btnPrimary = {
+  ...btnBase,
+  background: "var(--primary-color, #1a2540)",
+  color: "#fff",
+};
+
+const btnSecondary = {
+  ...btnBase,
+  background: "transparent",
+  color: "var(--primary-color, #1a2540)",
+  border: "1.5px solid var(--primary-color, #1a2540)",
+};
+
+const btnDanger = {
+  ...btnBase,
+  background: "#ef4444",
+  color: "#fff",
+};
+
 /* ── Visor readonly del comprobante (modo ver) ─────────────────────────── */
 function ComprobanteViewer({ url }) {
   if (!url) return (
@@ -41,20 +72,15 @@ function ComprobanteViewer({ url }) {
       Sin comprobante adjunto
     </div>
   );
-
   const esImagen = /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(url) ||
     url.includes("cloudinary.com") || url.includes("res.cloudinary");
-
   if (esImagen) {
     return (
       <div>
         <a href={url} target="_blank" rel="noopener noreferrer">
           <img src={url} alt="Comprobante"
-            style={{
-              width: "100%", maxHeight: 240,
-              objectFit: "contain", borderRadius: 10,
-              border: "1px solid #e5e7eb", display: "block", cursor: "pointer",
-            }}
+            style={{ width: "100%", maxHeight: 240, objectFit: "contain",
+              borderRadius: 10, border: "1px solid #e5e7eb", display: "block", cursor: "pointer" }}
           />
         </a>
         <div style={{ marginTop: 4, textAlign: "right" }}>
@@ -96,9 +122,10 @@ export default function PedidoForm({
     calcularTotal, formatCurrency,
     agregarItem, removerItem, actualizarCantidad, guardarPedido,
     ESTADOS_PEDIDO, METODOS_PAGO, METODOS_ENTREGA,
+    modalConfirm, closeModalConfirm,
   } = usePedidoForm({ mode, initialData, onSuccess });
 
-  /* ── Hook comprobante ── */
+  /* ── Comprobante ── */
   const comprobante = useComprobanteUpload();
 
   useEffect(() => {
@@ -115,8 +142,11 @@ export default function PedidoForm({
     }
   }, [notification, setNotification]);
 
-  const isDisabled      = isView || pedidoAnulado || pedidoPagado || saving;
-  const esTransferencia = formData.metodo_pago === "transferencia";
+  // Solo bloquear si el estado YA estaba guardado en el servidor (no si el usuario lo acaba de seleccionar)
+  const estadoGuardado   = initialData?.estado ?? "pendiente";
+  const formBloqueado    = isView || (isEdit && (estadoGuardado === "anulado" || estadoGuardado === "pagado"));
+  const isDisabled       = formBloqueado || saving;
+  const esTransferencia  = formData.metodo_pago === "transferencia";
   const tieneComprobante = !!(comprobante.preview || initialData?.transferencia_comprobante);
 
   const fechaHoy = new Date().toLocaleDateString("es-CO", {
@@ -141,13 +171,13 @@ export default function PedidoForm({
     <>
       <BaseFormLayout title={title}>
 
-        {/* Banners de estado */}
-        {pedidoAnulado && (
+        {/* Banners */}
+        {estadoGuardado === "anulado" && (
           <div style={banner("#991b1b", "#fee2e2", "#fecaca")}>
             🚫 Este pedido está anulado y no puede ser modificado.
           </div>
         )}
-        {pedidoPagado && !isView && (
+        {estadoGuardado === "pagado" && !isView && (
           <div style={banner("#166534", "#dcfce7", "#bbf7d0")}>
             ✅ Este pedido está pagado. Ya generó una venta y no puede ser modificado.
           </div>
@@ -254,30 +284,28 @@ export default function PedidoForm({
             </BaseFormField>
           )}
 
-          {/* Estado (edit / view) */}
-          {(isEdit || isView) && (
-            <BaseFormField>
-              {isView ? (
-                <TextField fullWidth label="Estado"
-                  value={ESTADOS_PEDIDO.find((e) => e.value === formData.estado)?.label || formData.estado}
-                  InputProps={{ readOnly: true, style: viewFieldStyle }}
-                  InputLabelProps={{ shrink: true }} />
-              ) : (
-                <FormControl fullWidth disabled={pedidoAnulado || pedidoPagado}>
-                  <InputLabel>Estado</InputLabel>
-                  <Select value={formData.estado} label="Estado"
-                    onChange={(e) => setFormData({ ...formData, estado: e.target.value })}>
-                    {ESTADOS_PEDIDO.map((e) => (
-                      <MenuItem key={e.value} value={e.value}>{e.label}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              )}
-            </BaseFormField>
-          )}
+          {/* ── ESTADO — visible en CREAR, EDITAR y VER ── */}
+          <BaseFormField>
+            {isView ? (
+              <TextField fullWidth label="Estado"
+                value={ESTADOS_PEDIDO.find((e) => e.value === formData.estado)?.label || formData.estado}
+                InputProps={{ readOnly: true, style: viewFieldStyle }}
+                InputLabelProps={{ shrink: true }} />
+            ) : (
+              <FormControl fullWidth disabled={formBloqueado}>
+                <InputLabel>Estado</InputLabel>
+                <Select value={formData.estado} label="Estado"
+                  onChange={(e) => setFormData({ ...formData, estado: e.target.value })}>
+                  {ESTADOS_PEDIDO.map((e) => (
+                    <MenuItem key={e.value} value={e.value}>{e.label}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+          </BaseFormField>
 
           {/* Selector de productos (crear / editar) */}
-          {!isView && !pedidoAnulado && !pedidoPagado && (
+          {!formBloqueado && (
             <>
               <BaseFormField>
                 <FormControl fullWidth disabled={catalogLoading || productos.length === 0}>
@@ -337,15 +365,10 @@ export default function PedidoForm({
             </BaseFormField>
           )}
 
-          {/* ── COMPROBANTE — AL FINAL DE LA SECCIÓN ── */}
+          {/* ── COMPROBANTE — al final de la sección ── */}
           {(esTransferencia || (isView && tieneComprobante)) && (
             <BaseFormField fullWidth>
-              {/* separador visual */}
-              <div style={{
-                borderTop: "1px solid #f3f4f6",
-                paddingTop: 20,
-                marginTop: 8,
-              }}>
+              <div style={{ borderTop: "1px solid #f3f4f6", paddingTop: 20, marginTop: 8 }}>
                 <div style={{
                   fontSize: "0.72rem", color: "#9ca3af",
                   fontWeight: 700, textTransform: "uppercase",
@@ -353,7 +376,6 @@ export default function PedidoForm({
                 }}>
                   Comprobante de Transferencia
                 </div>
-
                 {isView ? (
                   <ComprobanteViewer url={comprobante.preview || initialData?.transferencia_comprobante} />
                 ) : (
@@ -385,7 +407,6 @@ export default function PedidoForm({
               borderRadius: 16,
               border: "1px solid #e5e7eb",
             }}>
-              {/* Tabla items */}
               <div>
                 <div style={{
                   display: "grid",
@@ -420,7 +441,7 @@ export default function PedidoForm({
                       )}
                     </div>
                     <div>
-                      {!isView && !pedidoAnulado && !pedidoPagado ? (
+                      {!formBloqueado ? (
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
                           <button type="button"
                             onClick={() => actualizarCantidad(index, item.cantidad - 1)}
@@ -443,7 +464,7 @@ export default function PedidoForm({
                     <div style={{ textAlign: "right", fontWeight: 600 }}>
                       {formatCurrency((item.precio ?? 0) * item.cantidad)}
                     </div>
-                    {!isView && !pedidoAnulado && !pedidoPagado && (
+                    {!formBloqueado && (
                       <button type="button" onClick={() => removerItem(index)}
                         style={{ background: "none", border: "none", cursor: "pointer", color: "#ef4444", fontSize: "1rem" }}>
                         🗑️
@@ -546,36 +567,26 @@ export default function PedidoForm({
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 36 }}>
           {isView ? (
             <>
-              {/* Volver — color primario del sistema */}
-              <button className="crud-btn crud-btn-secondary" onClick={onCancel}>
+              <button style={btnSecondary} onClick={onCancel}
+                onMouseOver={(e) => { e.currentTarget.style.background = "rgba(26,37,64,0.06)"; }}
+                onMouseOut={(e)  => { e.currentTarget.style.background = "transparent"; }}>
                 Volver
               </button>
 
-              {/* PDF — rojo, solo si el pedido está pagado */}
+              {/* PDF — rojo, solo si pagado */}
               {onPdf && formData.estado === "pagado" && (
-                <button
-                  onClick={onPdf}
-                  style={{
-                    padding: "8px 20px",
-                    borderRadius: 8,
-                    border: "none",
-                    background: "#ef4444",
-                    color: "#fff",
-                    fontWeight: 600,
-                    fontSize: "0.9rem",
-                    cursor: "pointer",
-                    transition: "background 0.15s",
-                  }}
+                <button style={btnDanger} onClick={onPdf}
                   onMouseOver={(e) => { e.currentTarget.style.background = "#dc2626"; }}
-                  onMouseOut={(e)  => { e.currentTarget.style.background = "#ef4444"; }}
-                >
+                  onMouseOut={(e)  => { e.currentTarget.style.background = "#ef4444"; }}>
                   Generar PDF
                 </button>
               )}
 
-              {/* Editar — color primario, solo si no está cerrado */}
-              {onEdit && !pedidoAnulado && !pedidoPagado && (
-                <button className="crud-btn crud-btn-primary" onClick={onEdit}>
+              {/* Editar — primario, solo si no está cerrado */}
+              {onEdit && estadoGuardado !== "anulado" && estadoGuardado !== "pagado" && (
+                <button style={btnPrimary} onClick={onEdit}
+                  onMouseOver={(e) => { e.currentTarget.style.opacity = "0.88"; }}
+                  onMouseOut={(e)  => { e.currentTarget.style.opacity = "1"; }}>
                   Editar
                 </button>
               )}
@@ -585,12 +596,25 @@ export default function PedidoForm({
               onCancel={onCancel}
               onSave={handleGuardar}
               saveLabel={comprobante.uploading || saving ? "Guardando…" : "Guardar"}
-              showSave={!pedidoAnulado && !pedidoPagado}
-              saveDisabled={comprobante.uploading || saving || pedidoAnulado || pedidoPagado}
+              showSave={!formBloqueado}
+              saveDisabled={comprobante.uploading || saving || formBloqueado}
             />
           )}
         </div>
       </BaseFormLayout>
+
+      {/* ══ MODAL CONFIRMACIÓN CAMBIO DE ESTADO ══ */}
+      <Modal
+        open={modalConfirm.open}
+        type={formData.estado === "anulado" ? "warning" : "info"}
+        title={modalConfirm.titulo}
+        message={modalConfirm.mensaje}
+        confirmText="Confirmar"
+        cancelText="Cancelar"
+        showCancel
+        onConfirm={modalConfirm.onConfirm}
+        onCancel={closeModalConfirm}
+      />
 
       <CrudNotification
         message={notification.message}

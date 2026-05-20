@@ -45,6 +45,19 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
   const [notification, setNotification] = useState({ isVisible: false, message: "", type: "success" });
   const [saving, setSaving] = useState(false);
 
+  // ── Modal de confirmación para cambios de estado críticos ─────────────────
+  // Se abre cuando el usuario intenta guardar con estado = anulado o pagado
+  const [modalConfirm, setModalConfirm] = useState({
+    open: false,
+    titulo: "",
+    mensaje: "",
+    // callback a ejecutar si el usuario confirma
+    onConfirm: null,
+  });
+
+  const closeModalConfirm = () =>
+    setModalConfirm({ open: false, titulo: "", mensaje: "", onConfirm: null });
+
   // ── Cargar datos iniciales ────────────────────────────────────────────────
   useEffect(() => {
     if (initialData) {
@@ -76,7 +89,6 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
     setStockWarning("");
     const esProducto = item.tipo === "producto";
     const keyId = esProducto ? "producto_id" : "servicio_id";
-
     const existente = itemsSeleccionados.find((i) => i[keyId] === item.id);
     if (existente) {
       if (esProducto && existente.cantidad >= (item.stock ?? Infinity)) {
@@ -124,10 +136,102 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
     setItemsSeleccionados(nuevos);
   };
 
-  // ── Guardar ───────────────────────────────────────────────────────────────
-  // overrides: objeto con campos extra para inyectar justo antes de guardar
-  // (usado por PedidoForm para pasar la URL del comprobante recién subida)
+  // ── Núcleo de guardado (se llama tras confirmar si es necesario) ──────────
+  const _ejecutarGuardado = async (overrides = {}) => {
+    setSaving(true);
+    try {
+      const payload = { ...formData, ...overrides, items: itemsSeleccionados };
+
+      if (isEdit && initialData?.id) {
+        const estadoAnterior = initialData.estado;
+        const estadoNuevo    = payload.estado;
+
+        await pedidosService.updatePedido(initialData.id, {
+          metodo_pago:               payload.metodo_pago,
+          metodo_entrega:            payload.metodo_entrega,
+          direccion_entrega:         payload.direccion_entrega,
+          transferencia_comprobante: payload.transferencia_comprobante,
+          estado:                    estadoNuevo,
+        });
+
+        // Sincronizar items (solo si el pedido sigue pendiente)
+        if (estadoNuevo === "pendiente") {
+          const itemsOriginales = initialData.items ?? [];
+          for (const orig of itemsOriginales) {
+            const aun = itemsSeleccionados.find((i) => i.id === orig.id);
+            if (!aun) await pedidosService.deleteDetallePedido(orig.id);
+          }
+          for (const item of itemsSeleccionados) {
+            if (!item.id) continue;
+            const orig = itemsOriginales.find((o) => o.id === item.id);
+            if (orig && orig.cantidad !== item.cantidad) {
+              await pedidosService.updateDetallePedido(item.id, {
+                cantidad: item.cantidad, precio_unitario: item.precio,
+              });
+            }
+          }
+          for (const item of itemsSeleccionados) {
+            if (item.id) continue;
+            await pedidosService.createDetallePedido({
+              pedido_id: initialData.id,
+              ...(item.producto_id && { producto_id: item.producto_id }),
+              ...(item.servicio_id && { servicio_id: item.servicio_id }),
+              cantidad:        item.cantidad,
+              precio_unitario: item.precio,
+            });
+          }
+        }
+
+        // Invalidar ventas si pasó a pagado (el back crea la venta en ese momento)
+        if (estadoNuevo === "pagado" && estadoAnterior !== "pagado") {
+          await queryClient.invalidateQueries({ queryKey: ["ventas"] });
+        }
+        // Siempre refrescar lista de pedidos
+        await queryClient.invalidateQueries({ queryKey: ["pedidos"] });
+
+        setNotification({ isVisible: true, message: "Pedido actualizado correctamente.", type: "success" });
+        if (onSuccess) setTimeout(() => onSuccess(payload), 1200);
+
+      } else {
+        // ── CREAR ──
+        const nuevoPedido = await pedidosService.createPedido(payload);
+        const abonoInicial = parseFloat(formData.abono_inicial);
+
+        if (!isNaN(abonoInicial) && abonoInicial > 0 && nuevoPedido?.id) {
+          const total      = calcularTotal();
+          const montoAbono = Math.min(abonoInicial, total);
+          await pedidosService.registrarAbono(nuevoPedido.id, montoAbono);
+
+          // Si el abono cubre el total → marcar pagado → el back crea la venta
+          if (montoAbono >= total) {
+            await pedidosService.updatePedido(nuevoPedido.id, { estado: "pagado" });
+            await queryClient.invalidateQueries({ queryKey: ["ventas"] });
+          }
+        }
+
+        // Si se creó directamente como pagado (sin abono)
+        if (formData.estado === "pagado" && nuevoPedido?.id) {
+          await pedidosService.updatePedido(nuevoPedido.id, { estado: "pagado" });
+          await queryClient.invalidateQueries({ queryKey: ["ventas"] });
+        }
+
+        await queryClient.invalidateQueries({ queryKey: ["pedidos"] });
+        setNotification({ isVisible: true, message: "Pedido creado correctamente.", type: "success" });
+        setTimeout(() => { if (onSuccess) onSuccess(); }, 1200);
+      }
+    } catch (error) {
+      const msg = error?.response?.data?.error ?? "Error al guardar el pedido.";
+      setNotification({ isVisible: true, message: msg, type: "error" });
+      if (onError) onError(msg);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ── Guardar (con intercepción para estados críticos) ──────────────────────
+  // overrides: campos extra a inyectar (ej: URL del comprobante recién subida)
   const guardarPedido = async (overrides = {}) => {
+    // Validaciones básicas
     if (!formData.cliente_id) {
       setNotification({ isVisible: true, message: "Por favor seleccione un cliente.", type: "error" });
       return;
@@ -149,86 +253,44 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
       return;
     }
 
-    setSaving(true);
-    try {
-      const payload = { ...formData, ...overrides, items: itemsSeleccionados };
+    const estadoNuevo    = { ...formData, ...overrides }.estado;
+    const estadoAnterior = initialData?.estado ?? "pendiente";
+    // En edición: cualquier cambio de estado. En creación: si se elige un estado distinto a pendiente.
+    const estadoCambio   = isEdit
+      ? estadoNuevo !== estadoAnterior
+      : estadoNuevo !== "pendiente";
 
-      if (isEdit && initialData?.id) {
-        const estadoAnterior = initialData.estado;
-        const estadoNuevo    = payload.estado;
-
-        await pedidosService.updatePedido(initialData.id, {
-          metodo_pago:               payload.metodo_pago,
-          metodo_entrega:            payload.metodo_entrega,
-          direccion_entrega:         payload.direccion_entrega,
-          transferencia_comprobante: payload.transferencia_comprobante,
-          estado:                    estadoNuevo,
-        });
-
-        // Sincronizar items
-        const itemsOriginales = initialData.items ?? [];
-        for (const orig of itemsOriginales) {
-          const aun = itemsSeleccionados.find((i) => i.id === orig.id);
-          if (!aun) await pedidosService.deleteDetallePedido(orig.id);
-        }
-        for (const item of itemsSeleccionados) {
-          if (!item.id) continue;
-          const orig = itemsOriginales.find((o) => o.id === item.id);
-          if (orig && orig.cantidad !== item.cantidad) {
-            await pedidosService.updateDetallePedido(item.id, {
-              cantidad: item.cantidad, precio_unitario: item.precio,
-            });
-          }
-        }
-        for (const item of itemsSeleccionados) {
-          if (item.id) continue;
-          await pedidosService.createDetallePedido({
-            pedido_id:       initialData.id,
-            ...(item.producto_id && { producto_id: item.producto_id }),
-            ...(item.servicio_id && { servicio_id: item.servicio_id }),
-            cantidad:        item.cantidad,
-            precio_unitario: item.precio,
-          });
-        }
-
-        // Si cambió a pagado → el back crea la venta, invalidar cache de ventas
-        if (estadoNuevo === "pagado" && estadoAnterior !== "pagado") {
-          await queryClient.invalidateQueries({ queryKey: ["ventas"] });
-        }
-        // Siempre refrescar pedidos
-        await queryClient.invalidateQueries({ queryKey: ["pedidos"] });
-
-        setNotification({ isVisible: true, message: "Pedido actualizado correctamente.", type: "success" });
-        if (onSuccess) setTimeout(() => onSuccess(payload), 1200);
-
-      } else {
-        // CREAR pedido
-        const nuevoPedido = await pedidosService.createPedido(payload);
-        const abonoInicial = parseFloat(formData.abono_inicial);
-
-        if (!isNaN(abonoInicial) && abonoInicial > 0 && nuevoPedido?.id) {
-          const total      = calcularTotal();
-          const montoAbono = Math.min(abonoInicial, total);
-          await pedidosService.registrarAbono(nuevoPedido.id, montoAbono);
-
-          // Si el abono cubre el total → marcar pagado → el back crea la venta
-          if (montoAbono >= total) {
-            await pedidosService.updatePedido(nuevoPedido.id, { estado: "pagado" });
-            await queryClient.invalidateQueries({ queryKey: ["ventas"] });
-          }
-        }
-
-        await queryClient.invalidateQueries({ queryKey: ["pedidos"] });
-        setNotification({ isVisible: true, message: "Pedido creado correctamente.", type: "success" });
-        setTimeout(() => { if (onSuccess) onSuccess(); }, 1200);
-      }
-    } catch (error) {
-      const msg = error?.response?.data?.error ?? "Error al guardar el pedido.";
-      setNotification({ isVisible: true, message: msg, type: "error" });
-      if (onError) onError(msg);
-    } finally {
-      setSaving(false);
+    // ── Pedir confirmación si el estado cambia a anulado o pagado ──
+    if (estadoCambio && estadoNuevo === "anulado") {
+      setModalConfirm({
+        open: true,
+        titulo: "¿Anular pedido?",
+        mensaje: `Esta acción anulará el pedido de "${initialData?.cliente ?? "este cliente"}". Se restaurará el stock de los productos. Esta acción no se puede deshacer.`,
+        onConfirm: () => {
+          closeModalConfirm();
+          _ejecutarGuardado(overrides);
+        },
+      });
+      return;
     }
+
+    if (estadoCambio && estadoNuevo === "pagado") {
+      setModalConfirm({
+        open: true,
+        titulo: "¿Marcar como pagado?",
+        mensaje: isCreate
+          ? `El pedido se creará directamente como pagado y se generará una venta automáticamente. Esta acción no se puede deshacer.`
+          : `Al marcar este pedido como pagado se generará una venta automáticamente. Esta acción no se puede deshacer.`,
+        onConfirm: () => {
+          closeModalConfirm();
+          _ejecutarGuardado(overrides);
+        },
+      });
+      return;
+    }
+
+    // Sin cambio de estado crítico → guardar directamente
+    _ejecutarGuardado(overrides);
   };
 
   const clienteNombreVisible =
@@ -249,5 +311,7 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
     calcularTotal, formatCurrency,
     agregarItem, removerItem, actualizarCantidad, guardarPedido,
     ESTADOS_PEDIDO, METODOS_PAGO, METODOS_ENTREGA,
+    // Modal de confirmación para cambios de estado
+    modalConfirm, closeModalConfirm,
   };
 }
