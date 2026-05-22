@@ -1,13 +1,39 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Tooltip, IconButton, Stack } from "@mui/material";
+import PictureAsPdfOutlinedIcon  from "@mui/icons-material/PictureAsPdfOutlined";
+import RemoveRedEyeOutlinedIcon  from "@mui/icons-material/RemoveRedEyeOutlined";
 import CrudLayout from "../../../../shared/components/crud/CrudLayout";
 import CrudTable from "../../../../shared/components/crud/CrudTable";
 import Modal from "../../../../shared/components/ui/Modal";
 import Loading from "../../../../shared/components/ui/Loading";
+import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
 import { useCompras } from "../hooks/useCompras";
 import "../../../../shared/styles/components/crud-table.css";
 
 export default function Compras() {
   const navigate = useNavigate();
+
+  const [notification, setNotification] = useState({
+    isVisible: false, message: "", type: "success",
+  });
+
+  const showNotification = (message, type = "success") =>
+    setNotification({ isVisible: true, message, type });
+
+  const handleCloseNotification = () =>
+    setNotification((prev) => ({ ...prev, isVisible: false }));
+
+  // Leer notificación cross-page (viene de CrearCompra tras navegar)
+  useEffect(() => {
+    const pending = sessionStorage.getItem("crudNotification");
+    if (pending) {
+      const { message, type } = JSON.parse(pending);
+      sessionStorage.removeItem("crudNotification");
+      showNotification(message, type);
+    }
+  }, []);
+
   const {
     compras,
     loading,
@@ -22,13 +48,23 @@ export default function Compras() {
 
   const confirmDelete = async () => {
     const result = await eliminarCompra(modalDelete.id);
-    if (result.success) closeDeleteModal();
-    else alert(result.error);
+    if (result.success) {
+      closeDeleteModal();
+      showNotification(`Compra "${modalDelete.numeroCompra}" eliminada correctamente`);
+    } else {
+      showNotification(result.error, "error");
+    }
   };
 
-  // ─── Columnas ─────────────────────────────────────────────────────────────
-  // La columna "Estado" se renderiza manualmente aquí para no tocar CrudTable.
-  // showStatusColumn={false} le dice a CrudTable que no renderice su propio badge.
+  const handleConfirmarAnular = async () => {
+    const result = await confirmarAnular();
+    if (result?.success) {
+      showNotification("Compra anulada correctamente");
+    } else if (result?.error) {
+      showNotification(result.error, "error");
+    }
+  };
+
   const columns = [
     { field: "proveedorNombre", header: "Proveedor" },
     { field: "fechaFormateada", header: "Fecha"     },
@@ -37,54 +73,71 @@ export default function Compras() {
       field: "estado",
       header: "Estado",
       render: (row) => {
-        const anulada = row.estado === null || row.estado === undefined;
+        const completada = row.estado === "completada";
         return (
           <button
-            onClick={() => !anulada && abrirModalAnular(row)}
-            disabled={anulada}
+            onClick={() => completada && abrirModalAnular(row)}
+            disabled={!completada}
+            title={completada ? "Click para anular" : "Compra anulada"}
             style={{
-              minWidth: 95,
-              padding: "3px 10px",
-              borderRadius: 4,
-              fontSize: "0.75rem",
-              fontWeight: 600,
-              cursor: anulada ? "default" : "pointer",
-              border: `1px solid ${anulada ? "#d1d5db" : "#16a34a"}`,
-              backgroundColor: anulada ? "#f3f4f6" : "#f0fdf4",
-              color: anulada ? "#9ca3af" : "#16a34a",
-              whiteSpace: "nowrap",
+              minWidth:        95,
+              padding:         "3px 10px",
+              borderRadius:    4,
+              fontSize:        "0.75rem",
+              fontWeight:      600,
+              cursor:          completada ? "pointer" : "default",
+              border:          `1px solid ${completada ? "#16a34a" : "#d1d5db"}`,
+              backgroundColor: completada ? "#f0fdf4" : "#f3f4f6",
+              color:           completada ? "#16a34a" : "#9ca3af",
+              whiteSpace:      "nowrap",
             }}
           >
-            {anulada ? "Anulada" : "Completada"}
+            {completada ? "Completada" : "Anulada"}
           </button>
+        );
+      },
+    },
+    {
+      field: "_acciones",
+      header: "Acciones",
+      render: (row) => {
+        const activa = row.estado === "completada";
+        return (
+          <Stack direction="row" spacing={0.5} justifyContent="center">
+            {/* Ojo — ver detalles */}
+            <Tooltip title="Ver detalles">
+              <span>
+                <IconButton
+                  size="small"
+                  disabled={!activa}
+                  onClick={() => activa && navigate(`/admin/compras/detalle/${row.id}`)}
+                >
+                  <RemoveRedEyeOutlinedIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+
+            {/* PDF */}
+            <Tooltip title="Generar PDF">
+              <span>
+                <IconButton
+                  size="small"
+                  disabled={!activa}
+                  onClick={() => activa && navigate(`/admin/compras/detalle/${row.id}/pdf`)}
+                >
+                  <PictureAsPdfOutlinedIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          </Stack>
         );
       },
     },
   ];
 
-  // ─── Acciones — bloqueadas cuando la fila está anulada ────────────────────
-  const tableActions = [
-    {
-      label: "Ver Detalles",
-      type: "view",
-      onClick:  (row) => row.estado !== null && navigate(`/admin/compras/detalle/${row.id}`),
-      disabled: (row) => row.estado === null,
-    },
-    {
-      label: "Generar PDF",
-      type: "pdf",
-      onClick:  (row) => row.estado !== null && navigate(`/admin/compras/detalle/${row.id}/pdf`),
-      disabled: (row) => row.estado === null,
-    },
-  ];
+  const tableActions = [];
 
-  // Datos enriquecidos: las filas anuladas llevan estilo gris
-  // Se inyecta _rowStyle que CrudTable ignora (no lo usa), y se aplica
-  // wrapeando la tabla en un <div> con CSS que selecciona por data-anulada.
-  const comprasConEstilo = compras.map((c) => ({
-    ...c,
-    // Sobreescribimos estado para que CrudTable no lo use (showStatusColumn=false)
-  }));
+  const comprasConEstilo = compras.map((c) => ({ ...c }));
 
   if (loading && compras.length === 0) {
     return <Loading message="Cargando compras..." />;
@@ -106,12 +159,11 @@ export default function Compras() {
       >
         {error && <div className="crud-error">⚠️ {error}</div>}
 
-        {/* Wrapper que pone gris las filas anuladas usando CSS puro.
-            CrudTable no se toca — el estilo aplica solo aquí. */}
         <style>{`
           .compras-tabla tr:has(button[disabled][style*="9ca3af"]) {
             background-color: #f9fafb !important;
             opacity: 0.65;
+            pointer-events: none;
           }
           .compras-tabla tr:has(button[disabled][style*="9ca3af"]) td {
             color: #9ca3af !important;
@@ -151,10 +203,17 @@ export default function Compras() {
           confirmText="Sí, anular"
           cancelText="Cancelar"
           showCancel
-          onConfirm={confirmarAnular}
+          onConfirm={handleConfirmarAnular}
           onCancel={cerrarModalAnular}
         />
       </CrudLayout>
+
+      <CrudNotification
+        isVisible={notification.isVisible}
+        message={notification.message}
+        type={notification.type}
+        onClose={handleCloseNotification}
+      />
     </>
   );
 }

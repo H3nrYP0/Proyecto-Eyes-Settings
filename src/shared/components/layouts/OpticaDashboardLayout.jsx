@@ -1,5 +1,3 @@
-// RESPONSABILIDAD: Layout principal del panel de administración
-
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Box, useTheme, useMediaQuery } from "@mui/material";
@@ -30,7 +28,6 @@ import {
 import {
   Compras,
   CrearCompra,
-  EditarCompra,
   DetalleCompra,
   CompraPDFView,
 } from "../../../features/compras/compra";
@@ -138,34 +135,31 @@ export default function OpticaDashboardLayout({ user, setUser }) {
           {/* ========== VENTAS ========== */}
           <Route path="ventas">
             <Route index element={<Ventas />} />
-            <Route path="crear"       element={<CrearVenta />} />   {/* ← nueva ruta */}
+            <Route path="crear"       element={<CrearVenta />} />
             <Route path="detalle/:id" element={<DetalleVenta />} />
 
-            {/* Clientes */}
             <Route path="clientes">
               <Route index element={<Clientes />} />
-              <Route path="crear"               element={<CrearCliente />} />
-              <Route path="editar/:id"          element={<EditarCliente />} />
-              <Route path="detalle/:id"         element={<DetalleCliente />} />
+              <Route path="crear"                 element={<CrearCliente />} />
+              <Route path="editar/:id"            element={<EditarCliente />} />
+              <Route path="detalle/:id"           element={<DetalleCliente />} />
               <Route path="historial-formula/:id" element={<HistorialFormula />} />
             </Route>
 
-            {/* Pedidos */}
             <Route path="pedidos">
               <Route index element={<Pedidos />} />
-              <Route path="crear"      element={<CrearPedido />} />
-              <Route path="editar/:id" element={<EditarPedido />} />
+              <Route path="crear"       element={<CrearPedido />} />
+              <Route path="editar/:id"  element={<EditarPedido />} />
               <Route path="detalle/:id" element={<DetallePedido />} />
-              <Route path="pdf/:id"    element={<PedidoPDFView />} />
+              <Route path="pdf/:id"     element={<PedidoPDFView />} />
             </Route>
           </Route>
 
           {/* ========== COMPRAS ========== */}
           <Route path="compras">
             <Route index element={<Compras />} />
-            <Route path="crear"          element={<CrearCompra />} />
-            <Route path="editar/:id"     element={<EditarCompra />} />
-            <Route path="detalle/:id"    element={<DetalleCompra />} />
+            <Route path="crear"           element={<CrearCompra />} />
+            <Route path="detalle/:id"     element={<DetalleCompra />} />
             <Route path="detalle/:id/pdf" element={<CompraPDFView />} />
 
             <Route path="categorias"><Route index element={<Categorias />} /></Route>
@@ -178,8 +172,8 @@ export default function OpticaDashboardLayout({ user, setUser }) {
 
             <Route path="proveedores">
               <Route index element={<Proveedores />} />
-              <Route path="crear"      element={<CrearProveedor />} />
-              <Route path="editar/:id" element={<EditarProveedor />} />
+              <Route path="crear"       element={<CrearProveedor />} />
+              <Route path="editar/:id"  element={<EditarProveedor />} />
               <Route path="detalle/:id" element={<DetalleProveedor />} />
             </Route>
           </Route>
@@ -191,10 +185,10 @@ export default function OpticaDashboardLayout({ user, setUser }) {
             <Route path="citas">
               <Route element={<CitaDataProvider><Outlet /></CitaDataProvider>}>
                 <Route index element={<Citas />} />
-                <Route path="crear"      element={<CrearCita />} />
-                <Route path="editar/:id" element={<EditarCita />} />
+                <Route path="crear"       element={<CrearCita />} />
+                <Route path="editar/:id"  element={<EditarCita />} />
                 <Route path="detalle/:id" element={<DetalleCita />} />
-                <Route path="novedades"  element={<Novedades />} />
+                <Route path="novedades"   element={<Novedades />} />
               </Route>
             </Route>
 
@@ -223,14 +217,14 @@ export default function OpticaDashboardLayout({ user, setUser }) {
             <Route index element={<Navigate to="usuarios" replace />} />
             <Route path="usuarios">
               <Route index element={<GestionUsuarios />} />
-              <Route path="crear"      element={<CrearUsuario />} />
-              <Route path="editar/:id" element={<EditarUsuario />} />
+              <Route path="crear"       element={<CrearUsuario />} />
+              <Route path="editar/:id"  element={<EditarUsuario />} />
               <Route path="detalle/:id" element={<DetalleUsuario />} />
             </Route>
             <Route path="roles">
               <Route index element={<Roles />} />
-              <Route path="crear"      element={<CrearRol />} />
-              <Route path="editar/:id" element={<EditarPermisos />} />
+              <Route path="crear"       element={<CrearRol />} />
+              <Route path="editar/:id"  element={<EditarPermisos />} />
               <Route path="detalle/:id" element={<ListaRoles />} />
             </Route>
           </Route>
