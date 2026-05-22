@@ -93,6 +93,7 @@ import DetalleUsuario from "@seguridad/user/pages/DetalleUsuario";
 
 // ========== Configuración ==========
 import Configuracion from "@configuracion/pages/Configuration";
+import authServices  from "@auth/services/authServices";
 
 export default function OpticaDashboardLayout({ user, setUser }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
