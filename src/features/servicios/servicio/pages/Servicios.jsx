@@ -105,22 +105,7 @@ export default function Servicios() {
               : 'No hay servicios registrados'
           }
         />
-
-        {servicios.length === 0 && !search && !filterEstado && !loading && (
-          <Box sx={{ textAlign: 'center', marginTop: '24px' }}>
-            <Button
-              variant="contained"
-              onClick={handleOpenCreate}
-              sx={{
-                backgroundColor: BRAND_COLOR,
-                '&:hover': { backgroundColor: BRAND_HOVER }
-              }}
-            >
-              Crear Primer Servicio
-            </Button>
-          </Box>
-        )}
-
+        
         <Modal
           open={modalDelete.open}
           type="warning"
