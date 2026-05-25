@@ -1,9 +1,10 @@
 // =============================================================
-// Navbar.jsx — Con iconos de carrito y wishlist
+// Navbar.jsx — Con iconos de carrito (MUI) y wishlist (SVG)
 // =============================================================
 
 import { Tooltip, IconButton } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useCart } from "../../home/components/Products/ShoppingCart";
 
 const Navbar = ({
@@ -37,7 +38,7 @@ const Navbar = ({
 
         {/* Acciones */}
         <div className="nav-actions">
-          {/* Wishlist */}
+          {/* Wishlist (se mantiene SVG) */}
           <Tooltip title="Lista de deseos" arrow>
             <button className="nav-icon-btn" onClick={openWishlist} aria-label="Lista de deseos">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -47,14 +48,10 @@ const Navbar = ({
             </button>
           </Tooltip>
 
-          {/* Carrito */}
+          {/* Carrito con ícono de Material UI */}
           <Tooltip title="Carrito" arrow>
             <button className="nav-icon-btn" onClick={toggleCart} aria-label="Carrito de compras">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
-                <line x1="3" y1="6" x2="21" y2="6"/>
-                <path d="M16 10a4 4 0 01-8 0"/>
-              </svg>
+              <ShoppingCartIcon />
               {cartCount > 0 && <span className="nav-badge">{cartCount}</span>}
             </button>
           </Tooltip>

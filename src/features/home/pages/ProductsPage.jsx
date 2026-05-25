@@ -10,31 +10,27 @@ import FooterCompact from "../components/FooterCompact";
 import ProductsGrid from "../../home/components/Products/ProductsGrid";
 import ProductDetail from "../../home/components/Products/ProductDetail";
 import ShoppingCart, { CartProvider, WishlistDrawer, useCart } from "../../home/components/Products/ShoppingCart";
-import { hasPermiso } from "../utils/permissions";
+import authServices from "@auth/Services/authServices";
 import "../../../shared/styles/features/home/ProductsPage.css";
 import "../../../shared/styles/features/home/ProductDetail.css";
 import "../../../shared/styles/features/home/ShoppingCart.css";
 import "../../../shared/styles/features/home/PaymentModal.css";
 
 // ─── Componente que resetea el scroll en cada cambio de ruta ──
-// useLayoutEffect corre ANTES del paint: el usuario nunca ve la
-// posición anterior, la página aparece directamente arriba.
 const ScrollResetter = () => {
   const { pathname } = useLocation();
 
   useLayoutEffect(() => {
-    // Resetear window y document
     window.scrollTo(0, 0);
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
 
-    // Resetear cualquier contenedor con scroll activo en el DOM
     document.querySelectorAll("*").forEach((el) => {
       if (el.scrollTop > 0) el.scrollTop = 0;
     });
   }, [pathname]);
 
-  return null; // No renderiza nada, solo tiene el efecto
+  return null;
 };
 
 // Botón flotante del carrito
@@ -55,23 +51,20 @@ const CartFab = () => {
 
 const ProductsPageContent = ({ user, setUser }) => {
   const navigate = useNavigate();
-  const puedeVerDashboard = hasPermiso(user, "dashboard");
+  const showDashboard = user ? authServices.hasAdminAccess(user) : false;
 
   return (
     <div className="products-page">
-
-      {/* ScrollResetter va aquí dentro del Router context para
-          tener acceso a useLocation, y resetea en cada ruta */}
       <ScrollResetter />
 
       <Navbar
         user={user}
         activePage="productos"
-        puedeVerDashboard={puedeVerDashboard}
+        showDashboard={showDashboard}
         onNavigation={p => { navigate(p); window.scrollTo(0, 0); }}
         onLogin={() => navigate("/login")}
         onLogout={() => { setUser(null); navigate("/"); }}
-        onDashboard={() => navigate(user ? "/admin/dashboard" : "/login")}
+        onDashboard={() => navigate("/admin")}
         onMiPerfil={() => navigate("/cliente/perfil")}
       />
 

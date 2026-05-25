@@ -3,7 +3,7 @@
  * 
  * Funcionalidad:
  * - Muestra menú colapsable (íconos cuando está cerrado, texto cuando abierto)
- * - Filtra secciones según permisos del usuario
+ * - Filtra secciones según permisos del usuario (granulares)
  * - Al hacer clic en ícono cuando está cerrado → abre el sidebar y expande la sección
  * - Solo una sección puede estar expandida a la vez (las demás se cierran automáticamente)
  * - Dashboard es elemento directo (sin submenú, navega al hacer clic)
@@ -35,11 +35,12 @@ const drawerWidth = 240;
 
 export default function Sidebar({ open, onToggle, user }) {
 
-  const { expandedSections, toggleSection, hasPermission, expandSection } = useSidebar(user);
+  const { expandedSections, hasPermission, expandSection, toggleSection } = useSidebar(user);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
+  // Filtrar secciones según los permisos granulares del usuario
   const filteredSections = useMemo(
     () => menuStructure.filter(section => hasPermission(section.id)),
     [hasPermission]
@@ -172,37 +173,43 @@ export default function Sidebar({ open, onToggle, user }) {
                     unmountOnExit
                   >
                     <List component="div" disablePadding>
-                      {section.items.map(item => (
-                        <Tooltip
-                          key={item.path}
-                          title={!open ? item.name : ""}
-                          placement="right"
-                          arrow
-                        >
-                          <ListItemButton
-                            component={NavLink}
-                            to={item.path}
-                            onClick={isMobile ? onToggle : undefined}
-                            sx={{
-                              justifyContent: open ? "initial" : "center",
-                              pl: open ? 4 : 2.5,
-                            }}
+                      {section.items.map(item => {
+                        // Verificar permiso del subítem (si tiene)
+                        if (item.permisos && !item.permisos.some(p => user?.permisos?.includes(p))) {
+                          return null;
+                        }
+                        return (
+                          <Tooltip
+                            key={item.path}
+                            title={!open ? item.name : ""}
+                            placement="right"
+                            arrow
                           >
-                            <ListItemIcon
+                            <ListItemButton
+                              component={NavLink}
+                              to={item.path}
+                              onClick={isMobile ? onToggle : undefined}
                               sx={{
-                                color: "#fff",
-                                minWidth: 0,
-                                mr: open ? 2 : "auto",
-                                justifyContent: "center",
+                                justifyContent: open ? "initial" : "center",
+                                pl: open ? 4 : 2.5,
                               }}
                             >
-                              <IconRenderer name={item.icon} />
-                            </ListItemIcon>
+                              <ListItemIcon
+                                sx={{
+                                  color: "#fff",
+                                  minWidth: 0,
+                                  mr: open ? 2 : "auto",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                <IconRenderer name={item.icon} />
+                              </ListItemIcon>
 
-                            {open && <ListItemText primary={item.name} />}
-                          </ListItemButton>
-                        </Tooltip>
-                      ))}
+                              {open && <ListItemText primary={item.name} />}
+                            </ListItemButton>
+                          </Tooltip>
+                        );
+                      })}
                     </List>
                   </Collapse>
                 )}

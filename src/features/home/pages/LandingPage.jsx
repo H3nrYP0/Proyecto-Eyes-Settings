@@ -1,7 +1,7 @@
 // =============================================================
 // RESPONSABILIDAD: Lógica pura de la página de inicio.
 //   - Navegación y scroll
-//   - Verificación de permisos desde el JWT
+//   - Verificación de permisos desde el JWT (ahora con hasAdminAccess)
 //   - Handlers de sesión (login / logout / dashboard / perfil)
 //   - Delega todo lo visual a AuthHome
 // =============================================================
@@ -9,7 +9,6 @@
 import { useNavigate } from "react-router-dom";
 import AuthHome from "./AuthHome";
 import authServices from "@auth/Services/authServices";
-import { hasPermiso } from "../utils/permissions";
 
 // ------------------------------------------------------------------
 // LandingPage
@@ -18,8 +17,8 @@ import { hasPermiso } from "../utils/permissions";
 const LandingPage = ({ user, setUser }) => {
   const navigate = useNavigate();
 
-  // --- Permisos derivados del JWT ---
-  const puedeVerDashboard = hasPermiso(user, "dashboard");
+  // --- Permisos: ¿puede ver el botón de Dashboard? ---
+  const showDashboard = user ? authServices.hasAdminAccess(user) : false;
 
   // --- Handlers ---
   const handleNavigation = (path) => {
@@ -30,22 +29,19 @@ const LandingPage = ({ user, setUser }) => {
   const handleLogin = () => navigate("/login");
   
   const handleLogout = () => { 
-    authServices.logout(); // ← esto faltaba
+    authServices.logout();
     setUser(null); 
     navigate("/"); 
   };
 
-  const handleDashboard = () => navigate(user ? "/admin/dashboard" : "/login");
-  
-  // Handler para ir al perfil de usuario
-  const handleMiPerfil = () => {
-  navigate("/cliente/perfil");
-  };
+  const handleDashboard = () => navigate("/admin");  // ← redirige a /admin (redirección inteligente)
+
+  const handleMiPerfil = () => navigate("/cliente/perfil");
 
   return (
     <AuthHome
       user={user}
-      puedeVerDashboard={puedeVerDashboard}
+      showDashboard={showDashboard}
       onNavigation={handleNavigation}
       onLogin={handleLogin}
       onLogout={handleLogout}

@@ -2,46 +2,38 @@
  * useSidebar - Hook para manejar la lógica del menú lateral
  * 
  * Funcionalidad:
- * - Gestiona permisos del usuario para mostrar/ocultar secciones
+ * - Gestiona permisos del usuario (ahora granulares) para mostrar/ocultar secciones
  * - Maneja qué sección está expandida (solo una a la vez)
  * - Detecta la sección activa según la ruta actual
  * - Expande automáticamente la sección cuando navegas a una ruta interna
  */
 
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { menuStructure } from '../constants/menuStructure';
 
 export const useSidebar = (user) => {
   const [expandedSections, setExpandedSections] = useState({});
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const location = useLocation();
-  const expandedSectionsRef = useRef(expandedSections);
 
-  useEffect(() => {
-    expandedSectionsRef.current = expandedSections;
-  }, [expandedSections]);
-
-  const hasPermission = useCallback((sectionId) => {
-    if (!user) return false;
-
-    const rawPermisos = user.permisos || user.permissions || [];
-
-    const permisos = rawPermisos.map(p => 
-      typeof p === 'string' ? p : p.nombre
-    );
-
-    if (permisos.includes('*')) return true;
-
-    const section = menuStructure.find(s => s.id === sectionId);
-    if (!section?.permisos) return false;
-
-    return section.permisos.some(permiso => permisos.includes(permiso));
-
+  // Función principal de permisos: recibe el array de permisos requeridos por el elemento del menú
+  const hasPermission = useCallback((permisosRequeridos) => {
+    if (!user || !user.permisos) return false;
+    if (!permisosRequeridos || permisosRequeridos.length === 0) return true;
+    // user.permisos ya es un array de strings (ej: ["ver_dashboard", "ver_ventas", ...])
+    // Comprobamos si al menos uno de los requeridos está presente
+    return permisosRequeridos.some(req => user.permisos.includes(req));
   }, [user]);
 
+  // Para compatibilidad con llamadas que pasan solo el id de la sección
+  const hasPermissionForSection = useCallback((sectionId) => {
+    const section = menuStructure.find(s => s.id === sectionId);
+    if (!section) return false;
+    return hasPermission(section.permisos);
+  }, [hasPermission]);
+
   const canViewConfig = useCallback(() => {
-    return hasPermission('configuracion');
+    return hasPermission(["gestionar_configuracion"]);
   }, [hasPermission]);
 
   const activeSection = useMemo(() => {
@@ -52,7 +44,6 @@ export const useSidebar = (user) => {
       { path: '/admin/seguridad', section: 'seguridad' },
       { path: '/admin/dashboard', section: 'dashboard' }
     ];
-
     const found = pathSections.find(({ path }) => location.pathname.includes(path));
     return found ? found.section : null;
   }, [location.pathname]);
@@ -63,38 +54,22 @@ export const useSidebar = (user) => {
     }
   }, [activeSection]);
 
-  // Colapsar todas las secciones
   const collapseAllSections = useCallback(() => {
     setExpandedSections({});
   }, []);
 
-  // Expandir UNA sola sección y cerrar las demás
   const expandSection = useCallback((section) => {
-    if (!hasPermission(section)) return;
-
-    setIsTransitioning(true);
-    // Expande SOLO la sección seleccionada, cierra todas las demás
+    if (!hasPermissionForSection(section)) return;
     setExpandedSections({ [section]: true });
-    setTimeout(() => setIsTransitioning(false), 300);
-  }, [hasPermission]);
+  }, [hasPermissionForSection]);
 
-  // Toggle: si ya está expandida la colapsa, si no, expande SOLO esa
   const toggleSection = useCallback((section) => {
-    if (!hasPermission(section)) return;
-
-    setIsTransitioning(true);
-
+    if (!hasPermissionForSection(section)) return;
     setExpandedSections(prev => {
-      // Si la sección ya está expandida, la colapsamos
-      if (prev[section]) {
-        return {};
-      }
-      // Si no está expandida, expandimos SOLO esta y cerramos las demás
+      if (prev[section]) return {};
       return { [section]: true };
     });
-
-    setTimeout(() => setIsTransitioning(false), 300);
-  }, [hasPermission]);
+  }, [hasPermissionForSection]);
 
   const closeAllTooltips = useCallback(() => {
     const tooltips = document.querySelectorAll('.MuiTooltip-popper, .MuiTooltip-tooltip, [role="tooltip"]');
@@ -108,12 +83,11 @@ export const useSidebar = (user) => {
   return {
     expandedSections,
     activeSection,
-    hasPermission,
+    hasPermission: hasPermissionForSection,   // para usar con section.id
     canViewConfig,
     toggleSection,
     expandSection,
     collapseAllSections,
-    isTransitioning,
     closeAllTooltips
   };
 };
