@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
-// Colores
+// Colores (igual que antes)
 const BRAND_LIGHT = "#eef2f8";
 const BRAND_BORDER = "#e3e2f0";
 const TEXT_PRIMARY = "#1a2c3e";
@@ -23,40 +23,51 @@ const TEXT_PRIMARY = "#1a2c3e";
 // 1. MAPEO DE PERMISOS ESPECIALES A ENTIDADES
 // ============================================================
 const specialMapping = {
-  // Cambios de estado
+  // Cambios de estado y cancelaciones
   cambiar_estado_cita: "citas",
   cambiar_estado_pedido: "pedidos",
   cambiar_estado_venta: "ventas",
-  // Cancelaciones
   cancelar_citas: "citas",
   // Reportes
   generar_reporte_citas: "citas",
   generar_reporte_ventas: "ventas",
-  generar_reporte_inventario: "inventario",
-  ver_reportes: "reportes",
-  // Comprobantes
+  generar_reporte_inventario: "productos",   // inventario va con productos
   descargar_comprobante_pedido: "pedidos",
-  // Imágenes
-  subir_imagenes: "imagenes",
+  ver_reportes: "reportes",                  // opcional, puede ir en su propia entidad o en dashboard
+  // Imágenes (creamos entidad "imagenes")
   ver_imagenes: "imagenes",
+  subir_imagenes: "imagenes",
   eliminar_imagenes: "imagenes",
-  // Abonos
+  // Abonos (creamos entidad "abonos")
   crear_abono: "abonos",
   ver_abonos: "abonos",
   cancelar_abono: "abonos",
-  // Configuración
+  // Configuración y dashboard
   gestionar_configuracion: "configuracion",
-  // Dashboard
   ver_dashboard: "dashboard",
-  // Otros (ajusta según tu seed)
-  ver_bitacora: "bitacora",
-  exportar_datos: "datos",
 };
+
+// Entidades principales que aparecerán en el selector
+const ENTIDADES_MAIN = [
+  "usuarios",
+  "clientes",
+  "productos",
+  "ventas",
+  "citas",
+  "empleados",
+  "proveedores",
+  "compras",
+  "pedidos",
+  "abonos",
+  "imagenes",
+  "configuracion",
+  "dashboard",
+  "reportes",   // opcional
+];
 
 // ============================================================
 // 2. FUNCIONES AUXILIARES
 // ============================================================
-// Obtener entidad de un permiso CRUD (ver_*, crear_*, etc.)
 const getEntityFromCrud = (nombre) => {
   const parts = nombre.split("_");
   if (parts.length >= 2) {
@@ -68,40 +79,31 @@ const getEntityFromCrud = (nombre) => {
   return null;
 };
 
-// Función principal: determina la entidad de cualquier permiso
 const getEntityForPermiso = (nombre) => {
-  // 1. CRUD
   let entity = getEntityFromCrud(nombre);
-  if (entity) return entity;
-  // 2. Mapeo especial
+  if (entity && ENTIDADES_MAIN.includes(entity)) return entity;
   if (specialMapping[nombre]) return specialMapping[nombre];
-  // 3. Fallback: "otros"
   return "otros";
 };
 
-// Agrupar permisos por entidad
 const agruparPermisos = (permisos) => {
   const grupos = new Map();
-
   permisos.forEach((p) => {
     const entity = getEntityForPermiso(p.nombre);
-    if (!grupos.has(entity)) {
-      grupos.set(entity, { entity, items: [] });
-    }
+    if (!grupos.has(entity)) grupos.set(entity, { entity, items: [] });
     grupos.get(entity).items.push(p);
   });
-
-  // Ordenar alfabéticamente (puedes cambiar el orden si quieres)
-  return Array.from(grupos.values()).sort((a, b) =>
-    a.entity.localeCompare(b.entity)
+  // Ordenar según el orden de ENTIDADES_MAIN (las que no están al final)
+  const orden = [...ENTIDADES_MAIN, "otros"];
+  const sorted = Array.from(grupos.values()).sort(
+    (a, b) => orden.indexOf(a.entity) - orden.indexOf(b.entity)
   );
+  return sorted;
 };
 
-// Capitalizar primera letra
 const capitalizar = (str) =>
   str.charAt(0).toUpperCase() + str.slice(1).replace(/_/g, " ");
 
-// Formatear nombre de permiso para mostrar
 const formatearNombre = (nombre) => {
   return nombre.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 };
@@ -121,7 +123,6 @@ export default function PermisosSelector({
     [permisosDisponibles]
   );
 
-  // Todos los IDs (para el botón global)
   const allPermisoIds = useMemo(
     () => permisosDisponibles.map((p) => p.id),
     [permisosDisponibles]
@@ -216,7 +217,7 @@ export default function PermisosSelector({
         )}
       </Box>
 
-      {/* Lista de acordeones por entidad */}
+      {/* Lista de acordeones */}
       <Box sx={{ maxHeight: 420, overflowY: "auto", pr: 1 }}>
         {grupos.map((grupo) => (
           <Accordion
