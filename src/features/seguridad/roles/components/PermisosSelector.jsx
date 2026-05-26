@@ -1,16 +1,25 @@
-import { useMemo } from "react";
+// ============================================================
+// PermisosSelector.jsx
+// Selector de permisos: vista básica (3 columnas por entidad) o
+// vista avanzada (permisos individuales en 3 columnas, con checkbox "Todos" por entidad).
+// En la vista básica, toda la tarjeta es clickeable para marcar/desmarcar la entidad.
+// ============================================================
+
+import { useMemo, useState } from "react";
 import {
   Box,
   Typography,
   FormHelperText,
   Checkbox,
   Grid,
+  IconButton,
 } from "@mui/material";
+import SettingsIcon from "@mui/icons-material/Settings";
+import PermisosAvanzados from "./PermisosAvanzados";
 
 const BRAND_BORDER = "#e3e2f0";
 const TEXT_PRIMARY = "#1a2c3e";
 
-// Mapeo de permisos especiales a entidades
 const specialMapping = {
   cambiar_estado_cita: "citas",
   cambiar_estado_pedido: "pedidos",
@@ -88,8 +97,15 @@ export default function PermisosSelector({
   error,
   disabled = false,
   readOnly = false,
+  modo = "crear",
 }) {
   const isReadOnly = disabled || readOnly;
+  const [modoAvanzado, setModoAvanzado] = useState(false);
+
+  const toggleModo = () => {
+    if (isReadOnly) return;
+    setModoAvanzado((prev) => !prev);
+  };
 
   const grupos = useMemo(
     () => agruparPorEntidad(permisosDisponibles),
@@ -125,6 +141,7 @@ export default function PermisosSelector({
     onChange(nuevos);
   };
 
+  // Modo solo lectura
   if (isReadOnly) {
     return (
       <Box sx={{ width: "100%" }}>
@@ -155,6 +172,7 @@ export default function PermisosSelector({
     );
   }
 
+  // Modo edición
   return (
     <Box sx={{ width: "100%" }}>
       {error && (
@@ -162,36 +180,72 @@ export default function PermisosSelector({
           {error}
         </FormHelperText>
       )}
-      <Box sx={{ maxHeight: 420, overflowY: "auto", pr: 1 }}>
-        <Grid container spacing={1} columns={12}>
-          {grupos.map((grupo) => (
-            <Grid item xs={4} sm={4} md={4} key={grupo.entity}>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  border: `1px solid ${BRAND_BORDER}`,
-                  borderRadius: "8px",
-                  p: 1,
-                  backgroundColor: "#fafafa",
-                }}
-              >
-                <Typography fontWeight={500} sx={{ fontSize: "0.8rem" }}>
-                  {capitalizar(grupo.entity)}
-                </Typography>
-                <Checkbox
-                  size="small"
-                  checked={isCompleta(grupo)}
-                  indeterminate={isParcial(grupo)}
-                  onChange={() => toggleEntidad(grupo)}
-                  sx={{ p: 0.5 }}
-                />
-              </Box>
-            </Grid>
-          ))}
-        </Grid>
+
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+        <IconButton
+          onClick={toggleModo}
+          aria-label={modoAvanzado ? "Volver a vista básica" : "Cambiar a modo avanzado"}
+          title={modoAvanzado ? "Volver a selección por entidad" : "Ver permisos individuales"}
+          size="small"
+          color={modoAvanzado ? "primary" : "default"}
+        >
+          <SettingsIcon />
+        </IconButton>
       </Box>
+
+      {!modoAvanzado && (
+        <Box sx={{ maxHeight: 420, overflowY: "auto", pr: 1 }}>
+          <Grid container spacing={1} columns={12}>
+            {grupos.map((grupo) => (
+              <Grid item xs={4} sm={4} md={4} key={grupo.entity}>
+                {/* 
+                  Toda la tarjeta es clickeable. Al hacer clic fuera del checkbox, 
+                  se ejecuta toggleEntidad. El checkbox tiene su propio onClick que 
+                  evita la propagación para no duplicar el evento.
+                */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    border: `1px solid ${BRAND_BORDER}`,
+                    borderRadius: "8px",
+                    p: 1,
+                    backgroundColor: "#fafafa",
+                    cursor: "pointer",
+                    transition: "background-color 0.2s",
+                    "&:hover": { backgroundColor: "#f0f0f0" },
+                  }}
+                  onClick={() => toggleEntidad(grupo)}
+                >
+                  <Typography fontWeight={500} sx={{ fontSize: "0.8rem" }}>
+                    {capitalizar(grupo.entity)}
+                  </Typography>
+                  <Checkbox
+                    size="small"
+                    checked={isCompleta(grupo)}
+                    indeterminate={isParcial(grupo)}
+                    onClick={(e) => e.stopPropagation()} // Evita doble llamada
+                    onChange={() => toggleEntidad(grupo)}
+                    sx={{ p: 0.5 }}
+                  />
+                </Box>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      )}
+
+      {modoAvanzado && (
+        <Box sx={{ mt: 1 }}>
+          <PermisosAvanzados
+            permisosDisponibles={permisosDisponibles}
+            value={value}
+            onChange={onChange}
+            modo={modo}
+          />
+        </Box>
+      )}
     </Box>
   );
 }
