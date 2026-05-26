@@ -180,11 +180,16 @@ const authServices = {
 
   /**
    * Verifica si el usuario tiene acceso al área administrativa.
+   * AHORA: los clientes NUNCA tienen acceso, incluso si por error tienen permisos.
    * @param {Object} usuario - Objeto usuario (con array 'permisos')
    * @returns {boolean}
    */
   hasAdminAccess(usuario) {
-    if (!usuario || !usuario.permisos) return false;
+    if (!usuario) return false;
+    // Los clientes NO pueden tener acceso administrativo bajo ninguna circunstancia
+    if (usuario.es_cliente === true) return false;
+    // Resto de usuarios (empleados, admins) se rigen por sus permisos
+    if (!usuario.permisos) return false;
     return ADMIN_PERMISOS.some(permiso => usuario.permisos.includes(permiso));
   }
 };

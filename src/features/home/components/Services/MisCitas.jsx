@@ -1,3 +1,8 @@
+// =============================================================
+// Responsabilidad: Mostrar y gestionar las citas del cliente autenticado.
+// Permite cancelar citas pendientes/confirmadas y enviar notificación por WhatsApp.
+// =============================================================
+
 import { useState, useEffect } from "react";
 import { getMisCitas, cancelarCita } from "./citasLandingService";
 
@@ -5,25 +10,23 @@ import { getMisCitas, cancelarCita } from "./citasLandingService";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ScheduleIcon from "@mui/icons-material/Schedule";
 import CloseIcon from "@mui/icons-material/Close";
-import PersonIcon from "@mui/icons-material/Person";
 import EventIcon from "@mui/icons-material/Event";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import MedicalServicesIcon from "@mui/icons-material/MedicalServices";
 import WarningIcon from "@mui/icons-material/Warning";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 
-// Formatear fecha de YYYY-MM-DD a DD/MM/AAAA
+// ------------------------------------------------------------------
+// UTILIDADES DE FORMATEO
+// ------------------------------------------------------------------
 const formatDate = (dateString) => {
   if (!dateString) return "";
   const [year, month, day] = dateString.split("-");
   return `${day}/${month}/${year}`;
 };
 
-// Formatear hora de HH:MM:SS a HH:MM AM/PM
 const formatTimeToAMPM = (timeString) => {
   if (!timeString) return "";
   let hours, minutes;
-  
   if (timeString.includes(":")) {
     const parts = timeString.split(":");
     hours = parseInt(parts[0], 10);
@@ -31,21 +34,22 @@ const formatTimeToAMPM = (timeString) => {
   } else {
     return timeString;
   }
-  
   const ampm = hours >= 12 ? "PM" : "AM";
   const hours12 = hours % 12 || 12;
   return `${hours12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
 };
 
-// Mapeo de estado a clases CSS y texto
+// Mapeo de estados de cita a estilos visuales
 const estadoInfo = {
-  1: { texto: "Confirmada", clase: "estado-confirmada", icono: <CheckCircleIcon sx={{ fontSize: "0.8rem" }} />, ordenGrupo: 1 },
-  2: { texto: "Pendiente", clase: "estado-pendiente", icono: <ScheduleIcon sx={{ fontSize: "0.8rem" }} />, ordenGrupo: 2 },
-  3: { texto: "Completada", clase: "estado-completada", icono: <CheckCircleIcon sx={{ fontSize: "0.8rem" }} />, ordenGrupo: 3 },
-  4: { texto: "Cancelada", clase: "estado-cancelada", icono: <CloseIcon sx={{ fontSize: "0.8rem" }} />, ordenGrupo: 4 },
+  1: { texto: "Confirmada", clase: "estado-confirmada", icono: <CheckCircleIcon sx={{ fontSize: "0.8rem" }} /> },
+  2: { texto: "Pendiente", clase: "estado-pendiente", icono: <ScheduleIcon sx={{ fontSize: "0.8rem" }} /> },
+  3: { texto: "Completada", clase: "estado-completada", icono: <CheckCircleIcon sx={{ fontSize: "0.8rem" }} /> },
+  4: { texto: "Cancelada", clase: "estado-cancelada", icono: <CloseIcon sx={{ fontSize: "0.8rem" }} /> },
 };
 
-// Modal de confirmación
+// ------------------------------------------------------------------
+// MODAL DE CONFIRMACIÓN DE CANCELACIÓN
+// ------------------------------------------------------------------
 const ConfirmCancelModal = ({ cita, onConfirm, onClose }) => {
   const fechaFormateada = formatDate(cita.fecha);
   const horaFormateada = formatTimeToAMPM(cita.hora);
@@ -76,7 +80,9 @@ const ConfirmCancelModal = ({ cita, onConfirm, onClose }) => {
   );
 };
 
-// Modal de éxito al cancelar
+// ------------------------------------------------------------------
+// MODAL DE ÉXITO AL CANCELAR (con opción de WhatsApp)
+// ------------------------------------------------------------------
 const CancelSuccessModal = ({ cita, onClose, onSendWhatsApp }) => {
   return (
     <div className="success-modal-overlay" onClick={onClose}>
@@ -108,6 +114,9 @@ const CancelSuccessModal = ({ cita, onClose, onSendWhatsApp }) => {
   );
 };
 
+// ------------------------------------------------------------------
+// COMPONENTE PRINCIPAL MisCitas
+// ------------------------------------------------------------------
 const MisCitas = ({ readOnly = false, onCitaCancelada, refreshKey }) => {
   const [citas, setCitas] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -116,31 +125,19 @@ const MisCitas = ({ readOnly = false, onCitaCancelada, refreshKey }) => {
   const [citaParaCancelar, setCitaParaCancelar] = useState(null);
   const [citaCanceladaExito, setCitaCanceladaExito] = useState(null);
 
-  // Ordenar y agrupar las citas
+  // Ordenar citas: activas primero (confirmadas, pendientes), luego completadas/canceladas
   const procesarCitas = (citasArray) => {
-    // 1. Ordenar por fecha y hora ascendente (las más cercanas primero)
     const ordenadas = [...citasArray].sort((a, b) => {
-      // Comparar fecha completa + hora
       const fechaHoraA = new Date(`${a.fecha}T${a.hora}`);
       const fechaHoraB = new Date(`${b.fecha}T${b.hora}`);
       return fechaHoraA - fechaHoraB;
     });
-
-    // 2. Agrupar por estado según ordenGrupo (1: Confirmada, 2: Pendiente, 3: Completada, 4: Cancelada)
-    const grupos = {
-      1: [], // Confirmadas (activas)
-      2: [], // Pendientes (activas)
-      3: [], // Completadas (inactivas)
-      4: [], // Canceladas (inactivas)
-    };
-
+    const grupos = { 1: [], 2: [], 3: [], 4: [] };
     ordenadas.forEach(cita => {
       const estadoId = cita.estado_cita_id;
       if (grupos[estadoId]) grupos[estadoId].push(cita);
-      else grupos[4].push(cita); // por si llega un estado desconocido, va a canceladas
+      else grupos[4].push(cita);
     });
-
-    // Unir grupos: primero activas (1 y 2), luego inactivas (3 y 4)
     return [...grupos[1], ...grupos[2], ...grupos[3], ...grupos[4]];
   };
 
@@ -148,8 +145,7 @@ const MisCitas = ({ readOnly = false, onCitaCancelada, refreshKey }) => {
     setLoading(true);
     try {
       const data = await getMisCitas();
-      const procesadas = procesarCitas(data);
-      setCitas(procesadas);
+      setCitas(procesarCitas(data));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -157,19 +153,16 @@ const MisCitas = ({ readOnly = false, onCitaCancelada, refreshKey }) => {
     }
   };
 
-  // Carga inicial y cuando cambia refreshKey
   useEffect(() => {
-    if (!readOnly) {
-      cargarCitas();
-    }
-  }, [readOnly, refreshKey]); // 👈 refreshKey ya está incluido
+    if (!readOnly) cargarCitas();
+  }, [readOnly, refreshKey]);
 
   const handleConfirmCancel = async () => {
     if (!citaParaCancelar) return;
     setCancelandoId(citaParaCancelar.id);
     try {
       await cancelarCita(citaParaCancelar.id);
-      await cargarCitas(); // Recargar la lista ya ordenada
+      await cargarCitas();
       setCitaCanceladaExito({
         servicio: citaParaCancelar.servicio_nombre,
         fecha: formatDate(citaParaCancelar.fecha),
@@ -188,8 +181,7 @@ const MisCitas = ({ readOnly = false, onCitaCancelada, refreshKey }) => {
     if (!citaCanceladaExito) return;
     const telefonoOptica = "573006139449";
     const mensaje = `Hola, he cancelado mi cita del ${citaCanceladaExito.fecha} a las ${citaCanceladaExito.hora} para el servicio de ${citaCanceladaExito.servicio}. Gracias.`;
-    const url = `https://wa.me/${telefonoOptica}?text=${encodeURIComponent(mensaje)}`;
-    window.open(url, "_blank");
+    window.open(`https://wa.me/${telefonoOptica}?text=${encodeURIComponent(mensaje)}`, "_blank");
   };
 
   if (readOnly) {
@@ -211,8 +203,8 @@ const MisCitas = ({ readOnly = false, onCitaCancelada, refreshKey }) => {
         <h3><EventIcon sx={{ fontSize: "1.2rem", marginRight: "0.5rem", verticalAlign: "middle" }} /> Mis citas</h3>
         <div className="citas-grid">
           {citas.map(cita => {
-            const estado = estadoInfo[cita.estado_cita_id] || { texto: "Desconocido", clase: "", icono: <MedicalServicesIcon sx={{ fontSize: "0.8rem" }} /> };
-            const esCancelable = cita.estado_cita_id === 1 || cita.estado_cita_id === 2;
+            const estado = estadoInfo[cita.estado_cita_id] || { texto: "Desconocido", clase: "", icono: null };
+            const esCancelable = [1, 2].includes(cita.estado_cita_id);
             const fechaFormateada = formatDate(cita.fecha);
             const horaFormateada = formatTimeToAMPM(cita.hora);
 
