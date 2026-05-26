@@ -1,47 +1,36 @@
 // ============================================================
 // PermisosSelector.jsx
-// Selector de permisos: vista básica (3 columnas por entidad) o
-// vista avanzada (permisos individuales en 3 columnas, con checkbox "Todos" por entidad).
-// Un ícono de engranaje permite cambiar entre ambos modos.
-// En vista básica, toda la tarjeta es clickeable.
+// Selector de permisos por entidad (diseño 3 columnas).
+// Cada entidad tiene un solo checkbox que representa TODOS los permisos de esa entidad.
+// Toda la tarjeta es clickeable.
 // ============================================================
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   Box,
   Typography,
   FormHelperText,
   Checkbox,
   Grid,
-  IconButton,
 } from "@mui/material";
-import SettingsIcon from "@mui/icons-material/Settings";
-import PermisosAvanzados from "./PermisosAvanzados";
 
 const BRAND_BORDER = "#e3e2f0";
 const TEXT_PRIMARY = "#1a2c3e";
 
-// Mapeo de permisos especiales a entidades (para la vista básica)
+// Mapeo de permisos especiales a entidades (para agrupar)
 const specialMapping = {
   cambiar_estado_cita: "citas",
   cambiar_estado_pedido: "pedidos",
   cambiar_estado_venta: "ventas",
-  cancelar_citas: "citas",
-  generar_reporte_citas: "citas",
-  generar_reporte_ventas: "ventas",
-  generar_reporte_inventario: "productos",
-  descargar_comprobante_pedido: "pedidos",
-  ver_reportes: "reportes",
   ver_imagenes: "imagenes",
   subir_imagenes: "imagenes",
   eliminar_imagenes: "imagenes",
-  crear_abono: "abonos",
-  ver_abonos: "abonos",
-  cancelar_abono: "abonos",
-  gestionar_configuracion: "seguridad",   // ← ahora apunta a "seguridad"
+  gestionar_configuracion: "seguridad",
   ver_dashboard: "dashboard",
+  cliente_acceso_basico: "seguridad",
 };
 
+// Lista de entidades en el orden deseado
 const ENTIDADES_MAIN = [
   "dashboard",
   "servicios",
@@ -57,10 +46,11 @@ const ENTIDADES_MAIN = [
   "pedidos",
   "ventas",
   "usuarios",
-  "seguridad",   // ← antes "configuracion"
+  "seguridad",
+  "imagenes",
 ];
 
-// Mapeo de nombres con tildes para mostrar al usuario
+// Nombres mostrados con tildes
 const nombresConTildes = {
   dashboard: "Dashboard",
   servicios: "Servicios",
@@ -76,26 +66,22 @@ const nombresConTildes = {
   pedidos: "Pedidos",
   ventas: "Ventas",
   usuarios: "Usuarios",
-  seguridad: "Seguridad",      // ← nombre más claro
+  seguridad: "Seguridad",
   imagenes: "Imágenes",
-  abonos: "Abonos",
-  reportes: "Reportes",
 };
 
-// Función para obtener el nombre visible con tilde
 const formatearNombreEntidad = (entidad) => {
   if (nombresConTildes[entidad]) return nombresConTildes[entidad];
-  // Fallback: capitalizar normal
   return entidad.charAt(0).toUpperCase() + entidad.slice(1).replace(/_/g, " ");
 };
 
+// Determina a qué entidad pertenece un permiso (CRUD o especial)
 const getEntityForPermiso = (nombre) => {
   const parts = nombre.split("_");
   if (parts.length >= 2) {
     const accion = parts[0];
     if (["ver", "crear", "editar", "eliminar"].includes(accion)) {
       const entity = parts.slice(1).join("_");
-      // Aceptamos tanto "seguridad" como "configuracion" para compatibilidad
       if (entity === "configuracion") return "seguridad";
       if (ENTIDADES_MAIN.includes(entity)) return entity;
     }
@@ -104,6 +90,7 @@ const getEntityForPermiso = (nombre) => {
   return null;
 };
 
+// Agrupa los IDs de permisos por entidad
 const agruparPorEntidad = (permisos) => {
   const map = new Map();
   permisos.forEach((p) => {
@@ -118,9 +105,6 @@ const agruparPorEntidad = (permisos) => {
     .sort((a, b) => orden.indexOf(a.entity) - orden.indexOf(b.entity));
 };
 
-const formatearNombre = (nombre) =>
-  nombre.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
-
 export default function PermisosSelector({
   permisosDisponibles = [],
   value = [],
@@ -128,25 +112,13 @@ export default function PermisosSelector({
   error,
   disabled = false,
   readOnly = false,
-  modo = "crear",
 }) {
   const isReadOnly = disabled || readOnly;
-  const [modoAvanzado, setModoAvanzado] = useState(false);
-
-  const toggleModo = () => {
-    if (isReadOnly) return;
-    setModoAvanzado((prev) => !prev);
-  };
 
   const grupos = useMemo(
     () => agruparPorEntidad(permisosDisponibles),
     [permisosDisponibles]
   );
-
-  const permisosSeleccionados = useMemo(() => {
-    if (!isReadOnly) return [];
-    return permisosDisponibles.filter((p) => value.includes(p.id));
-  }, [permisosDisponibles, value, isReadOnly]);
 
   const isCompleta = (grupo) => {
     if (grupo.ids.length === 0) return false;
@@ -172,8 +144,11 @@ export default function PermisosSelector({
     onChange(nuevos);
   };
 
-  // Modo solo lectura
+  // Modo solo lectura: muestra la lista de entidades seleccionadas
   if (isReadOnly) {
+    const entidadesSeleccionadas = grupos
+      .filter(grupo => isCompleta(grupo))
+      .map(grupo => formatearNombreEntidad(grupo.entity));
     return (
       <Box sx={{ width: "100%" }}>
         {error && (
@@ -181,19 +156,19 @@ export default function PermisosSelector({
             {error}
           </FormHelperText>
         )}
-        {permisosSeleccionados.length === 0 ? (
+        {entidadesSeleccionadas.length === 0 ? (
           <Typography variant="body2" sx={{ fontSize: "0.8rem", color: "#999" }}>
-            No se han seleccionado permisos.
+            No se han seleccionado entidades.
           </Typography>
         ) : (
           <Grid container spacing={1} columns={12}>
-            {permisosSeleccionados.map((permiso) => (
-              <Grid item xs={4} sm={4} md={4} key={permiso.id}>
+            {entidadesSeleccionadas.map((nombre) => (
+              <Grid item xs={4} sm={4} md={4} key={nombre}>
                 <Typography
                   variant="body2"
                   sx={{ fontSize: "0.75rem", color: TEXT_PRIMARY, py: 0.5 }}
                 >
-                  {formatearNombre(permiso.nombre)}
+                  {nombre}
                 </Typography>
               </Grid>
             ))}
@@ -203,7 +178,7 @@ export default function PermisosSelector({
     );
   }
 
-  // Modo edición
+  // Modo edición: selectores por entidad
   return (
     <Box sx={{ width: "100%" }}>
       {error && (
@@ -211,67 +186,41 @@ export default function PermisosSelector({
           {error}
         </FormHelperText>
       )}
-
-      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-        <IconButton
-          onClick={toggleModo}
-          aria-label={modoAvanzado ? "Volver a vista básica" : "Cambiar a modo avanzado"}
-          title={modoAvanzado ? "Volver a selección por entidad" : "Ver permisos individuales"}
-          size="small"
-          color={modoAvanzado ? "primary" : "default"}
-        >
-          <SettingsIcon />
-        </IconButton>
+      <Box sx={{ maxHeight: 420, overflowY: "auto", pr: 1 }}>
+        <Grid container spacing={1} columns={12}>
+          {grupos.map((grupo) => (
+            <Grid item xs={4} sm={4} md={4} key={grupo.entity}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  border: `1px solid ${BRAND_BORDER}`,
+                  borderRadius: "8px",
+                  p: 1,
+                  backgroundColor: "#fafafa",
+                  cursor: "pointer",
+                  transition: "background-color 0.2s",
+                  "&:hover": { backgroundColor: "#f0f0f0" },
+                }}
+                onClick={() => toggleEntidad(grupo)}
+              >
+                <Typography fontWeight={500} sx={{ fontSize: "0.8rem" }}>
+                  {formatearNombreEntidad(grupo.entity)}
+                </Typography>
+                <Checkbox
+                  size="small"
+                  checked={isCompleta(grupo)}
+                  indeterminate={isParcial(grupo)}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={() => toggleEntidad(grupo)}
+                  sx={{ p: 0.5 }}
+                />
+              </Box>
+            </Grid>
+          ))}
+        </Grid>
       </Box>
-
-      {!modoAvanzado && (
-        <Box sx={{ maxHeight: 420, overflowY: "auto", pr: 1 }}>
-          <Grid container spacing={1} columns={12}>
-            {grupos.map((grupo) => (
-              <Grid item xs={4} sm={4} md={4} key={grupo.entity}>
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    border: `1px solid ${BRAND_BORDER}`,
-                    borderRadius: "8px",
-                    p: 1,
-                    backgroundColor: "#fafafa",
-                    cursor: "pointer",
-                    transition: "background-color 0.2s",
-                    "&:hover": { backgroundColor: "#f0f0f0" },
-                  }}
-                  onClick={() => toggleEntidad(grupo)}
-                >
-                  <Typography fontWeight={500} sx={{ fontSize: "0.8rem" }}>
-                    {formatearNombreEntidad(grupo.entity)}
-                  </Typography>
-                  <Checkbox
-                    size="small"
-                    checked={isCompleta(grupo)}
-                    indeterminate={isParcial(grupo)}
-                    onClick={(e) => e.stopPropagation()}
-                    onChange={() => toggleEntidad(grupo)}
-                    sx={{ p: 0.5 }}
-                  />
-                </Box>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
-      )}
-
-      {modoAvanzado && (
-        <Box sx={{ mt: 1 }}>
-          <PermisosAvanzados
-            permisosDisponibles={permisosDisponibles}
-            value={value}
-            onChange={onChange}
-            modo={modo}
-          />
-        </Box>
-      )}
     </Box>
   );
 }

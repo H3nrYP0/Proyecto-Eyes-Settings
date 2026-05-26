@@ -3,6 +3,7 @@ import { Box } from "@mui/material";
 
 import { BaseInputField, BaseFormLayout, BaseFormActions, FormRow, FormCol } from "@shared";
 import PermisosSelector from "./PermisosSelector";
+import PermisosDetalle from "./PermisosDetalle";
 
 export default function RolForm({
   mode = "create",
@@ -121,13 +122,20 @@ export default function RolForm({
       </FormRow>
 
       <Box sx={{ mt: 2 }}>
-        <PermisosSelector
-          permisosDisponibles={permisosDisponibles}
-          value={formData.permisos}
-          onChange={(permisos) => setFormData((prev) => ({ ...prev, permisos }))}
-          error={errors.permisos}
-          disabled={isView}
-        />
+        {isView ? (
+          <PermisosDetalle
+            permisosDisponibles={permisosDisponibles}
+            value={formData.permisos}
+          />
+        ) : (
+          <PermisosSelector
+            permisosDisponibles={permisosDisponibles}
+            value={formData.permisos}
+            onChange={(permisos) => setFormData((prev) => ({ ...prev, permisos }))}
+            error={errors.permisos}
+            disabled={isView}
+          />
+        )}
       </Box>
 
       <BaseFormActions
