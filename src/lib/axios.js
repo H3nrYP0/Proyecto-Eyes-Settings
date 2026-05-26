@@ -8,7 +8,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000", // Usa variable de entorno
+  baseURL: "https://optica-api-vad8.onrender.com",
   headers: {
     "Content-Type": "application/json",
   },
