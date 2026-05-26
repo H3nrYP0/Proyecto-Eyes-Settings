@@ -208,21 +208,6 @@ export default function Novedades() {
           }
         />
 
-        {novedades.length === 0 && !search && !filterEstado && !loading && (
-          <Box sx={{ textAlign: 'center', marginTop: '24px' }}>
-            <Button
-              variant="contained"
-              onClick={openCreateModal}
-              sx={{
-                backgroundColor: BRAND_COLOR,
-                '&:hover': { backgroundColor: BRAND_HOVER }
-              }}
-            >
-              Crear Primera Novedad
-            </Button>
-          </Box>
-        )}
-
         {/* Modal Eliminar */}
         <Modal
           open={modalDelete.open}

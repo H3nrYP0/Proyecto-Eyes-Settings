@@ -203,21 +203,6 @@ export default function Horarios() {
           }
         />
 
-        {horarios.length === 0 && !search && !filterEstado && !loading && (
-          <Box sx={{ textAlign: 'center', marginTop: '24px' }}>
-            <Button
-              variant="contained"
-              onClick={openCreateModal}
-              sx={{
-                backgroundColor: BRAND_COLOR,
-                '&:hover': { backgroundColor: BRAND_HOVER }
-              }}
-            >
-              Crear Primer Horario
-            </Button>
-          </Box>
-        )}
-
         <Modal
           open={modalDelete.open}
           type="warning"
