@@ -2,52 +2,35 @@ import { useMemo } from "react";
 import {
   Box,
   Typography,
-  Chip,
-  Button,
   FormHelperText,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Checkbox,
-  FormControlLabel,
   Grid,
 } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
-// Colores (igual que antes)
-const BRAND_LIGHT = "#eef2f8";
 const BRAND_BORDER = "#e3e2f0";
 const TEXT_PRIMARY = "#1a2c3e";
 
-// ============================================================
-// 1. MAPEO DE PERMISOS ESPECIALES A ENTIDADES
-// ============================================================
+// Mapeo de permisos especiales a entidades
 const specialMapping = {
-  // Cambios de estado y cancelaciones
   cambiar_estado_cita: "citas",
   cambiar_estado_pedido: "pedidos",
   cambiar_estado_venta: "ventas",
   cancelar_citas: "citas",
-  // Reportes
   generar_reporte_citas: "citas",
   generar_reporte_ventas: "ventas",
-  generar_reporte_inventario: "productos",   // inventario va con productos
+  generar_reporte_inventario: "productos",
   descargar_comprobante_pedido: "pedidos",
-  ver_reportes: "reportes",                  // opcional, puede ir en su propia entidad o en dashboard
-  // Imágenes (creamos entidad "imagenes")
+  ver_reportes: "reportes",
   ver_imagenes: "imagenes",
   subir_imagenes: "imagenes",
   eliminar_imagenes: "imagenes",
-  // Abonos (creamos entidad "abonos")
   crear_abono: "abonos",
   ver_abonos: "abonos",
   cancelar_abono: "abonos",
-  // Configuración y dashboard
   gestionar_configuracion: "configuracion",
   ver_dashboard: "dashboard",
 };
 
-// Entidades principales que aparecerán en el selector
 const ENTIDADES_MAIN = [
   "usuarios",
   "clientes",
@@ -62,248 +45,153 @@ const ENTIDADES_MAIN = [
   "imagenes",
   "configuracion",
   "dashboard",
-  "reportes",   // opcional
+  "reportes",
 ];
 
-// ============================================================
-// 2. FUNCIONES AUXILIARES
-// ============================================================
-const getEntityFromCrud = (nombre) => {
+const getEntityForPermiso = (nombre) => {
   const parts = nombre.split("_");
   if (parts.length >= 2) {
     const accion = parts[0];
     if (["ver", "crear", "editar", "eliminar"].includes(accion)) {
-      return parts.slice(1).join("_");
+      const entity = parts.slice(1).join("_");
+      if (ENTIDADES_MAIN.includes(entity)) return entity;
     }
   }
+  if (specialMapping[nombre]) return specialMapping[nombre];
   return null;
 };
 
-const getEntityForPermiso = (nombre) => {
-  let entity = getEntityFromCrud(nombre);
-  if (entity && ENTIDADES_MAIN.includes(entity)) return entity;
-  if (specialMapping[nombre]) return specialMapping[nombre];
-  return "otros";
-};
-
-const agruparPermisos = (permisos) => {
-  const grupos = new Map();
+const agruparPorEntidad = (permisos) => {
+  const map = new Map();
   permisos.forEach((p) => {
     const entity = getEntityForPermiso(p.nombre);
-    if (!grupos.has(entity)) grupos.set(entity, { entity, items: [] });
-    grupos.get(entity).items.push(p);
+    if (!entity) return;
+    if (!map.has(entity)) map.set(entity, []);
+    map.get(entity).push(p.id);
   });
-  // Ordenar según el orden de ENTIDADES_MAIN (las que no están al final)
-  const orden = [...ENTIDADES_MAIN, "otros"];
-  const sorted = Array.from(grupos.values()).sort(
-    (a, b) => orden.indexOf(a.entity) - orden.indexOf(b.entity)
-  );
-  return sorted;
+  const orden = [...ENTIDADES_MAIN];
+  return Array.from(map.entries())
+    .map(([entity, ids]) => ({ entity, ids }))
+    .sort((a, b) => orden.indexOf(a.entity) - orden.indexOf(b.entity));
 };
 
 const capitalizar = (str) =>
   str.charAt(0).toUpperCase() + str.slice(1).replace(/_/g, " ");
 
-const formatearNombre = (nombre) => {
-  return nombre.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
-};
+const formatearNombre = (nombre) =>
+  nombre.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 
-// ============================================================
-// 3. COMPONENTE PRINCIPAL
-// ============================================================
 export default function PermisosSelector({
   permisosDisponibles = [],
   value = [],
   onChange,
   error,
   disabled = false,
+  readOnly = false,
 }) {
+  const isReadOnly = disabled || readOnly;
+
   const grupos = useMemo(
-    () => agruparPermisos(permisosDisponibles),
+    () => agruparPorEntidad(permisosDisponibles),
     [permisosDisponibles]
   );
 
-  const allPermisoIds = useMemo(
-    () => permisosDisponibles.map((p) => p.id),
-    [permisosDisponibles]
-  );
-  const allSelected = value.length === allPermisoIds.length && allPermisoIds.length > 0;
+  const permisosSeleccionados = useMemo(() => {
+    if (!isReadOnly) return [];
+    return permisosDisponibles.filter((p) => value.includes(p.id));
+  }, [permisosDisponibles, value, isReadOnly]);
 
-  const handleToggleAll = () => {
-    if (disabled) return;
-    onChange(allSelected ? [] : allPermisoIds);
+  const isCompleta = (grupo) => {
+    if (grupo.ids.length === 0) return false;
+    return grupo.ids.every((id) => value.includes(id));
   };
 
-  const isGrupoCompleto = (grupo) => {
-    const ids = grupo.items.map((i) => i.id);
-    if (ids.length === 0) return false;
-    return ids.every((id) => value.includes(id));
+  const isParcial = (grupo) => {
+    if (grupo.ids.length === 0) return false;
+    const algunos = grupo.ids.some((id) => value.includes(id));
+    return algunos && !isCompleta(grupo);
   };
 
-  const isGrupoParcial = (grupo) => {
-    const ids = grupo.items.map((i) => i.id);
-    if (ids.length === 0) return false;
-    return ids.some((id) => value.includes(id)) && !isGrupoCompleto(grupo);
-  };
-
-  const toggleGrupo = (grupo) => {
-    if (disabled) return;
-    const ids = grupo.items.map((i) => i.id);
-    const todas = ids.every((id) => value.includes(id));
+  const toggleEntidad = (grupo) => {
+    if (isReadOnly) return;
+    const todas = isCompleta(grupo);
+    let nuevos;
     if (todas) {
-      onChange(value.filter((id) => !ids.includes(id)));
+      nuevos = value.filter((id) => !grupo.ids.includes(id));
     } else {
-      const toAdd = ids.filter((id) => !value.includes(id));
-      onChange([...value, ...toAdd]);
+      const idsToAdd = grupo.ids.filter((id) => !value.includes(id));
+      nuevos = [...value, ...idsToAdd];
     }
+    onChange(nuevos);
   };
 
-  const togglePermiso = (permisoId) => {
-    if (disabled) return;
-    if (value.includes(permisoId)) {
-      onChange(value.filter((id) => id !== permisoId));
-    } else {
-      onChange([...value, permisoId]);
-    }
-  };
+  if (isReadOnly) {
+    return (
+      <Box sx={{ width: "100%" }}>
+        {error && (
+          <FormHelperText error sx={{ mb: 1, fontSize: "0.75rem" }}>
+            {error}
+          </FormHelperText>
+        )}
+        {permisosSeleccionados.length === 0 ? (
+          <Typography variant="body2" sx={{ fontSize: "0.8rem", color: "#999" }}>
+            No se han seleccionado permisos.
+          </Typography>
+        ) : (
+          <Grid container spacing={1} columns={12}>
+            {permisosSeleccionados.map((permiso) => (
+              <Grid item xs={4} sm={4} md={4} key={permiso.id}>
+                <Typography
+                  variant="body2"
+                  sx={{ fontSize: "0.75rem", color: TEXT_PRIMARY, py: 0.5 }}
+                >
+                  {formatearNombre(permiso.nombre)}
+                </Typography>
+              </Grid>
+            ))}
+          </Grid>
+        )}
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ width: "100%" }}>
-      {/* Cabecera */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 2,
-          flexWrap: "wrap",
-          gap: 1,
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Typography variant="subtitle1" fontWeight={600}>
-            Permisos
-          </Typography>
-          <Chip
-            label={`${value.length} de ${permisosDisponibles.length}`}
-            size="small"
-            sx={{
-              bgcolor: BRAND_LIGHT,
-              color: TEXT_PRIMARY,
-              border: `1px solid ${BRAND_BORDER}`,
-              fontWeight: 500,
-            }}
-          />
-        </Box>
-        {!disabled && (
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={handleToggleAll}
-            sx={{
-              textTransform: "none",
-              borderRadius: 1.5,
-              borderColor: BRAND_BORDER,
-              color: TEXT_PRIMARY,
-              bgcolor: "transparent",
-              "&:hover": { borderColor: "#9aaebf", bgcolor: BRAND_LIGHT },
-              px: 2,
-              py: 0.5,
-              fontSize: "0.75rem",
-            }}
-          >
-            {allSelected ? "Deseleccionar todos" : "Seleccionar todos"}
-          </Button>
-        )}
-      </Box>
-
-      {/* Lista de acordeones */}
+      {error && (
+        <FormHelperText error sx={{ mb: 1, fontSize: "0.75rem" }}>
+          {error}
+        </FormHelperText>
+      )}
       <Box sx={{ maxHeight: 420, overflowY: "auto", pr: 1 }}>
-        {grupos.map((grupo) => (
-          <Accordion
-            key={grupo.entity}
-            disableGutters
-            elevation={0}
-            sx={{
-              border: `1px solid ${BRAND_BORDER}`,
-              borderRadius: "8px !important",
-              mb: 1.5,
-              "&:before": { display: "none" },
-              background: "transparent",
-            }}
-          >
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
-              sx={{
-                minHeight: 48,
-                "& .MuiAccordionSummary-content": { my: 1 },
-                backgroundColor: "#fafafa",
-                borderRadius: "8px",
-              }}
-            >
+        <Grid container spacing={1} columns={12}>
+          {grupos.map((grupo) => (
+            <Grid item xs={4} sm={4} md={4} key={grupo.entity}>
               <Box
                 sx={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  width: "100%",
-                  pr: 2,
+                  border: `1px solid ${BRAND_BORDER}`,
+                  borderRadius: "8px",
+                  p: 1,
+                  backgroundColor: "#fafafa",
                 }}
               >
-                <Typography fontWeight={600} sx={{ fontSize: "0.9rem" }}>
+                <Typography fontWeight={500} sx={{ fontSize: "0.8rem" }}>
                   {capitalizar(grupo.entity)}
                 </Typography>
-                <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-                  <Chip
-                    label={`${grupo.items.filter((i) => value.includes(i.id)).length}/${
-                      grupo.items.length
-                    }`}
-                    size="small"
-                    sx={{ bgcolor: BRAND_LIGHT, fontSize: "0.7rem" }}
-                  />
-                  <Checkbox
-                    size="small"
-                    checked={isGrupoCompleto(grupo)}
-                    indeterminate={isGrupoParcial(grupo)}
-                    onChange={() => toggleGrupo(grupo)}
-                    disabled={disabled}
-                    sx={{ p: 0.5 }}
-                  />
-                </Box>
+                <Checkbox
+                  size="small"
+                  checked={isCompleta(grupo)}
+                  indeterminate={isParcial(grupo)}
+                  onChange={() => toggleEntidad(grupo)}
+                  sx={{ p: 0.5 }}
+                />
               </Box>
-            </AccordionSummary>
-            <AccordionDetails sx={{ pt: 1, pb: 1, pl: 2 }}>
-              <Grid container spacing={1}>
-                {grupo.items.map((permiso) => (
-                  <Grid item xs={6} sm={4} md={3} key={permiso.id}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          size="small"
-                          checked={value.includes(permiso.id)}
-                          onChange={() => togglePermiso(permiso.id)}
-                          disabled={disabled}
-                        />
-                      }
-                      label={formatearNombre(permiso.nombre)}
-                      sx={{
-                        m: 0,
-                        "& .MuiFormControlLabel-label": { fontSize: "0.75rem" },
-                      }}
-                    />
-                  </Grid>
-                ))}
-              </Grid>
-            </AccordionDetails>
-          </Accordion>
-        ))}
+            </Grid>
+          ))}
+        </Grid>
       </Box>
-
-      {error && (
-        <FormHelperText error sx={{ mt: 1.5, fontSize: "0.75rem" }}>
-          {error}
-        </FormHelperText>
-      )}
     </Box>
   );
 }
