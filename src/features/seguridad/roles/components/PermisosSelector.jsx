@@ -1,14 +1,109 @@
+// ============================================================
+// PermisosSelector.jsx
+// Selector de permisos por entidad (diseño 3 columnas).
+// Cada entidad tiene un solo checkbox que representa TODOS los permisos de esa entidad.
+// Toda la tarjeta es clickeable.
+// ============================================================
+
+import { useMemo } from "react";
 import {
-  Box, Typography, Chip, Button, FormHelperText
-} from '@mui/material';
+  Box,
+  Typography,
+  FormHelperText,
+  Checkbox,
+  Grid,
+} from "@mui/material";
 
-import { areAllSelected, togglePermiso, toggleSelectAll } from '@seguridad';
-
-// Colores muy claros
-const BRAND_LIGHT = "#eef2f8";
-const BRAND_SELECTED = "#e8f5fe";
 const BRAND_BORDER = "#e3e2f0";
 const TEXT_PRIMARY = "#1a2c3e";
+
+// Mapeo de permisos especiales a entidades (para agrupar)
+const specialMapping = {
+  cambiar_estado_cita: "citas",
+  cambiar_estado_pedido: "pedidos",
+  cambiar_estado_venta: "ventas",
+  ver_imagenes: "imagenes",
+  subir_imagenes: "imagenes",
+  eliminar_imagenes: "imagenes",
+  gestionar_configuracion: "seguridad",
+  ver_dashboard: "dashboard",
+  cliente_acceso_basico: "seguridad",
+};
+
+// Lista de entidades en el orden deseado
+const ENTIDADES_MAIN = [
+  "dashboard",
+  "servicios",
+  "citas",
+  "empleados",
+  "campanas",
+  "compras",
+  "productos",
+  "categorias",
+  "marcas",
+  "proveedores",
+  "clientes",
+  "pedidos",
+  "ventas",
+  "usuarios",
+  "seguridad",
+  "imagenes",
+];
+
+// Nombres mostrados con tildes
+const nombresConTildes = {
+  dashboard: "Dashboard",
+  servicios: "Servicios",
+  citas: "Citas",
+  empleados: "Empleados",
+  campanas: "Campañas",
+  compras: "Compras",
+  productos: "Productos",
+  categorias: "Categorías",
+  marcas: "Marcas",
+  proveedores: "Proveedores",
+  clientes: "Clientes",
+  pedidos: "Pedidos",
+  ventas: "Ventas",
+  usuarios: "Usuarios",
+  seguridad: "Seguridad",
+  imagenes: "Imágenes",
+};
+
+const formatearNombreEntidad = (entidad) => {
+  if (nombresConTildes[entidad]) return nombresConTildes[entidad];
+  return entidad.charAt(0).toUpperCase() + entidad.slice(1).replace(/_/g, " ");
+};
+
+// Determina a qué entidad pertenece un permiso (CRUD o especial)
+const getEntityForPermiso = (nombre) => {
+  const parts = nombre.split("_");
+  if (parts.length >= 2) {
+    const accion = parts[0];
+    if (["ver", "crear", "editar", "eliminar"].includes(accion)) {
+      const entity = parts.slice(1).join("_");
+      if (entity === "configuracion") return "seguridad";
+      if (ENTIDADES_MAIN.includes(entity)) return entity;
+    }
+  }
+  if (specialMapping[nombre]) return specialMapping[nombre];
+  return null;
+};
+
+// Agrupa los IDs de permisos por entidad
+const agruparPorEntidad = (permisos) => {
+  const map = new Map();
+  permisos.forEach((p) => {
+    const entity = getEntityForPermiso(p.nombre);
+    if (!entity) return;
+    if (!map.has(entity)) map.set(entity, []);
+    map.get(entity).push(p.id);
+  });
+  const orden = [...ENTIDADES_MAIN];
+  return Array.from(map.entries())
+    .map(([entity, ids]) => ({ entity, ids }))
+    .sort((a, b) => orden.indexOf(a.entity) - orden.indexOf(b.entity));
+};
 
 export default function PermisosSelector({
   permisosDisponibles = [],
@@ -16,116 +111,116 @@ export default function PermisosSelector({
   onChange,
   error,
   disabled = false,
+  readOnly = false,
 }) {
-  const allSelected = areAllSelected(value, permisosDisponibles);
+  const isReadOnly = disabled || readOnly;
 
-  const handlePermisoChange = (permisoId) => {
-    if (disabled) return;
-    onChange(togglePermiso(value, permisoId));
+  const grupos = useMemo(
+    () => agruparPorEntidad(permisosDisponibles),
+    [permisosDisponibles]
+  );
+
+  const isCompleta = (grupo) => {
+    if (grupo.ids.length === 0) return false;
+    return grupo.ids.every((id) => value.includes(id));
   };
 
-  const handleToggleAll = () => {
-    if (disabled) return;
-    onChange(toggleSelectAll(value, permisosDisponibles));
+  const isParcial = (grupo) => {
+    if (grupo.ids.length === 0) return false;
+    const algunos = grupo.ids.some((id) => value.includes(id));
+    return algunos && !isCompleta(grupo);
   };
 
-  const isSelected = (permisoId) => value.includes(permisoId);
+  const toggleEntidad = (grupo) => {
+    if (isReadOnly) return;
+    const todas = isCompleta(grupo);
+    let nuevos;
+    if (todas) {
+      nuevos = value.filter((id) => !grupo.ids.includes(id));
+    } else {
+      const idsToAdd = grupo.ids.filter((id) => !value.includes(id));
+      nuevos = [...value, ...idsToAdd];
+    }
+    onChange(nuevos);
+  };
 
-  return (
-    <Box sx={{ width: '100%' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant="subtitle1" fontWeight={600}>
-            Permisos
+  // Modo solo lectura: muestra la lista de entidades seleccionadas
+  if (isReadOnly) {
+    const entidadesSeleccionadas = grupos
+      .filter(grupo => isCompleta(grupo))
+      .map(grupo => formatearNombreEntidad(grupo.entity));
+    return (
+      <Box sx={{ width: "100%" }}>
+        {error && (
+          <FormHelperText error sx={{ mb: 1, fontSize: "0.75rem" }}>
+            {error}
+          </FormHelperText>
+        )}
+        {entidadesSeleccionadas.length === 0 ? (
+          <Typography variant="body2" sx={{ fontSize: "0.8rem", color: "#999" }}>
+            No se han seleccionado entidades.
           </Typography>
-          <Chip
-            label={`${value.length} de ${permisosDisponibles.length}`}
-            size="small"
-            sx={{
-              bgcolor: BRAND_LIGHT,
-              color: TEXT_PRIMARY,
-              border: `1px solid ${BRAND_BORDER}`,
-              fontWeight: 500,
-            }}
-          />
-        </Box>
-
-        {!disabled && (
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={handleToggleAll}
-            sx={{
-              textTransform: 'none',
-              borderRadius: 1.5,
-              borderColor: BRAND_BORDER,
-              color: TEXT_PRIMARY,
-              bgcolor: 'transparent',
-              '&:hover': {
-                borderColor: '#9aaebf',
-                bgcolor: BRAND_LIGHT,
-              },
-              px: 2,
-              py: 0.5,
-              fontSize: '0.75rem',
-            }}
-          >
-            {allSelected ? 'Deseleccionar todos' : 'Seleccionar todos'}
-          </Button>
+        ) : (
+          <Grid container spacing={1} columns={12}>
+            {entidadesSeleccionadas.map((nombre) => (
+              <Grid item xs={4} sm={4} md={4} key={nombre}>
+                <Typography
+                  variant="body2"
+                  sx={{ fontSize: "0.75rem", color: TEXT_PRIMARY, py: 0.5 }}
+                >
+                  {nombre}
+                </Typography>
+              </Grid>
+            ))}
+          </Grid>
         )}
       </Box>
+    );
+  }
 
-      <Box
-        sx={{
-          maxHeight: 320,
-          overflowY: 'auto',
-          display: 'grid',
-          gridTemplateColumns: {
-            xs: 'repeat(1, 1fr)',      // Móvil: 1 columna
-            sm: 'repeat(2, 1fr)',      // Tablet: 2 columnas
-            md: 'repeat(3, 1fr)',      // Desktop: 3 columnas (máximo)
-          },
-          gap: 0.5,
-          width: '100%',
-          mt: 0.5,
-        }}
-      >
-        {permisosDisponibles.map((permiso) => (
-          <Button
-            key={permiso.id}
-            size="small"
-            variant="text"
-            onClick={() => handlePermisoChange(permiso.id)}
-            disabled={disabled}
-            sx={{
-              justifyContent: 'flex-start',
-              textTransform: 'none',
-              fontWeight: isSelected(permiso.id) ? 600 : 400,
-              fontSize: '0.8125rem',
-              py: 0.75,
-              px: 1.5,
-              borderRadius: 1.5,
-              backgroundColor: isSelected(permiso.id) ? BRAND_SELECTED : 'transparent',
-              color: TEXT_PRIMARY,
-              border: 'none',
-              '&:hover': {
-                backgroundColor: BRAND_LIGHT,
-              },
-              width: '100%',
-              minWidth: 0,
-              textAlign: 'left',
-            }}
-          >
-            {permiso.nombre}
-          </Button>
-        ))}
-      </Box>
-
+  // Modo edición: selectores por entidad
+  return (
+    <Box sx={{ width: "100%" }}>
       {error && (
-        <FormHelperText error sx={{ mt: 1.5, fontSize: '0.75rem' }}>
+        <FormHelperText error sx={{ mb: 1, fontSize: "0.75rem" }}>
           {error}
         </FormHelperText>
       )}
+      <Box sx={{ maxHeight: 420, overflowY: "auto", pr: 1 }}>
+        <Grid container spacing={1} columns={12}>
+          {grupos.map((grupo) => (
+            <Grid item xs={4} sm={4} md={4} key={grupo.entity}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  border: `1px solid ${BRAND_BORDER}`,
+                  borderRadius: "8px",
+                  p: 1,
+                  backgroundColor: "#fafafa",
+                  cursor: "pointer",
+                  transition: "background-color 0.2s",
+                  "&:hover": { backgroundColor: "#f0f0f0" },
+                }}
+                onClick={() => toggleEntidad(grupo)}
+              >
+                <Typography fontWeight={500} sx={{ fontSize: "0.8rem" }}>
+                  {formatearNombreEntidad(grupo.entity)}
+                </Typography>
+                <Checkbox
+                  size="small"
+                  checked={isCompleta(grupo)}
+                  indeterminate={isParcial(grupo)}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={() => toggleEntidad(grupo)}
+                  sx={{ p: 0.5 }}
+                />
+              </Box>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
     </Box>
   );
 }

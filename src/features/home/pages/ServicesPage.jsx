@@ -6,46 +6,32 @@ import ServiceCard from "../components/Services/ServiceCard";
 import LoadingSpinner from "../components/Shared/LoadingSpinner";
 import CitaForm from "../components/Services/CitaForm";
 import MisCitas from "../components/Services/MisCitas";
-import { hasPermiso } from "../utils/permissions";
 import {
   getServiciosActivosLanding,
   getEstadosCitaLanding,
   getMiPerfil,
 } from "../components/Services/citasLandingService";
+import authServices from "@auth/services/authServices";
 import "../../../shared/styles/features/home/ServicesPage.css";
 
-// Material UI icons
+// Material UI icons – TODOS los que se usan en el hero
 import LockIcon from "@mui/icons-material/Lock";
 import WarningIcon from "@mui/icons-material/Warning";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import EventIcon from "@mui/icons-material/Event";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import BuildIcon from "@mui/icons-material/Build";
 import BoltIcon from "@mui/icons-material/Bolt";
 import StarIcon from "@mui/icons-material/Star";
 import SparklesIcon from "@mui/icons-material/AutoAwesome";
-import EventIcon from "@mui/icons-material/Event";
 
 // Carrito
 import ShoppingCart, { CartProvider, WishlistDrawer } from "../../home/components/Products/ShoppingCart";
 
-// Decodificar token JWT
-const getTokenData = () => {
-  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-  if (!token) return null;
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-    return JSON.parse(jsonPayload);
-  } catch (e) {
-    return null;
-  }
-};
-
 // Componente interno
 const ServicesPageContent = ({ user, setUser }) => {
   const navigate = useNavigate();
-  const puedeVerDashboard = hasPermiso(user, "dashboard");
+  const showDashboard = user ? authServices.hasAdminAccess(user) : false;
 
   const [servicios, setServicios] = useState([]);
   const [estadosCita, setEstadosCita] = useState([]);
@@ -77,6 +63,7 @@ const ServicesPageContent = ({ user, setUser }) => {
     return () => { mounted = false; };
   }, []);
 
+  // Cargar perfil de cliente SOLO si es cliente
   useEffect(() => {
     if (!user) {
       setClienteActual(null);
@@ -85,37 +72,39 @@ const ServicesPageContent = ({ user, setUser }) => {
       return;
     }
 
-    const tokenData = getTokenData();
-    const userRoleId = tokenData?.rol_id;
+    if (user.es_cliente === false) {
+      setIsAdminMode(true);
+      setClienteActual(null);
+      setErrorCliente("");
+      setLoadingCliente(false);
+      return;
+    }
 
-    setLoadingCliente(true);
-    setErrorCliente("");
-
-    getMiPerfil()
-      .then(cliente => {
+    const loadClientePerfil = async () => {
+      setLoadingCliente(true);
+      setErrorCliente("");
+      try {
+        const cliente = await getMiPerfil();
         setClienteActual(cliente);
         setIsAdminMode(false);
-      })
-      .catch(err => {
-        console.error("Error cargando perfil:", err);
+      } catch (err) {
+        console.error("Error cargando perfil de cliente:", err);
         const msg = err.message || "No se pudo obtener tu información.";
-
-        if (msg.includes("No tienes un perfil de cliente asociado") && (userRoleId === 2 || userRoleId === 5)) {
+        if (msg.includes("No tienes un perfil de cliente asociado")) {
           setIsAdminMode(true);
           setClienteActual(null);
           setErrorCliente("");
-        } else if (msg.includes("Token") || msg.includes("401")) {
-          localStorage.removeItem("token");
-          sessionStorage.removeItem("token");
-          setUser(null);
-          navigate("/login");
         } else {
           setErrorCliente(msg);
           setIsAdminMode(false);
         }
-      })
-      .finally(() => setLoadingCliente(false));
-  }, [user, navigate, setUser]);
+      } finally {
+        setLoadingCliente(false);
+      }
+    };
+
+    loadClientePerfil();
+  }, [user]);
 
   useEffect(() => {
     if (clienteActual && !isAdminMode) {
@@ -127,8 +116,12 @@ const ServicesPageContent = ({ user, setUser }) => {
 
   const handleNavigation = (path) => { navigate(path); window.scrollTo(0, 0); };
   const handleLogin = () => navigate("/login");
-  const handleLogout = () => { setUser(null); navigate("/"); };
-  const handleDashboard = () => navigate(user ? "/admin/dashboard" : "/login");
+  const handleLogout = () => {
+    authServices.logout();
+    setUser(null);
+    navigate("/");
+  };
+  const handleDashboard = () => navigate("/admin");
   const handleMiPerfil = () => navigate("/cliente/perfil");
 
   const handleAgendar = () => {
@@ -145,15 +138,22 @@ const ServicesPageContent = ({ user, setUser }) => {
     setRefreshTrigger(prev => prev + 1);
   };
 
-  // ========== RENDERIZADO CONDICIONAL ==========
+  // ========== RENDERIZADO ==========
 
+  // Usuario no autenticado
   if (!user) {
     return (
       <div className="services-page">
-        <Navbar user={user} activePage="servicios" puedeVerDashboard={puedeVerDashboard}
-          onNavigation={handleNavigation} onLogin={handleLogin} onLogout={handleLogout} onDashboard={handleDashboard}
-          onMiPerfil={handleMiPerfil} />
-
+        <Navbar
+          user={user}
+          activePage="servicios"
+          puedeVerDashboard={showDashboard}
+          onNavigation={handleNavigation}
+          onLogin={handleLogin}
+          onLogout={handleLogout}
+          onDashboard={handleDashboard}
+          onMiPerfil={handleMiPerfil}
+        />
         <section className="services-hero">
           <div className="services-container">
             <div className="hero-content">
@@ -184,18 +184,7 @@ const ServicesPageContent = ({ user, setUser }) => {
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 280px))", gap: "1.5rem", maxWidth: "900px", margin: "0 auto", justifyContent: "center" }}>
                 {servicios.map(s => (
-                  <ServiceCard 
-                    key={s.id} 
-                    servicio={s} 
-                    onAgendar={!isAdminMode && clienteActual ? handleAgendar : null}
-                    disabledMessage={
-                      isAdminMode 
-                        ? "Modo administrador: No tienes un perfil de cliente asociado. Para agendar citas, utiliza una cuenta de cliente."
-                        : !user 
-                          ? "Debes iniciar sesión para agendar citas."
-                          : "No puedes agendar citas en este momento."
-                    }
-                  />
+                  <ServiceCard key={s.id} servicio={s} onAgendar={null} disabledMessage="Debes iniciar sesión para agendar citas." />
                 ))}
               </div>
             )}
@@ -219,12 +208,82 @@ const ServicesPageContent = ({ user, setUser }) => {
     );
   }
 
+  // Administrador (es_cliente === false)
+  if (user.es_cliente === false) {
+    return (
+      <div className="services-page">
+        <Navbar
+          user={user}
+          activePage="servicios"
+          puedeVerDashboard={showDashboard}
+          onNavigation={handleNavigation}
+          onLogin={handleLogin}
+          onLogout={handleLogout}
+          onDashboard={handleDashboard}
+          onMiPerfil={handleMiPerfil}
+        />
+        <section className="services-hero">
+          <div className="services-container">
+            <div className="hero-content">
+              <h1 className="hero-title">Nuestros <span className="glowing-text">Servicios</span></h1>
+              <p className="hero-description">Servicios optométricos profesionales para el cuidado integral de tu salud visual</p>
+            </div>
+          </div>
+          <div className="hero-animated-elements">
+            <div className="pulse-element pulse-1"><VisibilityIcon sx={{ fontSize: "1.8rem" }} /></div>
+            <div className="pulse-element pulse-2"><BuildIcon sx={{ fontSize: "1.8rem" }} /></div>
+            <div className="pulse-element pulse-3"><BoltIcon sx={{ fontSize: "1.8rem" }} /></div>
+            <div className="pulse-element pulse-4"><StarIcon sx={{ fontSize: "1.8rem" }} /></div>
+            <div className="pulse-element pulse-5"><SparklesIcon sx={{ fontSize: "1.8rem" }} /></div>
+          </div>
+          <div className="floating-particles">
+            {[...Array(15)].map((_, i) => <div key={i} className="particle" style={{ left: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 5}s`, animationDuration: `${5 + Math.random() * 10}s` }} />)}
+          </div>
+        </section>
+        <div className="admin-banner">
+          <AdminPanelSettingsIcon sx={{ fontSize: "1rem", marginRight: "0.5rem", verticalAlign: "middle" }} />
+          <span>Modo administrador: No tienes un perfil de cliente asociado. Puedes ver los servicios, pero no agendar ni cancelar citas.</span>
+        </div>
+        <section className="services-section" style={{ padding: "4rem 0" }}>
+          <div className="services-container">
+            <div className="section-header">
+              <h2 className="section-title">Servicios <span className="blue-gradient-text">Especializados</span></h2>
+              <p className="section-description">Atención personalizada y tecnología de vanguardia</p>
+            </div>
+            {loadingData ? <LoadingSpinner mensaje="Cargando servicios..." /> : servicios.length === 0 ? (
+              <p style={{ textAlign: "center", color: "#64748b" }}>No hay servicios disponibles en este momento.</p>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 280px))", gap: "1.5rem", maxWidth: "900px", margin: "0 auto", justifyContent: "center" }}>
+                {servicios.map(s => (
+                  <ServiceCard key={s.id} servicio={s} onAgendar={null} disabledMessage="Modo administrador: No tienes un perfil de cliente asociado. Para agendar citas, utiliza una cuenta de cliente." />
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+        <div className="admin-readonly-message">
+          <p>Formulario de agendamiento deshabilitado en modo administrador.</p>
+          <p style={{ fontSize: "0.8rem", marginTop: "0.5rem" }}>Para agendar citas, utiliza una cuenta de cliente.</p>
+        </div>
+        <FooterCompact />
+      </div>
+    );
+  }
+
+  // Cliente, cargando perfil
   if (loadingCliente) {
     return (
       <div className="services-page">
-        <Navbar user={user} activePage="servicios" puedeVerDashboard={puedeVerDashboard}
-          onNavigation={handleNavigation} onLogin={handleLogin} onLogout={handleLogout} onDashboard={handleDashboard} 
-          onMiPerfil={handleMiPerfil}/>
+        <Navbar
+          user={user}
+          activePage="servicios"
+          puedeVerDashboard={showDashboard}
+          onNavigation={handleNavigation}
+          onLogin={handleLogin}
+          onLogout={handleLogout}
+          onDashboard={handleDashboard}
+          onMiPerfil={handleMiPerfil}
+        />
         <div style={{ textAlign: "center", padding: "4rem" }}>
           <LoadingSpinner mensaje="Cargando tu información..." />
         </div>
@@ -233,20 +292,26 @@ const ServicesPageContent = ({ user, setUser }) => {
     );
   }
 
+  // Cliente, error en perfil
   if (errorCliente) {
     return (
       <div className="services-page">
-        <Navbar user={user} activePage="servicios" puedeVerDashboard={puedeVerDashboard}
-          onNavigation={handleNavigation} onLogin={handleLogin} onLogout={handleLogout} onDashboard={handleDashboard} 
-          onMiPerfil={handleMiPerfil}/>
+        <Navbar
+          user={user}
+          activePage="servicios"
+          puedeVerDashboard={showDashboard}
+          onNavigation={handleNavigation}
+          onLogin={handleLogin}
+          onLogout={handleLogout}
+          onDashboard={handleDashboard}
+          onMiPerfil={handleMiPerfil}
+        />
         <div className="error-container">
           <div className="error-card">
             <div className="error-icon"><WarningIcon sx={{ fontSize: "3.5rem", color: "#991b1b" }} /></div>
             <h2 className="error-title">Atención</h2>
             <p className="error-message">{errorCliente}</p>
-            <p className="error-suggestion">
-              Por favor, contacta al administrador o cierra sesión e intenta con otra cuenta.
-            </p>
+            <p className="error-suggestion">Por favor, contacta al administrador o cierra sesión e intenta con otra cuenta.</p>
             <button className="error-btn" onClick={handleLogout}>Cerrar sesión</button>
           </div>
         </div>
@@ -255,16 +320,19 @@ const ServicesPageContent = ({ user, setUser }) => {
     );
   }
 
-  const bannerMessage = isAdminMode
-    ? "Modo administrador: No tienes un perfil de cliente asociado. Puedes ver los servicios y la interfaz, pero no agendar ni cancelar citas."
-    : null;
-
+  // Cliente autenticado y con perfil cargado
   return (
     <div className="services-page">
-      <Navbar user={user} activePage="servicios" puedeVerDashboard={puedeVerDashboard}
-        onNavigation={handleNavigation} onLogin={handleLogin} onLogout={handleLogout} onDashboard={handleDashboard} 
-        onMiPerfil={handleMiPerfil}/>
-
+      <Navbar
+        user={user}
+        activePage="servicios"
+        puedeVerDashboard={showDashboard}
+        onNavigation={handleNavigation}
+        onLogin={handleLogin}
+        onLogout={handleLogout}
+        onDashboard={handleDashboard}
+        onMiPerfil={handleMiPerfil}
+      />
       <section className="services-hero">
         <div className="services-container">
           <div className="hero-content">
@@ -284,13 +352,6 @@ const ServicesPageContent = ({ user, setUser }) => {
         </div>
       </section>
 
-      {bannerMessage && (
-        <div className="admin-banner">
-          <AdminPanelSettingsIcon sx={{ fontSize: "1rem", marginRight: "0.5rem", verticalAlign: "middle" }} />
-          <span>{bannerMessage}</span>
-        </div>
-      )}
-
       <section className="services-section" style={{ padding: "4rem 0" }}>
         <div className="services-container">
           <div className="section-header">
@@ -302,71 +363,50 @@ const ServicesPageContent = ({ user, setUser }) => {
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 280px))", gap: "1.5rem", maxWidth: "900px", margin: "0 auto", justifyContent: "center" }}>
               {servicios.map(s => (
-                <ServiceCard 
-                  key={s.id} 
-                  servicio={s} 
-                  onAgendar={!isAdminMode && clienteActual ? handleAgendar : null}
-                  disabledMessage={
-                    isAdminMode 
-                      ? "Modo administrador: No tienes un perfil de cliente asociado. Para agendar citas, utiliza una cuenta de cliente."
-                      : !user 
-                        ? "Debes iniciar sesión para agendar citas."
-                        : "No puedes agendar citas en este momento."
-                  }
-                />
+                <ServiceCard key={s.id} servicio={s} onAgendar={handleAgendar} disabledMessage={null} />
               ))}
             </div>
           )}
         </div>
       </section>
 
-      {isAdminMode ? (
-        <div className="admin-readonly-message">
-          <p>Formulario de agendamiento deshabilitado en modo administrador.</p>
-          <p style={{ fontSize: "0.8rem", marginTop: "0.5rem" }}>Para agendar citas, utiliza una cuenta de cliente.</p>
-        </div>
-      ) : (
-        <>
-          {/* Botón flotante para abrir el modal de citas */}
-          <div style={{ display: "flex", justifyContent: "flex-end", maxWidth: "1200px", margin: "0 auto 0.5rem auto" }}>
-            <button
-              onClick={() => setShowCitasModal(true)}
-              className="ver-citas-btn"
-              style={{
-                background: "#0d2e2e",
-                color: "white",
-                border: "none",
-                padding: "0.5rem 1.2rem",
-                borderRadius: "2rem",
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem",
-                cursor: "pointer",
-                fontWeight: "bold",
-                fontSize: "0.9rem",
-                transition: "transform 0.2s",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.1)"
-              }}
-              onMouseEnter={e => e.currentTarget.style.transform = "scale(1.02)"}
-              onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
-            >
-              <EventIcon sx={{ fontSize: "1.2rem" }} />
-              Ver mis citas
-            </button>
-          </div>
-          <CitaForm
-            cliente={clienteActual}
-            servicios={servicios}
-            estadosCita={estadosCita}
-            preServicioId=""
-            onCitaAgendada={handleCitaChange}
-          />
-        </>
-      )}
+      <div style={{ display: "flex", justifyContent: "flex-end", maxWidth: "1200px", margin: "0 auto 0.5rem auto" }}>
+        <button
+          onClick={() => setShowCitasModal(true)}
+          className="ver-citas-btn"
+          style={{
+            background: "#0d2e2e",
+            color: "white",
+            border: "none",
+            padding: "0.5rem 1.2rem",
+            borderRadius: "2rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            cursor: "pointer",
+            fontWeight: "bold",
+            fontSize: "0.9rem",
+            transition: "transform 0.2s",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.1)"
+          }}
+          onMouseEnter={e => e.currentTarget.style.transform = "scale(1.02)"}
+          onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
+        >
+          <EventIcon sx={{ fontSize: "1.2rem" }} />
+          Ver mis citas
+        </button>
+      </div>
+
+      <CitaForm
+        cliente={clienteActual}
+        servicios={servicios}
+        estadosCita={estadosCita}
+        preServicioId=""
+        onCitaAgendada={handleCitaChange}
+      />
 
       <FooterCompact />
 
-      {/* Modal de mis citas (única instancia) */}
       {showCitasModal && (
         <div className="success-modal-overlay" onClick={() => setShowCitasModal(false)}>
           <div
@@ -382,18 +422,9 @@ const ServicesPageContent = ({ user, setUser }) => {
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
               <h2 style={{ margin: 0, fontSize: "1.5rem" }}>Mis citas</h2>
-              <button
-                onClick={() => setShowCitasModal(false)}
-                style={{ background: "none", border: "none", fontSize: "2rem", cursor: "pointer", color: "#4e6e6e" }}
-                aria-label="Cerrar"
-              >
-                ×
-              </button>
+              <button onClick={() => setShowCitasModal(false)} style={{ background: "none", border: "none", fontSize: "2rem", cursor: "pointer", color: "#4e6e6e" }} aria-label="Cerrar">×</button>
             </div>
-            <MisCitas
-              onCitaCancelada={handleCitaChange}
-              refreshKey={refreshTrigger}
-            />
+            <MisCitas onCitaCancelada={handleCitaChange} refreshKey={refreshTrigger} />
           </div>
         </div>
       )}

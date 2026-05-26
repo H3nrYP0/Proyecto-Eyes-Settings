@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { Box } from "@mui/material";
 
 import { BaseInputField, BaseFormLayout, BaseFormActions, FormRow, FormCol } from "@shared";
-
 import PermisosSelector from "./PermisosSelector";
+import PermisosDetalle from "./PermisosDetalle";
 
 export default function RolForm({
   mode = "create",
@@ -28,7 +28,13 @@ export default function RolForm({
 
   useEffect(() => {
     if (initialData) {
-      const estadoStr = initialData.estado === true ? "activo" : "inactivo";
+      // Normalizar estado: puede venir como booleano o como string "activo"/"inactivo"
+      let estadoStr = "activo";
+      if (typeof initialData.estado === "boolean") {
+        estadoStr = initialData.estado ? "activo" : "inactivo";
+      } else if (typeof initialData.estado === "string") {
+        estadoStr = initialData.estado === "activo" ? "activo" : "inactivo";
+      }
       const permisosIds = Array.isArray(initialData.permisos)
         ? initialData.permisos.map(p => p.id || p)
         : [];
@@ -115,14 +121,21 @@ export default function RolForm({
         )}
       </FormRow>
 
-      <Box sx={{ width: '100%', mt: 2 }}>
-        <PermisosSelector
-          permisosDisponibles={permisosDisponibles}
-          value={formData.permisos}
-          onChange={(permisos) => setFormData((prev) => ({ ...prev, permisos }))}
-          error={errors.permisos}
-          disabled={isView}
-        />
+      <Box sx={{ mt: 2 }}>
+        {isView ? (
+          <PermisosDetalle
+            permisosDisponibles={permisosDisponibles}
+            value={formData.permisos}
+          />
+        ) : (
+          <PermisosSelector
+            permisosDisponibles={permisosDisponibles}
+            value={formData.permisos}
+            onChange={(permisos) => setFormData((prev) => ({ ...prev, permisos }))}
+            error={errors.permisos}
+            disabled={isView}
+          />
+        )}
       </Box>
 
       <BaseFormActions

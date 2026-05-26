@@ -6,7 +6,7 @@
  * - title: texto visible en el menú
  * - icon: nombre del ícono (debe coincidir con IconRenderer)
  * - path: ruta de navegación (opcional, si no tiene items)
- * - permisos: array de permisos requeridos del backend
+ * - permisos: array de permisos REQUERIDOS (ahora son granulares: "ver_dashboard", "ver_ventas", etc.)
  * - items: submenús (si está vacío, el elemento navega directamente)
  */
 
@@ -15,55 +15,55 @@ export const menuStructure = [
     id: "dashboard",
     title: "Dashboard",
     icon: "dashboard",
-    permisos: ["dashboard"],
-    path: "/admin/dashboard", // ← Ruta completa
-    items: [] // Vacío = sin submenú
+    permisos: ["ver_dashboard"],   // ← granular
+    path: "/admin/dashboard",
+    items: []
   },
   {
     id: "servicios",
     title: "Servicios",
     icon: "servicios",
-    permisos: ["servicios", "citas"],
+    permisos: ["ver_citas"],       // ← granular (para ver citas)
     items: [
-      { name: "Servicios", path: "/admin/servicios", icon: "services-icon" },
-      { name: "Citas", path: "/admin/servicios/citas", icon: "appointments-icon" },
-      { name: "Agenda", path: "/admin/servicios/agenda", icon: "calendar-icon" },
-      { name: "Empleados", path: "/admin/servicios/empleados", icon: "employees-icon" },
-      { name: "Campañas de Salud", path: "/admin/servicios/campanas-salud", icon: "campaigns-icon" }
+      { name: "Servicios", path: "/admin/servicios", icon: "services-icon", permisos: ["ver_citas"] },
+      { name: "Citas", path: "/admin/servicios/citas", icon: "appointments-icon", permisos: ["ver_citas"] },
+      { name: "Agenda", path: "/admin/servicios/agenda", icon: "calendar-icon", permisos: ["ver_citas"] },
+      { name: "Empleados", path: "/admin/servicios/empleados", icon: "employees-icon", permisos: ["ver_empleados"] },
+      { name: "Campañas de Salud", path: "/admin/servicios/campanas-salud", icon: "campaigns-icon", permisos: ["ver_citas"] }
     ]
   },
   {
     id: "compras",
     title: "Compras",
     icon: "compras",
-    permisos: ["compras", "productos", "proveedores"],
+    permisos: ["ver_productos", "ver_proveedores"],   // granulares
     items: [
-      { name: "Compras", path: "/admin/compras", icon: "purchase-icon" },
-      { name: "Productos", path: "/admin/compras/productos", icon: "products-icon" },
-      { name: "Categorías", path: "/admin/compras/categorias", icon: "categories-icon" },
-      { name: "Marcas", path: "/admin/compras/marcas", icon: "brands-icon" },
-      { name: "Proveedores", path: "/admin/compras/proveedores", icon: "suppliers-icon" }
+      { name: "Compras", path: "/admin/compras", icon: "purchase-icon", permisos: ["ver_compras"] },
+      { name: "Productos", path: "/admin/compras/productos", icon: "products-icon", permisos: ["ver_productos"] },
+      { name: "Categorías", path: "/admin/compras/categorias", icon: "categories-icon", permisos: ["ver_productos"] },
+      { name: "Marcas", path: "/admin/compras/marcas", icon: "brands-icon", permisos: ["ver_productos"] },
+      { name: "Proveedores", path: "/admin/compras/proveedores", icon: "suppliers-icon", permisos: ["ver_proveedores"] }
     ]
   },
   {
     id: "ventas",
     title: "Ventas",
     icon: "ventas",
-    permisos: ["ventas", "clientes", "pedidos"],
+    permisos: ["ver_ventas", "ver_clientes"],   // granulares
     items: [
-      { name: "Clientes", path: "/admin/ventas/clientes", icon: "user-icon" },
-      { name: "Pedidos",  path: "/admin/ventas/pedidos",  icon: "orders-icon" },
-      { name: "Ventas",   path: "/admin/ventas",          icon: "sales-icon" },
+      { name: "Clientes", path: "/admin/ventas/clientes", icon: "user-icon", permisos: ["ver_clientes"] },
+      { name: "Pedidos",  path: "/admin/ventas/pedidos",  icon: "orders-icon", permisos: ["ver_pedidos"] },
+      { name: "Ventas",   path: "/admin/ventas",          icon: "sales-icon", permisos: ["ver_ventas"] },
     ]
   },
   {
     id: "seguridad",
     title: "Seguridad",
     icon: "seguridad",
-    permisos: ["usuarios", "roles"],
+    permisos: ["ver_usuarios", "gestionar_configuracion"],  // granulares
     items: [
-      { name: "Usuarios", path: "/admin/seguridad/usuarios", icon: "user-icon" },
-      { name: "Roles", path: "/admin/seguridad/roles", icon: "roles-icon" }
+      { name: "Usuarios", path: "/admin/seguridad/usuarios", icon: "user-icon", permisos: ["ver_usuarios"] },
+      { name: "Roles", path: "/admin/seguridad/roles", icon: "roles-icon", permisos: ["gestionar_configuracion"] }
     ]
   },
 ];

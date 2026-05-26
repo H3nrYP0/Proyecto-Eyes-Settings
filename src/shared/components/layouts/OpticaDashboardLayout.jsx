@@ -1,6 +1,15 @@
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+/**
+ * Layout principal del panel administrativo.
+ * - Incluye Sidebar y AppHeader.
+ * - Filtra las rutas según permisos del usuario.
+ * - La ruta raíz ("/admin") redirige al primer módulo que el usuario tenga permiso.
+ * - Si tiene "ver_dashboard" va al dashboard, sino al primer módulo disponible (ventas, citas, etc.)
+ */
+
+import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect, useMemo } from "react";
 import { Box, useTheme, useMediaQuery } from "@mui/material";
+import { useQueryClient } from "@tanstack/react-query";
 
 import Sidebar from "./Sidebar";
 import AppHeader from "./AppHeader";
@@ -31,7 +40,6 @@ import {
   DetalleCompra,
   CompraPDFView,
 } from "../../../features/compras/compra";
-
 import { Marcas }      from "../../../features/compras/marca";
 import { Categorias }  from "../../../features/compras/categoria";
 
@@ -92,11 +100,29 @@ import DetalleUsuario from "@seguridad/user/pages/DetalleUsuario";
 import Configuracion from "@configuracion/pages/Configuration";
 import authServices  from "@auth/services/authServices";
 
-export default function OpticaDashboardLayout({ user, setUser }) {
+// Mapeo de rutas según permisos (para la redirección inicial)
+const ROUTE_PERMISSION_MAP = [
+  { path: "dashboard", permiso: "ver_dashboard" },
+  { path: "ventas", permiso: "ver_ventas" },
+  { path: "ventas/clientes", permiso: "ver_clientes" },
+  { path: "ventas/pedidos", permiso: "ver_pedidos" },
+  { path: "compras", permiso: "ver_compras" },
+  { path: "compras/productos", permiso: "ver_productos" },
+  { path: "servicios/citas", permiso: "ver_citas" },
+  { path: "servicios/empleados", permiso: "ver_empleados" },
+  { path: "servicios/campanas-salud", permiso: "ver_citas" },
+  { path: "seguridad/usuarios", permiso: "ver_usuarios" },
+  { path: "seguridad/roles", permiso: "gestionar_configuracion" },
+  { path: "configuracion", permiso: "gestionar_configuracion" },
+];
+
+export default function OpticaDashboardLayout({ user, setUser, onLogout }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const navigate = useNavigate();
-  const theme    = useTheme();
+  const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const location = useLocation();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!isMobile) setSidebarOpen(true);
@@ -106,30 +132,42 @@ export default function OpticaDashboardLayout({ user, setUser }) {
 
   const handleLogout = () => {
     authServices.logout();
+    queryClient.clear();
     setUser(null);
+    if (onLogout) onLogout();
     navigate("/login", { replace: true });
   };
 
   const handleUserUpdate = (updatedUser) => setUser(updatedUser);
 
+  // Determinar la ruta por defecto al entrar a "/admin"
+  const getDefaultRoute = useMemo(() => {
+    if (!user || !user.permisos) return "dashboard";
+    const permisos = user.permisos;
+    // Si tiene ver_dashboard, va al dashboard
+    if (permisos.includes("ver_dashboard")) return "dashboard";
+    // Buscar la primera ruta cuyo permiso tenga
+    const firstAllowed = ROUTE_PERMISSION_MAP.find(item => permisos.includes(item.permiso));
+    return firstAllowed ? firstAllowed.path : "dashboard";
+  }, [user]);
+
   return (
     <Box sx={{ display: "flex", width: "100vw", overflow: "hidden" }}>
-
       <AppHeader
         onToggleSidebar={handleToggleSidebar}
         user={user}
         onLogout={handleLogout}
       />
-
       <Sidebar open={sidebarOpen} onToggle={handleToggleSidebar} user={user} />
-
       <Box sx={{
         flexGrow: 1, minWidth: 0, overflow: "hidden",
         p: { xs: 1, sm: 2, md: 3 }, mt: 8,
         transition: "margin 0.3s ease",
       }}>
         <Routes>
-          <Route index element={<Navigate to="dashboard" replace />} />
+          {/* Redirección inteligente según permisos */}
+          <Route index element={<Navigate to={getDefaultRoute} replace />} />
+
           <Route path="dashboard" element={<Dashboard />} />
 
           {/* ========== VENTAS ========== */}

@@ -81,19 +81,6 @@ export default function Marcas() {
           }
         />
 
-        {marcas.length === 0 && !search && !filterEstado && !loading && (
-          <Box sx={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
-            <Button 
-              onClick={handleOpenCreate}
-              variant="contained"
-              color="primary"
-              sx={{ padding: 'var(--spacing-md) var(--spacing-lg)' }}
-            >
-              Crear Primera Marca
-            </Button>
-          </Box>
-        )}
-
         <Modal
           open={modalDelete.open}
           type="warning"

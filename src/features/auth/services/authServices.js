@@ -1,7 +1,29 @@
-import api from "../../../lib/axios";
+/**
+ * Servicio de autenticación.
+ * - Maneja login, registro, recuperación de contraseña.
+ * - Almacena token y usuario en localStorage/sessionStorage según "recordarme".
+ * - Proporciona funciones para verificar autenticación, rol y permisos granulares.
+ * - Los permisos se normalizan a minúsculas y se permite el comodín "*" para acceso total.
+ */
+
+import api from "@lib/axios";
+
+// Lista de todos los permisos que permiten acceso al panel administrativo
+const ADMIN_PERMISOS = [
+  "ver_dashboard",
+  "ver_ventas",
+  "ver_clientes",
+  "ver_pedidos",
+  "ver_compras",
+  "ver_productos",
+  "ver_citas",
+  "ver_empleados",
+  "ver_proveedores",
+  "ver_usuarios",
+  "gestionar_configuracion"
+];
 
 const authServices = {
-
   // ============================================================
   // LOGIN
   // ============================================================
@@ -10,7 +32,6 @@ const authServices = {
     const { token, usuario } = response.data;
     console.log("🔐 Login: token recibido", token ? "SÍ" : "NO");
 
-    // Limpiar ambos storages antes de guardar
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     sessionStorage.removeItem("token");
@@ -40,9 +61,8 @@ const authServices = {
     const response = await api.post("/auth/verify-register", { correo, codigo });
     const { token, usuario } = response.data;
     
-    // Guardar token y usuario después del registro exitoso
     if (token && usuario) {
-      const storage = sessionStorage; // Por defecto, sesión temporal
+      const storage = sessionStorage;
       storage.setItem("token", token);
       storage.setItem("user", JSON.stringify(usuario));
     }
@@ -121,18 +141,23 @@ const authServices = {
     return !!(localStorage.getItem("token") || sessionStorage.getItem("token"));
   },
 
-  // Verificar si es cliente
   isCliente() {
     const user = this.getUser();
     return user?.es_cliente === true;
   },
 
-  // Verificar si es empleado admin
   isEmpleado() {
     const user = this.getUser();
     return user?.es_cliente === false && user?.rol !== null;
   },
 
+  /**
+   * Verifica si el usuario tiene un permiso granular.
+   * Normaliza los nombres a minúsculas y soporta el comodín "*".
+   * @param {Object} usuario - Objeto usuario con array 'permisos'
+   * @param {string} permiso - Nombre del permiso (ej: "ver_usuarios")
+   * @returns {boolean}
+   */
   hasPermission(usuario, permiso) {
     if (!usuario?.permisos || !Array.isArray(usuario.permisos)) {
       return false;
@@ -151,6 +176,21 @@ const authServices = {
   hasRole(usuario, rol) {
     if (!usuario?.rol) return false;
     return usuario.rol.toLowerCase() === rol.toLowerCase();
+  },
+
+  /**
+   * Verifica si el usuario tiene acceso al área administrativa.
+   * AHORA: los clientes NUNCA tienen acceso, incluso si por error tienen permisos.
+   * @param {Object} usuario - Objeto usuario (con array 'permisos')
+   * @returns {boolean}
+   */
+  hasAdminAccess(usuario) {
+    if (!usuario) return false;
+    // Los clientes NO pueden tener acceso administrativo bajo ninguna circunstancia
+    if (usuario.es_cliente === true) return false;
+    // Resto de usuarios (empleados, admins) se rigen por sus permisos
+    if (!usuario.permisos) return false;
+    return ADMIN_PERMISOS.some(permiso => usuario.permisos.includes(permiso));
   }
 };
 

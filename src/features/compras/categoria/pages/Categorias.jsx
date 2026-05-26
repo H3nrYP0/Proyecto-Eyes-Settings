@@ -218,18 +218,6 @@ export default function Categorias() {
           }
         />
 
-        {categorias.length === 0 && !search && !filterEstado && !loading && (
-          <div style={{ textAlign: "center", marginTop: "var(--spacing-lg)" }}>
-            <button
-              onClick={openCreateModal}
-              className="btn-primary"
-              style={{ padding: "var(--spacing-md) var(--spacing-lg)" }}
-            >
-              Crear Primera Categoría
-            </button>
-          </div>
-        )}
-
         <Modal
           open={modalDelete.open}
           type="warning"

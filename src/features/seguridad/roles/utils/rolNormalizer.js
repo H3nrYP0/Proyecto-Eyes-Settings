@@ -1,53 +1,53 @@
-// Convierte cualquier estado (booleano, número, string) a 'activo' o 'inactivo'
+/**
+ * Utilidades para normalizar roles y permisos.
+ * - Convierte estado a 'activo'/'inactivo'.
+ * - Extrae array de IDs de permisos.
+ * - Construye payload para creación/actualización (envía booleano para estado y array de IDs).
+ */
+
 export const normalizarRolEstado = (estado) => {
-  if (typeof estado === 'string') {
-    return estado === 'activo' ? 'activo' : 'inactivo';
+  if (typeof estado === "string") {
+    return estado === "activo" ? "activo" : "inactivo";
   }
-  if (typeof estado === 'boolean') {
-    return estado ? 'activo' : 'inactivo';
+  if (typeof estado === "boolean") {
+    return estado ? "activo" : "inactivo";
   }
-  if (typeof estado === 'number') {
-    return estado === 1 ? 'activo' : 'inactivo';
+  if (typeof estado === "number") {
+    return estado === 1 ? "activo" : "inactivo";
   }
-  return 'inactivo'; // fallback seguro
+  return "inactivo";
 };
 
-// Normaliza un rol individual
 export const normalizarRol = (rol) => ({
   ...rol,
   estado: normalizarRolEstado(rol.estado),
   permisosCount: rol.permisos?.length ?? 0,
-  estadosDisponibles: ['activo', 'inactivo'],
+  estadosDisponibles: ["activo", "inactivo"],
 });
 
-// Normaliza una lista de roles
 export const normalizarRoles = (roles) => {
   if (!Array.isArray(roles)) return [];
   return roles.map(normalizarRol);
 };
 
-// Normaliza los datos iniciales para el formulario (crear/editar)
 export const normalizarRolInitialData = (data) => ({
   id: data.id,
-  nombre: data.nombre ?? '',
-  descripcion: data.descripcion ?? '',
+  nombre: data.nombre ?? "",
+  descripcion: data.descripcion ?? "",
   estado: normalizarRolEstado(data.estado),
-  permisos: (data.permisos ?? []).map((p) => p.id ?? p),
+  permisos: (data.permisos ?? []).map((p) => p.id ?? p), // extrae IDs
 });
 
-// Construye payload para creación (el backend espera booleano o string según tu API)
-// Ajusta según lo que espere tu backend: si espera booleano, usa estado === 'activo'
 export const buildRolCreatePayload = (data) => ({
   nombre: data.nombre,
   descripcion: data.descripcion,
-  estado: data.estado === 'activo',   // convierte a booleano si el backend lo requiere
-  permisos: data.permisos,
+  estado: data.estado === "activo", // booleano para el backend
+  permisos: data.permisos, // array de IDs
 });
 
-// Para actualización
 export const buildRolUpdatePayload = (data) => ({
   nombre: data.nombre,
   descripcion: data.descripcion,
-  estado: data.estado === 'activo',
+  estado: data.estado === "activo",
   permisos: data.permisos,
 });

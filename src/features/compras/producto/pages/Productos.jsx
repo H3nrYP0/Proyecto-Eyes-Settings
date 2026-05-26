@@ -169,14 +169,6 @@ export default function Productos() {
           </Stack>
         )}
 
-        {showEmptyState && (
-          <Box sx={{ textAlign: 'center', mt: 3 }}>
-            <Button onClick={onCreateClick} variant="contained" color="primary">
-              Crear Primer Producto
-            </Button>
-          </Box>
-        )}
-
         <Modal
           open={modalDelete.open}
           type="warning"
