@@ -8,7 +8,7 @@
 
 import { useNavigate } from "react-router-dom";
 import AuthHome from "./AuthHome";
-import authServices from "@auth/Services/authServices";
+import authServices from "@auth/services/authServices";
 
 // ------------------------------------------------------------------
 // LandingPage
@@ -41,7 +41,7 @@ const LandingPage = ({ user, setUser }) => {
   return (
     <AuthHome
       user={user}
-      showDashboard={showDashboard}
+      puedeVerDashboard={showDashboard}
       onNavigation={handleNavigation}
       onLogin={handleLogin}
       onLogout={handleLogout}

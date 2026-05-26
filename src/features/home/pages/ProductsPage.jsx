@@ -10,7 +10,7 @@ import FooterCompact from "../components/FooterCompact";
 import ProductsGrid from "../../home/components/Products/ProductsGrid";
 import ProductDetail from "../../home/components/Products/ProductDetail";
 import ShoppingCart, { CartProvider, WishlistDrawer, useCart } from "../../home/components/Products/ShoppingCart";
-import authServices from "@auth/Services/authServices";
+import authServices from "@auth/services/authServices";
 import "../../../shared/styles/features/home/ProductsPage.css";
 import "../../../shared/styles/features/home/ProductDetail.css";
 import "../../../shared/styles/features/home/ShoppingCart.css";
@@ -60,7 +60,7 @@ const ProductsPageContent = ({ user, setUser }) => {
       <Navbar
         user={user}
         activePage="productos"
-        showDashboard={showDashboard}
+        puedeVerDashboard={showDashboard}
         onNavigation={p => { navigate(p); window.scrollTo(0, 0); }}
         onLogin={() => navigate("/login")}
         onLogout={() => { setUser(null); navigate("/"); }}
