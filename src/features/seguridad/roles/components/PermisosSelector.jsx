@@ -2,7 +2,8 @@
 // PermisosSelector.jsx
 // Selector de permisos: vista básica (3 columnas por entidad) o
 // vista avanzada (permisos individuales en 3 columnas, con checkbox "Todos" por entidad).
-// En la vista básica, toda la tarjeta es clickeable para marcar/desmarcar la entidad.
+// Un ícono de engranaje permite cambiar entre ambos modos.
+// En vista básica, toda la tarjeta es clickeable.
 // ============================================================
 
 import { useMemo, useState } from "react";
@@ -20,6 +21,7 @@ import PermisosAvanzados from "./PermisosAvanzados";
 const BRAND_BORDER = "#e3e2f0";
 const TEXT_PRIMARY = "#1a2c3e";
 
+// Mapeo de permisos especiales a entidades (para la vista básica)
 const specialMapping = {
   cambiar_estado_cita: "citas",
   cambiar_estado_pedido: "pedidos",
@@ -36,26 +38,56 @@ const specialMapping = {
   crear_abono: "abonos",
   ver_abonos: "abonos",
   cancelar_abono: "abonos",
-  gestionar_configuracion: "configuracion",
+  gestionar_configuracion: "seguridad",   // ← ahora apunta a "seguridad"
   ver_dashboard: "dashboard",
 };
 
 const ENTIDADES_MAIN = [
-  "usuarios",
-  "clientes",
-  "productos",
-  "ventas",
+  "dashboard",
+  "servicios",
   "citas",
   "empleados",
-  "proveedores",
+  "campanas",
   "compras",
+  "productos",
+  "categorias",
+  "marcas",
+  "proveedores",
+  "clientes",
   "pedidos",
-  "abonos",
-  "imagenes",
-  "configuracion",
-  "dashboard",
-  "reportes",
+  "ventas",
+  "usuarios",
+  "seguridad",   // ← antes "configuracion"
 ];
+
+// Mapeo de nombres con tildes para mostrar al usuario
+const nombresConTildes = {
+  dashboard: "Dashboard",
+  servicios: "Servicios",
+  citas: "Citas",
+  empleados: "Empleados",
+  campanas: "Campañas",
+  compras: "Compras",
+  productos: "Productos",
+  categorias: "Categorías",
+  marcas: "Marcas",
+  proveedores: "Proveedores",
+  clientes: "Clientes",
+  pedidos: "Pedidos",
+  ventas: "Ventas",
+  usuarios: "Usuarios",
+  seguridad: "Seguridad",      // ← nombre más claro
+  imagenes: "Imágenes",
+  abonos: "Abonos",
+  reportes: "Reportes",
+};
+
+// Función para obtener el nombre visible con tilde
+const formatearNombreEntidad = (entidad) => {
+  if (nombresConTildes[entidad]) return nombresConTildes[entidad];
+  // Fallback: capitalizar normal
+  return entidad.charAt(0).toUpperCase() + entidad.slice(1).replace(/_/g, " ");
+};
 
 const getEntityForPermiso = (nombre) => {
   const parts = nombre.split("_");
@@ -63,6 +95,8 @@ const getEntityForPermiso = (nombre) => {
     const accion = parts[0];
     if (["ver", "crear", "editar", "eliminar"].includes(accion)) {
       const entity = parts.slice(1).join("_");
+      // Aceptamos tanto "seguridad" como "configuracion" para compatibilidad
+      if (entity === "configuracion") return "seguridad";
       if (ENTIDADES_MAIN.includes(entity)) return entity;
     }
   }
@@ -83,9 +117,6 @@ const agruparPorEntidad = (permisos) => {
     .map(([entity, ids]) => ({ entity, ids }))
     .sort((a, b) => orden.indexOf(a.entity) - orden.indexOf(b.entity));
 };
-
-const capitalizar = (str) =>
-  str.charAt(0).toUpperCase() + str.slice(1).replace(/_/g, " ");
 
 const formatearNombre = (nombre) =>
   nombre.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
@@ -198,11 +229,6 @@ export default function PermisosSelector({
           <Grid container spacing={1} columns={12}>
             {grupos.map((grupo) => (
               <Grid item xs={4} sm={4} md={4} key={grupo.entity}>
-                {/* 
-                  Toda la tarjeta es clickeable. Al hacer clic fuera del checkbox, 
-                  se ejecuta toggleEntidad. El checkbox tiene su propio onClick que 
-                  evita la propagación para no duplicar el evento.
-                */}
                 <Box
                   sx={{
                     display: "flex",
@@ -219,13 +245,13 @@ export default function PermisosSelector({
                   onClick={() => toggleEntidad(grupo)}
                 >
                   <Typography fontWeight={500} sx={{ fontSize: "0.8rem" }}>
-                    {capitalizar(grupo.entity)}
+                    {formatearNombreEntidad(grupo.entity)}
                   </Typography>
                   <Checkbox
                     size="small"
                     checked={isCompleta(grupo)}
                     indeterminate={isParcial(grupo)}
-                    onClick={(e) => e.stopPropagation()} // Evita doble llamada
+                    onClick={(e) => e.stopPropagation()}
                     onChange={() => toggleEntidad(grupo)}
                     sx={{ p: 0.5 }}
                   />

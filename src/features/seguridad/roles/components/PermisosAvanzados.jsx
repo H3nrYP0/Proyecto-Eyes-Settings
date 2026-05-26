@@ -1,14 +1,15 @@
 // ============================================================
 // PermisosAvanzados.jsx
-// Componente que muestra los permisos de forma granular (ver, crear, editar, eliminar)
-// organizados por entidad en TRES COLUMNAS.
-// Cada entidad tiene un checkbox "Seleccionar todos" para marcar/desmarcar todos sus permisos.
-// Incluye además un botón global para seleccionar/deseleccionar todos los permisos.
+// Muestra los permisos de una entidad en modo granular.
+// Incluye permisos CRUD (ver, crear, editar, eliminar) y también
+// los permisos especiales mapeados a la entidad (ej: cambiar_estado_cita).
+// Diseño de 3 columnas con checkbox "Todos" por entidad.
 // ============================================================
 
 import { Box, Typography, Checkbox, FormControlLabel, Grid, Button, Stack } from "@mui/material";
 import { useMemo, useCallback } from "react";
 
+// Mapeo de acciones CRUD a etiquetas
 const accionMap = {
   ver: "Ver",
   crear: "Crear",
@@ -16,6 +17,57 @@ const accionMap = {
   eliminar: "Eliminar",
 };
 
+// Mapeo de permisos especiales a etiquetas legibles
+const specialLabelMap = {
+  cambiar_estado_cita: "Cambiar Estado",
+  cambiar_estado_pedido: "Cambiar Estado",
+  cambiar_estado_venta: "Cambiar Estado",
+  ver_imagenes: "Ver Imágenes",
+  subir_imagenes: "Subir Imágenes",
+  eliminar_imagenes: "Eliminar Imágenes",
+  gestionar_configuracion: "Gestionar Seguridad",   // ← texto actualizado
+  ver_dashboard: "Ver Dashboard",
+  cliente_acceso_basico: "Acceso Básico",
+};
+
+// Mapeo inverso de entidad -> lista de nombres de permisos especiales
+const specialByEntity = {
+  citas: ["cambiar_estado_cita"],
+  pedidos: ["cambiar_estado_pedido"],
+  ventas: ["cambiar_estado_venta"],
+  imagenes: ["ver_imagenes", "subir_imagenes", "eliminar_imagenes"],
+  seguridad: ["gestionar_configuracion"],   // ← ahora la entidad es "seguridad"
+  dashboard: ["ver_dashboard"],
+};
+
+// Mapeo de nombres con tildes para mostrar al usuario
+const nombresConTildes = {
+  dashboard: "Dashboard",
+  servicios: "Servicios",
+  citas: "Citas",
+  empleados: "Empleados",
+  campanas: "Campañas",
+  compras: "Compras",
+  productos: "Productos",
+  categorias: "Categorías",
+  marcas: "Marcas",
+  proveedores: "Proveedores",
+  clientes: "Clientes",
+  pedidos: "Pedidos",
+  ventas: "Ventas",
+  usuarios: "Usuarios",
+  seguridad: "Seguridad",     // ← nombre claro
+  imagenes: "Imágenes",
+  abonos: "Abonos",
+  reportes: "Reportes",
+};
+
+const formatearNombreEntidad = (entidad) => {
+  if (nombresConTildes[entidad]) return nombresConTildes[entidad];
+  return entidad.charAt(0).toUpperCase() + entidad.slice(1).replace(/_/g, " ");
+};
+
+// Extrae la acción CRUD del nombre del permiso
 const getAccion = (nombrePermiso) => {
   if (nombrePermiso.startsWith("ver_")) return "ver";
   if (nombrePermiso.startsWith("crear_")) return "crear";
@@ -24,11 +76,34 @@ const getAccion = (nombrePermiso) => {
   return null;
 };
 
+// Extrae la entidad del nombre CRUD
 const getEntidad = (nombrePermiso) => {
   const accion = getAccion(nombrePermiso);
   if (!accion) return null;
-  return nombrePermiso.replace(`${accion}_`, "");
+  let entidad = nombrePermiso.replace(`${accion}_`, "");
+  // Convertir "configuracion" a "seguridad"
+  if (entidad === "configuracion") return "seguridad";
+  return entidad;
 };
+
+// Orden de las entidades según el sidebar
+const ENTIDADES_ORDER = [
+  "dashboard",
+  "servicios",
+  "citas",
+  "empleados",
+  "campanas",
+  "compras",
+  "productos",
+  "categorias",
+  "marcas",
+  "proveedores",
+  "clientes",
+  "pedidos",
+  "ventas",
+  "usuarios",
+  "seguridad",
+];
 
 const agruparPermisosPorEntidad = (permisos) => {
   const map = new Map();
@@ -38,10 +113,15 @@ const agruparPermisosPorEntidad = (permisos) => {
     if (!map.has(entidad)) map.set(entidad, []);
     map.get(entidad).push(p);
   });
-  return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+  return Array.from(map.entries()).sort((a, b) => {
+    const idxA = ENTIDADES_ORDER.indexOf(a[0]);
+    const idxB = ENTIDADES_ORDER.indexOf(b[0]);
+    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+    if (idxA !== -1) return -1;
+    if (idxB !== -1) return 1;
+    return a[0].localeCompare(b[0]);
+  });
 };
-
-const capitalizar = (str) => str.charAt(0).toUpperCase() + str.slice(1).replace(/_/g, " ");
 
 export default function PermisosAvanzados({
   permisosDisponibles,
@@ -53,7 +133,20 @@ export default function PermisosAvanzados({
     return permisosDisponibles.filter((p) => getAccion(p.nombre) !== null);
   }, [permisosDisponibles]);
 
+  const todosEspeciales = useMemo(() => {
+    return permisosDisponibles.filter((p) => !getAccion(p.nombre));
+  }, [permisosDisponibles]);
+
   const grupos = useMemo(() => agruparPermisosPorEntidad(permisosCRUD), [permisosCRUD]);
+
+  const especialesPorEntidad = useMemo(() => {
+    const map = new Map();
+    for (const [entidad, especialesNombres] of Object.entries(specialByEntity)) {
+      const encontrados = todosEspeciales.filter(p => especialesNombres.includes(p.nombre));
+      if (encontrados.length) map.set(entidad, encontrados);
+    }
+    return map;
+  }, [todosEspeciales]);
 
   const isSelected = (id) => value.includes(id);
 
@@ -64,43 +157,39 @@ export default function PermisosAvanzados({
     onChange(nuevos);
   };
 
-  // Verificar si todos los permisos de una entidad están seleccionados
-  const todosSeleccionadosEnEntidad = (entidadPermisos) => {
-    if (entidadPermisos.length === 0) return false;
-    return entidadPermisos.every((p) => value.includes(p.id));
+  const todosSeleccionadosEnEntidad = (entidad, permisosCrud, permisosEsp) => {
+    const todosIds = [...permisosCrud.map(p => p.id), ...permisosEsp.map(p => p.id)];
+    if (todosIds.length === 0) return false;
+    return todosIds.every(id => value.includes(id));
   };
 
-  // Seleccionar/deseleccionar todos los permisos de una entidad
-  const toggleEntidadCompleta = (entidadPermisos) => {
-    const todosIds = entidadPermisos.map((p) => p.id);
-    const todosSeleccionados = todosSeleccionadosEnEntidad(entidadPermisos);
+  const toggleEntidadCompleta = (entidad, permisosCrud, permisosEsp) => {
+    const todosIds = [...permisosCrud.map(p => p.id), ...permisosEsp.map(p => p.id)];
+    const todosSeleccionados = todosSeleccionadosEnEntidad(entidad, permisosCrud, permisosEsp);
     let nuevos;
     if (todosSeleccionados) {
-      // Deseleccionar todos los de esta entidad
-      nuevos = value.filter((id) => !todosIds.includes(id));
+      nuevos = value.filter(id => !todosIds.includes(id));
     } else {
-      // Seleccionar los que faltan
-      const idsToAdd = todosIds.filter((id) => !value.includes(id));
+      const idsToAdd = todosIds.filter(id => !value.includes(id));
       nuevos = [...value, ...idsToAdd];
     }
     onChange(nuevos);
   };
 
-  // Botones globales
   const seleccionarTodosGlobal = useCallback(() => {
-    const todosIds = permisosCRUD.map((p) => p.id);
+    const todosIds = permisosCRUD.map(p => p.id);
     onChange(todosIds);
   }, [permisosCRUD, onChange]);
 
   const deseleccionarTodosGlobal = useCallback(() => {
-    const idsActuales = permisosCRUD.map((p) => p.id);
-    const nuevos = value.filter((id) => !idsActuales.includes(id));
+    const idsActuales = permisosCRUD.map(p => p.id);
+    const nuevos = value.filter(id => !idsActuales.includes(id));
     onChange(nuevos);
   }, [permisosCRUD, value, onChange]);
 
   const todosSeleccionadosGlobal = useMemo(() => {
     if (permisosCRUD.length === 0) return false;
-    return permisosCRUD.every((p) => value.includes(p.id));
+    return permisosCRUD.every(p => value.includes(p.id));
   }, [permisosCRUD, value]);
 
   const textoBotonGlobal = todosSeleccionadosGlobal ? "Deseleccionar todos" : "Seleccionar todos";
@@ -120,11 +209,12 @@ export default function PermisosAvanzados({
         </Button>
       </Stack>
 
-      {/* Grid de 3 columnas (xs=4 para 12 columnas) */}
       <Grid container spacing={2}>
-        {grupos.map(([entidad, permisos]) => {
-          const entidadCompleta = todosSeleccionadosEnEntidad(permisos);
-          const parcial = !entidadCompleta && permisos.some((p) => value.includes(p.id));
+        {grupos.map(([entidad, permisosCrud]) => {
+          const permisosEsp = especialesPorEntidad.get(entidad) || [];
+          const entidadCompleta = todosSeleccionadosEnEntidad(entidad, permisosCrud, permisosEsp);
+          const parcial = !entidadCompleta && [...permisosCrud, ...permisosEsp].some(p => value.includes(p.id));
+          const nombreMostrar = formatearNombreEntidad(entidad);
 
           return (
             <Grid item xs={12} sm={6} md={4} key={entidad}>
@@ -139,7 +229,7 @@ export default function PermisosAvanzados({
               >
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
                   <Typography variant="subtitle2" fontWeight={600}>
-                    {capitalizar(entidad)}
+                    {nombreMostrar}
                   </Typography>
                   <FormControlLabel
                     control={
@@ -147,7 +237,7 @@ export default function PermisosAvanzados({
                         size="small"
                         checked={entidadCompleta}
                         indeterminate={parcial}
-                        onChange={() => toggleEntidadCompleta(permisos)}
+                        onChange={() => toggleEntidadCompleta(entidad, permisosCrud, permisosEsp)}
                       />
                     }
                     label={
@@ -159,7 +249,7 @@ export default function PermisosAvanzados({
                   />
                 </Box>
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                  {permisos.map((permiso) => {
+                  {permisosCrud.map((permiso) => {
                     const accion = getAccion(permiso.nombre);
                     return (
                       <FormControlLabel
@@ -180,6 +270,24 @@ export default function PermisosAvanzados({
                       />
                     );
                   })}
+                  {permisosEsp.map((permiso) => (
+                    <FormControlLabel
+                      key={permiso.id}
+                      control={
+                        <Checkbox
+                          size="small"
+                          checked={isSelected(permiso.id)}
+                          onChange={() => togglePermiso(permiso.id)}
+                        />
+                      }
+                      label={
+                        <Typography variant="caption" sx={{ fontSize: "0.7rem" }}>
+                          {specialLabelMap[permiso.nombre] || permiso.nombre.replace(/_/g, ' ')}
+                        </Typography>
+                      }
+                      sx={{ mr: 1 }}
+                    />
+                  ))}
                 </Box>
               </Box>
             </Grid>
