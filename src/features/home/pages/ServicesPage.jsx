@@ -14,7 +14,7 @@ import {
 import authServices from "@auth/services/authServices";
 import "../../../shared/styles/features/home/ServicesPage.css";
 
-// Material UI icons – TODOS los que se usan en el hero
+// Material UI icons
 import LockIcon from "@mui/icons-material/Lock";
 import WarningIcon from "@mui/icons-material/Warning";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
@@ -63,19 +63,16 @@ const ServicesPageContent = ({ user, setUser }) => {
     return () => { mounted = false; };
   }, []);
 
-  // Cargar perfil de cliente SOLO si es cliente
+  // ============================================================
+  // NUEVA LÓGICA: Siempre intenta cargar el perfil de cliente
+  // Si el endpoint devuelve "No tienes un perfil de cliente asociado"
+  // entonces entra en modo administrador.
+  // ============================================================
   useEffect(() => {
     if (!user) {
       setClienteActual(null);
       setErrorCliente("");
       setIsAdminMode(false);
-      return;
-    }
-
-    if (user.es_cliente === false) {
-      setIsAdminMode(true);
-      setClienteActual(null);
-      setErrorCliente("");
       setLoadingCliente(false);
       return;
     }
@@ -84,17 +81,19 @@ const ServicesPageContent = ({ user, setUser }) => {
       setLoadingCliente(true);
       setErrorCliente("");
       try {
-        const cliente = await getMiPerfil();
+        const cliente = await getMiPerfil();  // GET /cliente/perfil
         setClienteActual(cliente);
-        setIsAdminMode(false);
+        setIsAdminMode(false);  // Tiene cliente → modo normal
       } catch (err) {
         console.error("Error cargando perfil de cliente:", err);
         const msg = err.message || "No se pudo obtener tu información.";
+        // Si el error es exactamente el esperado (sin cliente asociado)
         if (msg.includes("No tienes un perfil de cliente asociado")) {
           setIsAdminMode(true);
           setClienteActual(null);
           setErrorCliente("");
         } else {
+          // Otro error (red, servidor, etc.)
           setErrorCliente(msg);
           setIsAdminMode(false);
         }
@@ -106,6 +105,7 @@ const ServicesPageContent = ({ user, setUser }) => {
     loadClientePerfil();
   }, [user]);
 
+  // Efecto para hacer scroll automático (solo si es cliente y no admin)
   useEffect(() => {
     if (clienteActual && !isAdminMode) {
       setTimeout(() => {
@@ -208,8 +208,10 @@ const ServicesPageContent = ({ user, setUser }) => {
     );
   }
 
-  // Administrador (es_cliente === false)
-  if (user.es_cliente === false) {
+  // ============================================================
+  // CASO ADMINISTRADOR (sin perfil de cliente)
+  // ============================================================
+  if (isAdminMode) {
     return (
       <div className="services-page">
         <Navbar
@@ -270,7 +272,7 @@ const ServicesPageContent = ({ user, setUser }) => {
     );
   }
 
-  // Cliente, cargando perfil
+  // Cargando perfil
   if (loadingCliente) {
     return (
       <div className="services-page">
@@ -292,7 +294,7 @@ const ServicesPageContent = ({ user, setUser }) => {
     );
   }
 
-  // Cliente, error en perfil
+  // Error en el perfil (problema de red, servidor, etc.)
   if (errorCliente) {
     return (
       <div className="services-page">
@@ -320,7 +322,7 @@ const ServicesPageContent = ({ user, setUser }) => {
     );
   }
 
-  // Cliente autenticado y con perfil cargado
+  // Cliente autenticado y con perfil cargado (modo normal)
   return (
     <div className="services-page">
       <Navbar
