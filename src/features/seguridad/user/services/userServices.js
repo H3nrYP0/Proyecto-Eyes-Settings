@@ -101,6 +101,22 @@ export const getMiPerfil = async () => {
   }
 };
 
+export const updateMiPerfil = async (data) => {
+  try {
+    const payload = {};
+    if (data.nombre !== undefined) payload.nombre = data.nombre;
+    if (data.telefono !== undefined) payload.telefono = data.telefono;
+    if (data.direccion !== undefined) payload.direccion = data.direccion;
+
+    const res = await api.put('/usuario/perfil', payload);
+    return res.data;
+  } catch (error) {
+    console.error('Error en updateMiPerfil:', error);
+    if (error.response?.data?.error) throw error;
+    throw error;
+  }
+};
+
 export const cambiarMiContrasenia = async (data) => {
   try {
     const res = await api.post('/usuario/cambiar-contrasenia', {

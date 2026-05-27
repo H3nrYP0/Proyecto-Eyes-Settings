@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { 
   getMiPerfil,
-  cambiarMiContrasenia
+  cambiarMiContrasenia,
+  updateMiPerfil
 } from '@seguridad/user/services/userServices';
 import { useAuth } from '@auth/hooks/useAuth';
 import { 
@@ -12,7 +13,7 @@ import {
 } from '../utils/configuracionHelpers';
 
 export const useConfiguracion = (user, onUserUpdate) => {
-  const { isCliente, isEmpleado } = useAuth();
+  const { isCliente } = useAuth();
   
   const [formData, setFormData] = useState({
     nombre: '',
@@ -109,10 +110,6 @@ export const useConfiguracion = (user, onUserUpdate) => {
     );
   };
 
-  const hasValidationErrors = () => {
-    return Object.values(validationErrors).some(error => error !== '');
-  };
-
   // Guardar cambios
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -134,28 +131,27 @@ export const useConfiguracion = (user, onUserUpdate) => {
     setSuccess('');
 
     try {
-      // Los clientes no tienen dirección en el backend aún
       const payload = {};
       if (formData.nombre !== originalData.nombre && formData.nombre.trim()) payload.nombre = formData.nombre.trim();
       if (formData.telefono !== originalData.telefono) payload.telefono = formData.telefono || '';
-      
-      // Nota: dirección solo se guarda en localStorage por ahora
-      if (esCliente && formData.direccion !== originalData.direccion) {
-        localStorage.setItem('user_direccion', formData.direccion);
+      if (formData.direccion !== originalData.direccion) payload.direccion = formData.direccion || '';
+
+      if (Object.keys(payload).length === 0) {
+        setSuccess('No hay cambios por guardar');
+        setEditMode(false);
+        setTimeout(() => setSuccess(''), 3000);
+        return;
       }
-      
-      // Usar endpoint unificado (el backend maneja si es cliente o admin)
-      // Nota: Actualmente no hay endpoint PUT para perfil. Esto es para futura implementación
-      console.log('Payload a enviar:', payload);
-      
-      // Por ahora solo actualizamos localmente
+
+      await updateMiPerfil(payload);
       setSuccess('Perfil actualizado exitosamente');
       setOriginalData({ ...formData });
       setEditMode(false);
       setValidationErrors({});
+      onUserUpdate?.({ ...user, ...payload });
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      setError(err.message || 'Error al actualizar perfil');
+      setError(err.response?.data?.error || err.message || 'Error al actualizar perfil');
     } finally {
       setLoading(false);
     }
