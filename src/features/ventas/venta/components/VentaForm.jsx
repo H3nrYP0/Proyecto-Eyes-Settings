@@ -1,12 +1,13 @@
 import { useEffect } from "react";
 import { FormControl, InputLabel, Select, MenuItem, TextField } from "@mui/material";
-import BaseFormLayout from "../../../../shared/components/base/BaseFormLayout";
-import BaseFormSection from "../../../../shared/components/base/BaseFormSection";
-import BaseFormField from "../../../../shared/components/base/BaseFormField";
-import BaseFormActions from "../../../../shared/components/base/BaseFormActions";
-import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
-import { useVentaForm } from "../hooks/useVentaForm";
+import BaseFormLayout    from "../../../../shared/components/base/BaseFormLayout";
+import BaseFormSection   from "../../../../shared/components/base/BaseFormSection";
+import BaseFormField     from "../../../../shared/components/base/BaseFormField";
+import BaseFormActions   from "../../../../shared/components/base/BaseFormActions";
+import CrudNotification  from "../../../../shared/styles/components/notifications/CrudNotification";
+import { useVentaForm }  from "../hooks/useVentaForm";
 import { COLORES_ESTADO_VENTA, getEstadoLabelVenta } from "../utils/ventasUtils";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 
 const viewFieldStyle = {
   backgroundColor: "#f3f4f6",
@@ -15,12 +16,58 @@ const viewFieldStyle = {
   userSelect: "none",
 };
 
-// ── Tabla de items reutilizable ────────────────────────────────────────────
+/* ── Visor readonly del comprobante ──────────────────────────────────────── */
+function ComprobanteViewer({ url }) {
+  if (!url) return (
+    <div style={{
+      background: "#f9fafb", border: "1px dashed #d1d5db",
+      borderRadius: 10, padding: "24px 16px",
+      textAlign: "center", color: "#9ca3af", fontSize: "0.85rem",
+    }}>
+      Sin comprobante adjunto
+    </div>
+  );
+
+  const esImagen = /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(url) ||
+    url.includes("cloudinary.com") || url.includes("res.cloudinary");
+
+  if (esImagen) {
+    return (
+      <div>
+        <a href={url} target="_blank" rel="noopener noreferrer">
+          <img
+            src={url}
+            alt="Comprobante"
+            style={{
+              width: "100%", maxHeight: 260, objectFit: "contain",
+              borderRadius: 10, border: "1px solid #e5e7eb",
+              display: "block", cursor: "pointer",
+            }}
+          />
+        </a>
+        <div style={{ marginTop: 6, textAlign: "right" }}>
+          <a href={url} target="_blank" rel="noopener noreferrer"
+            style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.75rem", color: "#6366f1", textDecoration: "none" }}>
+            <OpenInNewIcon style={{ fontSize: 13 }} /> Ver imagen completa
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  // URL plana (no imagen)
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer"
+      style={{ fontSize: "0.85rem", color: "#6366f1", wordBreak: "break-all" }}>
+      🔗 {url}
+    </a>
+  );
+}
+
+/* ── Tabla de items reutilizable ─────────────────────────────────────────── */
 function TablaItems({ items, editable, actualizarCantidad, removerItem, formatCurrency, calcularTotal, formData }) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 220px", gap: 20, marginTop: 8 }}>
-
-      {/* Filas */}
       <div style={{ background: "#f9fafb", borderRadius: 12, border: "1px solid #e5e7eb", overflow: "hidden" }}>
         <div style={{
           display: "grid",
@@ -39,7 +86,7 @@ function TablaItems({ items, editable, actualizarCantidad, removerItem, formatCu
         {items.map((item, i) => {
           const nombre   = item.nombre_display ?? item.nombre ?? "—";
           const precio   = item.precio_unitario ?? item.precio ?? 0;
-          const subtotal = precio * item.cantidad;
+          const subtotal = item.subtotal ?? precio * item.cantidad;
           return (
             <div key={i} style={{
               display: "grid",
@@ -50,12 +97,9 @@ function TablaItems({ items, editable, actualizarCantidad, removerItem, formatCu
               <div style={{ fontWeight: 500 }}>
                 {nombre}
                 {editable && item.stock !== null && (
-                  <span style={{ color: "#9ca3af", fontSize: "0.7rem", marginLeft: 6 }}>
-                    (máx. {item.stock})
-                  </span>
+                  <span style={{ color: "#9ca3af", fontSize: "0.7rem", marginLeft: 6 }}>(máx. {item.stock})</span>
                 )}
               </div>
-
               <div style={{ textAlign: "center" }}>
                 {editable ? (
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
@@ -70,22 +114,17 @@ function TablaItems({ items, editable, actualizarCantidad, removerItem, formatCu
                   </div>
                 ) : item.cantidad}
               </div>
-
               <div style={{ textAlign: "right", color: "#6b7280" }}>{formatCurrency(precio)}</div>
               <div style={{ textAlign: "right", fontWeight: 600 }}>{formatCurrency(subtotal)}</div>
-
               {editable && (
                 <button type="button" onClick={() => removerItem(i)}
-                  style={{ background: "none", border: "none", cursor: "pointer", color: "#ef4444", fontSize: "1rem" }}>
-                  🗑️
-                </button>
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "#ef4444", fontSize: "1rem" }}>🗑️</button>
               )}
             </div>
           );
         })}
       </div>
 
-      {/* Panel lateral */}
       <div style={{ background: "#f9fafb", borderRadius: 12, border: "1px solid #e5e7eb", padding: 16, height: "fit-content" }}>
         {editable ? (
           <>
@@ -113,7 +152,7 @@ function TablaItems({ items, editable, actualizarCantidad, removerItem, formatCu
   );
 }
 
-// ── Componente principal ───────────────────────────────────────────────────
+/* ── Componente principal ─────────────────────────────────────────────────── */
 export default function VentaForm({ mode = "view", title = "Venta", initialData = null, onCancel, onSuccess }) {
   const {
     clientes, productos, servicios, catalogLoading, stockWarning,
@@ -139,12 +178,16 @@ export default function VentaForm({ mode = "view", title = "Venta", initialData 
   const totalAbonado = calcularTotalAbonado();
   const estadoInfo   = initialData ? COLORES_ESTADO_VENTA[initialData.estado] ?? { bg: "#f3f4f6", color: "#374151" } : null;
 
+  // Mostrar comprobante en vista si existe (puede venir de pedido o de cita)
+  const urlComprobante = initialData?.transferencia_comprobante ?? "";
+  const tieneComprobante = !!urlComprobante;
+
   return (
     <>
       <BaseFormLayout title={title}>
         <BaseFormSection title="Información de la Venta">
 
-          {/* ── CLIENTE ── */}
+          {/* Cliente */}
           <BaseFormField>
             {isCreate ? (
               <FormControl fullWidth disabled={catalogLoading}>
@@ -176,7 +219,7 @@ export default function VentaForm({ mode = "view", title = "Venta", initialData 
             </BaseFormField>
           )}
 
-          {/* ── MÉTODO DE PAGO ── */}
+          {/* Método de pago */}
           <BaseFormField>
             {isView ? (
               <TextField fullWidth label="Método de Pago"
@@ -196,7 +239,7 @@ export default function VentaForm({ mode = "view", title = "Venta", initialData 
             )}
           </BaseFormField>
 
-          {/* ── MÉTODO DE ENTREGA ── */}
+          {/* Método de entrega */}
           <BaseFormField>
             {isView ? (
               <TextField fullWidth label="Método de Entrega"
@@ -228,18 +271,6 @@ export default function VentaForm({ mode = "view", title = "Venta", initialData 
             </BaseFormField>
           )}
 
-          {/* Comprobante */}
-          {(formData.metodo_pago === "transferencia" || (isView && initialData?.transferencia_comprobante)) && (
-            <BaseFormField>
-              <TextField fullWidth label="URL Comprobante"
-                value={isView ? (initialData?.transferencia_comprobante || "—") : formData.transferencia_comprobante}
-                InputLabelProps={{ shrink: true }}
-                InputProps={{ readOnly: isView, style: isView ? viewFieldStyle : {} }}
-                onChange={!isView ? (e) => setFormData((p) => ({ ...p, transferencia_comprobante: e.target.value })) : undefined}
-                placeholder="https://…" />
-            </BaseFormField>
-          )}
-
           {/* Estado — solo view */}
           {isView && estadoInfo && (
             <BaseFormField>
@@ -258,7 +289,23 @@ export default function VentaForm({ mode = "view", title = "Venta", initialData 
             </BaseFormField>
           )}
 
-          {/* ── SELECTORES (solo crear) ── */}
+          {/* ── COMPROBANTE — solo lectura, solo si existe ── */}
+          {isView && tieneComprobante && (
+            <BaseFormField fullWidth>
+              <div style={{ borderTop: "1px solid #f3f4f6", paddingTop: 20, marginTop: 8 }}>
+                <div style={{
+                  fontSize: "0.72rem", color: "#9ca3af",
+                  fontWeight: 700, textTransform: "uppercase",
+                  letterSpacing: "0.06em", marginBottom: 10,
+                }}>
+                  Comprobante de Transferencia
+                </div>
+                <ComprobanteViewer url={urlComprobante} />
+              </div>
+            </BaseFormField>
+          )}
+
+          {/* Selectores (solo crear) */}
           {isCreate && (
             <>
               <BaseFormField>
@@ -276,9 +323,7 @@ export default function VentaForm({ mode = "view", title = "Venta", initialData 
                         : productos.map((p) => (
                             <MenuItem key={p.id} value={p.id}>
                               {p.nombre} — {formatCurrency(p.precio)}
-                              <span style={{ color: "#9ca3af", fontSize: "0.8em", marginLeft: 6 }}>
-                                (stock: {p.stock})
-                              </span>
+                              <span style={{ color: "#9ca3af", fontSize: "0.8em", marginLeft: 6 }}>(stock: {p.stock})</span>
                             </MenuItem>
                           ))}
                   </Select>
@@ -319,9 +364,9 @@ export default function VentaForm({ mode = "view", title = "Venta", initialData 
           )}
         </BaseFormSection>
 
-        {/* ── TABLA ITEMS (crear) ── */}
+        {/* Tabla items crear */}
         {isCreate && mostrarTabla && (
-          <BaseFormSection title="Resumen del Pedido">
+          <BaseFormSection title="Resumen de la Venta">
             <TablaItems
               items={itemsSeleccionados} editable
               actualizarCantidad={actualizarCantidad}
@@ -333,15 +378,11 @@ export default function VentaForm({ mode = "view", title = "Venta", initialData 
           </BaseFormSection>
         )}
 
-        {/* ── TABLA DETALLES (view) ── */}
+        {/* Tabla detalles view */}
         {isView && detalles.length > 0 && (
           <BaseFormSection title="Productos / Servicios">
-            <TablaItems
-              items={detalles} editable={false}
-              formatCurrency={formatCurrency}
-              calcularTotal={() => 0}
-            />
-            {/* Abonos debajo si los hay */}
+            <TablaItems items={detalles} editable={false} formatCurrency={formatCurrency} calcularTotal={() => 0} />
+
             {abonos.length > 0 && (
               <div style={{ marginTop: 20, background: "#f9fafb", borderRadius: 12, border: "1px solid #e5e7eb", padding: 16 }}>
                 <div style={{ fontSize: "0.72rem", color: "#9ca3af", fontWeight: 700, textTransform: "uppercase", marginBottom: 12 }}>
@@ -380,7 +421,7 @@ export default function VentaForm({ mode = "view", title = "Venta", initialData 
           </BaseFormSection>
         )}
 
-        {/* ── ACCIONES ── */}
+        {/* Acciones */}
         <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 36 }}>
           {isView ? (
             <button className="crud-btn crud-btn-secondary" onClick={onCancel}>Volver</button>
