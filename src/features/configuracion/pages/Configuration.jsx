@@ -1,9 +1,8 @@
 // features/configuracion/pages/Configuration.jsx
-import { useState } from 'react';
 import { Box, Tab, Tabs, Typography, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@auth/hooks/useAuth';
-// import Apariencia from '../components/general/Apariencia';  // <-- Comentado por ahora
+import Apariencia from '../components/general/Apariencia';
 import Licencias from '../components/legal/Licencias';
 
 // Colores del panel admin
@@ -22,8 +21,7 @@ function TabPanel({ children, value, index }) {
 
 export default function Configuration({ user, onUserUpdate }) {
   const navigate = useNavigate();
-  const { user: currentUser, hasPermisoCRUD, isAdmin } = useAuth();
-  const [tabValue, setTabValue] = useState(0);
+  const { isAdmin } = useAuth();
 
   // Cualquier usuario autenticado puede ver su perfil
   const canViewLicencias = isAdmin();
@@ -99,8 +97,18 @@ export default function Configuration({ user, onUserUpdate }) {
       </Box>
       */}
 
-      {/* ========== VERSIÓN ACTUAL: SOLO LICENCIAS ========== */}
-      <Licencias />
+
+      <Apariencia 
+        user={user} 
+        onUserUpdate={onUserUpdate} 
+        canEdit={canUpdate} 
+      />
+
+      {canViewLicencias && (
+        <Box sx={{ mt: 4 }}>
+          <Licencias />
+        </Box>
+      )}
     </Box>
   );
 }
