@@ -8,66 +8,6 @@ import { ESTADOS_ABONABLE, COLORES_ESTADO } from "../utils/pedidosUtils";
 import "../../../../shared/styles/components/crud-table.css";
 import "../../../../shared/styles/components/modal.css";
 
-/* ── Thumbnail del comprobante en la tabla ─────────────────────────────── */
-function ComprobanteBadge({ url }) {
-  if (!url) {
-    return <span style={{ color: "#d1d5db", fontSize: "0.8rem" }}>—</span>;
-  }
-
-  const esImagen =
-    /\.(jpg|jpeg|png|webp)(\?|$)/i.test(url) ||
-    url.includes("cloudinary.com") ||
-    url.includes("res.cloudinary");
-
-  if (esImagen) {
-    return (
-      <a
-        href={url}
-        target="_blank"
-        rel="noopener noreferrer"
-        title="Ver comprobante"
-        onClick={(e) => e.stopPropagation()}
-        style={{ display: "inline-block", lineHeight: 0 }}
-      >
-        <img
-          src={url}
-          alt="Comprobante"
-          style={{
-            width: 40, height: 40,
-            objectFit: "cover",
-            borderRadius: 6,
-            border: "1px solid #e5e7eb",
-            cursor: "zoom-in",
-            transition: "transform 0.15s, box-shadow 0.15s",
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.transform = "scale(1.12)";
-            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.transform = "scale(1)";
-            e.currentTarget.style.boxShadow = "none";
-          }}
-        />
-      </a>
-    );
-  }
-
-  return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      onClick={(e) => e.stopPropagation()}
-      style={{ fontSize: "0.75rem", color: "#6366f1", textDecoration: "none" }}
-      title={url}
-    >
-      🔗 Ver
-    </a>
-  );
-}
-
-/* ══════════════════════════════════════════════════════════════════════════ */
 export default function Pedidos() {
   const navigate = useNavigate();
   const {
@@ -94,9 +34,12 @@ export default function Pedidos() {
       header: "Fecha",
       render: (row) =>
         row.fechaPedido
-          ? new Date(row.fechaPedido).toLocaleDateString("es-CO", {
-              day: "2-digit", month: "short", year: "numeric",
-            })
+          ? (() => {
+              const [y, m, d] = row.fechaPedido.split("-").map(Number);
+              return new Date(y, m - 1, d).toLocaleDateString("es-CO", {
+                day: "2-digit", month: "short", year: "numeric",
+              });
+            })()
           : "—",
     },
     {
@@ -110,11 +53,6 @@ export default function Pedidos() {
       field: "total",
       header: "Total",
       render: (row) => formatCurrency(row.total),
-    },
-    {
-      field: "transferencia_comprobante",
-      header: "Comprobante",
-      render: (row) => <ComprobanteBadge url={row.transferencia_comprobante} />,
     },
     {
       field: "estado",
