@@ -6,6 +6,7 @@ import {
   COLORES_ESTADO_VENTA,
   getEstadoLabelVenta,
 } from "../utils/ventasUtils";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import BaseFormLayout from "../../../../shared/components/base/BaseFormLayout";
 import BaseFormSection from "../../../../shared/components/base/BaseFormSection";
 
@@ -58,6 +59,12 @@ export default function DetalleVenta() {
   const { esCita } = venta;
   const tieneAbonos = venta.abonos.length > 0;
   const tieneDetalles = venta.detalles.length > 0;
+  const urlComprobante = venta.transferencia_comprobante ?? "";
+  const esImagenComprobante = urlComprobante && (
+    /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(urlComprobante) ||
+    urlComprobante.includes("cloudinary.com") ||
+    urlComprobante.includes("res.cloudinary")
+  );
 
   return (
     <BaseFormLayout title="Detalle de Venta">
@@ -195,6 +202,36 @@ export default function DetalleVenta() {
             </div>
           )}
         </div>
+      )}
+
+      {/* COMPROBANTE — solo si existe */}
+      {urlComprobante && (
+        <BaseFormSection title="Comprobante de Transferencia">
+          {esImagenComprobante ? (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+              <a href={urlComprobante} target="_blank" rel="noopener noreferrer"
+                style={{ display: "block", borderRadius: 16, overflow: "hidden", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", border: "1px solid #e5e7eb" }}>
+                <img
+                  src={urlComprobante}
+                  alt="Comprobante de transferencia"
+                  style={{
+                    maxWidth: 320, width: "100%",
+                    objectFit: "contain", display: "block",
+                  }}
+                />
+              </a>
+              <a href={urlComprobante} target="_blank" rel="noopener noreferrer"
+                style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.75rem", color: "#6366f1", textDecoration: "none" }}>
+                <OpenInNewIcon style={{ fontSize: 13 }} /> Ver imagen completa
+              </a>
+            </div>
+          ) : (
+            <a href={urlComprobante} target="_blank" rel="noopener noreferrer"
+              style={{ fontSize: "0.85rem", color: "#6366f1", wordBreak: "break-all" }}>
+              🔗 {urlComprobante}
+            </a>
+          )}
+        </BaseFormSection>
       )}
 
       {/* ACCIONES */}

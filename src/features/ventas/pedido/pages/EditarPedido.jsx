@@ -25,7 +25,7 @@ export default function EditarPedido() {
       title={`Editar Pedido #${id}`}
       initialData={pedido}
       onCancel={() => navigate(-1)}
-      onSuccess={() => navigate(`/admin/ventas/pedidos/detalle/${id}`)}
+      onSuccess={() => navigate("/admin/ventas/pedidos")}
     />
   );
 }
