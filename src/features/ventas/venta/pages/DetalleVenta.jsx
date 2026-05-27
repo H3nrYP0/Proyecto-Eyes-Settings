@@ -6,6 +6,7 @@ import {
   COLORES_ESTADO_VENTA,
   getEstadoLabelVenta,
 } from "../utils/ventasUtils";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import BaseFormLayout from "../../../../shared/components/base/BaseFormLayout";
 import BaseFormSection from "../../../../shared/components/base/BaseFormSection";
 
@@ -208,6 +209,7 @@ export default function DetalleVenta() {
       {urlComprobante && (
         <BaseFormSection title="Comprobante de Transferencia">
           {esImagenComprobante ? (
+<<<<<<< HEAD
             <>
               {/* Lightbox */}
               {lightbox && (
