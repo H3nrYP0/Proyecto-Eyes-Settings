@@ -1,4 +1,5 @@
-import { useState } from 'react';
+// features/configuracion/components/general/UploadAvatar.jsx
+import { useState, useRef } from 'react';
 import { Box, Avatar, IconButton, CircularProgress, Snackbar, Alert } from '@mui/material';
 import { PhotoCamera as CameraIcon } from '@mui/icons-material';
 
@@ -9,6 +10,7 @@ const GRAY_500 = "#4e6e6e";
 export default function UploadAvatar({ user, fotoPerfil, onUpload, puedeEditar = false }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const fileInputRef = useRef(null);
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
@@ -25,18 +27,25 @@ export default function UploadAvatar({ user, fotoPerfil, onUpload, puedeEditar =
     }
 
     setLoading(true);
-    
     try {
       const reader = new FileReader();
       reader.onloadend = () => {
         onUpload(reader.result);
         setLoading(false);
+        // Limpiar input para permitir volver a subir la misma imagen
+        if (fileInputRef.current) fileInputRef.current.value = '';
       };
       reader.readAsDataURL(file);
     } catch (err) {
       setError('Error al cargar la imagen');
       setLoading(false);
     }
+  };
+
+  const getInitial = () => {
+    if (user?.nombre) return user.nombre.charAt(0).toUpperCase();
+    if (user?.correo) return user.correo.charAt(0).toUpperCase();
+    return 'U';
   };
 
   return (
@@ -54,8 +63,9 @@ export default function UploadAvatar({ user, fotoPerfil, onUpload, puedeEditar =
             backgroundColor: PRIMARY_DARK
           } : {}
         }}
+        onClick={() => puedeEditar && fileInputRef.current?.click()}
       >
-        {!fotoPerfil && (user?.nombre?.charAt(0)?.toUpperCase() || 'U')}
+        {!fotoPerfil && getInitial()}
       </Avatar>
       
       {puedeEditar && (
@@ -67,15 +77,20 @@ export default function UploadAvatar({ user, fotoPerfil, onUpload, puedeEditar =
             right: 0,
             bgcolor: PRIMARY_COLOR,
             color: 'white',
-            '&:hover': { 
-              bgcolor: GRAY_500
-            },
+            '&:hover': { bgcolor: GRAY_500 },
             width: 32,
             height: 32
           }}
           size="small"
         >
-          <input type="file" hidden accept="image/*" onChange={handleImageUpload} disabled={loading} />
+          <input
+            ref={fileInputRef}
+            type="file"
+            hidden
+            accept="image/*"
+            onChange={handleImageUpload}
+            disabled={loading}
+          />
           {loading ? <CircularProgress size={16} color="inherit" /> : <CameraIcon fontSize="small" />}
         </IconButton>
       )}
