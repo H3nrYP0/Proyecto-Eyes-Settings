@@ -1,8 +1,9 @@
-import { Box, Typography, TextField, Button, Grid, Avatar, Alert, Divider } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+// features/configuracion/components/general/AparienciaCliente.jsx
+import { Box, Typography, TextField, Button, Grid, Divider } from '@mui/material';
 import { useConfiguracion } from '../../hooks/useConfiguracion';
+import UploadAvatar from './UploadAvatar';
+import CrudNotification from '@shared/styles/components/notifications/CrudNotification';
 
-// Colores frescos y minimalistas
 const PRIMARY_COLOR = "#1a4a4a";
 const PRIMARY_DARK = "#0d2e2e";
 const SUCCESS_COLOR = "#1f7a6a";
@@ -10,19 +11,16 @@ const GRAY_500 = "#4e6e6e";
 const GRAY_300 = "#b8d4d4";
 const GRAY_100 = "#eaf3f3";
 
-export default function AparienciaCliente({ user, onUserUpdate, canEdit = false }) {
-  const navigate = useNavigate();
-  
+export default function AparienciaCliente({ user, onUserUpdate }) {
   const {
     formData,
-    loading,
-    error,
-    success,
+    fotoPerfil,
     editMode,
     showPasswordForm,
     validationErrors,
     passwordData,
-    puedeEditar,
+    notification,
+    handleCloseNotification,
     handleChange,
     handlePasswordChange,
     handleSubmit,
@@ -30,54 +28,65 @@ export default function AparienciaCliente({ user, onUserUpdate, canEdit = false 
     handleCancelEdit,
     setEditMode,
     setShowPasswordForm,
-    hasValidChanges
+    handleFotoUpload,
+    hasValidChanges,
+    isUpdating,
+    isUpdatingPassword
   } = useConfiguracion(user, onUserUpdate);
 
-  const handleVolver = () => navigate(-1);
-
-  // TODO: Implementar carga de foto de perfil en el backend
-  // La foto se guardará en el servidor y se almacenará la URL en la base de datos
-  // Por ahora se muestra un avatar con la inicial del nombre
+  const handleCancelPassword = () => {
+    setShowPasswordForm(false);
+    handlePasswordChange({ target: { name: 'contrasenia_actual', value: '' } });
+    handlePasswordChange({ target: { name: 'nueva_contrasenia', value: '' } });
+    handlePasswordChange({ target: { name: 'confirmar_contrasenia', value: '' } });
+  };
 
   return (
     <Box sx={{ maxWidth: 800, mx: 'auto', p: 3 }}>
-      {/* Alertas */}
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-      {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
+      <CrudNotification
+        isVisible={notification.isVisible}
+        message={notification.message}
+        type={notification.type}
+        onClose={handleCloseNotification}
+      />
 
-      {/* Avatar - solo visual, sin edición (pendiente implementar subida a backend) */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
-        <Avatar
-          sx={{
-            width: 100,
-            height: 100,
-            bgcolor: PRIMARY_COLOR,
-            fontSize: 40
-          }}
-        >
-          {user?.nombre?.charAt(0)?.toUpperCase() || user?.correo?.charAt(0)?.toUpperCase() || 'U'}
-        </Avatar>
-      </Box>
-
-      {/* Formulario */}
       <form onSubmit={handleSubmit}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
+          <UploadAvatar
+            user={user}
+            fotoPerfil={fotoPerfil}
+            onUpload={handleFotoUpload}
+            puedeEditar={editMode}
+          />
+        </Box>
+
         <Grid container spacing={2}>
-          {/* Fila 1: Nombre completo y Correo */}
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
-              label="Nombre completo"
+              label="Nombre"
               name="nombre"
               value={formData.nombre || ''}
               onChange={handleChange}
               disabled={!editMode}
               size="small"
-              variant="outlined"
               error={!!validationErrors.nombre}
               helperText={validationErrors.nombre}
             />
           </Grid>
-          
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Apellido"
+              name="apellido"
+              value={formData.apellido || ''}
+              onChange={handleChange}
+              disabled={!editMode}
+              size="small"
+              error={!!validationErrors.apellido}
+              helperText={validationErrors.apellido}
+            />
+          </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
@@ -87,51 +96,130 @@ export default function AparienciaCliente({ user, onUserUpdate, canEdit = false 
               value={formData.correo || ''}
               disabled
               size="small"
-              variant="outlined"
               helperText="No se puede modificar"
             />
           </Grid>
-          
-          {/* Fila 2: Teléfono y Dirección */}
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
-              label="Teléfono"
+              label="Teléfono principal"
               name="telefono"
               value={formData.telefono || ''}
               onChange={handleChange}
               disabled={!editMode}
               size="small"
-              variant="outlined"
               placeholder="300 123 4567"
               error={!!validationErrors.telefono}
               helperText={validationErrors.telefono}
             />
           </Grid>
-          
+
+          {/* Datos de entrega completos */}
+          <Grid item xs={12}>
+            <Typography variant="subtitle1" sx={{ mt: 1, mb: 1, color: PRIMARY_COLOR }}>
+              Datos de entrega
+            </Typography>
+          </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
-              label="Dirección"
-              name="direccion"
-              value={formData.direccion || ''}
+              label="Ciudad"
+              name="ciudad"
+              value={formData.ciudad || ''}
               onChange={handleChange}
               disabled={!editMode}
               size="small"
-              variant="outlined"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Departamento"
+              name="departamento"
+              value={formData.departamento || ''}
+              onChange={handleChange}
+              disabled={!editMode}
+              size="small"
+            />
+          </Grid>
+          <Grid item xs={12} sm={8}>
+            <TextField
+              fullWidth
+              label="Dirección principal"
+              name="direccion_principal"
+              value={formData.direccion_principal || ''}
+              onChange={handleChange}
+              disabled={!editMode}
+              size="small"
+            />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <TextField
+              fullWidth
+              label="Apto / Torre"
+              name="apto_torre"
+              value={formData.apto_torre || ''}
+              onChange={handleChange}
+              disabled={!editMode}
+              size="small"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Barrio"
+              name="barrio"
+              value={formData.barrio || ''}
+              onChange={handleChange}
+              disabled={!editMode}
+              size="small"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Nombre del receptor"
+              name="nombre_receptor"
+              value={formData.nombre_receptor || ''}
+              onChange={handleChange}
+              disabled={!editMode}
+              size="small"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Teléfono de contacto (entrega)"
+              name="telefono_entrega"
+              value={formData.telefono_entrega || ''}
+              onChange={handleChange}
+              disabled={!editMode}
+              size="small"
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Indicaciones adicionales"
+              name="indicaciones"
+              value={formData.indicaciones || ''}
+              onChange={handleChange}
+              disabled={!editMode}
+              size="small"
+              multiline
+              rows={2}
             />
           </Grid>
         </Grid>
 
-        {/* Botones de acción */}
         <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
           {!editMode ? (
-            <Button 
-              variant="contained" 
-              onClick={() => setEditMode(true)} 
-              disabled={loading}
-              sx={{ 
-                bgcolor: PRIMARY_COLOR, 
+            <Button
+              variant="contained"
+              onClick={() => setEditMode(true)}
+              disabled={isUpdating}
+              sx={{
+                bgcolor: PRIMARY_COLOR,
                 '&:hover': { bgcolor: PRIMARY_DARK },
                 textTransform: 'none',
                 px: 4
@@ -141,11 +229,11 @@ export default function AparienciaCliente({ user, onUserUpdate, canEdit = false 
             </Button>
           ) : (
             <>
-              <Button 
-                variant="outlined" 
-                onClick={handleCancelEdit} 
-                disabled={loading}
-                sx={{ 
+              <Button
+                variant="outlined"
+                onClick={handleCancelEdit}
+                disabled={isUpdating}
+                sx={{
                   textTransform: 'none',
                   borderColor: GRAY_300,
                   color: GRAY_500,
@@ -158,18 +246,18 @@ export default function AparienciaCliente({ user, onUserUpdate, canEdit = false 
               >
                 Cancelar
               </Button>
-              <Button 
-                type="submit" 
-                variant="contained" 
-                disabled={loading || !hasValidChanges()}
-                sx={{ 
-                  bgcolor: SUCCESS_COLOR, 
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={isUpdating || !hasValidChanges()}
+                sx={{
+                  bgcolor: SUCCESS_COLOR,
                   '&:hover': { bgcolor: PRIMARY_DARK },
                   textTransform: 'none',
                   px: 4
                 }}
               >
-                {loading ? 'Guardando...' : 'Guardar'}
+                {isUpdating ? 'Guardando...' : 'Guardar'}
               </Button>
             </>
           )}
@@ -177,108 +265,105 @@ export default function AparienciaCliente({ user, onUserUpdate, canEdit = false 
       </form>
 
       {/* Cambiar contraseña */}
-      {editMode && (
-        <>
-          <Divider sx={{ my: 3 }} />
-          
-          <Typography variant="subtitle1" gutterBottom sx={{ color: PRIMARY_COLOR }}>
+      <>
+        <Divider sx={{ my: 3 }} />
+        <Typography variant="subtitle1" gutterBottom sx={{ color: PRIMARY_COLOR }}>
+          Cambiar contraseña
+        </Typography>
+
+        {!showPasswordForm ? (
+          <Button
+            variant="outlined"
+            onClick={() => setShowPasswordForm(true)}
+            sx={{
+              textTransform: 'none',
+              borderColor: PRIMARY_COLOR,
+              color: PRIMARY_COLOR,
+              '&:hover': {
+                borderColor: PRIMARY_DARK,
+                color: PRIMARY_DARK,
+                backgroundColor: GRAY_100,
+              }
+            }}
+          >
             Cambiar contraseña
-          </Typography>
-          
-          {!showPasswordForm ? (
-            <Button 
-              variant="outlined" 
-              onClick={() => setShowPasswordForm(true)}
-              sx={{ 
-                textTransform: 'none',
-                borderColor: PRIMARY_COLOR,
-                color: PRIMARY_COLOR,
-                '&:hover': {
-                  borderColor: PRIMARY_DARK,
-                  color: PRIMARY_DARK,
-                  backgroundColor: GRAY_100,
-                }
-              }}
-            >
-              Cambiar contraseña
-            </Button>
-          ) : (
-            <Box sx={{ mt: 2 }}>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    fullWidth
-                    label="Contraseña actual"
-                    name="contrasenia_actual"
-                    type="password"
-                    value={passwordData?.contrasenia_actual || ''}
-                    onChange={handlePasswordChange}
-                    required
-                    size="small"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    fullWidth
-                    label="Nueva contraseña"
-                    name="nueva_contrasenia"
-                    type="password"
-                    value={passwordData?.nueva_contrasenia || ''}
-                    onChange={handlePasswordChange}
-                    required
-                    size="small"
-                    helperText="Mínimo 6 caracteres"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    fullWidth
-                    label="Confirmar contraseña"
-                    name="confirmar_contrasenia"
-                    type="password"
-                    value={passwordData?.confirmar_contrasenia || ''}
-                    onChange={handlePasswordChange}
-                    required
-                    size="small"
-                  />
-                </Grid>
+          </Button>
+        ) : (
+          <Box sx={{ mt: 2 }}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  label="Contraseña actual"
+                  name="contrasenia_actual"
+                  type="password"
+                  value={passwordData?.contrasenia_actual || ''}
+                  onChange={handlePasswordChange}
+                  required
+                  size="small"
+                />
               </Grid>
-              
-              <Box sx={{ mt: 2, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-                <Button 
-                  variant="outlined" 
-                  onClick={() => setShowPasswordForm(false)}
-                  sx={{ 
-                    textTransform: 'none',
-                    borderColor: GRAY_300,
-                    color: GRAY_500,
-                    '&:hover': {
-                      borderColor: PRIMARY_COLOR,
-                      color: PRIMARY_COLOR,
-                      backgroundColor: GRAY_100,
-                    }
-                  }}
-                >
-                  Cancelar
-                </Button>
-                <Button 
-                  variant="contained" 
-                  onClick={handlePasswordSubmit}
-                  disabled={loading || !passwordData?.nueva_contrasenia || !passwordData?.contrasenia_actual}
-                  sx={{ 
-                    bgcolor: PRIMARY_COLOR, 
-                    '&:hover': { bgcolor: PRIMARY_DARK },
-                    textTransform: 'none',
-                    px: 4
-                  }}
-                >
-                  {loading ? 'Actualizando...' : 'Actualizar'}
-                </Button>
-              </Box>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  label="Nueva contraseña"
+                  name="nueva_contrasenia"
+                  type="password"
+                  value={passwordData?.nueva_contrasenia || ''}
+                  onChange={handlePasswordChange}
+                  required
+                  size="small"
+                  helperText="Mínimo 6 caracteres"
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  label="Confirmar contraseña"
+                  name="confirmar_contrasenia"
+                  type="password"
+                  value={passwordData?.confirmar_contrasenia || ''}
+                  onChange={handlePasswordChange}
+                  required
+                  size="small"
+                />
+              </Grid>
+            </Grid>
+            <Box sx={{ mt: 2, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+              <Button
+                variant="outlined"
+                onClick={handleCancelPassword}
+                disabled={isUpdatingPassword}
+                sx={{
+                  textTransform: 'none',
+                  borderColor: GRAY_300,
+                  color: GRAY_500,
+                  '&:hover': {
+                    borderColor: PRIMARY_COLOR,
+                    color: PRIMARY_COLOR,
+                    backgroundColor: GRAY_100,
+                  }
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="contained"
+                onClick={handlePasswordSubmit}
+                disabled={isUpdatingPassword || !passwordData?.nueva_contrasenia || !passwordData?.contrasenia_actual}
+                sx={{
+                  bgcolor: PRIMARY_COLOR,
+                  '&:hover': { bgcolor: PRIMARY_DARK },
+                  textTransform: 'none',
+                  px: 4
+                }}
+              >
+                {isUpdatingPassword ? 'Actualizando...' : 'Actualizar'}
+              </Button>
             </Box>
-          )}
-        </>
-      )}
+          </Box>
+        )}
+      </>
     </Box>
   );
 }

@@ -1,8 +1,11 @@
+// features/configuracion/components/general/AparienciaAdmin.jsx
 import {
   Box, Typography, TextField, Button,
-  Grid, Alert, Divider, Avatar
+  Grid, Alert, Divider
 } from '@mui/material';
 import { useConfiguracion } from '../../hooks/useConfiguracion';
+import UploadAvatar from './UploadAvatar';
+import CrudNotification from '@shared/styles/components/notifications/CrudNotification';
 
 const BRAND_COLOR    = '#1a2540';
 const BRAND_HOVER    = '#2d3a6b';
@@ -12,14 +15,15 @@ const BORDER_COLOR   = '#cbd5e1';
 export default function AparienciaAdmin({ user, onUserUpdate }) {
   const {
     formData,
+    fotoPerfil,
     loading,
-    error,
-    success,
     editMode,
     showPasswordForm,
     validationErrors,
     passwordData,
     puedeEditar,
+    notification,
+    handleCloseNotification,
     handleChange,
     handlePasswordChange,
     handleSubmit,
@@ -27,7 +31,10 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
     handleCancelEdit,
     setEditMode,
     setShowPasswordForm,
-    hasValidChanges
+    handleFotoUpload,
+    hasValidChanges,
+    isUpdating,
+    isUpdatingPassword
   } = useConfiguracion(user, onUserUpdate);
 
   const handleCancelPassword = () => {
@@ -37,47 +44,34 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
     handlePasswordChange({ target: { name: 'confirmar_contrasenia', value: '' } });
   };
 
-  // Obtener inicial del nombre para el avatar
-  const getInitial = () => {
-    if (formData.nombre && formData.nombre.trim()) {
-      return formData.nombre.charAt(0).toUpperCase();
-    }
-    if (user?.nombre) {
-      return user.nombre.charAt(0).toUpperCase();
-    }
-    return 'U';
-  };
-
   return (
     <Box sx={{ p: 3 }}>
+      <CrudNotification
+        isVisible={notification.isVisible}
+        message={notification.message}
+        type={notification.type}
+        onClose={handleCloseNotification}
+      />
+
       <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
         Información Personal
       </Typography>
 
-      {error   && <Alert severity="error"   sx={{ mb: 2 }}>{error}</Alert>}
-      {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
-
       <form onSubmit={handleSubmit}>
-        <Grid container spacing={2}>
-          {/* Avatar simple sin opción de edición */}
-          <Grid item xs={12} display="flex" justifyContent="center" sx={{ mb: 2 }}>
-            <Avatar
-              sx={{
-                width: 80,
-                height: 80,
-                bgcolor: BRAND_COLOR,
-                fontSize: 32,
-                fontWeight: 'bold'
-              }}
-            >
-              {getInitial()}
-            </Avatar>
-          </Grid>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+          <UploadAvatar
+            user={user}
+            fotoPerfil={fotoPerfil}
+            onUpload={handleFotoUpload}
+            puedeEditar={editMode && puedeEditar}
+          />
+        </Box>
 
+        <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
-              label="Nombre Completo"
+              label="Nombre"
               name="nombre"
               value={formData.nombre || ''}
               onChange={handleChange}
@@ -88,7 +82,20 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
               helperText={validationErrors.nombre}
             />
           </Grid>
-
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Apellido"
+              name="apellido"
+              value={formData.apellido || ''}
+              onChange={handleChange}
+              disabled={!editMode || !puedeEditar}
+              required={editMode}
+              size="small"
+              error={!!validationErrors.apellido}
+              helperText={validationErrors.apellido}
+            />
+          </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
@@ -101,11 +108,10 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
               helperText="El correo no se puede modificar"
             />
           </Grid>
-
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
-              label="Teléfono"
+              label="Teléfono principal"
               name="telefono"
               value={formData.telefono || ''}
               onChange={handleChange}
@@ -118,13 +124,125 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
           </Grid>
         </Grid>
 
+        {/* Datos de Entrega */}
+        <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>
+          Datos de Entrega
+        </Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Ciudad"
+              name="ciudad"
+              value={formData.ciudad || ''}
+              onChange={handleChange}
+              disabled={!editMode || !puedeEditar}
+              size="small"
+              error={!!validationErrors.ciudad}
+              helperText={validationErrors.ciudad}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Departamento"
+              name="departamento"
+              value={formData.departamento || ''}
+              onChange={handleChange}
+              disabled={!editMode || !puedeEditar}
+              size="small"
+              error={!!validationErrors.departamento}
+              helperText={validationErrors.departamento}
+            />
+          </Grid>
+          <Grid item xs={12} sm={8}>
+            <TextField
+              fullWidth
+              label="Dirección principal"
+              name="direccion_principal"
+              value={formData.direccion_principal || ''}
+              onChange={handleChange}
+              disabled={!editMode || !puedeEditar}
+              size="small"
+              error={!!validationErrors.direccion_principal}
+              helperText={validationErrors.direccion_principal}
+            />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <TextField
+              fullWidth
+              label="Apto / Torre"
+              name="apto_torre"
+              value={formData.apto_torre || ''}
+              onChange={handleChange}
+              disabled={!editMode || !puedeEditar}
+              size="small"
+              error={!!validationErrors.apto_torre}
+              helperText={validationErrors.apto_torre}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Barrio"
+              name="barrio"
+              value={formData.barrio || ''}
+              onChange={handleChange}
+              disabled={!editMode || !puedeEditar}
+              size="small"
+              error={!!validationErrors.barrio}
+              helperText={validationErrors.barrio}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Nombre del receptor"
+              name="nombre_receptor"
+              value={formData.nombre_receptor || ''}
+              onChange={handleChange}
+              disabled={!editMode || !puedeEditar}
+              size="small"
+              error={!!validationErrors.nombre_receptor}
+              helperText={validationErrors.nombre_receptor}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Teléfono de contacto (entrega)"
+              name="telefono_entrega"
+              value={formData.telefono_entrega || ''}
+              onChange={handleChange}
+              disabled={!editMode || !puedeEditar}
+              size="small"
+              placeholder="Ej: 3007654321"
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Indicaciones adicionales"
+              name="indicaciones"
+              value={formData.indicaciones || ''}
+              onChange={handleChange}
+              disabled={!editMode || !puedeEditar}
+              size="small"
+              multiline
+              rows={2}
+              error={!!validationErrors.indicaciones}
+              helperText={validationErrors.indicaciones}
+            />
+          </Grid>
+        </Grid>
+
         {puedeEditar && (
           <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
             {!editMode ? (
               <Button
                 variant="contained"
                 onClick={() => setEditMode(true)}
-                disabled={loading}
+                disabled={loading || isUpdating}
                 sx={{
                   backgroundColor: BRAND_COLOR,
                   '&:hover': { backgroundColor: BRAND_HOVER },
@@ -139,7 +257,7 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
                 <Button
                   variant="outlined"
                   onClick={handleCancelEdit}
-                  disabled={loading}
+                  disabled={isUpdating}
                   sx={{
                     textTransform: 'none',
                     borderColor: BORDER_COLOR,
@@ -156,7 +274,7 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
                 <Button
                   type="submit"
                   variant="contained"
-                  disabled={loading || !hasValidChanges()}
+                  disabled={isUpdating || !hasValidChanges()}
                   sx={{
                     backgroundColor: BRAND_COLOR,
                     '&:hover': { backgroundColor: BRAND_HOVER },
@@ -164,7 +282,7 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
                     boxShadow: 'none'
                   }}
                 >
-                  {loading ? 'Guardando...' : 'Guardar'}
+                  {isUpdating ? 'Guardando...' : 'Guardar'}
                 </Button>
               </>
             )}
@@ -172,11 +290,10 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
         )}
       </form>
 
-      {/* ── Cambiar Contraseña ─────────────────────────────────── */}
+      {/* Cambiar Contraseña */}
       {puedeEditar && (
         <>
           <Divider sx={{ my: 3 }} />
-
           <Typography variant="h6" gutterBottom>
             Cambiar Contraseña
           </Typography>
@@ -185,6 +302,7 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
             <Button
               variant="contained"
               onClick={() => setShowPasswordForm(true)}
+              disabled={isUpdatingPassword}
               sx={{
                 backgroundColor: BRAND_COLOR,
                 '&:hover': { backgroundColor: BRAND_HOVER },
@@ -235,12 +353,11 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
                   />
                 </Grid>
               </Grid>
-
               <Box sx={{ mt: 2, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
                 <Button
                   variant="outlined"
                   onClick={handleCancelPassword}
-                  disabled={loading}
+                  disabled={isUpdatingPassword}
                   sx={{
                     textTransform: 'none',
                     borderColor: BORDER_COLOR,
@@ -257,7 +374,7 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
                 <Button
                   type="submit"
                   variant="contained"
-                  disabled={loading || !passwordData.nueva_contrasenia || !passwordData.contrasenia_actual}
+                  disabled={isUpdatingPassword || !passwordData.nueva_contrasenia || !passwordData.contrasenia_actual}
                   sx={{
                     backgroundColor: BRAND_COLOR,
                     '&:hover': { backgroundColor: BRAND_HOVER },
@@ -265,7 +382,7 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
                     boxShadow: 'none'
                   }}
                 >
-                  {loading ? 'Actualizando...' : 'Actualizar Contraseña'}
+                  {isUpdatingPassword ? 'Actualizando...' : 'Actualizar Contraseña'}
                 </Button>
               </Box>
             </form>
