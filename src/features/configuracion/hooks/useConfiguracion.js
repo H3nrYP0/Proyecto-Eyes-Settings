@@ -1,254 +1,174 @@
-// features/configuracion/hooks/useConfiguracion.js
-import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-  getMiPerfil,
-  cambiarMiContrasenia,
-  updateMiPerfil
-} from '@seguridad/user/services/userServices';
-import { 
-  validarNombre, 
-  validarApellido,
-  validarTelefono,
-  validarCiudad,
-  validarDepartamento,
-  validarDireccionPrincipal,
-  validarAptoTorre,
-  validarBarrio,
-  validarNombreReceptor,
-  validarIndicaciones,
-  validarFormulario 
-} from '../utils/configuracionHelpers';
-import { useAuth } from '@auth/hooks/useAuth';
+/**
+ * Hook para manejar el estado del perfil unificado (usuario + cliente).
+ * Incluye normalización de género al cargar y al guardar, validaciones y gestión de foto.
+ */
 
-export const useConfiguracion = (user, onUserUpdate) => {
-  const queryClient = useQueryClient();
-  const { isCliente } = useAuth();
-  
-  // Estado local para el formulario (editable)
+import { useState, useEffect } from 'react';
+import { getMiPerfil, updateMiPerfil, cambiarContrasenia } from '../services/perfilService';
+import { validarFormulario, validarPassword, normalizeGender, denormalizeGender } from '../utils/configuracionHelpers';
+
+export const useConfiguracion = (initialUser, onUserUpdate) => {
   const [formData, setFormData] = useState({
-    nombre: '',
-    apellido: '',
-    correo: '',
-    telefono: '',
-    ciudad: '',
-    departamento: '',
-    direccion_principal: '',
-    apto_torre: '',
-    barrio: '',
-    nombre_receptor: '',
-    telefono_entrega: '',
-    indicaciones: ''
+    nombre: '', apellido: '', correo: '', telefono: '',
+    tipo_documento: '', numero_documento: '', fecha_nacimiento: '',
+    genero: '', municipio: '', departamento: '', direccion: '',
+    barrio: '', codigo_postal: '', ocupacion: '', telefono_emergencia: ''
   });
-  
-  const [originalData, setOriginalData] = useState({});
   const [fotoPerfil, setFotoPerfil] = useState(null);
-  const [fotoOriginal, setFotoOriginal] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
-  const [passwordData, setPasswordData] = useState({
-    contrasenia_actual: '',
-    nueva_contrasenia: '',
-    confirmar_contrasenia: ''
-  });
+  const [passwordData, setPasswordData] = useState({ contrasenia_actual: '', nueva_contrasenia: '', confirmar_contrasenia: '' });
   const [notification, setNotification] = useState({ isVisible: false, message: '', type: 'success' });
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const puedeEditar = true;
+  const esCliente = false; // Ajusta según rol
 
-  const showNotification = (message, type = 'success') =>
-    setNotification({ isVisible: true, message, type });
-  const handleCloseNotification = () =>
-    setNotification((prev) => ({ ...prev, isVisible: false }));
-
-  // Cargar datos con useQuery
-  const { data: userData, isLoading: loading } = useQuery({
-    queryKey: ['miPerfil'],
-    queryFn: getMiPerfil,
-    initialData: user,
-    onSuccess: (data) => {
-      if (data) {
+  useEffect(() => {
+    const loadPerfil = async () => {
+      try {
+        setLoading(true);
+        const { usuario, cliente } = await getMiPerfil();
         setFormData({
-          nombre: data.nombre || '',
-          apellido: data.apellido || '',
-          correo: data.correo || '',
-          telefono: data.telefono || '',
-          ciudad: data.ciudad || '',
-          departamento: data.departamento || '',
-          direccion_principal: data.direccion_principal || '',
-          apto_torre: data.apto_torre || '',
-          barrio: data.barrio || '',
-          nombre_receptor: data.nombre_receptor || '',
-          telefono_entrega: data.telefono_entrega || '',
-          indicaciones: data.indicaciones || ''
+          nombre: usuario.nombre || '',
+          apellido: usuario.apellido || '',
+          correo: usuario.correo || '',
+          telefono: usuario.telefono || '',
+          tipo_documento: usuario.tipo_documento || '',
+          numero_documento: usuario.numero_documento || '',
+          fecha_nacimiento: usuario.fecha_nacimiento || '',
+          genero: normalizeGender(cliente?.genero),    // ← normalizado
+          municipio: cliente?.municipio || '',
+          departamento: cliente?.departamento || '',
+          direccion: cliente?.direccion || '',
+          barrio: cliente?.barrio || '',
+          codigo_postal: cliente?.codigo_postal || '',
+          ocupacion: cliente?.ocupacion || '',
+          telefono_emergencia: cliente?.telefono_emergencia || ''
         });
-        setOriginalData({
-          nombre: data.nombre || '',
-          apellido: data.apellido || '',
-          correo: data.correo || '',
-          telefono: data.telefono || '',
-          ciudad: data.ciudad || '',
-          departamento: data.departamento || '',
-          direccion_principal: data.direccion_principal || '',
-          apto_torre: data.apto_torre || '',
-          barrio: data.barrio || '',
-          nombre_receptor: data.nombre_receptor || '',
-          telefono_entrega: data.telefono_entrega || '',
-          indicaciones: data.indicaciones || ''
-        });
-        setFotoPerfil(data.foto_perfil || null);
-        setFotoOriginal(data.foto_perfil || null);
+        setFotoPerfil(usuario.foto_url || null);
+      } catch (error) {
+        showNotification('Error al cargar perfil', 'error');
+      } finally {
+        setLoading(false);
       }
-    }
-  });
+    };
+    loadPerfil();
+  }, []);
 
-  const updateProfileMutation = useMutation({
-    mutationFn: updateMiPerfil,
-    onSuccess: (updatedUser) => {
-      queryClient.invalidateQueries({ queryKey: ['miPerfil'] });
-      setOriginalData({ ...formData });
-      setFotoOriginal(fotoPerfil);
-      setEditMode(false);
-      setValidationErrors({});
-      onUserUpdate?.(updatedUser);
-      showNotification('Perfil actualizado exitosamente');
-    },
-    onError: (err) => {
-      const msg = err.response?.data?.error || err.message || 'Error al actualizar perfil';
-      showNotification(msg, 'error');
-    }
-  });
-
-  const passwordMutation = useMutation({
-    mutationFn: cambiarMiContrasenia,
-    onSuccess: () => {
-      setPasswordData({ contrasenia_actual: '', nueva_contrasenia: '', confirmar_contrasenia: '' });
-      setShowPasswordForm(false);
-      showNotification('Contraseña actualizada exitosamente');
-    },
-    onError: (err) => {
-      const msg = err.message || 'Error al cambiar contraseña';
-      showNotification(msg, 'error');
-    }
-  });
-
-  const validarCampo = (name, value) => {
-    switch (name) {
-      case 'nombre': return validarNombre(value);
-      case 'apellido': return validarApellido(value);
-      case 'telefono': return validarTelefono(value);
-      case 'ciudad': return validarCiudad(value);
-      case 'departamento': return validarDepartamento(value);
-      case 'direccion_principal': return validarDireccionPrincipal(value);
-      case 'apto_torre': return validarAptoTorre(value);
-      case 'barrio': return validarBarrio(value);
-      case 'nombre_receptor': return validarNombreReceptor(value);
-      case 'indicaciones': return validarIndicaciones(value);
-      default: return '';
-    }
+  const showNotification = (message, type = 'success') => {
+    setNotification({ isVisible: true, message, type });
+    setTimeout(() => setNotification(prev => ({ ...prev, isVisible: false })), 4000);
   };
 
+  const handleCloseNotification = () => setNotification(prev => ({ ...prev, isVisible: false }));
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    const fieldError = validarCampo(name, value);
-    setValidationErrors(prev => ({ ...prev, [name]: fieldError }));
+    if (validationErrors[name]) setValidationErrors(prev => ({ ...prev, [name]: '' }));
   };
-
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
     setPasswordData(prev => ({ ...prev, [name]: value }));
   };
-
-  const hasValidChanges = () => {
-    // Campos de texto
-    const textChanged = Object.keys(formData).some(key => formData[key] !== originalData[key]);
-    const fotoChanged = fotoPerfil !== fotoOriginal;
-    return textChanged || fotoChanged;
-  };
+  const handleFotoUpload = (url) => setFotoPerfil(url);
+  const hasValidChanges = () => Object.keys(validarFormulario(formData)).length === 0;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errors = validarFormulario(formData);
+    setValidationErrors(errors);
     if (Object.keys(errors).length > 0) {
-      setValidationErrors(errors);
-      showNotification('Por favor corrige los errores antes de guardar', 'error');
+      showNotification('Corrige los errores del formulario', 'error');
       return;
     }
-    if (!hasValidChanges()) {
+    setIsUpdating(true);
+    try {
+      const usuarioPayload = {
+        nombre: formData.nombre,
+        apellido: formData.apellido,
+        telefono: formData.telefono,
+        tipo_documento: formData.tipo_documento,
+        numero_documento: formData.numero_documento,
+        fecha_nacimiento: formData.fecha_nacimiento,
+        foto_url: fotoPerfil
+      };
+      const clientePayload = {
+        genero: denormalizeGender(formData.genero),   // ← denormalizado a minúsculas
+        municipio: formData.municipio,
+        departamento: formData.departamento,
+        direccion: formData.direccion,
+        barrio: formData.barrio,
+        codigo_postal: formData.codigo_postal,
+        ocupacion: formData.ocupacion,
+        telefono_emergencia: formData.telefono_emergencia
+      };
+      const response = await updateMiPerfil(usuarioPayload, clientePayload);
+      if (onUserUpdate) onUserUpdate(response.usuario);
+      showNotification('Perfil actualizado correctamente');
       setEditMode(false);
-      return;
+      setValidationErrors({});
+    } catch (error) {
+      showNotification(error.response?.data?.error || 'Error al actualizar', 'error');
+    } finally {
+      setIsUpdating(false);
     }
-    
-    const payload = {};
-    for (const key of Object.keys(formData)) {
-      if (formData[key] !== originalData[key]) {
-        payload[key] = formData[key]?.trim ? formData[key].trim() : formData[key];
-      }
-    }
-    if (fotoPerfil !== fotoOriginal) {
-      payload.foto_perfil = fotoPerfil; // puede ser base64 o URL
-    }
-    
-    if (Object.keys(payload).length === 0) return;
-    
-    updateProfileMutation.mutate(payload);
   };
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
-    if (passwordData.nueva_contrasenia !== passwordData.confirmar_contrasenia) {
-      showNotification('Las contraseñas nuevas no coinciden', 'error');
-      return;
+    const error = validarPassword(passwordData.nueva_contrasenia, passwordData.confirmar_contrasenia);
+    if (error) { showNotification(error, 'error'); return; }
+    setIsUpdatingPassword(true);
+    try {
+      await cambiarContrasenia(passwordData.contrasenia_actual, passwordData.nueva_contrasenia);
+      showNotification('Contraseña actualizada');
+      setShowPasswordForm(false);
+      setPasswordData({ contrasenia_actual: '', nueva_contrasenia: '', confirmar_contrasenia: '' });
+    } catch (error) {
+      showNotification(error.response?.data?.error || 'Error', 'error');
+    } finally {
+      setIsUpdatingPassword(false);
     }
-    if (passwordData.nueva_contrasenia.length < 6) {
-      showNotification('La contraseña debe tener al menos 6 caracteres', 'error');
-      return;
-    }
-    if (!passwordData.contrasenia_actual) {
-      showNotification('Debes ingresar tu contraseña actual', 'error');
-      return;
-    }
-    passwordMutation.mutate({
-      contrasenia_actual: passwordData.contrasenia_actual,
-      nueva_contrasenia: passwordData.nueva_contrasenia
-    });
   };
 
   const handleCancelEdit = () => {
-    setFormData(originalData);
-    setFotoPerfil(fotoOriginal);
     setEditMode(false);
-    setValidationErrors({});
+    const reload = async () => {
+      try {
+        const { usuario, cliente } = await getMiPerfil();
+        setFormData({
+          nombre: usuario.nombre || '',
+          apellido: usuario.apellido || '',
+          correo: usuario.correo || '',
+          telefono: usuario.telefono || '',
+          tipo_documento: usuario.tipo_documento || '',
+          numero_documento: usuario.numero_documento || '',
+          fecha_nacimiento: usuario.fecha_nacimiento || '',
+          genero: normalizeGender(cliente?.genero),
+          municipio: cliente?.municipio || '',
+          departamento: cliente?.departamento || '',
+          direccion: cliente?.direccion || '',
+          barrio: cliente?.barrio || '',
+          codigo_postal: cliente?.codigo_postal || '',
+          ocupacion: cliente?.ocupacion || '',
+          telefono_emergencia: cliente?.telefono_emergencia || ''
+        });
+        setFotoPerfil(usuario.foto_url || null);
+        setValidationErrors({});
+      } catch (error) {
+        showNotification('Error al recargar', 'error');
+      }
+    };
+    reload();
   };
-
-  const handleFotoUpload = (fotoDataUrl) => {
-    setFotoPerfil(fotoDataUrl);
-  };
-
-  const puedeEditar = true;
-  const esCliente = isCliente();
 
   return {
-    formData,
-    fotoPerfil,
-    loading,
-    editMode,
-    showPasswordForm,
-    validationErrors,
-    passwordData,
-    puedeEditar,
-    esCliente,
-    notification,
-    handleCloseNotification,
-    handleChange,
-    handlePasswordChange,
-    handleSubmit,
-    handlePasswordSubmit,
-    handleCancelEdit,
-    setEditMode,
-    setShowPasswordForm,
-    handleFotoUpload,
-    hasValidChanges,
-    isUpdating: updateProfileMutation.isPending,
-    isUpdatingPassword: passwordMutation.isPending
+    formData, fotoPerfil, loading, editMode, showPasswordForm, validationErrors, passwordData,
+    puedeEditar, esCliente, notification, handleCloseNotification, handleChange, handlePasswordChange,
+    handleSubmit, handlePasswordSubmit, handleCancelEdit, setEditMode, setShowPasswordForm,
+    handleFotoUpload, hasValidChanges, isUpdating, isUpdatingPassword
   };
 };

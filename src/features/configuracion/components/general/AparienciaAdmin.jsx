@@ -1,16 +1,43 @@
-// features/configuracion/components/general/AparienciaAdmin.jsx
+/**
+ * Formulario de perfil para administradores/empleados.
+ * Utiliza componentes de validación personalizados (solo letras, solo números, etc.)
+ * y aplica los límites máximos según los modelos de base de datos.
+ */
+
 import {
-  Box, Typography, TextField, Button,
-  Grid, Alert, Divider
+  Box, Typography, Button, Grid, Divider, MenuItem
 } from '@mui/material';
 import { useConfiguracion } from '../../hooks/useConfiguracion';
 import UploadAvatar from './UploadAvatar';
 import CrudNotification from '@shared/styles/components/notifications/CrudNotification';
+// Importación de componentes base validados
+import TextFieldLetters from '@shared/components/base/TextFieldLetters';
+import TextFieldNumbers from '@shared/components/base/TextFieldNumbers';
+import TextFieldAlphanumeric from '@shared/components/base/TextFieldAlphanumeric';
 
 const BRAND_COLOR    = '#1a2540';
 const BRAND_HOVER    = '#2d3a6b';
 const TEXT_SECONDARY = '#64748b';
 const BORDER_COLOR   = '#cbd5e1';
+
+// Opciones para selects
+const genderOptions = ['Masculino', 'Femenino', 'Otro'];
+const docTypeOptions = ['CC', 'TI', 'CE', 'PA'];
+
+// Límites según modelos
+const LIMITS = {
+  NOMBRE: 70,
+  APELLIDO: 70,
+  TELEFONO: 20,
+  NUMERO_DOCUMENTO: 20,
+  MUNICIPIO: 50,
+  DEPARTAMENTO: 50,
+  DIRECCION: 100,
+  BARRIO: 50,
+  CODIGO_POSTAL: 10,
+  OCUPACION: 20,
+  TELEFONO_EMERGENCIA: 20
+};
 
 export default function AparienciaAdmin({ user, onUserUpdate }) {
   const {
@@ -68,8 +95,9 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
         </Box>
 
         <Grid container spacing={2}>
+          {/* Nombre - solo letras */}
           <Grid item xs={12} sm={6}>
-            <TextField
+            <TextFieldLetters
               fullWidth
               label="Nombre"
               name="nombre"
@@ -78,12 +106,14 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
               disabled={!editMode || !puedeEditar}
               required={editMode}
               size="small"
+              maxLength={LIMITS.NOMBRE}
               error={!!validationErrors.nombre}
               helperText={validationErrors.nombre}
             />
           </Grid>
+          {/* Apellido - solo letras */}
           <Grid item xs={12} sm={6}>
-            <TextField
+            <TextFieldLetters
               fullWidth
               label="Apellido"
               name="apellido"
@@ -92,12 +122,14 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
               disabled={!editMode || !puedeEditar}
               required={editMode}
               size="small"
+              maxLength={LIMITS.APELLIDO}
               error={!!validationErrors.apellido}
               helperText={validationErrors.apellido}
             />
           </Grid>
+          {/* Correo - solo lectura */}
           <Grid item xs={12} sm={6}>
-            <TextField
+            <TextFieldLetters
               fullWidth
               label="Correo Electrónico"
               name="correo"
@@ -108,8 +140,9 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
               helperText="El correo no se puede modificar"
             />
           </Grid>
+          {/* Teléfono - solo números */}
           <Grid item xs={12} sm={6}>
-            <TextField
+            <TextFieldNumbers
               fullWidth
               label="Teléfono principal"
               name="telefono"
@@ -117,33 +150,87 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
               onChange={handleChange}
               disabled={!editMode || !puedeEditar}
               size="small"
-              placeholder="Ej: 3001234567"
+              maxLength={LIMITS.TELEFONO}
+              placeholder="3001234567"
               error={!!validationErrors.telefono}
               helperText={validationErrors.telefono}
             />
           </Grid>
-        </Grid>
-
-        {/* Datos de Entrega */}
-        <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>
-          Datos de Entrega
-        </Typography>
-        <Grid container spacing={2}>
+          {/* Tipo de documento - select */}
           <Grid item xs={12} sm={6}>
-            <TextField
+            <TextFieldLetters
+              select
               fullWidth
-              label="Ciudad"
-              name="ciudad"
-              value={formData.ciudad || ''}
+              label="Tipo de documento"
+              name="tipo_documento"
+              value={formData.tipo_documento || ''}
               onChange={handleChange}
               disabled={!editMode || !puedeEditar}
               size="small"
-              error={!!validationErrors.ciudad}
-              helperText={validationErrors.ciudad}
+            >
+              {docTypeOptions.map(opt => (
+                <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+              ))}
+            </TextFieldLetters>
+          </Grid>
+          {/* Número de documento - alfanumérico (puede tener letras y números) */}
+          <Grid item xs={12} sm={6}>
+            <TextFieldAlphanumeric
+              fullWidth
+              label="Número de documento"
+              name="numero_documento"
+              value={formData.numero_documento || ''}
+              onChange={handleChange}
+              disabled={!editMode || !puedeEditar}
+              size="small"
+              maxLength={LIMITS.NUMERO_DOCUMENTO}
+              error={!!validationErrors.numero_documento}
+              helperText={validationErrors.numero_documento}
             />
           </Grid>
+          {/* Fecha nacimiento - tipo date (no necesita filtro especial) */}
           <Grid item xs={12} sm={6}>
-            <TextField
+            <TextFieldAlphanumeric
+              fullWidth
+              label="Fecha de nacimiento"
+              name="fecha_nacimiento"
+              type="date"
+              value={formData.fecha_nacimiento || ''}
+              onChange={handleChange}
+              disabled={!editMode || !puedeEditar}
+              size="small"
+              InputLabelProps={{ shrink: true }}
+              error={!!validationErrors.fecha_nacimiento}
+              helperText={validationErrors.fecha_nacimiento}
+            />
+          </Grid>
+          {/* Género - select con opciones normalizadas */}
+          <Grid item xs={12} sm={6}>
+            <TextFieldLetters
+              select
+              fullWidth
+              label="Género"
+              name="genero"
+              value={formData.genero || ''}
+              onChange={handleChange}
+              disabled={!editMode || !puedeEditar}
+              size="small"
+            >
+              {genderOptions.map(opt => (
+                <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+              ))}
+            </TextFieldLetters>
+          </Grid>
+        </Grid>
+
+        {/* Datos de ubicación (igual que en el formulario de pedido) */}
+        <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>
+          Dirección y ubicación
+        </Typography>
+        <Grid container spacing={2}>
+          {/* Departamento - solo letras */}
+          <Grid item xs={12} sm={6}>
+            <TextFieldLetters
               fullWidth
               label="Departamento"
               name="departamento"
@@ -151,38 +238,38 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
               onChange={handleChange}
               disabled={!editMode || !puedeEditar}
               size="small"
-              error={!!validationErrors.departamento}
-              helperText={validationErrors.departamento}
+              maxLength={LIMITS.DEPARTAMENTO}
             />
           </Grid>
-          <Grid item xs={12} sm={8}>
-            <TextField
-              fullWidth
-              label="Dirección principal"
-              name="direccion_principal"
-              value={formData.direccion_principal || ''}
-              onChange={handleChange}
-              disabled={!editMode || !puedeEditar}
-              size="small"
-              error={!!validationErrors.direccion_principal}
-              helperText={validationErrors.direccion_principal}
-            />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              fullWidth
-              label="Apto / Torre"
-              name="apto_torre"
-              value={formData.apto_torre || ''}
-              onChange={handleChange}
-              disabled={!editMode || !puedeEditar}
-              size="small"
-              error={!!validationErrors.apto_torre}
-              helperText={validationErrors.apto_torre}
-            />
-          </Grid>
+          {/* Municipio / Ciudad - solo letras */}
           <Grid item xs={12} sm={6}>
-            <TextField
+            <TextFieldLetters
+              fullWidth
+              label="Municipio / Ciudad"
+              name="municipio"
+              value={formData.municipio || ''}
+              onChange={handleChange}
+              disabled={!editMode || !puedeEditar}
+              size="small"
+              maxLength={LIMITS.MUNICIPIO}
+            />
+          </Grid>
+          {/* Dirección - alfanumérico (permite números y letras) */}
+          <Grid item xs={12} sm={8}>
+            <TextFieldAlphanumeric
+              fullWidth
+              label="Dirección"
+              name="direccion"
+              value={formData.direccion || ''}
+              onChange={handleChange}
+              disabled={!editMode || !puedeEditar}
+              size="small"
+              maxLength={LIMITS.DIRECCION}
+            />
+          </Grid>
+          {/* Barrio - solo letras */}
+          <Grid item xs={12} sm={4}>
+            <TextFieldLetters
               fullWidth
               label="Barrio"
               name="barrio"
@@ -190,52 +277,54 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
               onChange={handleChange}
               disabled={!editMode || !puedeEditar}
               size="small"
-              error={!!validationErrors.barrio}
-              helperText={validationErrors.barrio}
+              maxLength={LIMITS.BARRIO}
             />
           </Grid>
+          {/* Código postal - solo números */}
           <Grid item xs={12} sm={6}>
-            <TextField
+            <TextFieldNumbers
               fullWidth
-              label="Nombre del receptor"
-              name="nombre_receptor"
-              value={formData.nombre_receptor || ''}
+              label="Código postal"
+              name="codigo_postal"
+              value={formData.codigo_postal || ''}
               onChange={handleChange}
               disabled={!editMode || !puedeEditar}
               size="small"
-              error={!!validationErrors.nombre_receptor}
-              helperText={validationErrors.nombre_receptor}
+              maxLength={LIMITS.CODIGO_POSTAL}
             />
           </Grid>
+          {/* Ocupación - solo letras */}
           <Grid item xs={12} sm={6}>
-            <TextField
+            <TextFieldLetters
               fullWidth
-              label="Teléfono de contacto (entrega)"
-              name="telefono_entrega"
-              value={formData.telefono_entrega || ''}
+              label="Ocupación"
+              name="ocupacion"
+              value={formData.ocupacion || ''}
               onChange={handleChange}
               disabled={!editMode || !puedeEditar}
               size="small"
-              placeholder="Ej: 3007654321"
+              maxLength={LIMITS.OCUPACION}
             />
           </Grid>
-          <Grid item xs={12}>
-            <TextField
+          {/* Teléfono de emergencia - solo números */}
+          <Grid item xs={12} sm={6}>
+            <TextFieldNumbers
               fullWidth
-              label="Indicaciones adicionales"
-              name="indicaciones"
-              value={formData.indicaciones || ''}
+              label="Teléfono de emergencia"
+              name="telefono_emergencia"
+              value={formData.telefono_emergencia || ''}
               onChange={handleChange}
               disabled={!editMode || !puedeEditar}
               size="small"
-              multiline
-              rows={2}
-              error={!!validationErrors.indicaciones}
-              helperText={validationErrors.indicaciones}
+              maxLength={LIMITS.TELEFONO_EMERGENCIA}
+              placeholder="3007654321"
+              error={!!validationErrors.telefono_emergencia}
+              helperText={validationErrors.telefono_emergencia}
             />
           </Grid>
         </Grid>
 
+        {/* Botones de acción */}
         {puedeEditar && (
           <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
             {!editMode ? (
@@ -243,44 +332,20 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
                 variant="contained"
                 onClick={() => setEditMode(true)}
                 disabled={loading || isUpdating}
-                sx={{
-                  backgroundColor: BRAND_COLOR,
-                  '&:hover': { backgroundColor: BRAND_HOVER },
-                  textTransform: 'none',
-                  boxShadow: 'none'
-                }}
+                sx={{ backgroundColor: BRAND_COLOR, '&:hover': { backgroundColor: BRAND_HOVER }, textTransform: 'none' }}
               >
                 Editar Perfil
               </Button>
             ) : (
               <>
-                <Button
-                  variant="outlined"
-                  onClick={handleCancelEdit}
-                  disabled={isUpdating}
-                  sx={{
-                    textTransform: 'none',
-                    borderColor: BORDER_COLOR,
-                    color: TEXT_SECONDARY,
-                    '&:hover': {
-                      borderColor: BRAND_HOVER,
-                      color: BRAND_HOVER,
-                      backgroundColor: `${BRAND_COLOR}12`
-                    }
-                  }}
-                >
+                <Button variant="outlined" onClick={handleCancelEdit} disabled={isUpdating} sx={{ textTransform: 'none' }}>
                   Cancelar
                 </Button>
                 <Button
                   type="submit"
                   variant="contained"
                   disabled={isUpdating || !hasValidChanges()}
-                  sx={{
-                    backgroundColor: BRAND_COLOR,
-                    '&:hover': { backgroundColor: BRAND_HOVER },
-                    textTransform: 'none',
-                    boxShadow: 'none'
-                  }}
+                  sx={{ backgroundColor: BRAND_COLOR, '&:hover': { backgroundColor: BRAND_HOVER }, textTransform: 'none' }}
                 >
                   {isUpdating ? 'Guardando...' : 'Guardar'}
                 </Button>
@@ -290,25 +355,17 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
         )}
       </form>
 
-      {/* Cambiar Contraseña */}
+      {/* Sección de cambio de contraseña (sin cambios) */}
       {puedeEditar && (
         <>
           <Divider sx={{ my: 3 }} />
-          <Typography variant="h6" gutterBottom>
-            Cambiar Contraseña
-          </Typography>
-
+          <Typography variant="h6" gutterBottom>Cambiar Contraseña</Typography>
           {!showPasswordForm ? (
             <Button
               variant="contained"
               onClick={() => setShowPasswordForm(true)}
               disabled={isUpdatingPassword}
-              sx={{
-                backgroundColor: BRAND_COLOR,
-                '&:hover': { backgroundColor: BRAND_HOVER },
-                textTransform: 'none',
-                boxShadow: 'none'
-              }}
+              sx={{ backgroundColor: BRAND_COLOR, '&:hover': { backgroundColor: BRAND_HOVER }, textTransform: 'none' }}
             >
               Cambiar Contraseña
             </Button>
@@ -316,7 +373,7 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
             <form onSubmit={handlePasswordSubmit}>
               <Grid container spacing={2} sx={{ mt: 1 }}>
                 <Grid item xs={12} sm={4}>
-                  <TextField
+                  <TextFieldAlphanumeric
                     fullWidth
                     label="Contraseña Actual"
                     name="contrasenia_actual"
@@ -328,7 +385,7 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
                   />
                 </Grid>
                 <Grid item xs={12} sm={4}>
-                  <TextField
+                  <TextFieldAlphanumeric
                     fullWidth
                     label="Nueva Contraseña"
                     name="nueva_contrasenia"
@@ -337,11 +394,11 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
                     onChange={handlePasswordChange}
                     required
                     size="small"
-                    helperText="Mínimo 6 caracteres"
+                    helperText="Mínimo 6 caracteres, una mayúscula y un número"
                   />
                 </Grid>
                 <Grid item xs={12} sm={4}>
-                  <TextField
+                  <TextFieldAlphanumeric
                     fullWidth
                     label="Confirmar Contraseña"
                     name="confirmar_contrasenia"
@@ -354,34 +411,8 @@ export default function AparienciaAdmin({ user, onUserUpdate }) {
                 </Grid>
               </Grid>
               <Box sx={{ mt: 2, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-                <Button
-                  variant="outlined"
-                  onClick={handleCancelPassword}
-                  disabled={isUpdatingPassword}
-                  sx={{
-                    textTransform: 'none',
-                    borderColor: BORDER_COLOR,
-                    color: TEXT_SECONDARY,
-                    '&:hover': {
-                      borderColor: BRAND_HOVER,
-                      color: BRAND_HOVER,
-                      backgroundColor: `${BRAND_COLOR}12`
-                    }
-                  }}
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  disabled={isUpdatingPassword || !passwordData.nueva_contrasenia || !passwordData.contrasenia_actual}
-                  sx={{
-                    backgroundColor: BRAND_COLOR,
-                    '&:hover': { backgroundColor: BRAND_HOVER },
-                    textTransform: 'none',
-                    boxShadow: 'none'
-                  }}
-                >
+                <Button variant="outlined" onClick={handleCancelPassword} disabled={isUpdatingPassword}>Cancelar</Button>
+                <Button type="submit" variant="contained" disabled={isUpdatingPassword || !passwordData.nueva_contrasenia}>
                   {isUpdatingPassword ? 'Actualizando...' : 'Actualizar Contraseña'}
                 </Button>
               </Box>

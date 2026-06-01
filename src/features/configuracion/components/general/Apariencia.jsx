@@ -1,3 +1,10 @@
+/**
+ * Componente que decide qué vista de perfil mostrar según el rol del usuario.
+ * Si el usuario es cliente, muestra AparienciaCliente; en caso contrario, AparienciaAdmin.
+ * Utiliza el hook useConfiguracion para determinar si es cliente.
+ * No requiere cambios porque el hook ya maneja el nuevo endpoint.
+ */
+
 import { useConfiguracion } from '../../hooks/useConfiguracion';
 import AparienciaAdmin from './AparienciaAdmin';
 import AparienciaCliente from './AparienciaCliente';
