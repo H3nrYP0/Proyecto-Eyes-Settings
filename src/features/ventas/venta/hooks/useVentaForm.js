@@ -102,7 +102,7 @@ export function useVentaForm({ mode = "view", initialData = null, onSuccess, onE
   };
 
   // ── Crear venta directa ───────────────────────────────────────────────────
-  const crearVenta = async () => {
+  const crearVenta = async (overrides = {}) => {
     if (!formData.cliente_id) {
       setNotification({ isVisible: true, message: "Seleccione un cliente.", type: "error" });
       return;
@@ -122,7 +122,7 @@ export function useVentaForm({ mode = "view", initialData = null, onSuccess, onE
 
     setSaving(true);
     try {
-      await ventasService.createVenta({ ...formData, items: itemsSeleccionados });
+      await ventasService.createVenta({ ...formData, ...overrides, items: itemsSeleccionados });
       // Invalidar cache para que la lista se actualice con la nueva venta al inicio
       await queryClient.invalidateQueries({ queryKey: ["ventas"] });
       setNotification({ isVisible: true, message: "Venta registrada correctamente.", type: "success" });
