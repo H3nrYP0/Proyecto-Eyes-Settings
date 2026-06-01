@@ -14,8 +14,6 @@ import BaseFormActions     from "../../../../shared/components/base/BaseFormActi
 import CrudNotification    from "../../../../shared/styles/components/notifications/CrudNotification";
 import Modal               from "../../../../shared/components/ui/Modal";
 import { usePedidoForm }   from "../hooks/usePedidoForm";
-import ComprobanteDropzone from "./ComprobanteDropzone";
-import { useComprobanteUpload } from "../hooks/useComprobanteUpload";
 
 /* ── Estilos reutilizables ─────────────────────────────────────────────── */
 const viewFieldStyle = {
@@ -31,7 +29,6 @@ const banner = (color, bg, border) => ({
   color, fontWeight: 600, fontSize: "0.9rem",
 });
 
-// Estilo base para todos los botones de acción del formulario
 const btnBase = {
   padding: "8px 22px",
   borderRadius: 8,
@@ -55,50 +52,11 @@ const btnSecondary = {
   border: "1.5px solid var(--primary-color, #1a2540)",
 };
 
-const btnDanger = {
+const btnBlue = {
   ...btnBase,
-  background: "#ef4444",
+  background: "#2563eb",
   color: "#fff",
 };
-
-/* ── Visor readonly del comprobante (modo ver) ─────────────────────────── */
-function ComprobanteViewer({ url }) {
-  if (!url) return (
-    <div style={{
-      background: "#f9fafb", border: "1px dashed #d1d5db",
-      borderRadius: 10, padding: "24px 16px",
-      textAlign: "center", color: "#9ca3af", fontSize: "0.85rem",
-    }}>
-      Sin comprobante adjunto
-    </div>
-  );
-  const esImagen = /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(url) ||
-    url.includes("cloudinary.com") || url.includes("res.cloudinary");
-  if (esImagen) {
-    return (
-      <div>
-        <a href={url} target="_blank" rel="noopener noreferrer">
-          <img src={url} alt="Comprobante"
-            style={{ width: "100%", maxHeight: 240, objectFit: "contain",
-              borderRadius: 10, border: "1px solid #e5e7eb", display: "block", cursor: "pointer" }}
-          />
-        </a>
-        <div style={{ marginTop: 4, textAlign: "right" }}>
-          <a href={url} target="_blank" rel="noopener noreferrer"
-            style={{ fontSize: "0.75rem", color: "#6366f1", textDecoration: "none" }}>
-            Ver imagen completa ↗
-          </a>
-        </div>
-      </div>
-    );
-  }
-  return (
-    <a href={url} target="_blank" rel="noopener noreferrer"
-      style={{ fontSize: "0.85rem", color: "#6366f1", wordBreak: "break-all" }}>
-      {url}
-    </a>
-  );
-}
 
 /* ══════════════════════════════════════════════════════════════════════════
    COMPONENTE PRINCIPAL
@@ -125,16 +83,6 @@ export default function PedidoForm({
     modalConfirm, closeModalConfirm,
   } = usePedidoForm({ mode, initialData, onSuccess });
 
-  /* ── Comprobante ── */
-  const comprobante = useComprobanteUpload();
-
-  useEffect(() => {
-    if (initialData?.transferencia_comprobante) {
-      comprobante.setExistingUrl(initialData.transferencia_comprobante);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialData?.transferencia_comprobante]);
-
   useEffect(() => {
     if (notification.isVisible) {
       const t = setTimeout(() => setNotification({ ...notification, isVisible: false }), 5000);
@@ -143,28 +91,23 @@ export default function PedidoForm({
   }, [notification, setNotification]);
 
   // Solo bloquear si el estado YA estaba guardado en el servidor (no si el usuario lo acaba de seleccionar)
-  const estadoGuardado   = initialData?.estado ?? "pendiente";
-  const formBloqueado    = isView || (isEdit && (estadoGuardado === "anulado" || estadoGuardado === "pagado"));
-  const isDisabled       = formBloqueado || saving;
-  const esTransferencia  = formData.metodo_pago === "transferencia";
-  const tieneComprobante = !!(comprobante.preview || initialData?.transferencia_comprobante);
+  const estadoGuardado = initialData?.estado ?? "pendiente";
+  const formBloqueado  = isView || (isEdit && (estadoGuardado === "anulado" || estadoGuardado === "pagado"));
+  const isDisabled     = formBloqueado || saving;
 
+  // Fecha: usar fecha local para evitar el problema de UTC que muestra un día antes
   const fechaHoy = new Date().toLocaleDateString("es-CO", {
     day: "2-digit", month: "long", year: "numeric",
+    timeZone: "America/Bogota",
   });
 
-  /* ── Guardar con subida de imagen incluida ── */
-  const handleGuardar = async () => {
-    if (comprobante.hasChanges) {
-      try {
-        const url = await comprobante.uploadAndGetUrl();
-        await guardarPedido({ transferencia_comprobante: url });
-      } catch {
-        // el hook ya muestra el error
-      }
-      return;
-    }
-    guardarPedido();
+  const formatFechaGuardada = (fechaStr) => {
+    if (!fechaStr) return fechaHoy;
+    // fechaStr viene como "YYYY-MM-DD" — parsear directamente sin conversión UTC
+    const [y, m, d] = fechaStr.split("-").map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString("es-CO", {
+      day: "2-digit", month: "long", year: "numeric",
+    });
   };
 
   return (
@@ -189,14 +132,7 @@ export default function PedidoForm({
           {/* Fecha */}
           <BaseFormField>
             <TextField fullWidth label="Fecha del Pedido"
-              value={
-                isCreate ? fechaHoy
-                : initialData?.fechaPedido
-                  ? new Date(initialData.fechaPedido).toLocaleDateString("es-CO", {
-                      day: "2-digit", month: "long", year: "numeric",
-                    })
-                  : fechaHoy
-              }
+              value={isCreate ? fechaHoy : formatFechaGuardada(initialData?.fechaPedido)}
               InputProps={{ readOnly: true, style: viewFieldStyle }}
               InputLabelProps={{ shrink: true }}
               helperText={isCreate ? "Se registra automáticamente al guardar" : ""}
@@ -284,7 +220,7 @@ export default function PedidoForm({
             </BaseFormField>
           )}
 
-          {/* ── ESTADO — visible en CREAR, EDITAR y VER ── */}
+          {/* Estado */}
           <BaseFormField>
             {isView ? (
               <TextField fullWidth label="Estado"
@@ -304,7 +240,7 @@ export default function PedidoForm({
             )}
           </BaseFormField>
 
-          {/* Selector de productos (crear / editar) */}
+          {/* Selector de productos/servicios (crear / editar) */}
           {!formBloqueado && (
             <>
               <BaseFormField>
@@ -365,33 +301,6 @@ export default function PedidoForm({
             </BaseFormField>
           )}
 
-          {/* ── COMPROBANTE — al final de la sección ── */}
-          {(esTransferencia || (isView && tieneComprobante)) && (
-            <BaseFormField fullWidth>
-              <div style={{ borderTop: "1px solid #f3f4f6", paddingTop: 20, marginTop: 8 }}>
-                <div style={{
-                  fontSize: "0.72rem", color: "#9ca3af",
-                  fontWeight: 700, textTransform: "uppercase",
-                  letterSpacing: "0.06em", marginBottom: 10,
-                }}>
-                  Comprobante de Transferencia
-                </div>
-                {isView ? (
-                  <ComprobanteViewer url={comprobante.preview || initialData?.transferencia_comprobante} />
-                ) : (
-                  <ComprobanteDropzone
-                    preview={comprobante.preview}
-                    uploading={comprobante.uploading}
-                    error={comprobante.error}
-                    onDrop={comprobante.handleDrop}
-                    onRemove={comprobante.removePreview}
-                    disabled={isDisabled}
-                  />
-                )}
-              </div>
-            </BaseFormField>
-          )}
-
         </BaseFormSection>
 
         {/* ══ TABLA DE ITEMS ══ */}
@@ -410,7 +319,7 @@ export default function PedidoForm({
               <div>
                 <div style={{
                   display: "grid",
-                  gridTemplateColumns: isView ? "3fr 1fr 1.2fr 1.2fr" : "3fr 1fr 1.2fr 1.2fr 36px",
+                  gridTemplateColumns: formBloqueado ? "3fr 1fr 1.2fr 1.2fr" : "3fr 1fr 1.2fr 1.2fr 36px",
                   fontWeight: 600, paddingBottom: 10,
                   borderBottom: "2px solid #e5e7eb",
                   color: "#9ca3af", fontSize: "0.82rem", textAlign: "center",
@@ -419,14 +328,14 @@ export default function PedidoForm({
                   <div>Cant.</div>
                   <div style={{ textAlign: "right" }}>Precio</div>
                   <div style={{ textAlign: "right" }}>Subtotal</div>
-                  {!isView && <div />}
+                  {!formBloqueado && <div />}
                 </div>
 
                 {itemsSeleccionados.map((item, index) => (
                   <div key={`${item.producto_id ?? item.servicio_id}-${index}`}
                     style={{
                       display: "grid",
-                      gridTemplateColumns: isView ? "3fr 1fr 1.2fr 1.2fr" : "3fr 1fr 1.2fr 1.2fr 36px",
+                      gridTemplateColumns: formBloqueado ? "3fr 1fr 1.2fr 1.2fr" : "3fr 1fr 1.2fr 1.2fr 36px",
                       padding: "10px 4px",
                       borderBottom: "1px solid #eee",
                       alignItems: "center",
@@ -434,7 +343,7 @@ export default function PedidoForm({
                     }}>
                     <div style={{ textAlign: "left", fontWeight: 500 }}>
                       {item.nombre}
-                      {!isView && item.stock !== null && (
+                      {!formBloqueado && item.stock !== null && (
                         <span style={{ color: "#9ca3af", fontSize: "0.72rem", marginLeft: 6 }}>
                           (máx. {item.stock})
                         </span>
@@ -573,16 +482,14 @@ export default function PedidoForm({
                 Volver
               </button>
 
-              {/* PDF — rojo, solo si pagado */}
               {onPdf && formData.estado === "pagado" && (
-                <button style={btnDanger} onClick={onPdf}
-                  onMouseOver={(e) => { e.currentTarget.style.background = "#dc2626"; }}
-                  onMouseOut={(e)  => { e.currentTarget.style.background = "#ef4444"; }}>
+                <button style={btnBlue} onClick={onPdf}
+                  onMouseOver={(e) => { e.currentTarget.style.background = "#1d4ed8"; }}
+                  onMouseOut={(e)  => { e.currentTarget.style.background = "#2563eb"; }}>
                   Generar PDF
                 </button>
               )}
 
-              {/* Editar — primario, solo si no está cerrado */}
               {onEdit && estadoGuardado !== "anulado" && estadoGuardado !== "pagado" && (
                 <button style={btnPrimary} onClick={onEdit}
                   onMouseOver={(e) => { e.currentTarget.style.opacity = "0.88"; }}
@@ -594,10 +501,10 @@ export default function PedidoForm({
           ) : (
             <BaseFormActions
               onCancel={onCancel}
-              onSave={handleGuardar}
-              saveLabel={comprobante.uploading || saving ? "Guardando…" : "Guardar"}
+              onSave={guardarPedido}
+              saveLabel={saving ? "Guardando…" : "Guardar"}
               showSave={!formBloqueado}
-              saveDisabled={comprobante.uploading || saving || formBloqueado}
+              saveDisabled={saving || formBloqueado}
             />
           )}
         </div>

@@ -37,7 +37,6 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
     metodo_pago:               "efectivo",
     metodo_entrega:            "tienda",
     direccion_entrega:         "",
-    transferencia_comprobante: "",
     estado:                    "pendiente",
     abono_inicial:             "",
   });
@@ -66,7 +65,6 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
         metodo_pago:               initialData.metodo_pago             ?? "efectivo",
         metodo_entrega:            initialData.metodo_entrega          ?? "tienda",
         direccion_entrega:         initialData.direccion_entrega       ?? "",
-        transferencia_comprobante: initialData.transferencia_comprobante ?? "",
         estado:                    initialData.estado                  ?? "pendiente",
         abono_inicial:             "",
       });
@@ -150,7 +148,6 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
           metodo_pago:               payload.metodo_pago,
           metodo_entrega:            payload.metodo_entrega,
           direccion_entrega:         payload.direccion_entrega,
-          transferencia_comprobante: payload.transferencia_comprobante,
           estado:                    estadoNuevo,
         });
 
@@ -229,7 +226,6 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
   };
 
   // ── Guardar (con intercepción para estados críticos) ──────────────────────
-  // overrides: campos extra a inyectar (ej: URL del comprobante recién subida)
   const guardarPedido = async (overrides = {}) => {
     // Validaciones básicas
     if (!formData.cliente_id) {
@@ -255,7 +251,7 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
 
     const estadoNuevo    = { ...formData, ...overrides }.estado;
     const estadoAnterior = initialData?.estado ?? "pendiente";
-    // En edición: cualquier cambio de estado. En creación: si se elige un estado distinto a pendiente.
+    // En edición: cualquier cambio de estado. En creación: si se elige estado distinto a pendiente.
     const estadoCambio   = isEdit
       ? estadoNuevo !== estadoAnterior
       : estadoNuevo !== "pendiente";
