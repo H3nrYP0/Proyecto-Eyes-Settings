@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import ClienteForm from "../components/ClienteForm";
-import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
+import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 
 export default function CrearCliente() {
   const navigate = useNavigate();

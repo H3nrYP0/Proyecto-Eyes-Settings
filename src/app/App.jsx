@@ -19,8 +19,8 @@ import ServicesPage from "../features/home/pages/ServicesPage";
 import Login from "../features/auth/pages/Login";
 import Register from "../features/auth/pages/Register";
 import ForgotPassword from "../features/auth/pages/ForgotPassword";
-import OpticaDashboardLayout from "../shared/components/layouts/OpticaDashboardLayout";
-import ProtectedRoute from "../shared/components/ProtectedRoute";
+import OpticaDashboardLayout from "@shared/components/layouts/OpticaDashboardLayout";
+import ProtectedRoute from "@shared/components/ProtectedRoute";
 import authServices from "@auth/services/authServices";
 import Configuration from "@configuracion/pages/Configuration";
 

@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { clientesService } from "../services/clientesService";
 import ClienteForm from "../components/ClienteForm";
-import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
+import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 
 export default function EditarCliente() {
   const navigate = useNavigate();

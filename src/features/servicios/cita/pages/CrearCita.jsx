@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useCitaData } from '../context/CitaDataContext';
-import Loading from "../../../../shared/components/ui/Loading";
+import Loading from "@shared/components/ui/Loading";
 import { useCitaForm } from "../hooks/useCitaForm";
 import CitaForm from "../components/CitaForm";
 

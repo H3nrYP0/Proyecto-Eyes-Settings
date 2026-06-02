@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { getCompraById } from "../services/comprasService";
 import { normalizeCompraForForm } from "../utils/comprasUtils";
 import ComprasForm from "../components/ComprasForm";
-import Loading from "../../../../shared/components/ui/Loading";
+import Loading from "@shared/components/ui/Loading";
 
 export default function DetalleCompra() {
   const navigate = useNavigate();
