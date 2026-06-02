@@ -7,8 +7,8 @@ import {
   getEstadoLabelVenta,
 } from "../utils/ventasUtils";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import BaseFormLayout from "../../../../shared/components/base/BaseFormLayout";
-import BaseFormSection from "../../../../shared/components/base/BaseFormSection";
+import BaseFormLayout from "@shared/components/base/BaseFormLayout";
+import BaseFormSection from "@shared/components/base/BaseFormSection";
 
 const viewField = {
   backgroundColor: "#f3f4f6",

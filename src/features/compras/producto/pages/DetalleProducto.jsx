@@ -1,6 +1,6 @@
 // src/features/compras/pages/producto/pages/DetalleProducto.jsx
 import { useNavigate, useParams } from "react-router-dom";
-import Loading from "../../../../shared/components/ui/Loading/Loading";
+import Loading from "@shared/components/ui/Loading/Loading";
 import { useProductoForm } from "../hooks/useProductoForm";
 import { useProductoDetailQuery } from "../queries/useProductoDetailQuery";
 import ProductoForm from "../components/ProductoForm";

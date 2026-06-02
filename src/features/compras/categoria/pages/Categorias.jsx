@@ -1,15 +1,15 @@
 import { useRef, useState } from "react";
-import CrudLayout from "../../../../shared/components/crud/CrudLayout";
-import CrudTable from "../../../../shared/components/crud/CrudTable";
-import Modal from "../../../../shared/components/ui/Modal";
-import Loading from "../../../../shared/components/ui/Loading";
+import CrudLayout from "@shared/components/crud/CrudLayout";
+import CrudTable from "@shared/components/crud/CrudTable";
+import Modal from "@shared/components/ui/Modal";
+import Loading from "@shared/components/ui/Loading";
 import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 import { useActionBlocker } from "@shared/hooks/useActionBlocker";
 import { useCategorias } from "../hooks/useCategorias";
 import { useCategoriaForm } from "../hooks/useCategoriaForm";
 import CategoriaForm from "../components/CategoriaForm";
-import "../../../../shared/styles/components/crud-table.css";
-import "../../../../shared/styles/components/modal.css";
+import "@shared/styles/components/crud-table.css";
+import "@shared/styles/components/modal.css";
 
 export default function Categorias() {
   const submitButtonRef = useRef(null);

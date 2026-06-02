@@ -11,10 +11,10 @@ import {
   TextField,
   InputAdornment,
 } from "@mui/material";
-import BaseFormLayout from "../../../../shared/components/base/BaseFormLayout";
-import BaseFormSection from "../../../../shared/components/base/BaseFormSection";
-import BaseFormActions from "../../../../shared/components/base/BaseFormActions";
-import BaseInputField from "../../../../shared/components/base/BaseInputField";
+import BaseFormLayout from "@shared/components/base/BaseFormLayout";
+import BaseFormSection from "@shared/components/base/BaseFormSection";
+import BaseFormActions from "@shared/components/base/BaseFormActions";
+import BaseInputField from "@shared/components/base/BaseInputField";
 import { useCompraForm } from "../hooks/useCompraForm";
 import { createProveedor } from "../services/comprasService";
 

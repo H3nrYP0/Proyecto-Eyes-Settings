@@ -3,8 +3,8 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import esLocale from "date-fns/locale/es";
-import BaseInputField from "../../../../shared/components/base/BaseInputField";
-import BaseFormField from "../../../../shared/components/base/BaseFormField";
+import BaseInputField from "@shared/components/base/BaseInputField";
+import BaseFormField from "@shared/components/base/BaseFormField";
 import { diasSemanaOptions } from "../utils/horariosUtils";
 import { useEffect } from "react";
 

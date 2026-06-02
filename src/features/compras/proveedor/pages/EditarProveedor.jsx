@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { getProveedorById } from "../services/proveedoresService";
 import { normalizeProveedorForForm } from "../utils/proveedoresUtils";
 import ProveedorForm from "../components/ProveedorForm";
-import Loading from "../../../../shared/components/ui/Loading";
+import Loading from "@shared/components/ui/Loading";
 
 export default function EditarProveedor() {
   const navigate = useNavigate();

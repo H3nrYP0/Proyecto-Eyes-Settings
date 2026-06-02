@@ -1,10 +1,10 @@
 // src/features/compras/pages/producto/pages/EditarProducto.jsx
 import { useNavigate, useParams } from "react-router-dom";
-import Loading from "../../../../shared/components/ui/Loading/Loading";
+import Loading from "@shared/components/ui/Loading/Loading";
 import { useProductoForm } from "../hooks/useProductoForm";
 import { useProductoDetailQuery } from "../queries/useProductoDetailQuery";
 import ProductoForm from "../components/ProductoForm";
-import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
+import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 import { useState, useCallback } from "react";
 
 export default function EditarProducto() {
