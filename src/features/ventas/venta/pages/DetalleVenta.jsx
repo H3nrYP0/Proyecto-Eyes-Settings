@@ -42,8 +42,9 @@ function Campo({ label, value }) {
 export default function DetalleVenta() {
   const navigate   = useNavigate();
   const { id }     = useParams();
-  const [venta, setVenta]     = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [venta, setVenta]         = useState(null);
+  const [loading, setLoading]     = useState(true);
+  const [lightbox, setLightbox]   = useState(false);
 
   useEffect(() => {
     ventasService.getVentaById(Number(id))
@@ -208,6 +209,7 @@ export default function DetalleVenta() {
       {urlComprobante && (
         <BaseFormSection title="Comprobante de Transferencia">
           {esImagenComprobante ? (
+<<<<<<< HEAD
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
               <a href={urlComprobante} target="_blank" rel="noopener noreferrer"
                 style={{ display: "block", borderRadius: 16, overflow: "hidden", boxShadow: "0 4px 24px rgba(0,0,0,0.10)", border: "1px solid #e5e7eb" }}>
@@ -225,6 +227,72 @@ export default function DetalleVenta() {
                 <OpenInNewIcon style={{ fontSize: 13 }} /> Ver imagen completa
               </a>
             </div>
+=======
+            <>
+              {/* Lightbox */}
+              {lightbox && (
+                <div
+                  onClick={() => setLightbox(false)}
+                  style={{
+                    position: "fixed", inset: 0, zIndex: 9999,
+                    background: "rgba(0,0,0,0.82)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    cursor: "zoom-out",
+                  }}
+                >
+                  <img
+                    src={urlComprobante}
+                    alt="Comprobante completo"
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      maxWidth: "90vw", maxHeight: "90vh",
+                      objectFit: "contain", borderRadius: 12,
+                      boxShadow: "0 8px 48px rgba(0,0,0,0.5)",
+                    }}
+                  />
+                  <button
+                    onClick={() => setLightbox(false)}
+                    style={{
+                      position: "absolute", top: 20, right: 24,
+                      background: "rgba(255,255,255,0.15)", border: "none",
+                      color: "#fff", fontSize: "1.4rem", borderRadius: "50%",
+                      width: 40, height: 40, cursor: "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
+              {/* Thumbnail centrado en cuadro fijo */}
+              <div style={{ display: "flex", justifyContent: "center" }}>
+                <div
+                  onClick={() => setLightbox(true)}
+                  style={{
+                    width: 280, height: 200,
+                    borderRadius: 14, overflow: "hidden",
+                    border: "1px solid #e5e7eb",
+                    boxShadow: "0 2px 16px rgba(0,0,0,0.08)",
+                    cursor: "zoom-in",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    background: "#f9fafb",
+                  }}
+                >
+                  <img
+                    src={urlComprobante}
+                    alt="Comprobante de transferencia"
+                    style={{
+                      maxWidth: "100%", maxHeight: "100%",
+                      objectFit: "contain", display: "block",
+                    }}
+                  />
+                </div>
+              </div>
+              <p style={{ textAlign: "center", margin: "8px 0 0", fontSize: "0.75rem", color: "#9ca3af" }}>
+              </p>
+            </>
+>>>>>>> origin/main
           ) : (
             <a href={urlComprobante} target="_blank" rel="noopener noreferrer"
               style={{ fontSize: "0.85rem", color: "#6366f1", wordBreak: "break-all" }}>
