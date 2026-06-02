@@ -1,8 +1,5 @@
 /**
- * Este archivo contiene los servicios para interactuar con los endpoints unificados de perfil.
- * Proporciona funciones para obtener el perfil completo (usuario + cliente) y actualizarlo,
- * así como para cambiar la contraseña del usuario autenticado.
- * Utiliza el endpoint /mi-perfil que centraliza la información de ambas tablas.
+ * Servicios para interactuar con los endpoints unificados de perfil.
  */
 
 import api from '@lib/axios';

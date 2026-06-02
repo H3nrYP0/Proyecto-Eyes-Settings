@@ -1,10 +1,10 @@
 /**
- * Utilidades de validación para el perfil unificado, con límites exactos según los modelos
- * de la base de datos (usuario y cliente).
- * Incluye normalización de género y tipo de documento.
+ * Utilidades de validación y normalización para el perfil unificado.
+ * Incluye normalización de género (mayúscula inicial para UI, minúscula para backend)
+ * y validaciones con límites según los modelos de BD.
  */
 
-// ==================== Normalizadores ====================
+// ==================== NORMALIZADORES ====================
 export const normalizeGender = (gender) => {
   if (!gender) return '';
   const lower = gender.toLowerCase();
@@ -22,9 +22,7 @@ export const denormalizeGender = (gender) => {
   return gender.toLowerCase();
 };
 
-export const normalizeDocType = (docType) => docType?.toUpperCase() || '';
-
-// ==================== Validaciones por campo ====================
+// ==================== VALIDACIONES POR CAMPO ====================
 export const validarNombre = (nombre) => {
   if (!nombre || nombre.trim() === '') return 'El nombre es requerido';
   if (nombre.trim().length < 2) return 'Debe tener al menos 2 caracteres';
@@ -43,12 +41,14 @@ export const validarTelefono = (telefono) => {
   if (telefono && !/^\d{7,15}$/.test(telefono.replace(/[\s-]/g, ''))) {
     return 'Formato inválido (solo números, 7-15 dígitos)';
   }
-  if (telefono && telefono.length > 20) return 'Máximo 20 caracteres';
+  if (telefono && telefono.length > 10) return 'Máximo 10 caracteres';
   return '';
 };
 
 export const validarNumeroDocumento = (numero) => {
-  if (numero && numero.trim().length > 20) return 'Máximo 20 caracteres';
+  // Solo números, longitud máxima 20
+  if (numero && !/^\d+$/.test(numero)) return 'Solo números';
+  if (numero && numero.length > 20) return 'Máximo 20 caracteres';
   return '';
 };
 
@@ -64,14 +64,15 @@ export const validarFechaNacimiento = (fecha) => {
   return '';
 };
 
-// Cliente
 export const validarMunicipio = (municipio) => {
   if (municipio && municipio.trim().length > 50) return 'Máximo 50 caracteres';
+  if (municipio && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s-]+$/.test(municipio)) return 'Solo letras, espacios y guiones';
   return '';
 };
 
 export const validarDepartamento = (departamento) => {
   if (departamento && departamento.trim().length > 50) return 'Máximo 50 caracteres';
+  if (departamento && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s-]+$/.test(departamento)) return 'Solo letras, espacios y guiones';
   return '';
 };
 
@@ -82,16 +83,19 @@ export const validarDireccion = (direccion) => {
 
 export const validarBarrio = (barrio) => {
   if (barrio && barrio.trim().length > 50) return 'Máximo 50 caracteres';
+  if (barrio && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s-]+$/.test(barrio)) return 'Solo letras, espacios y guiones';
   return '';
 };
 
 export const validarCodigoPostal = (codigo) => {
-  if (codigo && codigo.trim().length > 10) return 'Máximo 10 caracteres';
+  if (codigo && !/^\d+$/.test(codigo)) return 'Solo números';
+  if (codigo && codigo.length > 10) return 'Máximo 10 caracteres';
   return '';
 };
 
 export const validarOcupacion = (ocupacion) => {
   if (ocupacion && ocupacion.trim().length > 20) return 'Máximo 20 caracteres';
+  if (ocupacion && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s-]+$/.test(ocupacion)) return 'Solo letras, espacios y guiones';
   return '';
 };
 
@@ -103,7 +107,7 @@ export const validarTelefonoEmergencia = (tel) => {
   return '';
 };
 
-// ==================== Validación completa ====================
+// ==================== VALIDACIÓN COMPLETA ====================
 export const validarFormulario = (formData) => {
   const errors = {};
 
@@ -146,7 +150,7 @@ export const validarFormulario = (formData) => {
   return errors;
 };
 
-// ==================== Validación de contraseña ====================
+// ==================== VALIDACIÓN DE CONTRASEÑA ====================
 export const validarPassword = (nueva, confirmar) => {
   if (!nueva || nueva.length < 6) return 'Mínimo 6 caracteres';
   if (!/[A-Z]/.test(nueva)) return 'Debe tener una mayúscula';
