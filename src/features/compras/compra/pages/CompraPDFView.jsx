@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getCompraById } from "../services/comprasService";
 import { formatCurrency, formatDate } from "../utils/comprasUtils";
-import Loading from "../../../../shared/components/ui/Loading";
+import Loading from "@shared/components/ui/Loading";
 
 export default function CompraPDFView() {
   const { id }     = useParams();

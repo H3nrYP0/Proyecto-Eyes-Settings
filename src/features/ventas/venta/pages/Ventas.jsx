@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
-import CrudLayout from "../../../../shared/components/crud/CrudLayout";
-import CrudTable from "../../../../shared/components/crud/CrudTable";
+import CrudLayout from "@shared/components/crud/CrudLayout";
+import CrudTable from "@shared/components/crud/CrudTable";
 import { useVentas } from "../hooks/useVentas";
-import "../../../../shared/styles/components/crud-table.css";
+import "@shared/styles/components/crud-table.css";
 
 export default function Ventas() {
   const navigate = useNavigate();

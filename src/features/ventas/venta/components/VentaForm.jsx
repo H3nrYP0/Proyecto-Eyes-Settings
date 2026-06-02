@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 import { FormControl, InputLabel, Select, MenuItem, TextField } from "@mui/material";
-import BaseFormLayout    from "../../../../shared/components/base/BaseFormLayout";
-import BaseFormSection   from "../../../../shared/components/base/BaseFormSection";
-import BaseFormField     from "../../../../shared/components/base/BaseFormField";
-import BaseFormActions   from "../../../../shared/components/base/BaseFormActions";
-import CrudNotification  from "../../../../shared/styles/components/notifications/CrudNotification";
+import BaseFormLayout    from "@shared/components/base/BaseFormLayout";
+import BaseFormSection   from "@shared/components/base/BaseFormSection";
+import BaseFormField     from "@shared/components/base/BaseFormField";
+import BaseFormActions   from "@shared/components/base/BaseFormActions";
+import CrudNotification  from "@shared/styles/components/notifications/CrudNotification";
 import { useVentaForm }  from "../hooks/useVentaForm";
 import { COLORES_ESTADO_VENTA, getEstadoLabelVenta } from "../utils/ventasUtils";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";

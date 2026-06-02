@@ -2,8 +2,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
 import { clientesService } from "../services/clientesService";
 import ClienteForm from "../components/ClienteForm";
-import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
-import Modal from "../../../../shared/components/ui/Modal";
+import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
+import Modal from "@shared/components/ui/Modal";
 
 // ── Fuera del componente para evitar remount en cada keystroke ────────────────
 function CampoFormula({ label, value, onChange }) {

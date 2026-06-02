@@ -3,13 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { Tooltip, IconButton, Stack } from "@mui/material";
 import PictureAsPdfOutlinedIcon  from "@mui/icons-material/PictureAsPdfOutlined";
 import RemoveRedEyeOutlinedIcon  from "@mui/icons-material/RemoveRedEyeOutlined";
-import CrudLayout from "../../../../shared/components/crud/CrudLayout";
-import CrudTable from "../../../../shared/components/crud/CrudTable";
-import Modal from "../../../../shared/components/ui/Modal";
-import Loading from "../../../../shared/components/ui/Loading";
-import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
+import CrudLayout from "@shared/components/crud/CrudLayout";
+import CrudTable from "@shared/components/crud/CrudTable";
+import Modal from "@shared/components/ui/Modal";
+import Loading from "@shared/components/ui/Loading";
+import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 import { useCompras } from "../hooks/useCompras";
-import "../../../../shared/styles/components/crud-table.css";
+import "@shared/styles/components/crud-table.css";
 
 export default function Compras() {
   const navigate = useNavigate();

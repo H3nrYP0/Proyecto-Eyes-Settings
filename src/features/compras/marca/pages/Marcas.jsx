@@ -1,10 +1,10 @@
 import { Alert, Box, Button } from "@mui/material";
-import CrudLayout from "../../../../shared/components/crud/CrudLayout";
-import CrudTable from "../../../../shared/components/crud/CrudTable";
-import Modal from "../../../../shared/components/ui/Modal";
+import CrudLayout from "@shared/components/crud/CrudLayout";
+import CrudTable from "@shared/components/crud/CrudTable";
+import Modal from "@shared/components/ui/Modal";
 import MarcaForm from "../components/MarcaForm";
-import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
-import Loading from "../../../../shared/components/ui/Loading";
+import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
+import Loading from "@shared/components/ui/Loading";
 import { useMarcas } from "../hooks/useMarcas";
 
 export default function Marcas() {

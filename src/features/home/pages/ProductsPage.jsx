@@ -11,10 +11,10 @@ import ProductsGrid from "../../home/components/Products/ProductsGrid";
 import ProductDetail from "../../home/components/Products/ProductDetail";
 import ShoppingCart, { CartProvider, WishlistDrawer, useCart } from "../../home/components/Products/ShoppingCart";
 import authServices from "@auth/services/authServices";
-import "../../../shared/styles/features/home/ProductsPage.css";
-import "../../../shared/styles/features/home/ProductDetail.css";
-import "../../../shared/styles/features/home/ShoppingCart.css";
-import "../../../shared/styles/features/home/PaymentModal.css";
+import "@shared/styles/features/home/ProductsPage.css";
+import "@shared/styles/features/home/ProductDetail.css";
+import "@shared/styles/features/home/ShoppingCart.css";
+import "@shared/styles/features/home/PaymentModal.css";
 
 // ─── Componente que resetea el scroll en cada cambio de ruta ──
 const ScrollResetter = () => {

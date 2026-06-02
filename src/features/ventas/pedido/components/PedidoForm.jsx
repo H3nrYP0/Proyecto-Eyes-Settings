@@ -7,12 +7,12 @@ import {
   MenuItem,
 } from "@mui/material";
 
-import BaseFormLayout      from "../../../../shared/components/base/BaseFormLayout";
-import BaseFormSection     from "../../../../shared/components/base/BaseFormSection";
-import BaseFormField       from "../../../../shared/components/base/BaseFormField";
-import BaseFormActions     from "../../../../shared/components/base/BaseFormActions";
-import CrudNotification    from "../../../../shared/styles/components/notifications/CrudNotification";
-import Modal               from "../../../../shared/components/ui/Modal";
+import BaseFormLayout      from "@shared/components/base/BaseFormLayout";
+import BaseFormSection     from "@shared/components/base/BaseFormSection";
+import BaseFormField       from "@shared/components/base/BaseFormField";
+import BaseFormActions     from "@shared/components/base/BaseFormActions";
+import CrudNotification    from "@shared/styles/components/notifications/CrudNotification";
+import Modal               from "@shared/components/ui/Modal";
 import { usePedidoForm }   from "../hooks/usePedidoForm";
 
 /* ── Estilos reutilizables ─────────────────────────────────────────────── */

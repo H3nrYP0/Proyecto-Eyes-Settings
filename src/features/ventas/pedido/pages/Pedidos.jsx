@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import CrudLayout       from "../../../../shared/components/crud/CrudLayout";
-import CrudTable        from "../../../../shared/components/crud/CrudTable";
-import Modal            from "../../../../shared/components/ui/Modal";
-import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
+import CrudLayout       from "@shared/components/crud/CrudLayout";
+import CrudTable        from "@shared/components/crud/CrudTable";
+import Modal            from "@shared/components/ui/Modal";
+import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 import { usePedidos }   from "../hooks/usePedidos";
 import { ESTADOS_ABONABLE, COLORES_ESTADO } from "../utils/pedidosUtils";
-import "../../../../shared/styles/components/crud-table.css";
-import "../../../../shared/styles/components/modal.css";
+import "@shared/styles/components/crud-table.css";
+import "@shared/styles/components/modal.css";
 
 export default function Pedidos() {
   const navigate = useNavigate();

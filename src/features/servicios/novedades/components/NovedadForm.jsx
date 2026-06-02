@@ -5,10 +5,10 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import esLocale from "date-fns/locale/es";
-import BaseInputField from "../../../../shared/components/base/BaseInputField";
-import BaseFormField from "../../../../shared/components/base/BaseFormField";
+import BaseInputField from "@shared/components/base/BaseInputField";
+import BaseFormField from "@shared/components/base/BaseFormField";
 import { tiposNovedad } from "../utils/novedadesUtils";
-import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
+import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 
 export default function NovedadForm({
   mode = "create",
