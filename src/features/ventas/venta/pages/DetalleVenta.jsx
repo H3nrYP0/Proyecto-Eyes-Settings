@@ -209,7 +209,6 @@ export default function DetalleVenta() {
       {urlComprobante && (
         <BaseFormSection title="Comprobante de Transferencia">
           {esImagenComprobante ? (
-<<<<<<< HEAD
             <>
               {/* Lightbox */}
               {lightbox && (
