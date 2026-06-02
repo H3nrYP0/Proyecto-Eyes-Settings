@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import CrudLayout from "../../../../shared/components/crud/CrudLayout";
+import CrudLayout from "@shared/components/crud/CrudLayout";
 import UnifiedCrudTable from "@shared/components/crud/CrudTable";
-import Modal from "../../../../shared/components/ui/Modal";
-import Loading from "../../../../shared/components/ui/Loading";
-import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
+import Modal from "@shared/components/ui/Modal";
+import Loading from "@shared/components/ui/Loading";
+import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 import { useCitas } from "../hooks/useCitas";
-import "../../../../shared/styles/components/crud-table.css";
-import "../../../../shared/styles/components/modal.css";
+import "@shared/styles/components/crud-table.css";
+import "@shared/styles/components/modal.css";
 
 export default function Citas() {
   const navigate = useNavigate();

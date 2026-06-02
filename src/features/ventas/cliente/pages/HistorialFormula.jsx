@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { clientesService } from '../services/clientesService';
 // import { getFormulasByClienteId, createFormula } from '../../../../lib/data/formulasData';
-import "../../../../shared/styles/components/crud-forms.css";
+import "@shared/styles/components/crud-forms.css";
 
 export default function HistorialFormula() {
   const { id } = useParams();

@@ -12,7 +12,7 @@ import {
   getMiPerfil,
 } from "../components/Services/citasLandingService";
 import authServices from "@auth/services/authServices";
-import "../../../shared/styles/features/home/ServicesPage.css";
+import "@shared/styles/features/home/ServicesPage.css";
 
 // Material UI icons
 import LockIcon from "@mui/icons-material/Lock";

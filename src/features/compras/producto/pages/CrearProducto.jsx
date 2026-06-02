@@ -3,17 +3,17 @@ import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@mui/material";
 import SmartToyIcon from '@mui/icons-material/SmartToy';
-import Loading from "../../../../shared/components/ui/Loading/Loading";
+import Loading from "@shared/components/ui/Loading/Loading";
 import { useProductoForm } from "../hooks/useProductoForm";
 import { useChatBot } from "../hooks/useChatBot";
 import { useCategoriaForm } from "../../categoria/hooks/useCategoriaForm";
 import { marcasService as MarcaData } from "/src/features/compras/marca/services/marcasService.js";
 import ProductoForm from "../components/ProductoForm";
 import ChatBot from "../components/ChatBot";
-import Modal from "../../../../shared/components/ui/Modal";
+import Modal from "@shared/components/ui/Modal";
 import { MarcaForm } from "../../marca";
 import CategoriaForm from "../../categoria/components/CategoriaForm";
-import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
+import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 
 export default function CrearProducto() {
   const navigate = useNavigate();

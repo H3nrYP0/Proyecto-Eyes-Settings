@@ -1,8 +1,8 @@
-import BaseFormLayout from "../../../../shared/components/base/BaseFormLayout";
-import BaseFormSection from "../../../../shared/components/base/BaseFormSection";
-import BaseFormField from "../../../../shared/components/base/BaseFormField";
-import BaseFormActions from "../../../../shared/components/base/BaseFormActions";
-import BaseInputField from "../../../../shared/components/base/BaseInputField";
+import BaseFormLayout from "@shared/components/base/BaseFormLayout";
+import BaseFormSection from "@shared/components/base/BaseFormSection";
+import BaseFormField from "@shared/components/base/BaseFormField";
+import BaseFormActions from "@shared/components/base/BaseFormActions";
+import BaseInputField from "@shared/components/base/BaseInputField";
 import {
   tipoProveedorOptions,
   tipoDocumentoOptions,

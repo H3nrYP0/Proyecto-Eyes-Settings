@@ -2,16 +2,16 @@
 import { FormHelperText, IconButton, Box, Stack, Grid, Paper, Typography} from "@mui/material";
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
-import BaseFormLayout from "../../../../shared/components/base/BaseFormLayout";
-import BaseFormActions from "../../../../shared/components/base/BaseFormActions";
-import BaseInputField from "../../../../shared/components/base/BaseInputField";
+import BaseFormLayout from "@shared/components/base/BaseFormLayout";
+import BaseFormActions from "@shared/components/base/BaseFormActions";
+import BaseInputField from "@shared/components/base/BaseInputField";
 import { TextFieldAlphanumeric, TextFieldNoEmoji, TextFieldLetters } from "@shared/index";
-import FormRow from "../../../../shared/components/base/FormRow";
-import FormCol from "../../../../shared/components/base/FormCol";
-import BaseFormField from "../../../../shared/components/base/BaseFormField";
-import BaseFormSection from "../../../../shared/components/base/BaseFormSection";
+import FormRow from "@shared/components/base/FormRow";
+import FormCol from "@shared/components/base/FormCol";
+import BaseFormField from "@shared/components/base/BaseFormField";
+import BaseFormSection from "@shared/components/base/BaseFormSection";
 import ImageDropzone from "./ImageDropzone";
-import { formatCOP, formatToPesos, parseFromPesos } from "../../../../shared/utils/formatCOP";
+import { formatCOP, formatToPesos, parseFromPesos } from "@shared/utils/formatCOP";
 
 export default function ProductoForm({
   mode,

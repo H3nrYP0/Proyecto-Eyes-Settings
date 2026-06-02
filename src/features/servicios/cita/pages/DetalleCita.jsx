@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { getCitaById } from "../services/citasService";
 import { useCitaData } from '../context/CitaDataContext';
 import { normalizeCitaForForm } from "../utils/citasUtils";
-import Loading from "../../../../shared/components/ui/Loading";
-import CrudNotification from "../../../../shared/styles/components/notifications/CrudNotification";
+import Loading from "@shared/components/ui/Loading";
+import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 import CitaForm from "../components/CitaForm";
 
 const getErrorMessage = (error) => {

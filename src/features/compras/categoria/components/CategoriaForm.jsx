@@ -1,5 +1,5 @@
 import { FormHelperText, MenuItem, TextField, Box } from "@mui/material";
-import BaseInputField from "../../../../shared/components/base/BaseInputField";
+import BaseInputField from "@shared/components/base/BaseInputField";
 import { TextFieldLetters, TextFieldNoEmoji } from "@shared/index";
 export default function CategoriaForm({
   mode = "create",
