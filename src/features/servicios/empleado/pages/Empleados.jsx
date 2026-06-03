@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import CrudLayout from "@shared/components/crud/CrudLayout";
 import CrudTable from "@shared/components/crud/CrudTable";
 import Modal from "@shared/components/ui/Modal";
-import Loading from "@shared/components/ui/Loading";
 import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 import { useEmpleados } from "../hooks/useEmpleados";
 import "@shared/styles/components/crud-table.css";
@@ -135,14 +134,6 @@ export default function Empleados() {
     },
   ];
 
-  if (loading && empleados.length === 0) {
-    return (
-      <CrudLayout title="Empleados" showSearch>
-        <Loading message="Cargando empleados..." />
-      </CrudLayout>
-    );
-  }
-
   return (
     <>
       <CrudLayout
@@ -166,6 +157,7 @@ export default function Empleados() {
           columns={columns}
           data={empleados}
           actions={tableActions}
+          loading={loading}
           onChangeStatus={handleChangeStatus}
           emptyMessage={
             search || filterEstado

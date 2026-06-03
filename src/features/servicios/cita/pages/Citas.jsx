@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import CrudLayout from "@shared/components/crud/CrudLayout";
 import UnifiedCrudTable from "@shared/components/crud/CrudTable";
 import Modal from "@shared/components/ui/Modal";
-import Loading from "@shared/components/ui/Loading";
 import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 import { useCitas } from "../hooks/useCitas";
 import "@shared/styles/components/crud-table.css";
@@ -102,14 +101,6 @@ export default function Citas() {
     },
   ];
 
-  if (loading && citas.length === 0) {
-    return (
-      <CrudLayout title="Citas" showSearch>
-        <Loading message="Cargando citas..." />
-      </CrudLayout>
-    );
-  }
-
   return (
     <>
       <CrudLayout
@@ -143,6 +134,7 @@ export default function Citas() {
           columns={columns}
           data={citas}
           actions={tableActions}
+          loading={loading}
           onChangeStatus={handleChangeStatus}
           totalCount={totalCitas}
           page={page - 1}

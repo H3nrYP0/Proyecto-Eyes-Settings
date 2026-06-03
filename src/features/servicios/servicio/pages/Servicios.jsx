@@ -4,7 +4,6 @@ import CrudTable from '@shared/components/crud/CrudTable';
 import Modal from '@shared/components/ui/Modal';
 import ServicioForm from '../components/ServicioForm';
 import CrudNotification from '@shared/styles/components/notifications/CrudNotification';
-import Loading from '@shared/components/ui/Loading';
 import { useServicios } from '../hooks/useServicios';
 
 const BRAND_COLOR = '#1a2540';
@@ -32,7 +31,7 @@ export default function Servicios() {
     eliminarServicio,
     cambiarEstado,
     handleOpenCreate,
-    handleOpenEdit,      // para abrir edición desde vista
+    handleOpenEdit,
     handleCloseForm,
     handleCancelDelete,
     handleCloseNotification,
@@ -67,14 +66,6 @@ export default function Servicios() {
     }
   };
 
-  if (loading && servicios.length === 0) {
-    return (
-      <CrudLayout title="Servicios" showSearch searchPlaceholder="Buscar por nombre o descripción...">
-        <Loading message="Cargando servicios..." />
-      </CrudLayout>
-    );
-  }
-
   return (
     <>
       <CrudLayout
@@ -98,6 +89,7 @@ export default function Servicios() {
           columns={columns}
           data={servicios}
           actions={tableActions}
+          loading={loading}
           onChangeStatus={(item, nuevoEstado) => cambiarEstado(item, nuevoEstado)}
           emptyMessage={
             search || filterEstado

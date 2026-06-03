@@ -58,7 +58,7 @@ export default function Agenda() {
   if (loading) {
     return (
       <Box sx={{ p: 2 }}>
-        <Loading message="Cargando agenda..." />
+        <Loading text="Cargando agenda..." />
       </Box>
     );
   }

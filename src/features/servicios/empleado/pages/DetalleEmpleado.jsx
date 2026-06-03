@@ -44,7 +44,7 @@ export default function DetalleEmpleado() {
   const errors = {};
   const submitting = false;
 
-  if (loading) return <Loading message="Cargando información del empleado..." />;
+  if (loading) return <Loading text="Cargando información del empleado..." />;
   if (error) {
     return (
       <div style={{ padding: "40px", textAlign: "center" }}>
