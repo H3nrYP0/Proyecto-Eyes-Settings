@@ -11,7 +11,6 @@ export default function DetalleUsuario() {
   const { id }   = useParams();
   const navigate = useNavigate();
 
-  // Comparte caché ['usuario', id] con EditarUsuario
   const { data: usuario, isLoading: loadingUser } = useQuery({
     queryKey: ["usuario", id],
     queryFn: async () => {
@@ -24,14 +23,13 @@ export default function DetalleUsuario() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Comparte caché ['roles'] global
   const { data: roles = [], isLoading: loadingRoles } = useQuery({
     queryKey: ["roles"],
     queryFn:  getAllRoles,
     staleTime: 5 * 60 * 1000,
   });
 
-  if (loadingUser || loadingRoles) return <Loading message="Cargando..." />;
+  if (loadingUser || loadingRoles) return <Loading text="Cargando usuario..." />;
 
   return (
     <UserForm

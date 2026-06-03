@@ -75,7 +75,7 @@ export default function CrearUsuario() {
     });
   };
 
-  if (loadingRoles) return <Loading message="Cargando roles..." />;
+  if (loadingRoles) return <Loading text="Cargando roles..." />;
 
   return (
     <>

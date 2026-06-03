@@ -15,8 +15,6 @@ export default function EditarUsuario() {
   const navigate    = useNavigate();
   const queryClient = useQueryClient();
 
-  // Ref para poblar el formulario solo una vez (evita que un refetch del caché
-  // invalide y sobreescriba los cambios que el usuario ya escribió)
   const initializedRef = useRef(false);
 
   const [formData, setFormData] = useState({
@@ -49,9 +47,6 @@ export default function EditarUsuario() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Poblar formulario solo la primera vez que llegan los datos del servidor.
-  // El ref impide que un refetch posterior (por invalidación del caché) pise
-  // los valores que el usuario ya modificó en el formulario.
   useEffect(() => {
     if (userData && !initializedRef.current) {
       initializedRef.current = true;
@@ -118,7 +113,7 @@ export default function EditarUsuario() {
     updateMutation.mutate(payload);
   };
 
-  if (loadingUser || loadingRoles) return <Loading message="Cargando..." />;
+  if (loadingUser || loadingRoles) return <Loading text="Cargando usuario..." />;
 
   if (userError || !userData) {
     navigate("/admin/seguridad/usuarios");
