@@ -123,23 +123,18 @@ export default function Pedidos() {
         filterEstado={filterEstado}
         onFilterChange={setFilterEstado}
       >
-        {loading ? (
-          <div style={{ textAlign: "center", padding: "40px", color: "#9ca3af" }}>
-            Cargando pedidos...
-          </div>
-        ) : (
-          <CrudTable
-            columns={columns}
-            data={pedidos}
-            actions={tableActions}
-            showStatusColumn={false}
-            emptyMessage={
-              search || filterEstado
-                ? "No se encontraron pedidos para los filtros aplicados"
-                : "No hay pedidos registrados"
-            }
-          />
-        )}
+        <CrudTable
+          columns={columns}
+          data={pedidos}
+          actions={tableActions}
+          loading={loading}
+          showStatusColumn={false}
+          emptyMessage={
+            search || filterEstado
+              ? "No se encontraron pedidos para los filtros aplicados"
+              : "No hay pedidos registrados"
+          }
+        />
 
         {/* Modal eliminar */}
         <Modal
