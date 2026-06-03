@@ -3,12 +3,14 @@ import PropTypes from "prop-types";
 
 const Loading = ({
   message = "Cargando...",
-  minHeight = "300px",
-  size = "50px",
-  color = "#3498db"
+  minHeight = "220px",
+  size = "48px",
+  color = "#2563eb"
 }) => {
   return (
     <div
+      role="status"
+      aria-live="polite"
       style={{
         display: "flex",
         flexDirection: "column",
@@ -16,27 +18,28 @@ const Loading = ({
         alignItems: "center",
         minHeight,
         width: "100%",
-        padding: "40px"
+        padding: "24px",
+        textAlign: "center"
       }}
     >
       <div
         style={{
           width: size,
           height: size,
-          border: "3px solid #f3f3f3",
+          border: "3px solid #e5e7eb",
           borderTop: `3px solid ${color}`,
           borderRadius: "50%",
-          animation: "spin 1s linear infinite",
+          animation: "shared-loading-spin 1s linear infinite",
           marginBottom: "16px"
         }}
       />
 
-      <p style={{ color: "#666", margin: 0 }}>
+      <p style={{ color: "#475569", margin: 0, fontSize: "0.95rem", fontWeight: 500 }}>
         {message}
       </p>
 
       <style>{`
-        @keyframes spin {
+        @keyframes shared-loading-spin {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
         }

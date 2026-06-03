@@ -6,6 +6,8 @@
 
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import api from "@lib/axios";
 
 const BASE_URL      = "https://optica-api-vad8.onrender.com";
 const CLOUD_NAME    = "drhhthuqq";
@@ -74,16 +76,55 @@ const PaymentModalInner = ({ isOpen, onClose, onPedidoCreado, items=[], total=0,
   const onDragOver   = e => { e.preventDefault(); setIsDragging(true); };
   const onDragLeave  = () => setIsDragging(false);
 
-  const obtenerClienteId = async (token) => {
-    let cid = user?.cliente_id ?? user?.clienteId ?? null;
-    if (!cid) {
-      try {
-        const r = await fetch(`${BASE_URL}/cliente/perfil`, { headers:{ Authorization:`Bearer ${token}` } });
-        if (r.ok) { const p = await r.json(); cid = p.id ?? p.cliente_id ?? null; }
-      } catch {}
+  const token = getToken();
+
+  const {
+    data: clientePerfil,
+    isLoading: loadingClientePerfil,
+    isError: clientePerfilError,
+    error: clientePerfilFetchError,
+  } = useQuery({
+    queryKey: ["clientePerfil", token],
+    queryFn: async () => {
+      if (!token) throw new Error("Token no disponible");
+      const response = await api.get("/cliente/perfil");
+      return response.data;
+    },
+    enabled: !!token,
+    retry: false,
+  });
+
+  const clienteId = user?.cliente_id ?? user?.clienteId ?? clientePerfil?.id ?? null;
+
+  const crearPedidoMutation = useMutation(
+    async ({ urlComprobante = "" }) => {
+      if (!clienteId) {
+        throw new Error("No encontramos tu perfil de cliente.");
+      }
+      const payload = {
+        cliente_id: clienteId,
+        metodo_pago: metodoEntrega === "tienda" ? "efectivo" : "transferencia",
+        metodo_entrega: metodoEntrega || "tienda",
+        direccion_entrega: metodoEntrega === "domicilio" ? direccion : "",
+        transferencia_comprobante: urlComprobante,
+        items: items.map((i) => ({ producto_id: i.id, cantidad: i.cantidad, precio_unitario: i.precioVenta })),
+      };
+      const response = await api.post("/pedidos", payload);
+      return response.data;
+    },
+    {
+      onSuccess: (data) => {
+        setPedidoId(data.pedido?.id || data.id || "");
+        setStep("exito");
+        if (onPedidoCreado) onPedidoCreado(data.pedido?.id || data.id);
+      },
+      onError: (error) => {
+        const message = error?.response?.data?.error || error?.message || "No se pudo crear el pedido.";
+        setErrorMsg(message);
+        setStep("error");
+      },
     }
-    return cid;
-  };
+  );
 
   const subirComprobante = async () => {
     if (!archivo) return;
@@ -94,50 +135,38 @@ const PaymentModalInner = ({ isOpen, onClose, onPedidoCreado, items=[], total=0,
       form.append("upload_preset", UPLOAD_PRESET);
       form.append("folder", "optica/comprobantes");
       const xhr = new XMLHttpRequest();
-      xhr.upload.onprogress = e => { if (e.lengthComputable) setProgreso(Math.round((e.loaded/e.total)*85)); };
-      const data = await new Promise((res,rej) => {
-        xhr.onload  = () => xhr.status===200 ? res(JSON.parse(xhr.responseText)) : rej();
+      xhr.upload.onprogress = (e) => { if (e.lengthComputable) setProgreso(Math.round((e.loaded / e.total) * 85)); };
+      const data = await new Promise((res, rej) => {
+        xhr.onload  = () => xhr.status === 200 ? res(JSON.parse(xhr.responseText)) : rej();
         xhr.onerror = () => rej();
         xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`);
         xhr.send(form);
       });
       setProgreso(100);
-      await crearPedido(data.secure_url);
+      await crearPedido({ urlComprobante: data.secure_url });
     } catch {
       setErrorMsg("No se pudo subir el comprobante. Verifica tu conexión.");
       setStep("upload");
     }
   };
 
-  // Crear pedido — para tienda no hay comprobante, para domicilio sí
-  const crearPedido = async (urlComprobante = "") => {
+  const crearPedido = async ({ urlComprobante = "" } = {}) => {
     setStep("confirmando");
-    const token = getToken();
-    if (!token) { setErrorMsg("Sesión expirada. Inicia sesión."); setStep("error"); return; }
-    const clienteId = await obtenerClienteId(token);
-    if (!clienteId) { setErrorMsg("No encontramos tu perfil de cliente. Inicia sesión de nuevo."); setStep("error"); return; }
-    try {
-      const payload = {
-        cliente_id:                clienteId,
-        metodo_pago:               metodoEntrega === "tienda" ? "efectivo" : "transferencia",
-        metodo_entrega:            metodoEntrega || "tienda",
-        direccion_entrega:         metodoEntrega === "domicilio" ? direccion : "",
-        transferencia_comprobante: urlComprobante,
-        items: items.map(i => ({ producto_id:i.id, cantidad:i.cantidad, precio_unitario:i.precioVenta })),
-      };
-      const r = await fetch(`${BASE_URL}/pedidos`, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token}` },
-        body: JSON.stringify(payload),
-      });
-      const d = await r.json();
-      if (!r.ok) { setErrorMsg(d.error || "No se pudo crear el pedido."); setStep("error"); return; }
-      setPedidoId(d.pedido?.id || d.id || "");
-      setStep("exito");
-      if (onPedidoCreado) onPedidoCreado(d.pedido?.id || d.id);
-    } catch {
-      setErrorMsg("Error de conexión al confirmar el pedido.");
+    if (!token) {
+      setErrorMsg("Sesión expirada. Inicia sesión.");
       setStep("error");
+      return;
+    }
+    if (!clienteId) {
+      setErrorMsg("No encontramos tu perfil de cliente. Inicia sesión de nuevo.");
+      setStep("error");
+      return;
+    }
+
+    try {
+      await crearPedidoMutation.mutateAsync({ urlComprobante });
+    } catch {
+      // La mutación ya maneja errores de estado.
     }
   };
 

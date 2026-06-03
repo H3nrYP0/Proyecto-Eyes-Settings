@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { getEmpleadosActivosLanding, getHorasDisponiblesMultiple, crearCitaLanding } from "./citasLandingService";
-import SuccessModal from "./SuccessModal";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { getHorasDisponiblesMultiple, crearCitaLanding } from "./citasLandingService";
 
 // Material UI icons
 import PersonIcon from "@mui/icons-material/Person";
@@ -49,14 +49,12 @@ const CitaForm = ({ cliente, servicios, estadosCita, preServicioId, onCitaAgenda
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [horasMap, setHorasMap] = useState(new Map());
-  const [loadingHoras, setLoadingHoras] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successCita, setSuccessCita] = useState(null);
 
   useEffect(() => {
     if (preServicioId && servicios.length) {
-      const servicio = servicios.find(s => String(s.id) === String(preServicioId));
+      const servicio = servicios.find((s) => String(s.id) === String(preServicioId));
       if (servicio) setSelectedService(servicio);
     }
   }, [preServicioId, servicios]);
@@ -64,7 +62,6 @@ const CitaForm = ({ cliente, servicios, estadosCita, preServicioId, onCitaAgenda
   useEffect(() => {
     setSelectedDate(null);
     setSelectedTime(null);
-    setHorasMap(new Map());
     setErrorMsg("");
   }, [selectedService]);
 
@@ -73,22 +70,21 @@ const CitaForm = ({ cliente, servicios, estadosCita, preServicioId, onCitaAgenda
     setErrorMsg("");
   }, [selectedDate]);
 
-  useEffect(() => {
-    if (!selectedService || !selectedDate) {
-      setHorasMap(new Map());
-      return;
-    }
-    setLoadingHoras(true);
-    setSelectedTime(null);
-    const intervalo = Math.max(15, selectedService.duracion);
-    getHorasDisponiblesMultiple(selectedService.id, selectedDate, intervalo)
-      .then(({ horasMap }) => setHorasMap(horasMap))
-      .catch(err => console.error(err))
-      .finally(() => setLoadingHoras(false));
-  }, [selectedService, selectedDate]);
+  const { data: horasData = { horasMap: new Map(), horasSet: new Set() }, isLoading: loadingHoras, isError: horasError } = useQuery({
+    queryKey: ["horasDisponibles", selectedService?.id, selectedDate, selectedService?.duracion],
+    queryFn: () => getHorasDisponiblesMultiple(selectedService.id, selectedDate, Math.max(15, selectedService.duracion)),
+    enabled: !!selectedService && !!selectedDate,
+    staleTime: 1000 * 20,
+    retry: false,
+  });
+
+  const horasMap = horasData?.horasMap ?? new Map();
+  const horasDisponibles = Array.from(horasMap.keys()).sort();
+
+  const citaMutation = useMutation(crearCitaLanding);
 
   const getEstadoPendienteId = () => {
-    const ep = estadosCita.find(e => e.nombre?.toLowerCase().includes("pendiente"));
+    const ep = estadosCita.find((e) => e.nombre?.toLowerCase().includes("pendiente"));
     return ep ? ep.id : 1;
   };
 
@@ -98,39 +94,42 @@ const CitaForm = ({ cliente, servicios, estadosCita, preServicioId, onCitaAgenda
       setErrorMsg("Completa servicio, fecha y hora.");
       return;
     }
+
     const empleadoId = horasMap.get(selectedTime);
     if (!empleadoId) {
       setErrorMsg("No hay empleado disponible para esa hora. Intenta otra.");
       return;
     }
+
     setSubmitting(true);
+    setErrorMsg("");
+
     try {
-      await crearCitaLanding({
+      await citaMutation.mutateAsync({
         servicioId: selectedService.id,
-        empleadoId: empleadoId,
+        empleadoId,
         fecha: selectedDate,
         hora: selectedTime,
         metodo_pago: null,
       });
+
       setSuccessCita({
         servicio: selectedService.nombre,
         fecha: selectedDate,
         hora: formatTimeLabel(selectedTime),
-        cliente: `${cliente.nombre} ${cliente.apellido}`
+        cliente: `${cliente.nombre} ${cliente.apellido}`,
       });
+
       if (onCitaAgendada) onCitaAgendada();
       setSelectedService(null);
       setSelectedDate(null);
       setSelectedTime(null);
-      setHorasMap(new Map());
     } catch (err) {
-      setErrorMsg(err.message || "Error al agendar. Intenta de nuevo.");
+      setErrorMsg(err?.message || "Error al agendar. Intenta de nuevo.");
     } finally {
       setSubmitting(false);
     }
   };
-
-  const horasDisponibles = Array.from(horasMap.keys()).sort();
 
   return (
     <>
@@ -151,12 +150,12 @@ const CitaForm = ({ cliente, servicios, estadosCita, preServicioId, onCitaAgenda
                 <div className="form-group">
                   <label>Servicio *</label>
                   <select value={selectedService?.id || ""} onChange={(e) => {
-                    const s = servicios.find(srv => String(srv.id) === e.target.value);
+                    const s = servicios.find((srv) => String(srv.id) === e.target.value);
                     setSelectedService(s || null);
                     setErrorMsg("");
                   }} required>
                     <option value="">Selecciona un servicio</option>
-                    {servicios.map(s => (
+                    {servicios.map((s) => (
                       <option key={s.id} value={s.id}>{s.nombre} — {fmtCOP(s.precio)}</option>
                     ))}
                   </select>
@@ -168,7 +167,12 @@ const CitaForm = ({ cliente, servicios, estadosCita, preServicioId, onCitaAgenda
                       <h3>Selecciona una fecha *</h3>
                       <div className="calendar-grid">
                         {nextDays.map((day, i) => (
-                          <button key={i} type="button" className={`calendar-day ${selectedDate === day.date ? "selected" : ""}`} onClick={() => { setSelectedDate(day.date); setErrorMsg(""); }}>
+                          <button
+                            key={i}
+                            type="button"
+                            className={`calendar-day ${selectedDate === day.date ? "selected" : ""}`}
+                            onClick={() => { setSelectedDate(day.date); setErrorMsg(""); }}
+                          >
                             <span className="day-week">{day.formatted.split(" ")[0]}</span>
                             <span className="day-date">{day.formatted.split(" ")[1]}</span>
                             <span className="day-month">{day.formatted.split(" ")[2]}</span>
@@ -183,12 +187,19 @@ const CitaForm = ({ cliente, servicios, estadosCita, preServicioId, onCitaAgenda
                         <p className="hint-text">Selecciona una fecha para ver los horarios disponibles.</p>
                       ) : loadingHoras ? (
                         <div className="skeleton-grid">{[...Array(8)].map((_, i) => <div key={i} className="skeleton-slot" />)}</div>
+                      ) : horasError ? (
+                        <div className="no-slots">No se pudo cargar la disponibilidad. Intenta con otra fecha.</div>
                       ) : horasDisponibles.length === 0 ? (
                         <div className="no-slots">No hay horarios disponibles este día. Prueba otra fecha.</div>
                       ) : (
                         <div className="time-grid">
-                          {horasDisponibles.map(time => (
-                            <button key={time} type="button" className={`time-slot ${selectedTime === time ? "selected" : ""}`} onClick={() => { setSelectedTime(time); setErrorMsg(""); }}>
+                          {horasDisponibles.map((time) => (
+                            <button
+                              key={time}
+                              type="button"
+                              className={`time-slot ${selectedTime === time ? "selected" : ""}`}
+                              onClick={() => { setSelectedTime(time); setErrorMsg(""); }}
+                            >
                               {formatTimeLabel(time)}
                             </button>
                           ))}
@@ -218,7 +229,7 @@ const CitaForm = ({ cliente, servicios, estadosCita, preServicioId, onCitaAgenda
                   ].map(({ icon, title, lines }) => (
                     <div key={title} className="info-item">
                       <span className="info-icon">{icon}</span>
-                      <div className="info-text"><strong>{title}</strong>{lines.map(l => <p key={l}>{l}</p>)}</div>
+                      <div className="info-text"><strong>{title}</strong>{lines.map((l) => <p key={l}>{l}</p>)}</div>
                     </div>
                   ))}
                 </div>
@@ -228,7 +239,22 @@ const CitaForm = ({ cliente, servicios, estadosCita, preServicioId, onCitaAgenda
         </div>
       </section>
 
-      {successCita && <SuccessModal cita={successCita} onClose={() => setSuccessCita(null)} />}
+      {successCita && (
+        <div className="success-modal-overlay" onClick={() => setSuccessCita(null)}>
+          <div className="success-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="success-icon"><CheckCircleIcon sx={{ fontSize: "3rem", color: "#15803d" }} /></div>
+            <h3>Cita agendada</h3>
+            <p>Tu cita ha sido programada exitosamente.</p>
+            <div className="success-details">
+              <p><strong>Servicio:</strong> {successCita.servicio}</p>
+              <p><strong>Fecha:</strong> {successCita.fecha}</p>
+              <p><strong>Hora:</strong> {successCita.hora}</p>
+              <p><strong>Cliente:</strong> {successCita.cliente}</p>
+            </div>
+            <button className="success-btn" onClick={() => setSuccessCita(null)}>Cerrar</button>
+          </div>
+        </div>
+      )}
     </>
   );
 };
