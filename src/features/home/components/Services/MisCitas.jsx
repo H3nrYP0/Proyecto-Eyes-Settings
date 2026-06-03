@@ -1,9 +1,5 @@
-// =============================================================
-// Responsabilidad: Mostrar y gestionar las citas del cliente autenticado.
-// Permite cancelar citas pendientes/confirmadas y enviar notificación por WhatsApp.
-// =============================================================
-
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { getMisCitas, cancelarCita } from "./citasLandingService";
 
 // Material UI icons
@@ -15,9 +11,6 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import WarningIcon from "@mui/icons-material/Warning";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 
-// ------------------------------------------------------------------
-// UTILIDADES DE FORMATEO
-// ------------------------------------------------------------------
 const formatDate = (dateString) => {
   if (!dateString) return "";
   const [year, month, day] = dateString.split("-");
@@ -26,20 +19,14 @@ const formatDate = (dateString) => {
 
 const formatTimeToAMPM = (timeString) => {
   if (!timeString) return "";
-  let hours, minutes;
-  if (timeString.includes(":")) {
-    const parts = timeString.split(":");
-    hours = parseInt(parts[0], 10);
-    minutes = parts[1];
-  } else {
-    return timeString;
-  }
+  if (!timeString.includes(":")) return timeString;
+  const [hourStr, minute] = timeString.split(":");
+  const hours = parseInt(hourStr, 10);
   const ampm = hours >= 12 ? "PM" : "AM";
   const hours12 = hours % 12 || 12;
-  return `${hours12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+  return `${hours12}:${minute.padStart(2, "0")} ${ampm}`;
 };
 
-// Mapeo de estados de cita a estilos visuales
 const estadoInfo = {
   1: { texto: "Confirmada", clase: "estado-confirmada", icono: <CheckCircleIcon sx={{ fontSize: "0.8rem" }} /> },
   2: { texto: "Pendiente", clase: "estado-pendiente", icono: <ScheduleIcon sx={{ fontSize: "0.8rem" }} /> },
@@ -47,9 +34,6 @@ const estadoInfo = {
   4: { texto: "Cancelada", clase: "estado-cancelada", icono: <CloseIcon sx={{ fontSize: "0.8rem" }} /> },
 };
 
-// ------------------------------------------------------------------
-// MODAL DE CONFIRMACIÓN DE CANCELACIÓN
-// ------------------------------------------------------------------
 const ConfirmCancelModal = ({ cita, onConfirm, onClose }) => {
   const fechaFormateada = formatDate(cita.fecha);
   const horaFormateada = formatTimeToAMPM(cita.hora);
@@ -80,98 +64,89 @@ const ConfirmCancelModal = ({ cita, onConfirm, onClose }) => {
   );
 };
 
-// ------------------------------------------------------------------
-// MODAL DE ÉXITO AL CANCELAR (con opción de WhatsApp)
-// ------------------------------------------------------------------
-const CancelSuccessModal = ({ cita, onClose, onSendWhatsApp }) => {
-  return (
-    <div className="success-modal-overlay" onClick={onClose}>
-      <div className="success-modal-card" onClick={(e) => e.stopPropagation()}>
-        <div className="success-icon">
-          <CheckCircleIcon sx={{ fontSize: "3rem", color: "#15803d" }} />
-        </div>
-        <h3>Cita cancelada</h3>
-        <p>Tu cita ha sido cancelada correctamente.</p>
-        <div className="success-details">
-          <p><strong>Servicio:</strong> {cita.servicio}</p>
-          <p><strong>Fecha:</strong> {cita.fecha}</p>
-          <p><strong>Hora:</strong> {cita.hora}</p>
-        </div>
-        <p style={{ fontSize: "0.8rem", color: "#4e6e6e" }}>
-          ¿Quieres notificar a la óptica por WhatsApp?
-        </p>
-        <div style={{ display: "flex", gap: "1rem", marginTop: "0.5rem" }}>
-          <button className="success-btn" onClick={onSendWhatsApp}>
-            <WhatsAppIcon sx={{ fontSize: "1rem", marginRight: "0.3rem", verticalAlign: "middle" }} />
-            Enviar WhatsApp
-          </button>
-          <button className="success-btn" style={{ background: "#4e6e6e" }} onClick={onClose}>
-            Cerrar
-          </button>
-        </div>
+const CancelSuccessModal = ({ cita, onClose, onSendWhatsApp }) => (
+  <div className="success-modal-overlay" onClick={onClose}>
+    <div className="success-modal-card" onClick={(e) => e.stopPropagation()}>
+      <div className="success-icon">
+        <CheckCircleIcon sx={{ fontSize: "3rem", color: "#15803d" }} />
+      </div>
+      <h3>Cita cancelada</h3>
+      <p>Tu cita ha sido cancelada correctamente.</p>
+      <div className="success-details">
+        <p><strong>Servicio:</strong> {cita.servicio}</p>
+        <p><strong>Fecha:</strong> {cita.fecha}</p>
+        <p><strong>Hora:</strong> {cita.hora}</p>
+      </div>
+      <p style={{ fontSize: "0.8rem", color: "#4e6e6e" }}>
+        ¿Quieres notificar a la óptica por WhatsApp?
+      </p>
+      <div style={{ display: "flex", gap: "1rem", marginTop: "0.5rem" }}>
+        <button className="success-btn" onClick={onSendWhatsApp}>
+          <WhatsAppIcon sx={{ fontSize: "1rem", marginRight: "0.3rem", verticalAlign: "middle" }} />
+          Enviar WhatsApp
+        </button>
+        <button className="success-btn" style={{ background: "#4e6e6e" }} onClick={onClose}>
+          Cerrar
+        </button>
       </div>
     </div>
-  );
-};
+  </div>
+);
 
-// ------------------------------------------------------------------
-// COMPONENTE PRINCIPAL MisCitas
-// ------------------------------------------------------------------
 const MisCitas = ({ readOnly = false, onCitaCancelada, refreshKey }) => {
-  const [citas, setCitas] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [cancelandoId, setCancelandoId] = useState(null);
   const [citaParaCancelar, setCitaParaCancelar] = useState(null);
   const [citaCanceladaExito, setCitaCanceladaExito] = useState(null);
+  const [cancelandoId, setCancelandoId] = useState(null);
 
-  // Ordenar citas: activas primero (confirmadas, pendientes), luego completadas/canceladas
-  const procesarCitas = (citasArray) => {
-    const ordenadas = [...citasArray].sort((a, b) => {
+  const {
+    data: citasData = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["misCitas", refreshKey],
+    queryFn: getMisCitas,
+    enabled: !readOnly,
+    retry: false,
+  });
+
+  const citas = useMemo(() => {
+    const ordenadas = [...(Array.isArray(citasData) ? citasData : [])].sort((a, b) => {
       const fechaHoraA = new Date(`${a.fecha}T${a.hora}`);
       const fechaHoraB = new Date(`${b.fecha}T${b.hora}`);
       return fechaHoraA - fechaHoraB;
     });
     const grupos = { 1: [], 2: [], 3: [], 4: [] };
-    ordenadas.forEach(cita => {
+    ordenadas.forEach((cita) => {
       const estadoId = cita.estado_cita_id;
       if (grupos[estadoId]) grupos[estadoId].push(cita);
       else grupos[4].push(cita);
     });
     return [...grupos[1], ...grupos[2], ...grupos[3], ...grupos[4]];
-  };
+  }, [citasData]);
 
-  const cargarCitas = async () => {
-    setLoading(true);
-    try {
-      const data = await getMisCitas();
-      setCitas(procesarCitas(data));
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!readOnly) cargarCitas();
-  }, [readOnly, refreshKey]);
+  const cancelMutation = useMutation(cancelarCita, {
+    onSuccess: () => {
+      refetch();
+    },
+    retry: false,
+  });
 
   const handleConfirmCancel = async () => {
     if (!citaParaCancelar) return;
     setCancelandoId(citaParaCancelar.id);
     try {
-      await cancelarCita(citaParaCancelar.id);
-      await cargarCitas();
+      await cancelMutation.mutateAsync(citaParaCancelar.id);
       setCitaCanceladaExito({
         servicio: citaParaCancelar.servicio_nombre,
         fecha: formatDate(citaParaCancelar.fecha),
         hora: formatTimeToAMPM(citaParaCancelar.hora),
       });
       setCitaParaCancelar(null);
-      if (onCitaCancelada) onCitaCancelada();
+      onCitaCancelada?.();
     } catch (err) {
-      alert(err.message);
+      alert(err?.message || "No se pudo cancelar la cita.");
     } finally {
       setCancelandoId(null);
     }
@@ -193,8 +168,8 @@ const MisCitas = ({ readOnly = false, onCitaCancelada, refreshKey }) => {
     );
   }
 
-  if (loading) return <div className="mis-citas-loading">Cargando tus citas...</div>;
-  if (error) return <div className="mis-citas-error">Error: {error}</div>;
+  if (isLoading) return <div className="mis-citas-loading">Cargando tus citas...</div>;
+  if (isError) return <div className="mis-citas-error">Error: {error?.message || "No se pudieron cargar tus citas."}</div>;
   if (citas.length === 0) return <div className="mis-citas-empty">No tienes citas agendadas aún.</div>;
 
   return (
@@ -202,7 +177,7 @@ const MisCitas = ({ readOnly = false, onCitaCancelada, refreshKey }) => {
       <div className="mis-citas-container">
         <h3><EventIcon sx={{ fontSize: "1.2rem", marginRight: "0.5rem", verticalAlign: "middle" }} /> Mis citas</h3>
         <div className="citas-grid">
-          {citas.map(cita => {
+          {citas.map((cita) => {
             const estado = estadoInfo[cita.estado_cita_id] || { texto: "Desconocido", clase: "", icono: null };
             const esCancelable = [1, 2].includes(cita.estado_cita_id);
             const fechaFormateada = formatDate(cita.fecha);

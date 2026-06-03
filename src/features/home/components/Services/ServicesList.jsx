@@ -1,36 +1,19 @@
-// ServicesList.jsx
-// Lista de servicios con datos reales desde la API
-
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import ServiceCard from "./ServiceCard";
 import LoadingSpinner from "../Shared/LoadingSpinner";
 import { getServiciosActivos } from "../Services/serviciosLandingData";
 
 const ServicesList = () => {
-  const [servicios, setServicios] = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [error, setError]         = useState(null);
+  const { data: servicios = [], isLoading, isError, error } = useQuery({
+    queryKey: ["serviciosLanding"],
+    queryFn: getServiciosActivos,
+    staleTime: 1000 * 60,
+    retry: 1,
+  });
 
-  useEffect(() => {
-    let mounted = true;
-    const fetchServicios = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await getServiciosActivos();
-        if (mounted) setServicios(data);
-      } catch (err) {
-        if (mounted) {
-          console.error("Error cargando servicios:", err);
-          setError("No pudimos cargar los servicios. Por favor intenta más tarde.");
-        }
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-    fetchServicios();
-    return () => { mounted = false; };
-  }, []);
+  const errorMessage = isError
+    ? error?.message || "No pudimos cargar los servicios. Por favor intenta más tarde."
+    : null;
 
   const handleAgendar = (servicio) => {
     const form = document.getElementById("appointment-form");
@@ -45,8 +28,6 @@ const ServicesList = () => {
   return (
     <section id="services" className="services-section">
       <div className="services-container">
-
-        {/* Encabezado — teal hardcoded, sin PageHeader */}
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
           <h2 style={{
             fontSize: "clamp(1.75rem, 4vw, 2.5rem)",
@@ -86,9 +67,9 @@ const ServicesList = () => {
           }} />
         </div>
 
-        {loading && <LoadingSpinner mensaje="Cargando servicios..." />}
+        {isLoading && <LoadingSpinner mensaje="Cargando servicios..." />}
 
-        {error && !loading && (
+        {errorMessage && !isLoading && (
           <div style={{
             textAlign: "center",
             padding: "1.5rem 2rem",
@@ -100,17 +81,17 @@ const ServicesList = () => {
             maxWidth: "500px",
             margin: "0 auto",
           }}>
-            {error}
+            {errorMessage}
           </div>
         )}
 
-        {!loading && !error && servicios.length === 0 && (
+        {!isLoading && !errorMessage && servicios.length === 0 && (
           <div style={{ textAlign: "center", padding: "3rem", color: "#4e6e6e", fontSize: "0.95rem" }}>
             No hay servicios disponibles en este momento.
           </div>
         )}
 
-        {!loading && !error && servicios.length > 0 && (
+        {!isLoading && !errorMessage && servicios.length > 0 && (
           <div className="services-grid" style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(280px, 280px))",
@@ -118,7 +99,7 @@ const ServicesList = () => {
             justifyContent: "center",
             alignItems: "stretch",
           }}>
-            {servicios.map(servicio => (
+            {servicios.map((servicio) => (
               <ServiceCard
                 key={servicio.id}
                 servicio={servicio}
