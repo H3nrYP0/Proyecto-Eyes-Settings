@@ -3,7 +3,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { clientesService } from "../services/clientesService";
 import ClienteForm from "../components/ClienteForm";
 import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
+<<<<<<< HEAD
 import Loading from "@shared/components/ui/Loading";
+=======
+>>>>>>> Develop
 
 export default function EditarCliente() {
   const navigate = useNavigate();

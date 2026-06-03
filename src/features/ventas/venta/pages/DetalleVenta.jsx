@@ -6,9 +6,15 @@ import {
   COLORES_ESTADO_VENTA,
   getEstadoLabelVenta,
 } from "../utils/ventasUtils";
+<<<<<<< HEAD
 import BaseFormLayout from "@shared/components/base/BaseFormLayout";
 import BaseFormSection from "@shared/components/base/BaseFormSection";
 import Loading from "@shared/components/ui/Loading";
+=======
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import BaseFormLayout from "@shared/components/base/BaseFormLayout";
+import BaseFormSection from "@shared/components/base/BaseFormSection";
+>>>>>>> Develop
 
 const viewField = {
   backgroundColor: "#f3f4f6",

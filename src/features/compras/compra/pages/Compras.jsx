@@ -6,6 +6,10 @@ import RemoveRedEyeOutlinedIcon  from "@mui/icons-material/RemoveRedEyeOutlined"
 import CrudLayout from "@shared/components/crud/CrudLayout";
 import CrudTable from "@shared/components/crud/CrudTable";
 import Modal from "@shared/components/ui/Modal";
+<<<<<<< HEAD
+=======
+import Loading from "@shared/components/ui/Loading";
+>>>>>>> Develop
 import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 import { useCompras } from "../hooks/useCompras";
 import "@shared/styles/components/crud-table.css";

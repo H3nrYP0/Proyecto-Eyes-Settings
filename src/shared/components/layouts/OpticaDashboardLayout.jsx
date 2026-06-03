@@ -138,7 +138,7 @@ export default function OpticaDashboardLayout({ user, setUser, onLogout }) {
     navigate("/login", { replace: true });
   };
 
-  const handleUserUpdate = (updatedUser) => setUser(updatedUser);
+  const handleUserUpdate = (updatedUser) => setUser(prev => ({ ...prev, ...updatedUser }));
 
   // Determinar la ruta por defecto al entrar a "/admin"
   const getDefaultRoute = useMemo(() => {
