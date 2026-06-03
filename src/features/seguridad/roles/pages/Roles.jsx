@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { CrudLayout, CrudTable, Modal, Loading } from '@shared';
+import { CrudLayout, CrudTable, Modal } from '@shared';
 import CrudNotification from '@shared/styles/components/notifications/CrudNotification';
 
 import {
@@ -55,7 +55,6 @@ export default function Roles() {
       return normalizarRoles(rolesData);
     },
     staleTime: 1000 * 60 * 5,
-    // select garantiza normalización incluso cuando los datos vienen del caché
     select: (data) => normalizarRoles(data),
   });
 
@@ -79,7 +78,6 @@ export default function Roles() {
   const estadoMutation = useMutation({
     mutationFn: ({ id, estado }) => updateEstadoRol(id, estado),
     onSuccess: (_, { id, estado }) => {
-      // Garantizar que el estado en caché siempre sea string normalizado
       const estadoNormalizado = normalizarRolEstado(estado);
       queryClient.setQueryData(['roles'], (oldRoles) => {
         if (!oldRoles) return oldRoles;
@@ -119,14 +117,6 @@ export default function Roles() {
     { label: 'Eliminar',     type: 'delete', onClick: (row) => handleDelete(row.id, row.nombre) },
   ];
 
-  if (isLoading && roles.length === 0) {
-    return (
-      <CrudLayout title="Roles" showSearch>
-        <Loading message="Cargando roles..." />
-      </CrudLayout>
-    );
-  }
-
   return (
     <>
       <CrudLayout
@@ -150,6 +140,7 @@ export default function Roles() {
           columns={COLUMNS}
           data={rolesVisibles}
           actions={tableActions}
+          loading={isLoading}
           onChangeStatus={handleChangeStatus}
           emptyMessage={
             search || filterEstado
