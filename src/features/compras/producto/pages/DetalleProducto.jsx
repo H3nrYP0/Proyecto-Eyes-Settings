@@ -9,7 +9,6 @@ export default function DetalleProducto() {
   const { id } = useParams();
   const navigate = useNavigate();
   
-  // ✅ Usar React Query para cargar el producto
   const { data: initialData, isLoading: loadingInitial } = useProductoDetailQuery(parseInt(id));
 
   const {
@@ -45,7 +44,7 @@ export default function DetalleProducto() {
   };
 
   if (loadingInitial || loading) {
-    return <Loading message="Cargando detalle del producto..." minHeight="400px" />;
+    return <Loading text="Cargando detalle del producto..." minHeight="400px" />;
   }
 
   if (!initialData) {

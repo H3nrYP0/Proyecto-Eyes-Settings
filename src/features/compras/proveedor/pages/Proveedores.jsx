@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import CrudLayout from "@shared/components/crud/CrudLayout";
 import CrudTable from "@shared/components/crud/CrudTable";
 import Modal from "@shared/components/ui/Modal";
-import Loading from "@shared/components/ui/Loading";
 import { useProveedores } from "../hooks/useProveedores";
 import "@shared/styles/components/crud-table.css";
 
@@ -80,10 +79,6 @@ export default function Proveedores() {
     },
   ];
 
-  if (loading && proveedores.length === 0) {
-    return <Loading message="Cargando proveedores..." />;
-  }
-
   return (
     <>
       <CrudLayout
@@ -103,6 +98,7 @@ export default function Proveedores() {
           columns={columns}
           data={proveedores}
           actions={tableActions}
+          loading={loading}
           onChangeStatus={handleChangeStatus}
           emptyMessage={
             search || filterEstado

@@ -179,7 +179,7 @@ export default function CrearProducto() {
   };
 
   if (loading) {
-    return <Loading message="Cargando datos del formulario..." minHeight="400px" />;
+    return <Loading text="Cargando datos del formulario..." minHeight="400px" />;
   }
 
   return (

@@ -4,7 +4,6 @@ import CrudTable from "@shared/components/crud/CrudTable";
 import Modal from "@shared/components/ui/Modal";
 import MarcaForm from "../components/MarcaForm";
 import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
-import Loading from "@shared/components/ui/Loading";
 import { useMarcas } from "../hooks/useMarcas";
 
 export default function Marcas() {
@@ -34,19 +33,6 @@ export default function Marcas() {
     tableActions
   } = useMarcas();
 
-  if (loading && marcas.length === 0) {
-    return (
-      <CrudLayout
-        title="Marcas"
-        showSearch={true}
-        searchPlaceholder="Buscar por nombre..."
-        searchPosition="left"
-      >
-        <Loading message="Cargando marcas..." />
-      </CrudLayout>
-    );
-  }
-
   const isProcessing = modalForm.mode !== "view" && isProcessingSave();
 
   return (
@@ -73,6 +59,7 @@ export default function Marcas() {
           columns={columns} 
           data={marcas} 
           actions={tableActions}
+          loading={loading}
           onChangeStatus={handleStatusChange}
           emptyMessage={
             search || filterEstado ? 

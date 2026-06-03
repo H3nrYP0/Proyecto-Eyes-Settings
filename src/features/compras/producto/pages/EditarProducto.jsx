@@ -33,7 +33,6 @@ export default function EditarProducto() {
     showNotification(error, "error");
   }, [showNotification]);
 
-  // ✅ Usar React Query para cargar el producto
   const { data: initialData, isLoading: loadingInitial, error: loadError } = useProductoDetailQuery(parseInt(id));
 
   if (loadError) {
@@ -71,7 +70,7 @@ export default function EditarProducto() {
   };
 
   if (loadingInitial || loading) {
-    return <Loading message="Cargando información del producto..." minHeight="400px" />;
+    return <Loading text="Cargando información del producto..." minHeight="400px" />;
   }
 
   if (!initialData) {

@@ -6,7 +6,6 @@ import RemoveRedEyeOutlinedIcon  from "@mui/icons-material/RemoveRedEyeOutlined"
 import CrudLayout from "@shared/components/crud/CrudLayout";
 import CrudTable from "@shared/components/crud/CrudTable";
 import Modal from "@shared/components/ui/Modal";
-import Loading from "@shared/components/ui/Loading";
 import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 import { useCompras } from "../hooks/useCompras";
 import "@shared/styles/components/crud-table.css";
@@ -24,7 +23,6 @@ export default function Compras() {
   const handleCloseNotification = () =>
     setNotification((prev) => ({ ...prev, isVisible: false }));
 
-  // Leer notificación cross-page (viene de CrearCompra tras navegar)
   useEffect(() => {
     const pending = sessionStorage.getItem("crudNotification");
     if (pending) {
@@ -104,7 +102,6 @@ export default function Compras() {
         const activa = row.estado === "completada";
         return (
           <Stack direction="row" spacing={0.5} justifyContent="center">
-            {/* Ojo — ver detalles */}
             <Tooltip title="Ver detalles">
               <span>
                 <IconButton
@@ -117,7 +114,6 @@ export default function Compras() {
               </span>
             </Tooltip>
 
-            {/* PDF */}
             <Tooltip title="Generar PDF">
               <span>
                 <IconButton
@@ -138,10 +134,6 @@ export default function Compras() {
   const tableActions = [];
 
   const comprasConEstilo = compras.map((c) => ({ ...c }));
-
-  if (loading && compras.length === 0) {
-    return <Loading message="Cargando compras..." />;
-  }
 
   return (
     <>
@@ -174,6 +166,7 @@ export default function Compras() {
             columns={columns}
             data={comprasConEstilo}
             actions={tableActions}
+            loading={loading}
             showStatusColumn={false}
             emptyMessage={
               search || filterEstado
