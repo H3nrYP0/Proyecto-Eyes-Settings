@@ -44,16 +44,6 @@ export default function Clientes() {
     },
   }));
 
-  if (loading && clientes.length === 0) {
-    return (
-      <CrudLayout title="Clientes" showSearch={false}>
-        <div style={{ textAlign: "center", padding: "40px", color: "#9ca3af" }}>
-          Cargando clientes...
-        </div>
-      </CrudLayout>
-    );
-  }
-
   return (
     <>
       <CrudLayout
@@ -72,16 +62,11 @@ export default function Clientes() {
       >
         {error && <div className="crud-error">⚠️ {error}</div>}
 
-        {/*
-          onChangeStatus={cambiarEstado} → CrudTable maneja su propio modal
-          de confirmación y llama cambiarEstado(row, nuevoEstado) al confirmar.
-          showStatusColumn={true} → pinta el botón de estado.
-          NO hay modal de estado en este componente — solo el del CrudTable.
-        */}
         <CrudTable
           columns={columns}
           data={clientes}
           actions={actionsWithNavigate}
+          loading={loading}
           onChangeStatus={cambiarEstado}
           showStatusColumn={true}
           emptyMessage={
@@ -91,7 +76,6 @@ export default function Clientes() {
           }
         />
 
-        {/* Solo modal de eliminar — el de estado lo maneja CrudTable internamente */}
         <Modal
           open={modalDelete.open}
           type="warning"
