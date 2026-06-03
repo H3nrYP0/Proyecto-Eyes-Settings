@@ -1,4 +1,10 @@
-// features/configuracion/components/general/UploadAvatar.jsx
+/**
+ * Componente que permite al usuario subir una foto de perfil.
+ * La imagen se sube directamente a Cloudinary usando un upload preset unsigned.
+ * Una vez obtenida la URL segura, la pasa al padre mediante onUpload.
+ * Muestra validaciones de tipo y tamaño, y un indicador de carga.
+ */
+
 import { useState, useRef } from 'react';
 import { Box, Avatar, IconButton, CircularProgress, Snackbar, Alert } from '@mui/material';
 import { PhotoCamera as CameraIcon } from '@mui/icons-material';
@@ -6,6 +12,11 @@ import { PhotoCamera as CameraIcon } from '@mui/icons-material';
 const PRIMARY_COLOR = "#1a4a4a";
 const PRIMARY_DARK = "#0d2e2e";
 const GRAY_500 = "#4e6e6e";
+
+// Configuración de Cloudinary (debe coincidir con tu cuenta)
+const CLOUDINARY_UPLOAD_PRESET = 'optic_app_upload';
+const CLOUDINARY_CLOUD_NAME = 'drhhthuqq'; // Reemplaza con tu cloud name
+const CLOUDINARY_FOLDER = 'optica/perfiles';
 
 export default function UploadAvatar({ user, fotoPerfil, onUpload, puedeEditar = false }) {
   const [loading, setLoading] = useState(false);
@@ -28,16 +39,25 @@ export default function UploadAvatar({ user, fotoPerfil, onUpload, puedeEditar =
 
     setLoading(true);
     try {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        onUpload(reader.result);
-        setLoading(false);
-        // Limpiar input para permitir volver a subir la misma imagen
-        if (fileInputRef.current) fileInputRef.current.value = '';
-      };
-      reader.readAsDataURL(file);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+      formData.append('folder', CLOUDINARY_FOLDER);
+
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message || 'Error al subir imagen');
+      
+      const fotoUrl = data.secure_url;
+      onUpload(fotoUrl);
+      // Limpiar input para permitir volver a subir la misma imagen
+      if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (err) {
-      setError('Error al cargar la imagen');
+      setError('Error al cargar la imagen: ' + err.message);
+    } finally {
       setLoading(false);
     }
   };

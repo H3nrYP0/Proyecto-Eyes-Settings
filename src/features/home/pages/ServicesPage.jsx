@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import Navbar from "./Navbar";
 import FooterCompact from "../components/FooterCompact";
 import ServiceCard from "../components/Services/ServiceCard";
@@ -28,84 +29,68 @@ import SparklesIcon from "@mui/icons-material/AutoAwesome";
 // Carrito
 import ShoppingCart, { CartProvider, WishlistDrawer } from "../../home/components/Products/ShoppingCart";
 
-// Componente interno
 const ServicesPageContent = ({ user, setUser }) => {
   const navigate = useNavigate();
   const showDashboard = user ? authServices.hasAdminAccess(user) : false;
 
-  const [servicios, setServicios] = useState([]);
-  const [estadosCita, setEstadosCita] = useState([]);
-  const [loadingData, setLoadingData] = useState(true);
-  const [clienteActual, setClienteActual] = useState(null);
-  const [loadingCliente, setLoadingCliente] = useState(false);
-  const [errorCliente, setErrorCliente] = useState("");
-  const [isAdminMode, setIsAdminMode] = useState(false);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [showCitasModal, setShowCitasModal] = useState(false);
+  const {
+    data: servicios = [],
+    isLoading: loadingServicios,
+    isError: serviciosError,
+    error: serviciosErrorObj,
+  } = useQuery({
+    queryKey: ["serviciosLanding"],
+    queryFn: getServiciosActivosLanding,
+    staleTime: 1000 * 60,
+    retry: 1,
+  });
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const [svcs, estados] = await Promise.all([
-          getServiciosActivosLanding(),
-          getEstadosCitaLanding(),
-        ]);
-        if (!mounted) return;
-        setServicios(svcs);
-        setEstadosCita(estados);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        if (mounted) setLoadingData(false);
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
+  const {
+    data: estadosCita = [],
+    isLoading: loadingEstados,
+    isError: estadosError,
+    error: estadosErrorObj,
+  } = useQuery({
+    queryKey: ["estadosCitaLanding"],
+    queryFn: getEstadosCitaLanding,
+    staleTime: 1000 * 60,
+    retry: 1,
+  });
 
-  // ============================================================
-  // NUEVA LÓGICA: Siempre intenta cargar el perfil de cliente
-  // Si el endpoint devuelve "No tienes un perfil de cliente asociado"
-  // entonces entra en modo administrador.
-  // ============================================================
-  useEffect(() => {
-    if (!user) {
-      setClienteActual(null);
-      setErrorCliente("");
-      setIsAdminMode(false);
-      setLoadingCliente(false);
-      return;
-    }
+  const {
+    data: clienteData,
+    isLoading: loadingCliente,
+    isError: clienteError,
+    error: clienteErrorObj,
+  } = useQuery({
+    queryKey: ["clientePerfil"],
+    queryFn: getMiPerfil,
+    enabled: !!user,
+    retry: false,
+  });
 
-    const loadClientePerfil = async () => {
-      setLoadingCliente(true);
-      setErrorCliente("");
-      try {
-        const cliente = await getMiPerfil();  // GET /cliente/perfil
-        setClienteActual(cliente);
-        setIsAdminMode(false);  // Tiene cliente → modo normal
-      } catch (err) {
-        console.error("Error cargando perfil de cliente:", err);
-        const msg = err.message || "No se pudo obtener tu información.";
-        // Si el error es exactamente el esperado (sin cliente asociado)
-        if (msg.includes("No tienes un perfil de cliente asociado")) {
-          setIsAdminMode(true);
-          setClienteActual(null);
-          setErrorCliente("");
-        } else {
-          // Otro error (red, servidor, etc.)
-          setErrorCliente(msg);
-          setIsAdminMode(false);
-        }
-      } finally {
-        setLoadingCliente(false);
-      }
-    };
+  const serviciosCargados = servicios || [];
+  const estadosCitaCargados = estadosCita || [];
+  const clienteActual = clienteData || null;
 
-    loadClientePerfil();
-  }, [user]);
+  const profileErrorMessage =
+    clienteErrorObj?.message ||
+    clienteErrorObj?.response?.data?.mensaje ||
+    clienteErrorObj?.response?.data?.error ||
+    "";
 
-  // Efecto para hacer scroll automático (solo si es cliente y no admin)
+  const isAdminMode =
+    !!user &&
+    clienteError &&
+    profileErrorMessage.includes("No tienes un perfil de cliente asociado");
+
+  const errorCliente =
+    !!user && clienteError && !isAdminMode
+      ? profileErrorMessage || "No se pudo obtener tu información."
+      : "";
+
+  const loadingData = loadingServicios || loadingEstados;
+
   useEffect(() => {
     if (clienteActual && !isAdminMode) {
       setTimeout(() => {
@@ -114,7 +99,10 @@ const ServicesPageContent = ({ user, setUser }) => {
     }
   }, [clienteActual, isAdminMode]);
 
-  const handleNavigation = (path) => { navigate(path); window.scrollTo(0, 0); };
+  const handleNavigation = (path) => {
+    navigate(path);
+    window.scrollTo(0, 0);
+  };
   const handleLogin = () => navigate("/login");
   const handleLogout = () => {
     authServices.logout();
@@ -134,13 +122,13 @@ const ServicesPageContent = ({ user, setUser }) => {
     }
   };
 
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [showCitasModal, setShowCitasModal] = useState(false);
+
   const handleCitaChange = () => {
-    setRefreshTrigger(prev => prev + 1);
+    setRefreshTrigger((prev) => prev + 1);
   };
 
-  // ========== RENDERIZADO ==========
-
-  // Usuario no autenticado
   if (!user) {
     return (
       <div className="services-page">
@@ -169,7 +157,13 @@ const ServicesPageContent = ({ user, setUser }) => {
             <div className="pulse-element pulse-5"><SparklesIcon sx={{ fontSize: "1.8rem" }} /></div>
           </div>
           <div className="floating-particles">
-            {[...Array(15)].map((_, i) => <div key={i} className="particle" style={{ left: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 5}s`, animationDuration: `${5 + Math.random() * 10}s` }} />)}
+            {[...Array(15)].map((_, i) => (
+              <div
+                key={i}
+                className="particle"
+                style={{ left: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 5}s`, animationDuration: `${5 + Math.random() * 10}s` }}
+              />
+            ))}
           </div>
         </section>
 
@@ -179,11 +173,13 @@ const ServicesPageContent = ({ user, setUser }) => {
               <h2 className="section-title">Servicios <span className="blue-gradient-text">Especializados</span></h2>
               <p className="section-description">Atención personalizada y tecnología de vanguardia</p>
             </div>
-            {loadingData ? <LoadingSpinner mensaje="Cargando servicios..." /> : servicios.length === 0 ? (
+            {loadingData ? (
+              <LoadingSpinner mensaje="Cargando servicios..." />
+            ) : serviciosCargados.length === 0 ? (
               <p style={{ textAlign: "center", color: "#64748b" }}>No hay servicios disponibles en este momento.</p>
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 280px))", gap: "1.5rem", maxWidth: "900px", margin: "0 auto", justifyContent: "center" }}>
-                {servicios.map(s => (
+                {serviciosCargados.map((s) => (
                   <ServiceCard key={s.id} servicio={s} onAgendar={null} disabledMessage="Debes iniciar sesión para agendar citas." />
                 ))}
               </div>
@@ -208,9 +204,6 @@ const ServicesPageContent = ({ user, setUser }) => {
     );
   }
 
-  // ============================================================
-  // CASO ADMINISTRADOR (sin perfil de cliente)
-  // ============================================================
   if (isAdminMode) {
     return (
       <div className="services-page">
@@ -239,7 +232,13 @@ const ServicesPageContent = ({ user, setUser }) => {
             <div className="pulse-element pulse-5"><SparklesIcon sx={{ fontSize: "1.8rem" }} /></div>
           </div>
           <div className="floating-particles">
-            {[...Array(15)].map((_, i) => <div key={i} className="particle" style={{ left: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 5}s`, animationDuration: `${5 + Math.random() * 10}s` }} />)}
+            {[...Array(15)].map((_, i) => (
+              <div
+                key={i}
+                className="particle"
+                style={{ left: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 5}s`, animationDuration: `${5 + Math.random() * 10}s` }}
+              />
+            ))}
           </div>
         </section>
         <div className="admin-banner">
@@ -252,12 +251,19 @@ const ServicesPageContent = ({ user, setUser }) => {
               <h2 className="section-title">Servicios <span className="blue-gradient-text">Especializados</span></h2>
               <p className="section-description">Atención personalizada y tecnología de vanguardia</p>
             </div>
-            {loadingData ? <LoadingSpinner mensaje="Cargando servicios..." /> : servicios.length === 0 ? (
+            {loadingData ? (
+              <LoadingSpinner mensaje="Cargando servicios..." />
+            ) : serviciosCargados.length === 0 ? (
               <p style={{ textAlign: "center", color: "#64748b" }}>No hay servicios disponibles en este momento.</p>
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 280px))", gap: "1.5rem", maxWidth: "900px", margin: "0 auto", justifyContent: "center" }}>
-                {servicios.map(s => (
-                  <ServiceCard key={s.id} servicio={s} onAgendar={null} disabledMessage="Modo administrador: No tienes un perfil de cliente asociado. Para agendar citas, utiliza una cuenta de cliente." />
+                {serviciosCargados.map((s) => (
+                  <ServiceCard
+                    key={s.id}
+                    servicio={s}
+                    onAgendar={null}
+                    disabledMessage="Modo administrador: No tienes un perfil de cliente asociado. Para agendar citas, utiliza una cuenta de cliente."
+                  />
                 ))}
               </div>
             )}
@@ -272,7 +278,6 @@ const ServicesPageContent = ({ user, setUser }) => {
     );
   }
 
-  // Cargando perfil
   if (loadingCliente) {
     return (
       <div className="services-page">
@@ -294,7 +299,6 @@ const ServicesPageContent = ({ user, setUser }) => {
     );
   }
 
-  // Error en el perfil (problema de red, servidor, etc.)
   if (errorCliente) {
     return (
       <div className="services-page">
@@ -317,12 +321,10 @@ const ServicesPageContent = ({ user, setUser }) => {
             <button className="error-btn" onClick={handleLogout}>Cerrar sesión</button>
           </div>
         </div>
-        <FooterCompact />
       </div>
     );
   }
 
-  // Cliente autenticado y con perfil cargado (modo normal)
   return (
     <div className="services-page">
       <Navbar
@@ -335,6 +337,7 @@ const ServicesPageContent = ({ user, setUser }) => {
         onDashboard={handleDashboard}
         onMiPerfil={handleMiPerfil}
       />
+
       <section className="services-hero">
         <div className="services-container">
           <div className="hero-content">
@@ -350,7 +353,13 @@ const ServicesPageContent = ({ user, setUser }) => {
           <div className="pulse-element pulse-5"><SparklesIcon sx={{ fontSize: "1.8rem" }} /></div>
         </div>
         <div className="floating-particles">
-          {[...Array(15)].map((_, i) => <div key={i} className="particle" style={{ left: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 5}s`, animationDuration: `${5 + Math.random() * 10}s` }} />)}
+          {[...Array(15)].map((_, i) => (
+            <div
+              key={i}
+              className="particle"
+              style={{ left: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 5}s`, animationDuration: `${5 + Math.random() * 10}s` }}
+            />
+          ))}
         </div>
       </section>
 
@@ -360,76 +369,43 @@ const ServicesPageContent = ({ user, setUser }) => {
             <h2 className="section-title">Servicios <span className="blue-gradient-text">Especializados</span></h2>
             <p className="section-description">Atención personalizada y tecnología de vanguardia</p>
           </div>
-          {loadingData ? <LoadingSpinner mensaje="Cargando servicios..." /> : servicios.length === 0 ? (
+          {loadingData ? (
+            <LoadingSpinner mensaje="Cargando servicios..." />
+          ) : serviciosCargados.length === 0 ? (
             <p style={{ textAlign: "center", color: "#64748b" }}>No hay servicios disponibles en este momento.</p>
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 280px))", gap: "1.5rem", maxWidth: "900px", margin: "0 auto", justifyContent: "center" }}>
-              {servicios.map(s => (
-                <ServiceCard key={s.id} servicio={s} onAgendar={handleAgendar} disabledMessage={null} />
+              {serviciosCargados.map((s) => (
+                <ServiceCard key={s.id} servicio={s} onAgendar={handleAgendar} />
               ))}
             </div>
           )}
         </div>
       </section>
 
-      <div style={{ display: "flex", justifyContent: "flex-end", maxWidth: "1200px", margin: "0 auto 0.5rem auto" }}>
-        <button
-          onClick={() => setShowCitasModal(true)}
-          className="ver-citas-btn"
-          style={{
-            background: "#0d2e2e",
-            color: "white",
-            border: "none",
-            padding: "0.5rem 1.2rem",
-            borderRadius: "2rem",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            cursor: "pointer",
-            fontWeight: "bold",
-            fontSize: "0.9rem",
-            transition: "transform 0.2s",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.1)"
-          }}
-          onMouseEnter={e => e.currentTarget.style.transform = "scale(1.02)"}
-          onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
-        >
-          <EventIcon sx={{ fontSize: "1.2rem" }} />
-          Ver mis citas
-        </button>
-      </div>
-
-      <CitaForm
-        cliente={clienteActual}
-        servicios={servicios}
-        estadosCita={estadosCita}
-        preServicioId=""
-        onCitaAgendada={handleCitaChange}
-      />
-
-      <FooterCompact />
-
-      {showCitasModal && (
-        <div className="success-modal-overlay" onClick={() => setShowCitasModal(false)}>
-          <div
-            className="success-modal-card"
-            style={{
-              maxWidth: "800px",
-              width: "90%",
-              maxHeight: "80vh",
-              overflowY: "auto",
-              padding: "1.5rem",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-              <h2 style={{ margin: 0, fontSize: "1.5rem" }}>Mis citas</h2>
-              <button onClick={() => setShowCitasModal(false)} style={{ background: "none", border: "none", fontSize: "2rem", cursor: "pointer", color: "#4e6e6e" }} aria-label="Cerrar">×</button>
+      <section className="services-section" style={{ padding: "4rem 0", background: "#f8fbfb" }}>
+        <div className="services-container">
+          <div className="section-header">
+            <h2 className="section-title">Agenda tu cita</h2>
+            <p className="section-description">Selecciona el servicio, la fecha y el horario que mejor se ajusten a ti.</p>
+          </div>
+          <div className="services-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem" }}>
+            <div>
+              <CitaForm
+                cliente={clienteActual}
+                servicios={serviciosCargados}
+                estadosCita={estadosCitaCargados}
+                onCitaAgendada={handleCitaChange}
+              />
             </div>
-            <MisCitas onCitaCancelada={handleCitaChange} refreshKey={refreshTrigger} />
+            <div>
+              <MisCitas refreshKey={refreshTrigger} onCitaCancelada={handleCitaChange} />
+            </div>
           </div>
         </div>
-      )}
+      </section>
+
+      <FooterCompact />
     </div>
   );
 };
@@ -437,8 +413,6 @@ const ServicesPageContent = ({ user, setUser }) => {
 const ServicesPage = ({ user, setUser }) => (
   <CartProvider user={user}>
     <ServicesPageContent user={user} setUser={setUser} />
-    <ShoppingCart user={user} />
-    <WishlistDrawer user={user} />
   </CartProvider>
 );
 
