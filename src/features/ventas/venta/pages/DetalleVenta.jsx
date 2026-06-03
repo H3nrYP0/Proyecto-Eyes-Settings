@@ -6,9 +6,9 @@ import {
   COLORES_ESTADO_VENTA,
   getEstadoLabelVenta,
 } from "../utils/ventasUtils";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import BaseFormLayout from "@shared/components/base/BaseFormLayout";
 import BaseFormSection from "@shared/components/base/BaseFormSection";
+import Loading from "@shared/components/ui/Loading";
 
 const viewField = {
   backgroundColor: "#f3f4f6",
@@ -52,7 +52,7 @@ export default function DetalleVenta() {
       .catch(() => navigate(-1));
   }, [id, navigate]);
 
-  if (loading) return <div style={{ padding: 40, color: "#9ca3af" }}>Cargando…</div>;
+  if (loading) return <Loading text="Cargando venta..." />;
   if (!venta)  return null;
 
   const estilo = COLORES_ESTADO_VENTA[venta.estado] ?? { bg: "#f3f4f6", color: "#374151" };
