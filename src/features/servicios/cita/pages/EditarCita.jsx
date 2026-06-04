@@ -101,7 +101,7 @@ export default function EditarCita() {
     }
   }, [cita, setFormData]);
 
-  if (loading) return <Loading message="Cargando datos de la cita..." />;
+  if (loading) return <Loading text="Cargando datos de la cita..." />;
 
   if (error) {
     return (

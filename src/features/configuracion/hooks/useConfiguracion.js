@@ -16,6 +16,7 @@ import {
   validarBarrio, validarCodigoPostal, validarOcupacion, validarTelefonoEmergencia,
   validarPassword, normalizeGender, denormalizeGender
 } from '../utils/configuracionHelpers';
+import { useAuth } from '@auth/hooks/useAuth';
 
 const EMPTY_FORM = {
   nombre: '', apellido: '', correo: '', telefono: '',

@@ -11,7 +11,6 @@ export default function CrearCita() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Ya no necesitas cargar los datos maestros aquí, solo esperar a que el contexto termine
   useEffect(() => {
     if (!dataLoading) {
       setLoading(false);
@@ -55,7 +54,7 @@ export default function CrearCita() {
   });
 
   if (loading) {
-    return <Loading message="Cargando formulario de creación..." />;
+    return <Loading text="Cargando formulario de creación..." />;
   }
 
   if (error) {

@@ -2,6 +2,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { pedidosService } from "../services/pedidosService";
 import PedidoForm from "../components/PedidoForm";
+import Loading from "@shared/components/ui/Loading";
 
 export default function EditarPedido() {
   const navigate = useNavigate();
@@ -17,7 +18,7 @@ export default function EditarPedido() {
       });
   }, [id, navigate]);
 
-  if (!pedido) return <div style={{ padding: 40, color: "#9ca3af" }}>Cargando…</div>;
+  if (!pedido) return <Loading text="Cargando pedido..." />;
 
   return (
     <PedidoForm

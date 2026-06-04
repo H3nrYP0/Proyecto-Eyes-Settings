@@ -135,14 +135,6 @@ export default function Empleados() {
     },
   ];
 
-  if (loading && empleados.length === 0) {
-    return (
-      <CrudLayout title="Empleados" showSearch>
-        <Loading message="Cargando empleados..." />
-      </CrudLayout>
-    );
-  }
-
   return (
     <>
       <CrudLayout
@@ -166,6 +158,7 @@ export default function Empleados() {
           columns={columns}
           data={empleados}
           actions={tableActions}
+          loading={loading}
           onChangeStatus={handleChangeStatus}
           emptyMessage={
             search || filterEstado

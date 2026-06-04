@@ -103,7 +103,6 @@ function ModalHistorial({ open, clienteId, onClose }) {
     }
   };
 
-  // Pide confirmación con Modal antes de eliminar
   const pedirConfirmEliminar = (id) => {
     setConfirmDelete({ open: true, id });
   };
@@ -129,7 +128,6 @@ function ModalHistorial({ open, clienteId, onClose }) {
 
   return (
     <>
-      {/* CrudNotification fuera del overlay para que sea visible */}
       <CrudNotification
         isVisible={notification.isVisible}
         message={notification.message}
@@ -137,7 +135,6 @@ function ModalHistorial({ open, clienteId, onClose }) {
         onClose={hideNotif}
       />
 
-      {/* Modal de confirmación de eliminación */}
       <Modal
         open={confirmDelete.open}
         type="warning"
@@ -162,13 +159,11 @@ function ModalHistorial({ open, clienteId, onClose }) {
           width: "min(680px, 95vw)", maxHeight: "85vh",
           overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
         }}>
-          {/* Header */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
             <h2 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 700 }}>Historial de Fórmula Óptica</h2>
             <button onClick={onClose} style={{ background: "none", border: "none", fontSize: "1.5rem", cursor: "pointer", color: "#6b7280", lineHeight: 1 }}>×</button>
           </div>
 
-          {/* Error de sesión expirada */}
           {authError && (
             <div style={{
               background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 10,
@@ -256,7 +251,7 @@ function ModalHistorial({ open, clienteId, onClose }) {
               )}
 
               {loading ? (
-                <div style={{ textAlign: "center", color: "#9ca3af", padding: 24 }}>Cargando…</div>
+                <Loading text="Cargando historial..." />
               ) : historial.length === 0 ? (
                 <div style={{ textAlign: "center", color: "#9ca3af", padding: 24 }}>
                   No hay fórmulas registradas para este cliente.
@@ -326,7 +321,7 @@ export default function DetalleCliente() {
       .catch(() => navigate("/admin/ventas/clientes"));
   }, [id, navigate]);
 
-  if (loading) return <div style={{ padding: "2rem", textAlign: "center" }}>Cargando cliente...</div>;
+  if (loading) return <Loading text="Cargando cliente..." />;
   if (!cliente) return null;
 
   return (

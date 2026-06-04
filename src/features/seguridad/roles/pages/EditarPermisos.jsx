@@ -29,7 +29,7 @@ export default function EditarPermisos() {
     queryFn: async () => {
       const rol = await getRolById(id);
       if (!rol) throw new Error('Rol no encontrado');
-      return normalizarRolInitialData(rol); // ✅ estado string
+      return normalizarRolInitialData(rol);
     },
     enabled: !!id,
     retry: false,
@@ -45,7 +45,6 @@ export default function EditarPermisos() {
   const updateMutation = useMutation({
     mutationFn: (data) => updateRol(id, data),
     onSuccess: (_, data) => {
-      // Invalidar ambas queries para que se refresquen con datos normalizados
       queryClient.invalidateQueries({ queryKey: ['roles'] });
       queryClient.invalidateQueries({ queryKey: ['rol', id] });
       sessionStorage.setItem(
@@ -62,7 +61,7 @@ export default function EditarPermisos() {
 
   const handleUpdate = (data) => updateMutation.mutate(data);
 
-  if (loadingRol || loadingPermisos) return <Loading message="Cargando rol..." />;
+  if (loadingRol || loadingPermisos) return <Loading text="Cargando rol..." />;
 
   if (rolError || !rolData) {
     navigate('/admin/seguridad/roles');

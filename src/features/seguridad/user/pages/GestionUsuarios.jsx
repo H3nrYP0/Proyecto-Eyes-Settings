@@ -5,7 +5,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import CrudLayout       from "@shared/components/crud/CrudLayout";
 import CrudTable        from "@shared/components/crud/CrudTable";
 import Modal            from "@shared/components/ui/Modal";
-import Loading          from "@shared/components/ui/Loading";
 import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 
 import {
@@ -42,7 +41,6 @@ export default function GestionUsuarios() {
     }
   }, []);
 
-  // Query de usuarios con staleTime 0 para que refetch funcione siempre
   const {
     data: rawUsers = [],
     isLoading,
@@ -51,7 +49,7 @@ export default function GestionUsuarios() {
   } = useQuery({
     queryKey: ["usuarios"],
     queryFn: getAllUsers,
-    staleTime: 0, // importante para que el refetch manual funcione
+    staleTime: 0,
   });
 
   const { data: roles = [] } = useQuery({
@@ -60,18 +58,16 @@ export default function GestionUsuarios() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Normalizar y filtrar clientes
   const users = useMemo(() => {
     if (!rawUsers.length) return [];
     const normalized = normalizeUsers(rawUsers);
     return normalized.filter((u) => u.rol_nombre?.toLowerCase() !== "cliente");
   }, [rawUsers]);
 
-  // Eliminar
   const deleteMutation = useMutation({
     mutationFn: deleteUser,
     onSuccess: () => {
-      refetch(); // 🔁 forzar recarga
+      refetch();
       setDeleteModal({ open: false, id: null, name: "" });
       showNotification(`Usuario "${deleteModal.name}" eliminado correctamente`);
     },
@@ -82,11 +78,10 @@ export default function GestionUsuarios() {
     },
   });
 
-  // Cambiar estado
   const estadoMutation = useMutation({
     mutationFn: ({ id, estado }) => updateEstadoUser(id, estado),
     onSuccess: (_, { estado }) => {
-      refetch(); // 🔁 forzar recarga
+      refetch();
       const label = estado === "activo" ? "activado" : "desactivado";
       showNotification(`Usuario ${label} correctamente`);
     },
@@ -123,8 +118,6 @@ export default function GestionUsuarios() {
     { label: "Eliminar", type: "delete", onClick: (row) => handleDelete(row.id, row.nombre) },
   ];
 
-  if (isLoading && users.length === 0) return <Loading message="Cargando usuarios..." />;
-
   return (
     <>
       <CrudLayout
@@ -147,6 +140,7 @@ export default function GestionUsuarios() {
           columns={columns}
           data={filteredUsers}
           actions={tableActions}
+          loading={isLoading}
           onChangeStatus={handleChangeStatus}
           emptyMessage="No hay usuarios registrados"
         />

@@ -1,9 +1,10 @@
 import React from 'react';
-import { Grid, Box, CircularProgress, Alert } from '@mui/material';
+import { Grid, Alert } from '@mui/material';
 import BaseFormLayout from '@shared/components/base/BaseFormLayout';
 import BaseInputField from '@shared/components/base/BaseInputField';
 import BaseFormActions from '@shared/components/base/BaseFormActions';
 import CrudNotification from '@shared/styles/components/notifications/CrudNotification';
+import Loading from '@shared/components/ui/Loading';
 import { TextFieldAlphanumeric, TextFieldNoEmoji } from '@shared/index';
 import { ESTADOS_BLOQUEADOS } from '../utils/constants';
 
@@ -29,11 +30,7 @@ const CampanaSaludForm = ({
   hideNotification,
 }) => {
   if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <CircularProgress />
-      </Box>
-    );
+    return <Loading text="Cargando campaña..." />;
   }
 
   const isDisabled = isView;

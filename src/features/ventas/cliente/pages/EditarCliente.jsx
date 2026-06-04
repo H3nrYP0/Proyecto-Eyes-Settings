@@ -27,9 +27,7 @@ export default function EditarCliente() {
       .catch(() => navigate("/admin/ventas/clientes"));
   }, [id, navigate]);
 
-  if (loading) return (
-    <div style={{ padding: "2rem", textAlign: "center" }}>Cargando cliente...</div>
-  );
+  if (loading) return <Loading text="Cargando cliente..." />;
   if (!cliente) return null;
 
   return (

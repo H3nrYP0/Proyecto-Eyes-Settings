@@ -102,14 +102,6 @@ export default function Citas() {
     },
   ];
 
-  if (loading && citas.length === 0) {
-    return (
-      <CrudLayout title="Citas" showSearch>
-        <Loading message="Cargando citas..." />
-      </CrudLayout>
-    );
-  }
-
   return (
     <>
       <CrudLayout
@@ -143,6 +135,7 @@ export default function Citas() {
           columns={columns}
           data={citas}
           actions={tableActions}
+          loading={loading}
           onChangeStatus={handleChangeStatus}
           totalCount={totalCitas}
           page={page - 1}

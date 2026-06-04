@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { pedidosService } from "../services/pedidosService";
 import { formatCurrency, COLORES_ESTADO } from "../utils/pedidosUtils";
+import Loading from "@shared/components/ui/Loading";
 
 export default function PedidoPDFView() {
   const { id }       = useParams();
@@ -28,9 +29,7 @@ export default function PedidoPDFView() {
     cargar();
   }, [id, navigate]);
 
-  if (loading) return (
-    <div style={{ padding: 40, textAlign: "center", color: "#9ca3af" }}>Cargando…</div>
-  );
+  if (loading) return <Loading text="Cargando pedido..." />;
   if (!pedido) return null;
 
   const totalAbonado   = abonos.reduce((s, a) => s + (a.monto_abonado ?? 0), 0);

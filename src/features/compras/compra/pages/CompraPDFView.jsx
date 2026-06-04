@@ -21,7 +21,7 @@ export default function CompraPDFView() {
       .finally(() => setLoading(false));
   }, [id, navigate]);
 
-  if (loading) return <Loading message="Cargando..." />;
+  if (loading) return <Loading text="Cargando compra..." />;
   if (!compra)  return null;
 
   const subtotal = (compra.productos || []).reduce(
@@ -71,7 +71,6 @@ export default function CompraPDFView() {
   return (
     <div style={{ backgroundColor: "#e5e7eb", minHeight: "100vh", padding: "32px 16px" }}>
 
-      {/* Barra de acciones */}
       <div style={{ maxWidth: 780, margin: "0 auto 16px auto", display: "flex", gap: 10, justifyContent: "flex-end" }}>
         <button
           style={{ padding: "8px 18px", borderRadius: "6px", fontSize: "0.875rem", fontWeight: 500, cursor: "pointer", border: "1px solid #d1d5db", backgroundColor: "#f3f4f6", color: "#374151" }}
@@ -87,7 +86,6 @@ export default function CompraPDFView() {
         </button>
       </div>
 
-      {/* Contenido del documento */}
       <div
         ref={contentRef}
         style={{
@@ -101,7 +99,6 @@ export default function CompraPDFView() {
           border: "1px solid #000",
         }}
       >
-        {/* ── Encabezado ── */}
         <div style={{ borderBottom: "2px solid #000", paddingBottom: 16, marginBottom: 24 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div>
@@ -127,7 +124,6 @@ export default function CompraPDFView() {
           </div>
         </div>
 
-        {/* ── Info proveedor / estado en tabla ── */}
         <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 24 }}>
           <tbody>
             <tr>
@@ -157,7 +153,6 @@ export default function CompraPDFView() {
           </tbody>
         </table>
 
-        {/* ── Tabla de productos ── */}
         <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 0 }}>
           <thead>
             <tr>
@@ -181,7 +176,6 @@ export default function CompraPDFView() {
           </tbody>
         </table>
 
-        {/* ── Totales — continuación de la tabla ── */}
         <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 32 }}>
           <tbody>
             <tr>
@@ -214,7 +208,6 @@ export default function CompraPDFView() {
           </tbody>
         </table>
 
-        {/* ── Pie de página ── */}
         <div style={{ borderTop: "1px solid #000", paddingTop: 12, textAlign: "center", fontSize: "0.7rem", color: "#555" }}>
           Este documento no constituye una factura de venta. &nbsp;|&nbsp; Generado el {new Date().toLocaleDateString("es-ES")}
         </div>

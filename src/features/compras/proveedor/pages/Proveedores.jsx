@@ -80,10 +80,6 @@ export default function Proveedores() {
     },
   ];
 
-  if (loading && proveedores.length === 0) {
-    return <Loading message="Cargando proveedores..." />;
-  }
-
   return (
     <>
       <CrudLayout
@@ -103,6 +99,7 @@ export default function Proveedores() {
           columns={columns}
           data={proveedores}
           actions={tableActions}
+          loading={loading}
           onChangeStatus={handleChangeStatus}
           emptyMessage={
             search || filterEstado

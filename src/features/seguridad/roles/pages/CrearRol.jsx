@@ -42,12 +42,11 @@ export default function CrearRol() {
   });
 
   const handleCreate = (data) => {
-    // Si tu backend espera estado booleano, usa buildRolCreatePayload
     const payload = buildRolCreatePayload(data);
     createMutation.mutate(payload);
   };
 
-  if (loadingPermisos) return <Loading message="Cargando permisos..." />;
+  if (loadingPermisos) return <Loading text="Cargando permisos..." />;
 
   return (
     <>

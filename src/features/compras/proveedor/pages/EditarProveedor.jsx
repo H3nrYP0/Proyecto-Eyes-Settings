@@ -21,7 +21,7 @@ export default function EditarProveedor() {
       .finally(() => setLoading(false));
   }, [id, navigate]);
 
-  if (loading) return <Loading message="Cargando proveedor..." />;
+  if (loading) return <Loading text="Cargando proveedor..." />;
   if (!proveedor) return null;
 
   return (

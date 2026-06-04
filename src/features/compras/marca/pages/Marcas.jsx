@@ -34,19 +34,6 @@ export default function Marcas() {
     tableActions
   } = useMarcas();
 
-  if (loading && marcas.length === 0) {
-    return (
-      <CrudLayout
-        title="Marcas"
-        showSearch={true}
-        searchPlaceholder="Buscar por nombre..."
-        searchPosition="left"
-      >
-        <Loading message="Cargando marcas..." />
-      </CrudLayout>
-    );
-  }
-
   const isProcessing = modalForm.mode !== "view" && isProcessingSave();
 
   return (
@@ -73,6 +60,7 @@ export default function Marcas() {
           columns={columns} 
           data={marcas} 
           actions={tableActions}
+          loading={loading}
           onChangeStatus={handleStatusChange}
           emptyMessage={
             search || filterEstado ? 

@@ -21,7 +21,7 @@ export default function DetalleCompra() {
       .finally(() => setLoading(false));
   }, [id, navigate]);
 
-  if (loading) return <Loading message="Cargando detalles..." />;
+  if (loading) return <Loading text="Cargando compra..." />;
   if (!compra)  return null;
 
   return (

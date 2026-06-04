@@ -4,9 +4,8 @@ import { Box, Button } from "@mui/material";
 import CrudLayout from "@shared/components/crud/CrudLayout";
 import UnifiedCrudTable from "@shared/components/crud/CrudTable";
 import Modal from "@shared/components/ui/Modal";
-import Loading from "@shared/components/ui/Loading";
 import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
-import { useNovedades, useNovedadForm, NovedadForm } from "@servicios/novedades"; // ✔️ alias corregido
+import { useNovedades, useNovedadForm, NovedadForm } from "@servicios/novedades";
 import "@shared/styles/components/crud-table.css";
 import "@shared/styles/components/modal.css";
 
@@ -140,14 +139,6 @@ export default function Novedades() {
     { label: "Eliminar", type: "delete", onClick: (item) => openDeleteModal(item.id, item.descripcion) },
   ];
 
-  if (loading && novedades.length === 0) {
-    return (
-      <CrudLayout title="Novedades" showSearch>
-        <Loading message="Cargando novedades..." />
-      </CrudLayout>
-    );
-  }
-
   return (
     <>
       <Box sx={{ p: 2, pb: 0 }}>
@@ -200,6 +191,7 @@ export default function Novedades() {
           columns={columns}
           data={novedades}
           actions={tableActions}
+          loading={loading}
           onChangeStatus={cambiarEstado}
           emptyMessage={
             search || filterEstado

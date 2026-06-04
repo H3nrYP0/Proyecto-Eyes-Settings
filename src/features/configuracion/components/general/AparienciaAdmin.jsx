@@ -222,6 +222,118 @@ export default function AparienciaAdmin({ user, onUserUpdate, configuracion }) {
           </Grid>
         </Grid>
 
+        {/* Datos de Entrega */}
+        <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>
+          Datos de Entrega
+        </Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Ciudad"
+              name="ciudad"
+              value={formData.ciudad || ''}
+              onChange={handleChange}
+              disabled={!editMode || !puedeEditar}
+              size="small"
+              error={!!validationErrors.ciudad}
+              helperText={validationErrors.ciudad}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Departamento"
+              name="departamento"
+              value={formData.departamento || ''}
+              onChange={handleChange}
+              disabled={!editMode || !puedeEditar}
+              size="small"
+              error={!!validationErrors.departamento}
+              helperText={validationErrors.departamento}
+            />
+          </Grid>
+          <Grid item xs={12} sm={8}>
+            <TextField
+              fullWidth
+              label="Dirección principal"
+              name="direccion_principal"
+              value={formData.direccion_principal || ''}
+              onChange={handleChange}
+              disabled={!editMode || !puedeEditar}
+              size="small"
+              error={!!validationErrors.direccion_principal}
+              helperText={validationErrors.direccion_principal}
+            />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <TextField
+              fullWidth
+              label="Apto / Torre"
+              name="apto_torre"
+              value={formData.apto_torre || ''}
+              onChange={handleChange}
+              disabled={!editMode || !puedeEditar}
+              size="small"
+              error={!!validationErrors.apto_torre}
+              helperText={validationErrors.apto_torre}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Barrio"
+              name="barrio"
+              value={formData.barrio || ''}
+              onChange={handleChange}
+              disabled={!editMode || !puedeEditar}
+              size="small"
+              error={!!validationErrors.barrio}
+              helperText={validationErrors.barrio}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Nombre del receptor"
+              name="nombre_receptor"
+              value={formData.nombre_receptor || ''}
+              onChange={handleChange}
+              disabled={!editMode || !puedeEditar}
+              size="small"
+              error={!!validationErrors.nombre_receptor}
+              helperText={validationErrors.nombre_receptor}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Teléfono de contacto (entrega)"
+              name="telefono_entrega"
+              value={formData.telefono_entrega || ''}
+              onChange={handleChange}
+              disabled={!editMode || !puedeEditar}
+              size="small"
+              placeholder="Ej: 3007654321"
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Indicaciones adicionales"
+              name="indicaciones"
+              value={formData.indicaciones || ''}
+              onChange={handleChange}
+              disabled={!editMode || !puedeEditar}
+              size="small"
+              multiline
+              rows={2}
+              error={!!validationErrors.indicaciones}
+              helperText={validationErrors.indicaciones}
+            />
+          </Grid>
+        </Grid>
+
         {puedeEditar && (
           <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
             {!editMode ? (

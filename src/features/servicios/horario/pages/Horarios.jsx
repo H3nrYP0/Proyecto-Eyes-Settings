@@ -4,7 +4,6 @@ import { Box, Button } from "@mui/material";
 import CrudLayout from "@shared/components/crud/CrudLayout";
 import UnifiedCrudTable from "@shared/components/crud/CrudTable";
 import Modal from "@shared/components/ui/Modal";
-import Loading from "@shared/components/ui/Loading";
 import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 import { useHorarios, useHorarioForm, HorarioForm } from "@horario";
 import "@shared/styles/components/crud-table.css";
@@ -135,14 +134,6 @@ export default function Horarios() {
     { label: "Eliminar", type: "delete", onClick: (item) => openDeleteModal(item.id, item.descripcion) },
   ];
 
-  if (loading && horarios.length === 0) {
-    return (
-      <CrudLayout title="Horarios" showSearch>
-        <Loading message="Cargando horarios..." />
-      </CrudLayout>
-    );
-  }
-
   return (
     <>
       <Box sx={{ p: 2, pb: 0 }}>
@@ -195,6 +186,7 @@ export default function Horarios() {
           columns={columns}
           data={horarios}
           actions={tableActions}
+          loading={loading}
           onChangeStatus={cambiarEstado}
           emptyMessage={
             search || filterEstado

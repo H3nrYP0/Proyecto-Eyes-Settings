@@ -65,7 +65,7 @@ export default function DetalleCita() {
   const horaInvalida = false;
 
   if (loading) {
-    return <Loading message="Cargando detalles de la cita..." />;
+    return <Loading text="Cargando detalles de la cita..." />;
   }
 
   if (error) {

@@ -86,23 +86,18 @@ export default function Ventas() {
       onFilterChange={setFilterEstado}
       searchPosition="left"
     >
-      {loading ? (
-        <div style={{ textAlign: "center", padding: "40px", color: "#9ca3af" }}>
-          Cargando ventas...
-        </div>
-      ) : (
-        <CrudTable
-          columns={columns}
-          data={ventas}
-          actions={tableActions}
-          showStatusColumn={false}
-          emptyMessage={
-            search || filterEstado
-              ? "No se encontraron ventas para los filtros aplicados"
-              : "No hay ventas registradas"
-          }
-        />
-      )}
+      <CrudTable
+        columns={columns}
+        data={ventas}
+        actions={tableActions}
+        loading={loading}
+        showStatusColumn={false}
+        emptyMessage={
+          search || filterEstado
+            ? "No se encontraron ventas para los filtros aplicados"
+            : "No hay ventas registradas"
+        }
+      />
     </CrudLayout>
   );
 }
