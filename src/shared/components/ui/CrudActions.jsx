@@ -7,41 +7,35 @@ export default function CrudActions({ actions = [], item }) {
   return (
     <Stack direction="row" spacing={0.5} justifyContent="center">
       {actions.map((action, index) => {
-        if (action.type === "view") {
-          return (
-            <Tooltip key={index} title={action.label || "Ver"}>
-              <IconButton size="small" onClick={() => action.onClick(item)}>
-                <RemoveRedEyeOutlinedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          );
+        let icon = null;
+        let color = "default";
+        let tooltip = action.label || "";
+
+        switch (action.type) {
+          case "view":
+            icon = <RemoveRedEyeOutlinedIcon fontSize="small" />;
+            tooltip = tooltip || "Ver";
+            break;
+          case "edit":
+            icon = <EditOutlinedIcon fontSize="small" />;
+            tooltip = tooltip || "Editar";
+            break;
+          case "delete":
+            icon = <DeleteOutlineOutlinedIcon fontSize="small" />;
+            color = "error";
+            tooltip = tooltip || "Eliminar";
+            break;
+          default:
+            return null;
         }
 
-        if (action.type === "edit") {
-          return (
-            <Tooltip key={index} title={action.label || "Editar"}>
-              <IconButton size="small" onClick={() => action.onClick(item)}>
-                <EditOutlinedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          );
-        }
-
-        if (action.type === "delete") {
-          return (
-            <Tooltip key={index} title={action.label || "Eliminar"}>
-              <IconButton
-                size="small"
-                color="error"
-                onClick={() => action.onClick(item)}
-              >
-                <DeleteOutlineOutlinedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          );
-        }
-
-        return null;
+        return (
+          <Tooltip key={`${action.type}-${index}`} title={tooltip}>
+            <IconButton size="small" color={color} onClick={() => action.onClick(item)}>
+              {icon}
+            </IconButton>
+          </Tooltip>
+        );
       })}
     </Stack>
   );
