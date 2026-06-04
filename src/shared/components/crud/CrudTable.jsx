@@ -4,7 +4,6 @@ import {
   TableCell,
   TableHead,
   TableRow,
-  TablePagination,
   Paper,
   Typography,
   CircularProgress,
@@ -12,8 +11,10 @@ import {
   Menu,
   MenuItem,
   Box,
+  Pagination,
+  Stack,
 } from "@mui/material";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import CrudActions from "../ui/CrudActions";
 import Modal from "../ui/Modal";
 
@@ -25,20 +26,40 @@ export default function UnifiedCrudTable({
   emptyMessage = "No hay registros.",
   onChangeStatus,
   showStatusColumn = true,
+  // Paginación externa (server-side)
   totalCount = null,
-  page = 0,
+  page = 1,           // 1-indexado
   onPageChange = null,
   rowsPerPage = 10,
-  onRowsPerPageChange = null,
+  totalPages = null,  // opcional, si no se da se calcula
 }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
   const [newStatus, setNewStatus] = useState(null);
   const [openModal, setOpenModal] = useState(false);
-  const [internalPage, setInternalPage] = useState(0);
-  const [internalRowsPerPage, setInternalRowsPerPage] = useState(10);
   const scrollRef = useRef(null);
 
+  // Determinar si usamos paginación externa (server-side)
+  const useExternalPagination = totalCount !== null && onPageChange !== null;
+
+  // Calcular total de páginas
+  const computedTotalPages = useMemo(() => {
+    if (totalPages !== null) return totalPages;
+    if (useExternalPagination && totalCount !== null) {
+      return Math.ceil(totalCount / rowsPerPage);
+    }
+    // Paginación interna (cliente)
+    return Math.ceil(data.length / rowsPerPage);
+  }, [totalPages, totalCount, rowsPerPage, data.length, useExternalPagination]);
+
+  // Manejo de cambio de página
+  const handlePageChange = (event, newPage) => {
+    if (onPageChange) {
+      onPageChange(newPage);
+    }
+  };
+
+  // Scroll horizontal con rueda
   const handleWheel = useCallback((e) => {
     const el = scrollRef.current;
     if (!el) return;
@@ -54,28 +75,6 @@ export default function UnifiedCrudTable({
     el.addEventListener("wheel", handleWheel, { passive: false });
     return () => el.removeEventListener("wheel", handleWheel);
   }, [handleWheel]);
-
-  const useExternalPagination = totalCount !== null && onPageChange !== null;
-  const activePage = useExternalPagination ? page : internalPage;
-  const activeRowsPerPage = useExternalPagination ? rowsPerPage : internalRowsPerPage;
-
-  const handleChangePage = (event, newPage) => {
-    if (useExternalPagination) {
-      onPageChange(event, newPage);
-    } else {
-      setInternalPage(newPage);
-    }
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    const newRows = parseInt(event.target.value, 10);
-    if (useExternalPagination) {
-      onRowsPerPageChange(event);
-    } else {
-      setInternalRowsPerPage(newRows);
-      setInternalPage(0);
-    }
-  };
 
   if (loading) {
     return (
@@ -139,9 +138,10 @@ export default function UnifiedCrudTable({
     }
   };
 
+  // Los datos ya vienen paginados si es externo, si es interno los cortamos
   const displayData = useExternalPagination
     ? data
-    : data.slice(activePage * activeRowsPerPage, activePage * activeRowsPerPage + activeRowsPerPage);
+    : data.slice((page - 1) * rowsPerPage, page * rowsPerPage);
   const totalItems = useExternalPagination ? totalCount : data.length;
 
   return (
@@ -241,24 +241,20 @@ export default function UnifiedCrudTable({
           </Table>
         </Box>
 
-        {totalItems > 0 && (
-          <TablePagination
-            component="div"
-            count={totalItems}
-            page={activePage}
-            onPageChange={handleChangePage}
-            rowsPerPage={activeRowsPerPage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            rowsPerPageOptions={[10, 25, 50]}
-            labelRowsPerPage="Filas por página:"
-            labelDisplayedRows={({ from, to, count }) =>
-              `${from}–${to} de ${count}`
-            }
-            sx={{
-              borderTop: "1px solid",
-              borderColor: "divider",
-            }}
-          />
+        {totalItems > 0 && computedTotalPages > 1 && (
+          <Stack alignItems="center" sx={{ py: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
+            <Pagination
+              count={computedTotalPages}
+              page={page}
+              onChange={handlePageChange}
+              color="primary"
+              size="small"
+              showFirstButton={false}
+              showLastButton={false}
+              siblingCount={1}
+              boundaryCount={1}
+            />
+          </Stack>
         )}
       </Paper>
 
