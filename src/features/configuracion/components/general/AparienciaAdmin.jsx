@@ -1,13 +1,3 @@
-<<<<<<< HEAD
-// features/configuracion/components/general/AparienciaAdmin.jsx
-import {
-  Box, Typography, TextField, Button,
-  Grid, Alert, Divider
-} from '@mui/material';
-import { useConfiguracion } from '../../hooks/useConfiguracion';
-import UploadAvatar from './UploadAvatar';
-import CrudNotification from '@shared/styles/components/notifications/CrudNotification';
-=======
 /**
  * Formulario de perfil para administradores/empleados.
  *
@@ -24,7 +14,6 @@ import CrudNotification from '@shared/styles/components/notifications/CrudNotifi
 import TextFieldLetters from '@shared/components/base/TextFieldLetters';
 import TextFieldNumbers from '@shared/components/base/TextFieldNumbers';
 import TextFieldAlphanumeric from '@shared/components/base/TextFieldAlphanumeric';
->>>>>>> Develop
 
 const BRAND_COLOR    = '#1a2540';
 const BRAND_HOVER    = '#2d3a6b';
@@ -42,30 +31,6 @@ const LIMITS = {
 
 export default function AparienciaAdmin({ user, onUserUpdate, configuracion }) {
   const {
-<<<<<<< HEAD
-    formData,
-    fotoPerfil,
-    loading,
-    editMode,
-    showPasswordForm,
-    validationErrors,
-    passwordData,
-    puedeEditar,
-    notification,
-    handleCloseNotification,
-    handleChange,
-    handlePasswordChange,
-    handleSubmit,
-    handlePasswordSubmit,
-    handleCancelEdit,
-    setEditMode,
-    setShowPasswordForm,
-    handleFotoUpload,
-    hasValidChanges,
-    isUpdating,
-    isUpdatingPassword
-  } = useConfiguracion(user, onUserUpdate);
-=======
     formData, fotoPerfil, loading, editMode, showPasswordForm,
     validationErrors, passwordData, puedeEditar, notification,
     handleCloseNotification, handleChange, handlePasswordChange,
@@ -73,7 +38,6 @@ export default function AparienciaAdmin({ user, onUserUpdate, configuracion }) {
     setEditMode, setShowPasswordForm, handleFotoUpload,
     hasAnyChange, isUpdating, isUpdatingPassword,
   } = configuracion;
->>>>>>> Develop
 
   const handleCancelPassword = () => {
     setShowPasswordForm(false);
@@ -107,35 +71,6 @@ export default function AparienciaAdmin({ user, onUserUpdate, configuracion }) {
 
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
-<<<<<<< HEAD
-            <TextField
-              fullWidth
-              label="Nombre"
-              name="nombre"
-              value={formData.nombre || ''}
-              onChange={handleChange}
-              disabled={!editMode || !puedeEditar}
-              required={editMode}
-              size="small"
-              error={!!validationErrors.nombre}
-              helperText={validationErrors.nombre}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Apellido"
-              name="apellido"
-              value={formData.apellido || ''}
-              onChange={handleChange}
-              disabled={!editMode || !puedeEditar}
-              required={editMode}
-              size="small"
-              error={!!validationErrors.apellido}
-              helperText={validationErrors.apellido}
-            />
-          </Grid>
-=======
             <TextFieldLetters
               fullWidth label="Nombre *" name="nombre" value={formData.nombre || ''}
               onChange={handleChange} disabled={!editMode || !puedeEditar}
@@ -143,7 +78,6 @@ export default function AparienciaAdmin({ user, onUserUpdate, configuracion }) {
               error={!!validationErrors.nombre} helperText={validationErrors.nombre}
             />
           </Grid>
->>>>>>> Develop
           <Grid item xs={12} sm={6}>
             <TextFieldLetters
               fullWidth label="Apellido *" name="apellido" value={formData.apellido || ''}
@@ -159,20 +93,6 @@ export default function AparienciaAdmin({ user, onUserUpdate, configuracion }) {
               helperText="El correo no se puede modificar"
             />
           </Grid>
-<<<<<<< HEAD
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Teléfono principal"
-              name="telefono"
-              value={formData.telefono || ''}
-              onChange={handleChange}
-              disabled={!editMode || !puedeEditar}
-              size="small"
-              placeholder="Ej: 3001234567"
-              error={!!validationErrors.telefono}
-              helperText={validationErrors.telefono}
-=======
           <Grid item xs={12} sm={6}>
             <TextFieldNumbers
               fullWidth label="Teléfono principal" name="telefono"
@@ -298,7 +218,6 @@ export default function AparienciaAdmin({ user, onUserUpdate, configuracion }) {
               maxLength={LIMITS.TELEFONO_EMERGENCIA} placeholder="3007654321"
               error={!!validationErrors.telefono_emergencia}
               helperText={validationErrors.telefono_emergencia}
->>>>>>> Develop
             />
           </Grid>
         </Grid>
@@ -447,11 +366,7 @@ export default function AparienciaAdmin({ user, onUserUpdate, configuracion }) {
                 <Button
                   type="submit"
                   variant="contained"
-<<<<<<< HEAD
-                  disabled={isUpdating || !hasValidChanges()}
-=======
                   disabled={isUpdating || !hasAnyChange()}
->>>>>>> Develop
                   sx={{
                     backgroundColor: BRAND_COLOR,
                     '&:hover': { backgroundColor: BRAND_HOVER },
@@ -466,21 +381,10 @@ export default function AparienciaAdmin({ user, onUserUpdate, configuracion }) {
         )}
       </form>
 
-<<<<<<< HEAD
-      {/* Cambiar Contraseña */}
-      {puedeEditar && (
-        <>
-          <Divider sx={{ my: 3 }} />
-          <Typography variant="h6" gutterBottom>
-            Cambiar Contraseña
-          </Typography>
-
-=======
       {puedeEditar && (
         <>
           <Divider sx={{ my: 3 }} />
           <Typography variant="h6" gutterBottom>Cambiar Contraseña</Typography>
->>>>>>> Develop
           {!showPasswordForm ? (
             <Button
               variant="contained"
@@ -525,36 +429,13 @@ export default function AparienciaAdmin({ user, onUserUpdate, configuracion }) {
                   variant="outlined"
                   onClick={handleCancelPassword}
                   disabled={isUpdatingPassword}
-<<<<<<< HEAD
-                  sx={{
-                    textTransform: 'none',
-                    borderColor: BORDER_COLOR,
-                    color: TEXT_SECONDARY,
-                    '&:hover': {
-                      borderColor: BRAND_HOVER,
-                      color: BRAND_HOVER,
-                      backgroundColor: `${BRAND_COLOR}12`
-                    }
-                  }}
-=======
->>>>>>> Develop
                 >
                   Cancelar
                 </Button>
                 <Button
                   type="submit"
                   variant="contained"
-<<<<<<< HEAD
-                  disabled={isUpdatingPassword || !passwordData.nueva_contrasenia || !passwordData.contrasenia_actual}
-                  sx={{
-                    backgroundColor: BRAND_COLOR,
-                    '&:hover': { backgroundColor: BRAND_HOVER },
-                    textTransform: 'none',
-                    boxShadow: 'none'
-                  }}
-=======
                   disabled={isUpdatingPassword || !passwordData.nueva_contrasenia}
->>>>>>> Develop
                 >
                   {isUpdatingPassword ? 'Actualizando...' : 'Actualizar Contraseña'}
                 </Button>

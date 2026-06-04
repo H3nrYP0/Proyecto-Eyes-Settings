@@ -2,10 +2,7 @@ import { useNavigate } from "react-router-dom";
 import CrudLayout from "@shared/components/crud/CrudLayout";
 import CrudTable from "@shared/components/crud/CrudTable";
 import Modal from "@shared/components/ui/Modal";
-<<<<<<< HEAD
-=======
 import Loading from "@shared/components/ui/Loading";
->>>>>>> Develop
 import { useProveedores } from "../hooks/useProveedores";
 import "@shared/styles/components/crud-table.css";
 
