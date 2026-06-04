@@ -14,6 +14,62 @@ import {
   filtrarRoles,
 } from '@seguridad';
 
+// ========== Constantes para entidades principales (15) ==========
+const ENTIDADES_MAIN = [
+  "dashboard",
+  "servicios",
+  "citas",
+  "empleados",
+  "campanas",
+  "compras",
+  "productos",
+  "categorias",
+  "marcas",
+  "proveedores",
+  "clientes",
+  "pedidos",
+  "ventas",
+  "usuarios",
+  "seguridad",
+];
+
+// Mapeo de permisos especiales a entidad (solo principales)
+const specialMapping = {
+  cambiar_estado_cita: "citas",
+  cambiar_estado_pedido: "pedidos",
+  cambiar_estado_venta: "ventas",
+  gestionar_configuracion: "seguridad",
+  ver_dashboard: "dashboard",
+  cliente_acceso_basico: "seguridad",
+};
+
+// Obtiene la entidad a partir del nombre del permiso
+const getEntityForPermiso = (nombre) => {
+  const parts = nombre.split("_");
+  if (parts.length >= 2) {
+    const accion = parts[0];
+    if (["ver", "crear", "editar", "eliminar"].includes(accion)) {
+      const entity = parts.slice(1).join("_");
+      if (entity === "configuracion") return "seguridad";
+      if (ENTIDADES_MAIN.includes(entity)) return entity;
+    }
+  }
+  if (specialMapping[nombre]) return specialMapping[nombre];
+  return null;
+};
+
+// Cuenta cuántas de las 15 entidades principales tienen al menos un permiso en el rol
+const contarEntidadesConPermisos = (permisos) => {
+  if (!Array.isArray(permisos)) return 0;
+  const entidadesSet = new Set();
+  permisos.forEach((p) => {
+    const entity = getEntityForPermiso(p.nombre);
+    if (entity) entidadesSet.add(entity);
+  });
+  return entidadesSet.size;
+};
+// ========== Fin de constantes ==========
+
 const ESTADO_OPTIONS = [
   { value: '', label: 'Todos los estados' },
   { value: 'activo', label: 'Activos' },
@@ -22,7 +78,14 @@ const ESTADO_OPTIONS = [
 
 const COLUMNS = [
   { field: 'nombre', header: 'Nombre', render: (item) => item.nombre },
-  { field: 'permisos', header: 'Permisos', render: (item) => `${item.permisosCount} permisos` },
+  { 
+    field: 'permisos', 
+    header: 'Permisos', 
+    render: (item) => {
+      const entidadesCount = contarEntidadesConPermisos(item.permisos || []);
+      return `${entidadesCount} ${entidadesCount === 1 ? 'permiso' : 'permisos'}`;
+    }
+  },
 ];
 
 export default function Roles() {

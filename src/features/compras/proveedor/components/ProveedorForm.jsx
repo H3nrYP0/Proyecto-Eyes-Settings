@@ -37,7 +37,7 @@ export default function ProveedorForm({
 
   const onSubmitForm = async () => {
     const result = await handleSubmit();
-    if (result.success && onSubmit) {
+    if (result?.success && onSubmit) {
       onSubmit(result.data);
     }
   };
@@ -48,7 +48,6 @@ export default function ProveedorForm({
     <BaseFormLayout title={title}>
       <BaseFormSection title="Información del Proveedor">
 
-        {/* Tipo de Proveedor */}
         <BaseFormField>
           <BaseInputField
             label="Tipo de Proveedor"
@@ -61,7 +60,6 @@ export default function ProveedorForm({
           />
         </BaseFormField>
 
-        {/* Razón Social / Nombre */}
         <BaseFormField>
           <BaseInputField
             label={formData.tipoProveedor === "Persona Jurídica" ? "Razón Social" : "Nombre Completo"}
@@ -75,7 +73,6 @@ export default function ProveedorForm({
           />
         </BaseFormField>
 
-        {/* Tipo de Documento */}
         <BaseFormField>
           <BaseInputField
             label="Tipo de Documento"
@@ -88,7 +85,6 @@ export default function ProveedorForm({
           />
         </BaseFormField>
 
-        {/* Número de Documento */}
         <BaseFormField>
           <BaseInputField
             label="Número de Documento"
@@ -102,7 +98,6 @@ export default function ProveedorForm({
           />
         </BaseFormField>
 
-        {/* Persona de Contacto */}
         <BaseFormField>
           <BaseInputField
             label="Persona de Contacto"
@@ -116,7 +111,6 @@ export default function ProveedorForm({
           />
         </BaseFormField>
 
-        {/* Teléfono */}
         <BaseFormField>
           <BaseInputField
             label="Teléfono"
@@ -130,7 +124,6 @@ export default function ProveedorForm({
           />
         </BaseFormField>
 
-        {/* Correo Electrónico */}
         <BaseFormField>
           <BaseInputField
             label="Correo Electrónico"
@@ -144,7 +137,6 @@ export default function ProveedorForm({
           />
         </BaseFormField>
 
-        {/* Departamento */}
         <BaseFormField>
           <BaseInputField
             label="Departamento"
@@ -158,7 +150,6 @@ export default function ProveedorForm({
           />
         </BaseFormField>
 
-        {/* Municipio */}
         <BaseFormField>
           <BaseInputField
             label="Municipio"
@@ -172,7 +163,6 @@ export default function ProveedorForm({
           />
         </BaseFormField>
 
-        {/* Dirección */}
         <BaseFormField>
           <BaseInputField
             label="Dirección"
@@ -186,7 +176,6 @@ export default function ProveedorForm({
           />
         </BaseFormField>
 
-        {/* Estado — solo en edición/visualización */}
         {mode !== "create" && (
           <BaseFormField>
             <BaseInputField

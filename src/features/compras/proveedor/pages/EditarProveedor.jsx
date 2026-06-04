@@ -1,15 +1,25 @@
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { getProveedorById } from "../services/proveedoresService";
 import { normalizeProveedorForForm } from "../utils/proveedoresUtils";
 import ProveedorForm from "../components/ProveedorForm";
 import Loading from "@shared/components/ui/Loading";
+import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 
 export default function EditarProveedor() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [proveedor, setProveedor] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [notification, setNotification] = useState({ isVisible: false, message: "", type: "success" });
+
+  const showNotification = (message, type = "success") => {
+    setNotification({ isVisible: true, message, type });
+    setTimeout(() => {
+      if (type === "success") navigate("/admin/compras/proveedores");
+    }, 1500);
+  };
 
   useEffect(() => {
     getProveedorById(Number(id))
@@ -25,12 +35,21 @@ export default function EditarProveedor() {
   if (!proveedor) return null;
 
   return (
-    <ProveedorForm
-      mode="edit"
-      title={`Editar Proveedor: ${proveedor.razonSocial}`}
-      initialData={proveedor}
-      onSubmit={() => navigate("/admin/compras/proveedores")}
-      onCancel={() => navigate("/admin/compras/proveedores")}
-    />
+    <>
+      <CrudNotification
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.isVisible}
+        onClose={() => setNotification((prev) => ({ ...prev, isVisible: false }))}
+      />
+      <ProveedorForm
+        mode="edit"
+        title={`Editar Proveedor: ${proveedor.razonSocial}`}
+        initialData={proveedor}
+        onSubmit={() => showNotification("Proveedor actualizado exitosamente", "success")}
+        onCancel={() => navigate("/admin/compras/proveedores")}
+        onError={(msg) => showNotification(msg, "error")}
+      />
+    </>
   );
 }
