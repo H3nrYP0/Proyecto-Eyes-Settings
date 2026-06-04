@@ -2,7 +2,6 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
   TableRow,
   TablePagination,
@@ -26,7 +25,6 @@ export default function UnifiedCrudTable({
   emptyMessage = "No hay registros.",
   onChangeStatus,
   showStatusColumn = true,
-  // Nuevas props para paginación externa (opcionales)
   totalCount = null,
   page = 0,
   onPageChange = null,
@@ -37,15 +35,10 @@ export default function UnifiedCrudTable({
   const [selectedRow, setSelectedRow] = useState(null);
   const [newStatus, setNewStatus] = useState(null);
   const [openModal, setOpenModal] = useState(false);
-  // Estados internos (usados solo si no hay paginación externa)
   const [internalPage, setInternalPage] = useState(0);
   const [internalRowsPerPage, setInternalRowsPerPage] = useState(10);
-
   const scrollRef = useRef(null);
 
-  // El evento wheel de React es pasivo por defecto y no permite preventDefault().
-  // Se registra manualmente con { passive: false } para poder redirigir el scroll
-  // vertical a scroll horizontal en la tabla.
   const handleWheel = useCallback((e) => {
     const el = scrollRef.current;
     if (!el) return;
@@ -62,9 +55,7 @@ export default function UnifiedCrudTable({
     return () => el.removeEventListener("wheel", handleWheel);
   }, [handleWheel]);
 
-  // Determinar si se usa paginación externa
   const useExternalPagination = totalCount !== null && onPageChange !== null;
-
   const activePage = useExternalPagination ? page : internalPage;
   const activeRowsPerPage = useExternalPagination ? rowsPerPage : internalRowsPerPage;
 
@@ -138,8 +129,8 @@ export default function UnifiedCrudTable({
       case "inactiva":
       case "anulada":
       case "rechazado":
-        case "cancelado":
-          case "cancelada":
+      case "cancelado":
+      case "cancelada":
         return "error";
       case "pendiente":
         return "warning";
@@ -148,12 +139,9 @@ export default function UnifiedCrudTable({
     }
   };
 
-  // Datos a mostrar: si hay paginación externa, no se aplica slice (ya vienen paginados del backend)
-  // Si no, se aplica slice para paginación interna
   const displayData = useExternalPagination
     ? data
     : data.slice(activePage * activeRowsPerPage, activePage * activeRowsPerPage + activeRowsPerPage);
-
   const totalItems = useExternalPagination ? totalCount : data.length;
 
   return (
@@ -174,9 +162,9 @@ export default function UnifiedCrudTable({
           <Table size="small" sx={{ minWidth: 500, tableLayout: "auto" }}>
             <TableHead>
               <TableRow>
-                {visibleColumns.map((col) => (
+                {visibleColumns.map((col, idx) => (
                   <TableCell
-                    key={col.field}
+                    key={col.field || col.header || idx}
                     sx={{ whiteSpace: "nowrap", fontWeight: 600 }}
                   >
                     {col.header}
@@ -199,7 +187,7 @@ export default function UnifiedCrudTable({
               {!data || data.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={visibleColumns.length + 2}
+                    colSpan={visibleColumns.length + (showStatusColumn ? 1 : 0) + (hasActions ? 1 : 0)}
                     align="center"
                     sx={{ py: 6 }}
                   >
@@ -209,48 +197,50 @@ export default function UnifiedCrudTable({
                   </TableCell>
                 </TableRow>
               ) : (
-                displayData.map((row) => (
-                  <TableRow key={row.id} hover>
-                    {visibleColumns.map((col) => (
-                      <TableCell key={col.field}>
-                        {typeof col.render === "function"
-                          ? col.render(row)
-                          : row[col.field]}
-                      </TableCell>
-                    ))}
+                displayData.map((row, rowIndex) => {
+                  const rowKey = row.id !== undefined && row.id !== null ? `row-${row.id}` : `row-${rowIndex}`;
+                  return (
+                    <TableRow key={rowKey} hover>
+                      {visibleColumns.map((col, colIndex) => (
+                        <TableCell key={`${rowKey}-col-${col.field || colIndex}`}>
+                          {typeof col.render === "function"
+                            ? col.render(row)
+                            : row[col.field]}
+                        </TableCell>
+                      ))}
 
-                    {showStatusColumn && (
-                      <TableCell key="status-cell" align="center">
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          color={getStatusColor(row.estado)}
-                          onClick={(e) => handleStatusClick(e, row)}
-                          sx={{
-                            textTransform: "capitalize",
-                            minWidth: 85,
-                            fontSize: "0.75rem",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {row.estado}
-                        </Button>
-                      </TableCell>
-                    )}
+                      {showStatusColumn && (
+                        <TableCell key={`${rowKey}-status`} align="center">
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color={getStatusColor(row.estado)}
+                            onClick={(e) => handleStatusClick(e, row)}
+                            sx={{
+                              textTransform: "capitalize",
+                              minWidth: 85,
+                              fontSize: "0.75rem",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {row.estado}
+                          </Button>
+                        </TableCell>
+                      )}
 
-                    {hasActions && (
-                      <TableCell key="actions-cell" align="center">
-                        <CrudActions actions={actions} item={row} />
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))
+                      {hasActions && (
+                        <TableCell key={`${rowKey}-actions`} align="center">
+                          <CrudActions actions={actions} item={row} />
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>
         </Box>
 
-        {/* Paginación siempre visible dentro del Paper */}
         {totalItems > 0 && (
           <TablePagination
             component="div"
