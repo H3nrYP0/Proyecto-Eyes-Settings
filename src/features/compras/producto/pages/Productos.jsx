@@ -2,12 +2,10 @@
 import { useEffect } from "react";
 import { Pagination, Typography, Box, Button, Stack } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import ClearIcon from '@mui/icons-material/Clear';
 import CrudLayout from "@shared/components/crud/CrudLayout";
 import CrudTable from "@shared/components/crud/CrudTable";
 import Modal from "@shared/components/ui/Modal";
 import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
-import Loading from "@shared/components/ui/Loading/Loading";
 import { useProductos } from "../hooks/useProductos";
 import StockCell from "../components/StockCell";
 import { ImageGallery } from "../components/ImageGallery";
