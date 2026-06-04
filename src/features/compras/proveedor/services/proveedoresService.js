@@ -1,16 +1,10 @@
-import api from "../../../../lib/axios";
+import api from "@lib/axios";
 
-// ============================
-// Obtener todos los proveedores
-// ============================
 export async function getAllProveedores() {
   const res = await api.get("/proveedores");
   return res.data;
 }
 
-// ============================
-// Obtener proveedores activos (para selects)
-// ============================
 export async function getProveedoresActivos() {
   const proveedores = await getAllProveedores();
   return proveedores
@@ -21,9 +15,6 @@ export async function getProveedoresActivos() {
     }));
 }
 
-// ============================
-// Obtener proveedor por ID
-// ============================
 export async function getProveedorById(id) {
   try {
     const res = await api.get(`/proveedores/${id}`);
@@ -34,9 +25,6 @@ export async function getProveedorById(id) {
   }
 }
 
-// ============================
-// Crear proveedor
-// ============================
 export async function createProveedor(data) {
   const payload = {
     tipo_proveedor: data.tipoProveedor,
@@ -55,9 +43,6 @@ export async function createProveedor(data) {
   return res.data;
 }
 
-// ============================
-// Actualizar proveedor
-// ============================
 export async function updateProveedor(id, data) {
   const payload = {
     tipo_proveedor: data.tipoProveedor,
@@ -76,18 +61,28 @@ export async function updateProveedor(id, data) {
   return res.data;
 }
 
-// ============================
-// Cambiar estado del proveedor
-// ============================
+// Mejorado: obtiene el proveedor completo, actualiza solo el estado y envía todo
 export async function toggleEstadoProveedor(id, nuevoEstado) {
-  const payload = { estado: nuevoEstado };
+  const proveedorActual = await getProveedorById(id);
+  if (!proveedorActual) throw new Error("Proveedor no encontrado");
+  
+  const payload = {
+    tipo_proveedor: proveedorActual.tipo_proveedor,
+    tipo_documento: proveedorActual.tipo_documento,
+    documento: proveedorActual.documento,
+    razon_social_o_nombre: proveedorActual.razon_social_o_nombre,
+    contacto: proveedorActual.contacto,
+    telefono: proveedorActual.telefono,
+    correo: proveedorActual.correo,
+    departamento: proveedorActual.departamento,
+    municipio: proveedorActual.municipio,
+    direccion: proveedorActual.direccion,
+    estado: nuevoEstado,
+  };
   const res = await api.put(`/proveedores/${id}`, payload);
   return res.data;
 }
 
-// ============================
-// Eliminar proveedor
-// ============================
 export async function deleteProveedor(id) {
   const res = await api.delete(`/proveedores/${id}`);
   return res.data;

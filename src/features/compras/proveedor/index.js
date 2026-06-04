@@ -1,7 +1,3 @@
-/**
- * Módulo de Proveedores
- */
-
 // Pages
 export { default as Proveedores } from "./pages/Proveedores";
 export { default as CrearProveedor } from "./pages/CrearProveedor";

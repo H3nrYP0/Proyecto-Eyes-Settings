@@ -1,13 +1,20 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CrudLayout from "@shared/components/crud/CrudLayout";
 import CrudTable from "@shared/components/crud/CrudTable";
 import Modal from "@shared/components/ui/Modal";
-import Loading from "@shared/components/ui/Loading";
+import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 import { useProveedores } from "../hooks/useProveedores";
 import "@shared/styles/components/crud-table.css";
 
 export default function Proveedores() {
   const navigate = useNavigate();
+  const [notification, setNotification] = useState({ isVisible: false, message: "", type: "success" });
+
+  const showNotification = (message, type = "success") => {
+    setNotification({ isVisible: true, message, type });
+  };
+
   const {
     proveedores,
     loading,
@@ -22,25 +29,24 @@ export default function Proveedores() {
     modalDelete,
     openDeleteModal,
     closeDeleteModal,
-  } = useProveedores();
+  } = useProveedores({
+    onSuccess: showNotification,
+    onError: (msg) => showNotification(msg, "error"),
+  });
 
   const confirmDelete = async () => {
     const result = await eliminarProveedor(modalDelete.id);
     if (result.success) closeDeleteModal();
-    else alert(result.error);
   };
 
   const handleChangeStatus = async (row, nuevoEstado) => {
-    const result = await cambiarEstado(row.id, nuevoEstado);
-    if (!result.success) alert(result.error);
+    await cambiarEstado(row.id, nuevoEstado);
   };
 
   const columns = [
     {
       field: "tipoProveedor",
       header: "Tipo",
-      headerSx: { display: { xs: "none", md: "table-cell" } },
-      cellSx: { display: { xs: "none", md: "table-cell" } },
       render: (item) => (
         <span className={item.tipoProveedor === "Persona Jurídica" ? "juridica" : "natural"}>
           {item.tipoProveedor}
@@ -51,14 +57,12 @@ export default function Proveedores() {
     {
       field: "documento",
       header: "Documento",
-      headerSx: { display: { xs: "none", sm: "table-cell" } },
-      cellSx: { display: { xs: "none", sm: "table-cell" } },
+      render: (item) => item.documento || "—",
     },
     {
       field: "telefono",
       header: "Teléfono",
-      headerSx: { display: { xs: "none", md: "table-cell" } },
-      cellSx: { display: { xs: "none", md: "table-cell" } },
+      render: (item) => item.telefono || "—",
     },
   ];
 
@@ -82,6 +86,13 @@ export default function Proveedores() {
 
   return (
     <>
+      <CrudNotification
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.isVisible}
+        onClose={() => setNotification((prev) => ({ ...prev, isVisible: false }))}
+      />
+
       <CrudLayout
         title="Proveedores"
         onAddClick={() => navigate("crear")}
@@ -101,6 +112,7 @@ export default function Proveedores() {
           actions={tableActions}
           loading={loading}
           onChangeStatus={handleChangeStatus}
+          showStatusColumn
           emptyMessage={
             search || filterEstado
               ? "No se encontraron proveedores"
@@ -129,6 +141,7 @@ export default function Proveedores() {
           border-radius: 12px;
           font-size: 0.8rem;
           font-weight: 500;
+          display: inline-block;
         }
         .natural {
           background: #f0fdf4;
@@ -137,6 +150,7 @@ export default function Proveedores() {
           border-radius: 12px;
           font-size: 0.8rem;
           font-weight: 500;
+          display: inline-block;
         }
       `}</style>
     </>
