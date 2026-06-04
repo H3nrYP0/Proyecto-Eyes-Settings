@@ -1,5 +1,4 @@
 // ============================================================
-// PermisosSelector.jsx
 // Selector de permisos por entidad (diseño 3 columnas).
 // Cada entidad tiene un solo checkbox que representa TODOS los permisos de esa entidad.
 // Toda la tarjeta es clickeable.
@@ -22,15 +21,14 @@ const specialMapping = {
   cambiar_estado_cita: "citas",
   cambiar_estado_pedido: "pedidos",
   cambiar_estado_venta: "ventas",
-  ver_imagenes: "imagenes",
-  subir_imagenes: "imagenes",
-  eliminar_imagenes: "imagenes",
+  // Las entidades "imagenes" ya no se incluyen en la lista principal
+  // ver_imagenes, subir_imagenes, eliminar_imagenes se omiten
   gestionar_configuracion: "seguridad",
   ver_dashboard: "dashboard",
   cliente_acceso_basico: "seguridad",
 };
 
-// Lista de entidades en el orden deseado
+// Lista de entidades principales (15) - orden deseado
 const ENTIDADES_MAIN = [
   "dashboard",
   "servicios",
@@ -47,7 +45,6 @@ const ENTIDADES_MAIN = [
   "ventas",
   "usuarios",
   "seguridad",
-  "imagenes",
 ];
 
 // Nombres mostrados con tildes
@@ -67,7 +64,7 @@ const nombresConTildes = {
   ventas: "Ventas",
   usuarios: "Usuarios",
   seguridad: "Seguridad",
-  imagenes: "Imágenes",
+  // imagenes ya no se muestra
 };
 
 const formatearNombreEntidad = (entidad) => {
@@ -90,19 +87,19 @@ const getEntityForPermiso = (nombre) => {
   return null;
 };
 
-// Agrupa los IDs de permisos por entidad
+// Agrupa los IDs de permisos por entidad, solo entidades principales
 const agruparPorEntidad = (permisos) => {
   const map = new Map();
   permisos.forEach((p) => {
     const entity = getEntityForPermiso(p.nombre);
     if (!entity) return;
+    if (!ENTIDADES_MAIN.includes(entity)) return; // filtrar solo principales
     if (!map.has(entity)) map.set(entity, []);
     map.get(entity).push(p.id);
   });
-  const orden = [...ENTIDADES_MAIN];
-  return Array.from(map.entries())
-    .map(([entity, ids]) => ({ entity, ids }))
-    .sort((a, b) => orden.indexOf(a.entity) - orden.indexOf(b.entity));
+  // Orden según ENTIDADES_MAIN
+  return ENTIDADES_MAIN.filter(entity => map.has(entity))
+    .map(entity => ({ entity, ids: map.get(entity) }));
 };
 
 export default function PermisosSelector({
@@ -144,7 +141,7 @@ export default function PermisosSelector({
     onChange(nuevos);
   };
 
-  // Modo solo lectura: muestra la lista de entidades seleccionadas
+  // Modo solo lectura: muestra la lista de entidades seleccionadas (solo principales)
   if (isReadOnly) {
     const entidadesSeleccionadas = grupos
       .filter(grupo => isCompleta(grupo))
