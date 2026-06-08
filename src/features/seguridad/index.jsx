@@ -17,6 +17,7 @@ export * from './user/services/userServices';
 export * from './roles/hooks/useRol';
 export * from './user/hooks/useUsuario';      
 export * from './user/hooks/useUserForm';
+export * from './roles/hooks/useRolesList';
 
 // ==================== COMPONENTES ====================
 export { default as RolForm }          from './roles/components/RolForm';
@@ -28,6 +29,7 @@ export * from './roles/utils/permisosUtils';
 export * from './roles/utils/rolFilters';
 export * from './roles/utils/rolNormalizer';
 export * from './roles/utils/rolValidators';
+export * from './roles/utils/rolHelpers';
 
 export * from './user/utils/userFilters';
 export * from './user/utils/userNormalizer';
