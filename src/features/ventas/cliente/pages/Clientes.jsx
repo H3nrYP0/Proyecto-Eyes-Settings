@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Box, Pagination } from "@mui/material";
 import CrudLayout from "@shared/components/crud/CrudLayout";
 import CrudTable from "@shared/components/crud/CrudTable";
 import Modal from "@shared/components/ui/Modal";
@@ -33,14 +34,17 @@ export default function Clientes() {
     confirmDelete,
     closeDeleteModal,
     cambiarEstado,
+    page,
+    setPage,
+    totalPages,
   } = useClientes({ onSuccess: showNotification });
 
-  const actionsWithNavigate = tableActions.map(action => ({
+  const actionsWithNavigate = tableActions.map((action) => ({
     ...action,
     onClick: (row) => {
-      if (action.type === "view")      navigate(`detalle/${row.id}`);
+      if (action.type === "view") navigate(`detalle/${row.id}`);
       else if (action.type === "edit") navigate(`editar/${row.id}`);
-      else                             action.onClick(row);
+      else action.onClick(row);
     },
   }));
 
@@ -75,6 +79,19 @@ export default function Clientes() {
               : "No hay clientes registrados"
           }
         />
+
+        {/* Paginación */}
+        {totalPages > 1 && (
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 3, mb: 2 }}>
+            <Pagination
+              count={totalPages}
+              page={page}
+              onChange={(e, value) => setPage(value)}
+              color="primary"
+              size="small"
+            />
+          </Box>
+        )}
 
         <Modal
           open={modalDelete.open}
