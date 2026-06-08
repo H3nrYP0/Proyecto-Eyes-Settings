@@ -18,6 +18,7 @@ export * from './roles/hooks/useRol';
 export * from './user/hooks/useUsuario';      
 export * from './user/hooks/useUserForm';
 export * from './roles/hooks/useRolesList';
+export * from './user/hooks/useUsuariosList';
 
 // ==================== COMPONENTES ====================
 export { default as RolForm }          from './roles/components/RolForm';
