@@ -1,4 +1,4 @@
-import axios from "../../../../lib/axios";
+import api from '@lib/axios';
 
 export const pedidosService = {
 
@@ -19,13 +19,14 @@ export const pedidosService = {
         fechaPedido:               p.fecha ? p.fecha.split("T")[0] : "",
         estado:                    p.estado_nombre ?? p.estado ?? "pendiente",
         estado_id:                 p.estado_id,
-        metodo_pago:               p.metodo_pago ?? "",
-        metodo_entrega:            p.metodo_entrega ?? "",
+        metodo_pago:               p.metodo_pago      ?? "",
+        metodo_entrega:            p.metodo_entrega   ?? "",
         direccion_entrega:         p.direccion_entrega ?? "",
         transferencia_comprobante: p.transferencia_comprobante ?? "",
-        total:                     p.total ?? 0,
-        abono_acumulado:           p.abono_acumulado ?? 0,
-        saldo_pendiente:           p.saldo_pendiente ?? p.total ?? 0,
+        total:                     p.total            ?? 0,
+        costo_envio:               p.costo_envio      ?? 0,
+        abono_acumulado:           p.abono_acumulado  ?? 0,
+        saldo_pendiente:           p.saldo_pendiente  ?? (p.total ?? 0) - (p.abono_acumulado ?? 0),
         items: Array.isArray(p.items)
           ? p.items.map((item) => ({
               id:          item.id,
@@ -36,9 +37,7 @@ export const pedidosService = {
               precio:      item.precio_unitario ?? item.precio ?? 0,
               cantidad:    item.cantidad ?? 1,
               subtotal:    item.subtotal ?? 0,
-              // El back ahora devuelve 'tipo' en to_dict del detalle
               tipo:        item.tipo ?? (item.producto_id ? "producto" : "servicio"),
-              // stock solo aplica a productos
               stock:       (item.tipo === "producto" || item.producto_id) ? (item.stock ?? null) : null,
             }))
           : [],
@@ -50,7 +49,7 @@ export const pedidosService = {
         estado: "pendiente", estado_id: null,
         metodo_pago: "", metodo_entrega: "",
         direccion_entrega: "", transferencia_comprobante: "",
-        total: 0, abono_acumulado: 0, saldo_pendiente: 0, items: [],
+        total: 0, costo_envio: 0, abono_acumulado: 0, saldo_pendiente: 0, items: [],
       };
     }
   },
@@ -61,7 +60,7 @@ export const pedidosService = {
       cliente_id:     data.cliente_id,
       metodo_pago:    data.metodo_pago    ?? "efectivo",
       metodo_entrega: data.metodo_entrega ?? "tienda",
-      ...(data.direccion_entrega         && { direccion_entrega: data.direccion_entrega }),
+      ...(data.direccion_entrega         && { direccion_entrega:         data.direccion_entrega }),
       ...(data.transferencia_comprobante && { transferencia_comprobante: data.transferencia_comprobante }),
     };
 
@@ -84,13 +83,46 @@ export const pedidosService = {
 
   // ── CRUD PEDIDOS ──────────────────────────────────────────────────────────
 
-  async getAllPedidos() {
-    const response = await axios.get("/pedidos");
-    if (!Array.isArray(response.data)) {
-      console.error("getAllPedidos: respuesta inesperada:", response.data);
-      return [];
+  /**
+   * Obtiene pedidos paginados desde el backend.
+   * @param {object} params - { page, perPage, search, estado }
+   * @returns {{ data: array, pagination: object }}
+   */
+  async getAllPedidos({ page = 1, perPage = 10, search = "", estado = "" } = {}) {
+    const params = { page, per_page: perPage };
+    if (search) params.search = search;
+
+    // Convertir nombre del estado a ID (back-end espera estado_id)
+    if (estado) {
+      const estadoMap = {
+        pendiente: 1,
+        pagado:    2,
+        anulado:   3,
+      };
+      const estadoId = estadoMap[estado.toLowerCase()];
+      if (estadoId) {
+        params.estado_id = estadoId;
+      }
     }
-    return response.data.map((p) => this._toUI(p));
+
+    const response = await axios.get("/pedidos", { params });
+    const raw = response.data;
+
+    // Retrocompatibilidad: si el back aún devuelve array plano
+    if (Array.isArray(raw)) {
+      return {
+        data:       raw.map((p) => this._toUI(p)),
+        pagination: { current_page: 1, total_pages: 1, total: raw.length, has_next: false, has_prev: false },
+      };
+    }
+
+    // Respuesta paginada: { data: [...], pagination: {...} }
+    return {
+      data:       (raw.data ?? []).map((p) => this._toUI(p)),
+      pagination: raw.pagination ?? {
+        current_page: 1, total_pages: 1, total: 0, has_next: false, has_prev: false,
+      },
+    };
   },
 
   async getPedidoById(id) {
@@ -109,8 +141,7 @@ export const pedidosService = {
     if (data.metodo_pago               !== undefined) payload.metodo_pago               = data.metodo_pago;
     if (data.metodo_entrega            !== undefined) payload.metodo_entrega            = data.metodo_entrega;
     if (data.direccion_entrega         !== undefined) payload.direccion_entrega         = data.direccion_entrega;
-    if (data.transferencia_comprobante !== undefined)
-      payload.transferencia_comprobante = data.transferencia_comprobante;
+    if (data.transferencia_comprobante !== undefined) payload.transferencia_comprobante = data.transferencia_comprobante;
 
     const response = await axios.put(`/pedidos/${id}`, payload);
     return this._toUI(response.data.pedido ?? response.data);
@@ -163,8 +194,10 @@ export const pedidosService = {
   // ── CATÁLOGOS ─────────────────────────────────────────────────────────────
 
   async getClientesActivos() {
-    const response = await axios.get("/clientes");
-    const data = Array.isArray(response.data) ? response.data : [];
+    const response = await axios.get("/admin/clientes");
+    const data = Array.isArray(response.data)
+      ? response.data
+      : (response.data?.data ?? []);
     return data
       .filter((c) => c.estado !== false)
       .map((c) => ({
@@ -175,7 +208,9 @@ export const pedidosService = {
 
   async getProductosActivos() {
     const response = await axios.get("/productos");
-    const data = Array.isArray(response.data) ? response.data : [];
+    const data = Array.isArray(response.data)
+      ? response.data
+      : (response.data?.data ?? []);
     return data
       .filter((p) => p.estado !== false && (p.stock ?? 0) > 0)
       .map((p) => ({
@@ -190,7 +225,9 @@ export const pedidosService = {
 
   async getServiciosActivos() {
     const response = await axios.get("/servicios");
-    const data = Array.isArray(response.data) ? response.data : [];
+    const data = Array.isArray(response.data)
+      ? response.data
+      : (response.data?.data ?? []);
     return data
       .filter((s) => s.estado !== false)
       .map((s) => ({
@@ -198,7 +235,7 @@ export const pedidosService = {
         nombre:      s.nombre,
         descripcion: s.descripcion ?? "",
         precio:      s.precio,
-        stock:       null,   // los servicios no tienen stock
+        stock:       null,
         tipo:        "servicio",
       }));
   },
@@ -221,11 +258,7 @@ export const pedidosService = {
   },
 
   getEstadoLabel(estado) {
-    const labels = {
-      pendiente: "Pendiente",
-      pagado:    "Pagado",
-      anulado:   "Anulado",
-    };
+    const labels = { pendiente: "Pendiente", pagado: "Pagado", anulado: "Anulado" };
     return labels[estado] ?? estado;
   },
 };

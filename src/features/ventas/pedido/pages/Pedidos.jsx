@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { Box, Pagination } from "@mui/material"; 
 import CrudLayout       from "@shared/components/crud/CrudLayout";
 import CrudTable        from "@shared/components/crud/CrudTable";
 import Modal            from "@shared/components/ui/Modal";
@@ -12,6 +13,8 @@ export default function Pedidos() {
   const navigate = useNavigate();
   const {
     pedidos, loading,
+    pagination,
+    page, setPage,
     search, setSearch,
     filterEstado, setFilterEstado,
     estadoFilters,
@@ -23,6 +26,7 @@ export default function Pedidos() {
     obtenerResumenItems,
   } = usePedidos();
 
+  const totalPages = pagination?.total_pages ?? 1;
   const columns = [
     {
       field: "cliente",
@@ -135,6 +139,19 @@ export default function Pedidos() {
               : "No hay pedidos registrados"
           }
         />
+
+        {/* ✅ Paginación - igual que en Clientes */}
+        {totalPages > 1 && (
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 3, mb: 2 }}>
+            <Pagination
+              count={totalPages}
+              page={page}
+              onChange={(e, value) => setPage(value)}
+              color="primary"
+              size="small"
+            />
+          </Box>
+        )}
 
         {/* Modal eliminar */}
         <Modal
