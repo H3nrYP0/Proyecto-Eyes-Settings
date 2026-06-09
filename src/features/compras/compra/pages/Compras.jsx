@@ -39,14 +39,22 @@ export default function Compras() {
     compras,
     loading,
     error,
-    search,       setSearch,
-    filterEstado, setFilterEstado,
+    search,
+    setSearch,
+    filterEstado,
+    setFilterEstado,
     estadoFilters,
-    page,         setPage,
+    page,
+    setPage,
     pagination,
     eliminarCompra,
-    modalDelete,  openDeleteModal, closeDeleteModal,
-    modalAnular,  abrirModalAnular, cerrarModalAnular, confirmarAnular,
+    modalDelete,
+    openDeleteModal,
+    closeDeleteModal,
+    modalAnular,
+    abrirModalAnular,
+    cerrarModalAnular,
+    confirmarAnular,
   } = useCompras();
 
   const confirmDelete = async () => {
@@ -181,31 +189,31 @@ export default function Compras() {
           page={page}
           onChange={setPage}
         />
-
-        <Modal
-          open={modalDelete.open}
-          type="warning"
-          title="¿Eliminar Compra?"
-          message={`Esta acción eliminará la compra "${modalDelete.numeroCompra}" y no se puede deshacer.`}
-          confirmText="Eliminar"
-          cancelText="Cancelar"
-          showCancel
-          onConfirm={confirmDelete}
-          onCancel={closeDeleteModal}
-        />
-
-        <Modal
-          open={modalAnular.open}
-          type="warning"
-          title="¿Anular Compra?"
-          message="Esta acción anulará la compra de forma permanente. No se podrá revertir."
-          confirmText="Sí, anular"
-          cancelText="Cancelar"
-          showCancel
-          onConfirm={handleConfirmarAnular}
-          onCancel={cerrarModalAnular}
-        />
       </CrudLayout>
+
+      <Modal
+        open={modalDelete.open}
+        type="warning"
+        title="¿Eliminar Compra?"
+        message={`Esta acción eliminará la compra "${modalDelete.numeroCompra}" y no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        showCancel
+        onConfirm={confirmDelete}
+        onCancel={closeDeleteModal}
+      />
+
+      <Modal
+        open={modalAnular.open}
+        type="warning"
+        title="¿Anular Compra?"
+        message="Esta acción anulará la compra de forma permanente. No se podrá revertir."
+        confirmText="Sí, anular"
+        cancelText="Cancelar"
+        showCancel
+        onConfirm={handleConfirmarAnular}
+        onCancel={cerrarModalAnular}
+      />
 
       <CrudNotification
         isVisible={notification.isVisible}
