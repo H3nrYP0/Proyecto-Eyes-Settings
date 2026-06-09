@@ -1,4 +1,3 @@
-// src/features/compras/pages/producto/pages/Productos.jsx
 import { useEffect } from "react";
 import { Pagination, Typography, Box, Button, Stack } from "@mui/material";
 import { useNavigate } from "react-router-dom";
@@ -143,20 +142,20 @@ export default function Productos() {
         />
         
         {totalPages > 1 && (
-          <Stack spacing={2} alignItems="center" sx={{ mt: 3, mb: 2 }}>
-            <Pagination
-              count={totalPages}
-              page={page}
-              onChange={(e, value) => setPage(value)}
-              color="primary"
-              showFirstButton
-              showLastButton
-            />
-            <Typography variant="body2" color="text.secondary">
-              Página {page} de {totalPages}
-            </Typography>
-          </Stack>
-        )}
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3, mb: 2 }}>
+          <Pagination
+            count={totalPages}
+            page={page}
+            onChange={(e, value) => setPage(value)}
+            color="primary"
+            size="small"
+            showFirstButton={false}
+            showLastButton={false}
+            siblingCount={1}
+            boundaryCount={1}
+          />
+        </Box>
+      )}
 
         <Modal
           open={modalDelete.open}

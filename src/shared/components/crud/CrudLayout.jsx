@@ -1,14 +1,16 @@
+// src/shared/components/crud/CrudLayout.jsx
 import { useState } from "react";
 import {
   Box,
   Typography,
-  Stack,
   TextField,
   IconButton,
   Button,
   Select,
   MenuItem,
   InputAdornment,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
@@ -16,6 +18,16 @@ import AddIcon from "@mui/icons-material/Add";
 
 const BRAND_COLOR = "#1a2540";
 const BRAND_HOVER = "#2d3a6b";
+
+// Opciones de ordenamiento por defecto
+const DEFAULT_SORT_OPTIONS = [
+  { value: "alfabetico_asc", label: "Alfabético A → Z" },
+  { value: "alfabetico_desc", label: "Alfabético Z → A" },
+  { value: "nuevo", label: "Más nuevo primero" },
+  { value: "viejo", label: "Más viejo primero" },
+  { value: "precio_asc", label: "Precio (menor a mayor)" },
+  { value: "precio_desc", label: "Precio (mayor a menor)" },
+];
 
 export default function CrudLayout({
   title,
@@ -30,13 +42,21 @@ export default function CrudLayout({
   searchFilters = null,
   filterEstado = "",
   onFilterChange = null,
+
+  // Nuevas props para ordenamiento (se muestra al lado del filtro)
+  showSort = false,
+  sortValue = "",
+  onSortChange = null,
+  sortOptions = DEFAULT_SORT_OPTIONS,
 }) {
   const [internalSearch, setInternalSearch] = useState("");
   const [internalFilter, setInternalFilter] = useState("");
+  const [internalSort, setInternalSort] = useState("");
 
   const useInternalState = !onSearchChange && !onFilterChange;
   const searchTerm = useInternalState ? internalSearch : searchValue;
   const filterValue = useInternalState ? internalFilter : filterEstado;
+  const sortTerm = onSortChange ? sortValue : internalSort;
 
   const handleSearchChange = (value) => {
     onSearchChange ? onSearchChange(value) : setInternalSearch(value);
@@ -46,40 +66,41 @@ export default function CrudLayout({
     onFilterChange ? onFilterChange(value) : setInternalFilter(value);
   };
 
+  const handleSortChange = (value) => {
+    if (onSortChange) {
+      onSortChange(value);
+    } else {
+      setInternalSort(value);
+    }
+  };
+
   return (
     <Box sx={{ p: { xs: 2, sm: 3 }, overflow: "hidden" }}>
       {/* ── HEADER ── */}
       <Box
         sx={{
           display: "flex",
-          flexWrap: "wrap",           // permite salto de línea natural
+          flexWrap: "wrap",
           alignItems: "center",
           gap: 1.5,
           mb: description ? 1 : 3,
-          minWidth: 0,                // evita que flex-children desborden
+          minWidth: 0,
         }}
       >
-        {/* Título: nunca se encoge, siempre ocupa su espacio */}
-        <Typography
-          variant="h5"
-          sx={{ fontWeight: 600, flexShrink: 0 }}
-        >
+        <Typography variant="h5" sx={{ fontWeight: 600, flexShrink: 0 }}>
           {title}
         </Typography>
 
         {showSearch && (
           <>
-            {/* Spacer: empuja los controles a la derecha en pantallas grandes */}
             <Box sx={{ flexGrow: 1 }} />
 
-            {/* Bloque de controles: se apila verticalmente en móvil */}
             <Box
               sx={{
                 display: "flex",
                 flexWrap: "wrap",
                 alignItems: "center",
                 gap: 1.5,
-                // En móvil ocupa todo el ancho disponible
                 width: { xs: "100%", sm: "auto" },
                 minWidth: 0,
               }}
@@ -90,10 +111,7 @@ export default function CrudLayout({
                 placeholder={searchPlaceholder}
                 value={searchTerm}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                sx={{
-                  flex: "1 1 160px",   // crece/encoge pero mínimo 160 px
-                  minWidth: 0,
-                }}
+                sx={{ flex: "1 1 160px", minWidth: 0 }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -113,17 +131,14 @@ export default function CrudLayout({
                 }}
               />
 
-              {/* Select de filtro */}
+              {/* Select de filtro (estado) */}
               {searchFilters && (
                 <Select
                   value={filterValue}
                   onChange={(e) => handleFilterChange(e.target.value)}
                   displayEmpty
                   size="small"
-                  sx={{
-                    flexShrink: 0,
-                    minWidth: 120,
-                  }}
+                  sx={{ flexShrink: 0, minWidth: 120 }}
                 >
                   {searchFilters.map((filter) => (
                     <MenuItem key={filter.value} value={filter.value}>
@@ -131,6 +146,24 @@ export default function CrudLayout({
                     </MenuItem>
                   ))}
                 </Select>
+              )}
+
+              {/* NUEVO: Select de ordenamiento (al lado del filtro) */}
+              {showSort && (
+                <FormControl size="small" sx={{ minWidth: 160 }}>
+                  <InputLabel>Ordenar</InputLabel>
+                  <Select
+                    value={sortTerm}
+                    onChange={(e) => handleSortChange(e.target.value)}
+                    label="Ordenar"
+                  >
+                    {sortOptions.map((opt) => (
+                      <MenuItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               )}
 
               {/* Botón Agregar */}
@@ -142,7 +175,6 @@ export default function CrudLayout({
                   sx={{
                     flexShrink: 0,
                     whiteSpace: "nowrap",
-                    // En móvil ocupa todo el ancho si está solo en su "línea"
                     width: { xs: "100%", sm: "auto" },
                     backgroundColor: BRAND_COLOR,
                     "&:hover": { backgroundColor: BRAND_HOVER },
@@ -155,7 +187,6 @@ export default function CrudLayout({
           </>
         )}
 
-        {/* Botón Agregar cuando NO hay buscador */}
         {!showSearch && onAddClick && (
           <>
             <Box sx={{ flexGrow: 1 }} />
@@ -182,6 +213,7 @@ export default function CrudLayout({
         </Typography>
       )}
 
+      {/* Contenido principal (tabla, etc.) */}
       {children}
     </Box>
   );

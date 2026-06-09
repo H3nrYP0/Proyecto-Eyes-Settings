@@ -4,6 +4,7 @@ import { clientesService } from "../services/clientesService";
 import ClienteForm from "../components/ClienteForm";
 import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 import Loading from "@shared/components/ui/Loading";
+import Modal from "@shared/components/ui/Modal";
 
 // ── Fuera del componente para evitar remount en cada keystroke ────────────────
 function CampoFormula({ label, value, onChange }) {
