@@ -91,7 +91,7 @@ export default function UnifiedCrudTable({
   const hasActions = actions && actions.length > 0;
 
   const handleStatusClick = (event, row) => {
-    const estados = row.estadosDisponibles || ["activa", "inactiva"];
+    const estados = row.estadosDisponibles || ["activo", "inactivo"];
     setSelectedRow(row);
     if (estados.length <= 2) {
       const nuevoEstado = estados.find((e) => e !== row.estado);

@@ -1,4 +1,3 @@
-// src/features/compras/pages/producto/hooks/useProductoForm.js
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ProductoData } from "../services/productosService";
@@ -38,9 +37,9 @@ export const useProductoForm = ({ mode, initialData, refreshMarcas = 0, refreshC
   const [imagenesAEliminar, setImagenesAEliminar] = useState([]);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
 
-  // ✅ Usar React Query para marcas y categorías
-  const { data: marcas = [], isLoading: loadingMarcas } = useMarcasQuery();
-  const { data: categorias = [], isLoading: loadingCategorias } = useCategoriasQuery();
+  // Usar React Query para marcas y categorías con refreshKey
+  const { data: marcas = [], isLoading: loadingMarcas } = useMarcasQuery(refreshMarcas);
+  const { data: categorias = [], isLoading: loadingCategorias } = useCategoriasQuery(refreshCategorias);
 
   const loading = loadingMarcas || loadingCategorias;
   
