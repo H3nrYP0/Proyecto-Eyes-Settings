@@ -6,41 +6,48 @@ import { formatCurrency, ESTADOS_ABONABLE } from "../utils/pedidosUtils";
 export function usePedidos() {
   const queryClient = useQueryClient();
 
-  // ── Filtros y paginación ───────────────────────────────────────────────────
-  const [search,       setSearch]       = useState("");
+  const [search, setSearch] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
-  const [page,         setPage]         = useState(1);
+  const [page, setPage] = useState(1);
   const PER_PAGE = 10;
 
   const [notification, setNotification] = useState({ isVisible: false, message: "", type: "success" });
 
   const [modalDelete, setModalDelete] = useState({ open: false, id: null, cliente: "" });
-  const [modalAbono,  setModalAbono]  = useState({
-    open: false, pedidoId: null,
-    cliente: "", total: 0, totalAbonado: 0, saldoPendiente: 0, abonos: [],
+  const [modalAbono, setModalAbono] = useState({
+    open: false,
+    pedidoId: null,
+    cliente: "",
+    total: 0,
+    totalAbonado: 0,
+    saldoPendiente: 0,
+    abonos: [],
   });
-  const [montoAbono,   setMontoAbono]   = useState("");
+  const [montoAbono, setMontoAbono] = useState("");
   const [abonoLoading, setAbonoLoading] = useState(false);
 
-  // ── Carga con React Query — paginada y filtrada en el backend ─────────────
   const { data: queryResult = {}, isLoading: loading } = useQuery({
     queryKey: ["pedidos", page, search, filterEstado],
-    queryFn:  () => pedidosService.getAllPedidos({
-      page,
-      perPage:  PER_PAGE,
-      search,
-      estado:   filterEstado,
-    }),
-    staleTime:    30_000,
-    keepPreviousData: true,  // evita el parpadeo al cambiar de página
+    queryFn: () =>
+      pedidosService.getAllPedidos({
+        page,
+        perPage: PER_PAGE,
+        search,
+        estado: filterEstado,
+      }),
+    staleTime: 30000,
+    keepPreviousData: true,
   });
 
-  const pedidos    = queryResult.data       ?? [];
+  const pedidos = queryResult.data ?? [];
   const pagination = queryResult.pagination ?? {
-    current_page: 1, total_pages: 1, total: 0, has_next: false, has_prev: false,
+    current_page: 1,
+    total_pages: 1,
+    total: 0,
+    has_next: false,
+    has_prev: false,
   };
 
-  // Resetear a página 1 cuando cambian los filtros
   const handleSearchChange = useCallback((value) => {
     setSearch(value);
     setPage(1);
@@ -55,7 +62,6 @@ export function usePedidos() {
     setNotification({ isVisible: true, message, type });
   }, []);
 
-  // ── Eliminar ───────────────────────────────────────────────────────────────
   const handleDelete = useCallback((id, cliente) => {
     setModalDelete({ open: true, id, cliente });
   }, []);
@@ -86,18 +92,18 @@ export function usePedidos() {
     setModalDelete({ open: false, id: null, cliente: "" });
   }, []);
 
-  // ── Abono: abrir modal ─────────────────────────────────────────────────────
   const handleAbonar = useCallback(async (pedido) => {
     setAbonoLoading(true);
     try {
       const info = await pedidosService.getInfoAbonos(pedido.id, pedido.total);
       setModalAbono({
-        open: true, pedidoId: pedido.id,
-        cliente:        pedido.cliente,
-        total:          pedido.total,
-        totalAbonado:   info.totalAbonado,
+        open: true,
+        pedidoId: pedido.id,
+        cliente: pedido.cliente,
+        total: pedido.total,
+        totalAbonado: info.totalAbonado,
         saldoPendiente: info.saldoPendiente,
-        abonos:         info.abonos,
+        abonos: info.abonos,
       });
       setMontoAbono("");
     } catch {
@@ -107,7 +113,6 @@ export function usePedidos() {
     }
   }, [showNotif]);
 
-  // ── Abono: confirmar ───────────────────────────────────────────────────────
   const confirmAbono = useCallback(async () => {
     const monto = Number(montoAbono);
     if (!monto || monto <= 0) {
@@ -124,29 +129,30 @@ export function usePedidos() {
 
     setAbonoLoading(true);
     try {
-      // 1. Registrar el abono — el back devuelve { abono_acumulado, saldo_pendiente }
       const { saldoPendiente: nuevoSaldo } = await pedidosService.registrarAbono(
-        modalAbono.pedidoId, monto
+        modalAbono.pedidoId,
+        monto
       );
 
       if (nuevoSaldo <= 0) {
-        // 2. Saldo en 0 → marcar pagado → el back crea la venta automáticamente
         await pedidosService.updatePedido(modalAbono.pedidoId, { estado: "pagado" });
-
         await queryClient.invalidateQueries({ queryKey: ["pedidos"] });
         await queryClient.invalidateQueries({ queryKey: ["ventas"] });
-
         showNotif(
-          `✅ Pago completo. El pedido de ${modalAbono.cliente} está Pagado y se generó la venta.`,
+          `Pago completo. El pedido de ${modalAbono.cliente} está Pagado y se generó la venta.`,
           "success"
         );
         setModalAbono({
-          open: false, pedidoId: null, cliente: "",
-          total: 0, totalAbonado: 0, saldoPendiente: 0, abonos: [],
+          open: false,
+          pedidoId: null,
+          cliente: "",
+          total: 0,
+          totalAbonado: 0,
+          saldoPendiente: 0,
+          abonos: [],
         });
         setMontoAbono("");
       } else {
-        // 3. Abono parcial → refrescar info del modal
         const info = await pedidosService.getInfoAbonos(modalAbono.pedidoId, modalAbono.total);
         showNotif(
           `Abono de ${formatCurrency(monto)} registrado. Saldo pendiente: ${formatCurrency(info.saldoPendiente)}.`,
@@ -154,9 +160,9 @@ export function usePedidos() {
         );
         setModalAbono((prev) => ({
           ...prev,
-          totalAbonado:   info.totalAbonado,
+          totalAbonado: info.totalAbonado,
           saldoPendiente: info.saldoPendiente,
-          abonos:         info.abonos,
+          abonos: info.abonos,
         }));
         setMontoAbono("");
         queryClient.invalidateQueries({ queryKey: ["pedidos"] });
@@ -171,23 +177,27 @@ export function usePedidos() {
 
   const closeAbonoModal = useCallback(() => {
     setModalAbono({
-      open: false, pedidoId: null, cliente: "",
-      total: 0, totalAbonado: 0, saldoPendiente: 0, abonos: [],
+      open: false,
+      pedidoId: null,
+      cliente: "",
+      total: 0,
+      totalAbonado: 0,
+      saldoPendiente: 0,
+      abonos: [],
     });
     setMontoAbono("");
   }, []);
 
-  // ── Helpers UI ─────────────────────────────────────────────────────────────
   const estadoFilters = [
-    { value: "",          label: "Todos los estados" },
+    { value: "", label: "Todos los estados" },
     { value: "pendiente", label: "Pendiente" },
-    { value: "pagado",    label: "Pagado" },
-    { value: "anulado",   label: "Anulado" },
+    { value: "pagado", label: "Pagado" },
+    { value: "anulado", label: "Anulado" },
   ];
 
   const obtenerResumenItems = (pedido) => {
-    if (!pedido.items || pedido.items.length === 0) return "Sin ítems";
-    const totalItems    = pedido.items.length;
+    if (!pedido.items || pedido.items.length === 0) return "Sin items";
+    const totalItems = pedido.items.length;
     const totalCantidad = pedido.items.reduce((s, i) => s + (i.cantidad ?? 1), 0);
     return `${totalItems} prod. · ${totalCantidad} und.`;
   };
@@ -199,7 +209,7 @@ export function usePedidos() {
     page,
     setPage,
     search,
-    setSearch:      handleSearchChange,
+    setSearch: handleSearchChange,
     filterEstado,
     setFilterEstado: handleFilterChange,
     estadoFilters,
