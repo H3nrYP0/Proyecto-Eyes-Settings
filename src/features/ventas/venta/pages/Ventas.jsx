@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { Box, Pagination } from "@mui/material";
 import CrudLayout from "@shared/components/crud/CrudLayout";
 import CrudTable from "@shared/components/crud/CrudTable";
+import CrudPagination from "@shared/components/crud/CrudPagination";
 import { useVentas } from "../hooks/useVentas";
 import "@shared/styles/components/crud-table.css";
 
@@ -37,9 +37,23 @@ export default function Ventas() {
     {
       header: "Tipo",
       render: (row) => {
-        if (row.esCita) return <span style={{ fontSize: "0.8rem", color: "#6366f1", fontWeight: 600 }}>Cita</span>;
-        if (row.esPedido) return <span style={{ fontSize: "0.8rem", color: "#0891b2", fontWeight: 600 }}>Pedido</span>;
-        return <span style={{ fontSize: "0.8rem", color: "#10b981", fontWeight: 600 }}>Directa</span>;
+        if (row.esCita)
+          return (
+            <span style={{ fontSize: "0.8rem", color: "#6366f1", fontWeight: 600 }}>
+              Cita
+            </span>
+          );
+        if (row.esPedido)
+          return (
+            <span style={{ fontSize: "0.8rem", color: "#0891b2", fontWeight: 600 }}>
+              Pedido
+            </span>
+          );
+        return (
+          <span style={{ fontSize: "0.8rem", color: "#10b981", fontWeight: 600 }}>
+            Directa
+          </span>
+        );
       },
     },
     {
@@ -50,12 +64,19 @@ export default function Ventas() {
     {
       field: "metodo_pago",
       header: "Pago",
-      render: (row) => <span style={{ textTransform: "capitalize" }}>{row.metodo_pago || "—"}</span>,
+      render: (row) => (
+        <span style={{ textTransform: "capitalize" }}>
+          {row.metodo_pago || "—"}
+        </span>
+      ),
     },
     {
       header: "Estado",
       render: (row) => {
-        const estilo = COLORES_ESTADO_VENTA[row.estado] ?? { bg: "#f3f4f6", color: "#374151" };
+        const estilo = COLORES_ESTADO_VENTA[row.estado] ?? {
+          bg: "#f3f4f6",
+          color: "#374151",
+        };
         return (
           <span
             style={{
@@ -111,17 +132,11 @@ export default function Ventas() {
           }
         />
 
-        {pagination.total_pages > 1 && (
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 3, mb: 2 }}>
-            <Pagination
-              count={pagination.total_pages}
-              page={page}
-              onChange={(e, value) => setPage(value)}
-              color="primary"
-              size="small"
-            />
-          </Box>
-        )}
+        <CrudPagination
+          totalPages={pagination?.total_pages ?? 1}
+          page={page}
+          onChange={setPage}
+        />
       </CrudLayout>
     </>
   );
