@@ -169,6 +169,14 @@ const ServiceCard = ({ servicio, onAgendar, disabledMessage }) => {
           </span>
 
           <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexShrink: 0 }}>
+            {/* Precio */}
+            <span style={{
+              fontSize: "0.92rem", fontWeight: "800",
+              color: hovered ? "#8dd4d4" : C.tealMid,
+              transition: "color 0.28s ease", letterSpacing: "-0.01em", whiteSpace: "nowrap",
+            }}>
+              {formatCurrency(servicio.precio)}
+            </span>
 
             {/* Botón agendar */}
             <button
