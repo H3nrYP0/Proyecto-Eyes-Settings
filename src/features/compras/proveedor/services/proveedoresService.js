@@ -1,5 +1,18 @@
 import api from "../../../../lib/axios";
 
+// Obtener proveedores paginados (para la tabla)
+export async function getProveedores({ page = 1, per_page = 10, search = '', estado = '' } = {}) {
+  const params = new URLSearchParams();
+  params.append('page', page);
+  params.append('per_page', per_page);
+  if (search) params.append('search', search);
+  if (estado) params.append('estado', estado === 'activo' ? 'true' : 'false');
+
+  const res = await api.get(`/proveedores?${params.toString()}`);
+  return res.data; // { data: [...], pagination: {...} }
+}
+
+// Obtener todos los proveedores (sin paginación) – se mantiene para compatibilidad
 export async function getAllProveedores() {
   const res = await api.get("/proveedores");
   return res.data;

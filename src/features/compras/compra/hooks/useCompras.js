@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { getAllCompras, deleteCompra, anularCompra } from "../services/comprasService";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getCompras, deleteCompra, anularCompra } from "../services/comprasService";
 import { formatCurrency, formatDate } from "../utils/comprasUtils";
 
 // Normaliza cualquier valor de estado_compra que pueda venir del backend:
@@ -19,13 +20,10 @@ function normalizarEstado(estado_compra) {
 }
 
 export function useCompras() {
-  const [compras, setCompras]           = useState([]);
-  const [search, setSearch]             = useState("");
+  const queryClient = useQueryClient();
+  const [search, setSearch] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
-  const [loading, setLoading]           = useState(true);
-  const [error, setError]               = useState(null);
-  const [modalDelete, setModalDelete]   = useState({ open: false, id: null, numeroCompra: "" });
-  const [modalAnular, setModalAnular]   = useState({ open: false, row: null });
+  const [page, setPage] = useState(1);
 
   const cargarCompras = useCallback(async () => {
     try {
@@ -58,25 +56,27 @@ export function useCompras() {
   const eliminarCompra = useCallback(async (id) => {
     try {
       await deleteCompra(id);
-      await cargarCompras();
+      queryClient.invalidateQueries({ queryKey: ["compras"] });
       return { success: true };
     } catch (e) {
-      return { success: false, error: e.response?.data?.error || "Error al eliminar la compra" };
+      const msg = e.response?.data?.error || e.message || "Error al eliminar la compra";
+      return { success: false, error: msg };
     }
-  }, [cargarCompras]);
+  }, [queryClient]);
 
   const confirmarAnular = useCallback(async () => {
     if (!modalAnular.row) return;
     try {
       await anularCompra(modalAnular.row.id);
       setModalAnular({ open: false, row: null });
-      await cargarCompras();
+      queryClient.invalidateQueries({ queryKey: ["compras"] });
       return { success: true };
     } catch (e) {
+      const msg = e.response?.data?.error || e.message || "Error al anular la compra";
       setModalAnular({ open: false, row: null });
-      return { success: false, error: e.response?.data?.error || "Error al anular la compra" };
+      return { success: false, error: msg };
     }
-  }, [modalAnular.row, cargarCompras]);
+  }, [modalAnular.row, queryClient]);
 
   const abrirModalAnular = useCallback((row) => {
     if (row.estado !== "completada") return;
@@ -115,20 +115,21 @@ export function useCompras() {
     setModalDelete({ open: false, id: null, numeroCompra: "" });
   }, []);
 
-  useEffect(() => {
-    cargarCompras();
-  }, [cargarCompras]);
+  // Convertir error a string para evitar "Objects are not valid as React child"
+  const errorMessage = error?.message || (typeof error === 'string' ? error : null);
 
   return {
-    compras: comprasFiltradas,
+    compras,
     loading,
-    error,
-    search,        setSearch,
-    filterEstado,  setFilterEstado,
+    error: errorMessage,
+    search, setSearch,
+    filterEstado, setFilterEstado,
     estadoFilters,
+    page, setPage,
+    pagination,
     eliminarCompra,
     modalAnular, abrirModalAnular, cerrarModalAnular, confirmarAnular,
-    recargar: cargarCompras,
     modalDelete, openDeleteModal, closeDeleteModal,
+    recargar: () => queryClient.invalidateQueries({ queryKey: ["compras"] }),
   };
 }

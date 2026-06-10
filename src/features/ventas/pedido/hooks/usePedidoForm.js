@@ -10,7 +10,6 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
 
   const queryClient = useQueryClient();
 
-  // ── Catálogos con React Query ─────────────────────────────────────────────
   const { data: clientes = [],  isLoading: loadingClientes  } = useQuery({
     queryKey: ["clientes-activos"],
     queryFn:  () => pedidosService.getClientesActivos(),
@@ -44,20 +43,16 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
   const [notification, setNotification] = useState({ isVisible: false, message: "", type: "success" });
   const [saving, setSaving] = useState(false);
 
-  // ── Modal de confirmación para cambios de estado críticos ─────────────────
-  // Se abre cuando el usuario intenta guardar con estado = anulado o pagado
   const [modalConfirm, setModalConfirm] = useState({
     open: false,
     titulo: "",
     mensaje: "",
-    // callback a ejecutar si el usuario confirma
     onConfirm: null,
   });
 
   const closeModalConfirm = () =>
     setModalConfirm({ open: false, titulo: "", mensaje: "", onConfirm: null });
 
-  // ── Cargar datos iniciales ────────────────────────────────────────────────
   useEffect(() => {
     if (initialData) {
       setFormData({
@@ -79,10 +74,15 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
     }
   }, [initialData, isView, isEdit]);
 
-  const calcularTotal = () =>
-    itemsSeleccionados.reduce((sum, item) => sum + (item.precio ?? 0) * item.cantidad, 0);
+  // Calcular total incluyendo costo de envío si es domicilio
+  const calcularTotal = () => {
+    const subtotal = itemsSeleccionados.reduce((sum, item) => sum + (item.precio ?? 0) * item.cantidad, 0);
+    if (formData.metodo_entrega === "domicilio") {
+      return subtotal + 20000;
+    }
+    return subtotal;
+  };
 
-  // ── Agregar item ──────────────────────────────────────────────────────────
   const agregarItem = (item) => {
     setStockWarning("");
     const esProducto = item.tipo === "producto";
@@ -134,7 +134,6 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
     setItemsSeleccionados(nuevos);
   };
 
-  // ── Núcleo de guardado (se llama tras confirmar si es necesario) ──────────
   const _ejecutarGuardado = async (overrides = {}) => {
     setSaving(true);
     try {
@@ -144,6 +143,40 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
         const estadoAnterior = initialData.estado;
         const estadoNuevo    = payload.estado;
 
+        // Sincronizar items SIEMPRE que el estado anterior sea pendiente
+        // (así se pueden modificar productos aunque luego se cambie a pagado/anulado)
+        if (estadoAnterior === "pendiente") {
+          const itemsOriginales = initialData.items ?? [];
+          // Eliminar los que ya no están
+          for (const orig of itemsOriginales) {
+            const aun = itemsSeleccionados.find((i) => i.id === orig.id);
+            if (!aun) await pedidosService.deleteDetallePedido(orig.id);
+          }
+          // Actualizar cantidades de los que existen
+          for (const item of itemsSeleccionados) {
+            if (!item.id) continue;
+            const orig = itemsOriginales.find((o) => o.id === item.id);
+            if (orig && orig.cantidad !== item.cantidad) {
+              await pedidosService.updateDetallePedido(item.id, {
+                cantidad: item.cantidad,
+                precio_unitario: item.precio,
+              });
+            }
+          }
+          // Crear nuevos items
+          for (const item of itemsSeleccionados) {
+            if (item.id) continue;
+            await pedidosService.createDetallePedido({
+              pedido_id: initialData.id,
+              ...(item.producto_id && { producto_id: item.producto_id }),
+              ...(item.servicio_id && { servicio_id: item.servicio_id }),
+              cantidad: item.cantidad,
+              precio_unitario: item.precio,
+            });
+          }
+        }
+
+        // Actualizar estado y demás campos del pedido
         await pedidosService.updatePedido(initialData.id, {
           metodo_pago:               payload.metodo_pago,
           metodo_entrega:            payload.metodo_entrega,
@@ -151,62 +184,29 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
           estado:                    estadoNuevo,
         });
 
-        // Sincronizar items (solo si el pedido sigue pendiente)
-        if (estadoNuevo === "pendiente") {
-          const itemsOriginales = initialData.items ?? [];
-          for (const orig of itemsOriginales) {
-            const aun = itemsSeleccionados.find((i) => i.id === orig.id);
-            if (!aun) await pedidosService.deleteDetallePedido(orig.id);
-          }
-          for (const item of itemsSeleccionados) {
-            if (!item.id) continue;
-            const orig = itemsOriginales.find((o) => o.id === item.id);
-            if (orig && orig.cantidad !== item.cantidad) {
-              await pedidosService.updateDetallePedido(item.id, {
-                cantidad: item.cantidad, precio_unitario: item.precio,
-              });
-            }
-          }
-          for (const item of itemsSeleccionados) {
-            if (item.id) continue;
-            await pedidosService.createDetallePedido({
-              pedido_id: initialData.id,
-              ...(item.producto_id && { producto_id: item.producto_id }),
-              ...(item.servicio_id && { servicio_id: item.servicio_id }),
-              cantidad:        item.cantidad,
-              precio_unitario: item.precio,
-            });
-          }
-        }
-
-        // Invalidar ventas si pasó a pagado (el back crea la venta en ese momento)
         if (estadoNuevo === "pagado" && estadoAnterior !== "pagado") {
           await queryClient.invalidateQueries({ queryKey: ["ventas"] });
         }
-        // Siempre refrescar lista de pedidos
         await queryClient.invalidateQueries({ queryKey: ["pedidos"] });
 
         setNotification({ isVisible: true, message: "Pedido actualizado correctamente.", type: "success" });
         if (onSuccess) setTimeout(() => onSuccess(payload), 1200);
 
       } else {
-        // ── CREAR ──
         const nuevoPedido = await pedidosService.createPedido(payload);
         const abonoInicial = parseFloat(formData.abono_inicial);
 
         if (!isNaN(abonoInicial) && abonoInicial > 0 && nuevoPedido?.id) {
-          const total      = calcularTotal();
-          const montoAbono = Math.min(abonoInicial, total);
+          const totalFinal = calcularTotal();
+          const montoAbono = Math.min(abonoInicial, totalFinal);
           await pedidosService.registrarAbono(nuevoPedido.id, montoAbono);
 
-          // Si el abono cubre el total → marcar pagado → el back crea la venta
-          if (montoAbono >= total) {
+          if (montoAbono >= totalFinal) {
             await pedidosService.updatePedido(nuevoPedido.id, { estado: "pagado" });
             await queryClient.invalidateQueries({ queryKey: ["ventas"] });
           }
         }
 
-        // Si se creó directamente como pagado (sin abono)
         if (formData.estado === "pagado" && nuevoPedido?.id) {
           await pedidosService.updatePedido(nuevoPedido.id, { estado: "pagado" });
           await queryClient.invalidateQueries({ queryKey: ["ventas"] });
@@ -225,9 +225,7 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
     }
   };
 
-  // ── Guardar (con intercepción para estados críticos) ──────────────────────
   const guardarPedido = async (overrides = {}) => {
-    // Validaciones básicas
     if (!formData.cliente_id) {
       setNotification({ isVisible: true, message: "Por favor seleccione un cliente.", type: "error" });
       return;
@@ -251,12 +249,10 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
 
     const estadoNuevo    = { ...formData, ...overrides }.estado;
     const estadoAnterior = initialData?.estado ?? "pendiente";
-    // En edición: cualquier cambio de estado. En creación: si se elige estado distinto a pendiente.
     const estadoCambio   = isEdit
       ? estadoNuevo !== estadoAnterior
       : estadoNuevo !== "pendiente";
 
-    // ── Pedir confirmación si el estado cambia a anulado o pagado ──
     if (estadoCambio && estadoNuevo === "anulado") {
       setModalConfirm({
         open: true,
@@ -285,7 +281,6 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
       return;
     }
 
-    // Sin cambio de estado crítico → guardar directamente
     _ejecutarGuardado(overrides);
   };
 
@@ -307,7 +302,6 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
     calcularTotal, formatCurrency,
     agregarItem, removerItem, actualizarCantidad, guardarPedido,
     ESTADOS_PEDIDO, METODOS_PAGO, METODOS_ENTREGA,
-    // Modal de confirmación para cambios de estado
     modalConfirm, closeModalConfirm,
   };
 }

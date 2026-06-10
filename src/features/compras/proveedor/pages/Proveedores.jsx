@@ -24,6 +24,9 @@ export default function Proveedores() {
     setSearch,
     filterEstado,
     setFilterEstado,
+    page,
+    setPage,
+    totalPages,
     estadoFilters,
     eliminarProveedor,
     cambiarEstado,
@@ -108,6 +111,13 @@ export default function Proveedores() {
               ? "No se encontraron proveedores"
               : "No hay proveedores registrados"
           }
+        />
+
+        <CrudPagination
+          totalPages={totalPages}
+          page={page}
+          onChange={setPage}
+          show={true}
         />
 
         <Modal

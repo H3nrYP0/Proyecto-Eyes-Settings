@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CrudLayout from "@shared/components/crud/CrudLayout";
 import CrudTable from "@shared/components/crud/CrudTable";
+import CrudPagination from "@shared/components/crud/CrudPagination";
 import Modal from "@shared/components/ui/Modal";
 import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
 import { useClientes } from "../hooks/useClientes";
@@ -33,14 +34,17 @@ export default function Clientes() {
     confirmDelete,
     closeDeleteModal,
     cambiarEstado,
+    page,
+    setPage,
+    totalPages,
   } = useClientes({ onSuccess: showNotification });
 
-  const actionsWithNavigate = tableActions.map(action => ({
+  const actionsWithNavigate = tableActions.map((action) => ({
     ...action,
     onClick: (row) => {
-      if (action.type === "view")      navigate(`detalle/${row.id}`);
+      if (action.type === "view") navigate(`detalle/${row.id}`);
       else if (action.type === "edit") navigate(`editar/${row.id}`);
-      else                             action.onClick(row);
+      else action.onClick(row);
     },
   }));
 
@@ -74,6 +78,12 @@ export default function Clientes() {
               ? "No se encontraron clientes para los filtros aplicados"
               : "No hay clientes registrados"
           }
+        />
+
+        <CrudPagination
+          totalPages={totalPages}
+          page={page}
+          onChange={setPage}
         />
 
         <Modal

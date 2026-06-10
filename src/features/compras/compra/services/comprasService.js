@@ -33,8 +33,7 @@ export async function getAllCompras() {
 
     return rawCompras.map((compra) => ({
       ...compra,
-      proveedor_nombre:
-        proveedoresMap[compra.proveedor_id] || 'Proveedor no encontrado',
+      proveedor_nombre: proveedoresMap[compra.proveedor_id] || 'Proveedor no encontrado',
     }));
   } catch (error) {
     console.error('Error en getAllCompras:', error);
@@ -64,8 +63,7 @@ export async function getCompraById(id) {
 
     return {
       ...compra,
-      proveedor_nombre:
-        proveedoresMap[compra.proveedor_id] || 'Proveedor no encontrado',
+      proveedor_nombre: proveedoresMap[compra.proveedor_id] || 'Proveedor no encontrado',
       productos: detalles.map((d) => ({
         id:           d.id,
         productoId:   d.producto_id,
@@ -73,10 +71,7 @@ export async function getCompraById(id) {
         cantidad:     Number(d.cantidad),
         precioCompra: Number(d.precio_unitario ?? d.precio_unidad ?? 0),
         precioVenta:  Number(d.precio_venta    ?? d.producto?.precio_venta ?? 0),
-        total:        Number(
-          d.subtotal ??
-          Number(d.cantidad) * Number(d.precio_unitario ?? d.precio_unidad ?? 0)
-        ),
+        total:        Number(d.subtotal ?? Number(d.cantidad) * Number(d.precio_unitario ?? d.precio_unidad ?? 0)),
         stockActual:  Number(d.producto?.stock ?? 0),
       })),
     };

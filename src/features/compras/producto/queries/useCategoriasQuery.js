@@ -1,10 +1,9 @@
-// src/features/compras/pages/producto/queries/useCategoriasQuery.js
 import { useQuery } from "@tanstack/react-query";
 import { getAllCategorias } from "@compras/categoria/services/categoriasService";
 
-export const useCategoriasQuery = () => {
+export const useCategoriasQuery = (refreshKey = 0) => {
   return useQuery({
-    queryKey: ["categorias", "all"],
+    queryKey: ["categorias", "all", refreshKey],
     queryFn: () => getAllCategorias(),
     staleTime: 1000 * 60 * 10,
     gcTime: 1000 * 60 * 30,

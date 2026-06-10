@@ -6,8 +6,7 @@ export function useProveedores({ onSuccess } = {}) {
   const [proveedores, setProveedores] = useState([]);
   const [search, setSearch] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [page, setPage] = useState(1);
   const [modalDelete, setModalDelete] = useState({
     open: false,
     id: null,
@@ -104,18 +103,28 @@ export function useProveedores({ onSuccess } = {}) {
     setModalDelete({ open: false, id: null, razonSocial: "" });
   }, []);
 
-  useEffect(() => {
-    cargarProveedores();
-  }, [cargarProveedores]);
+  // Reiniciar página al cambiar búsqueda o filtro
+  const handleSetSearch = useCallback((value) => {
+    setSearch(value);
+    setPage(1);
+  }, []);
+
+  const handleSetFilterEstado = useCallback((value) => {
+    setFilterEstado(value);
+    setPage(1);
+  }, []);
 
   return {
-    proveedores: proveedoresFiltrados,
+    proveedores,
     loading,
     error,
     search,
-    setSearch,
+    setSearch: handleSetSearch,
     filterEstado,
-    setFilterEstado,
+    setFilterEstado: handleSetFilterEstado,
+    page,
+    setPage,
+    totalPages,
     estadoFilters,
     eliminarProveedor,
     cambiarEstado,

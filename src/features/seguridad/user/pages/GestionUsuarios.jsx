@@ -1,29 +1,37 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-
-import CrudLayout       from "@shared/components/crud/CrudLayout";
-import CrudTable        from "@shared/components/crud/CrudTable";
-import Modal            from "@shared/components/ui/Modal";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import CrudLayout from "@shared/components/crud/CrudLayout";
+import CrudTable from "@shared/components/crud/CrudTable";
+import CrudPagination from "@shared/components/crud/CrudPagination";
+import Modal from "@shared/components/ui/Modal";
 import CrudNotification from "@shared/styles/components/notifications/CrudNotification";
-
-import {
-  getAllUsers, deleteUser, updateEstadoUser,
-  getAllRoles, normalizeUsers, filtrarUsuarios,
-} from "@seguridad";
+import { deleteUser, updateEstadoUser, getAllRoles } from "@seguridad";
+import { useUsuariosList } from "../hooks/useUsuariosList";
 
 const STATUS_FILTERS = [
-  { value: "", label: "Todos los estados" },
-  { value: "activo", label: "Activos" },
-  { value: "inactivo", label: "Inactivos" },
+  { value: "",         label: "Todos los estados" },
+  { value: "activo",   label: "Activos"           },
+  { value: "inactivo", label: "Inactivos"         },
 ];
 
 export default function GestionUsuarios() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState("");
+  const {
+    usuarios,
+    loading,
+    error,
+    page,
+    setPage,
+    totalPages,
+    search,
+    setSearch,
+    filterEstado,
+    setFilterEstado,
+  } = useUsuariosList();
+
   const [deleteModal, setDeleteModal] = useState({ open: false, id: null, name: "" });
   const [notification, setNotification] = useState({ isVisible: false, message: "", type: "success" });
 
@@ -31,6 +39,12 @@ export default function GestionUsuarios() {
     setNotification({ isVisible: true, message, type });
   const handleCloseNotification = () =>
     setNotification((prev) => ({ ...prev, isVisible: false }));
+
+  const { data: roles = [] } = useQuery({
+    queryKey: ["roles"],
+    queryFn: getAllRoles,
+    staleTime: 5 * 60 * 1000,
+  });
 
   useEffect(() => {
     const pending = sessionStorage.getItem("crudNotification");
@@ -41,33 +55,10 @@ export default function GestionUsuarios() {
     }
   }, []);
 
-  const {
-    data: rawUsers = [],
-    isLoading,
-    error,
-    refetch,
-  } = useQuery({
-    queryKey: ["usuarios"],
-    queryFn: getAllUsers,
-    staleTime: 0,
-  });
-
-  const { data: roles = [] } = useQuery({
-    queryKey: ["roles"],
-    queryFn: getAllRoles,
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const users = useMemo(() => {
-    if (!rawUsers.length) return [];
-    const normalized = normalizeUsers(rawUsers);
-    return normalized.filter((u) => u.rol_nombre?.toLowerCase() !== "cliente");
-  }, [rawUsers]);
-
   const deleteMutation = useMutation({
     mutationFn: deleteUser,
     onSuccess: () => {
-      refetch();
+      queryClient.invalidateQueries({ queryKey: ["allUsuarios"] });
       setDeleteModal({ open: false, id: null, name: "" });
       showNotification(`Usuario "${deleteModal.name}" eliminado correctamente`);
     },
@@ -81,7 +72,7 @@ export default function GestionUsuarios() {
   const estadoMutation = useMutation({
     mutationFn: ({ id, estado }) => updateEstadoUser(id, estado),
     onSuccess: (_, { estado }) => {
-      refetch();
+      queryClient.invalidateQueries({ queryKey: ["allUsuarios"] });
       const label = estado === "activo" ? "activado" : "desactivado";
       showNotification(`Usuario ${label} correctamente`);
     },
@@ -97,14 +88,9 @@ export default function GestionUsuarios() {
     await estadoMutation.mutateAsync({ id: row.id, estado: nuevoEstado });
   };
 
-  const filteredUsers = useMemo(
-    () => filtrarUsuarios(users, search, filterStatus),
-    [users, search, filterStatus]
-  );
-
   const columns = [
-    { field: "nombre", header: "Nombre", render: (item) => item.nombre },
-    { field: "correo", header: "Correo", render: (item) => item.correo },
+    { field: "nombre", header: "Nombre",  render: (item) => item.nombre },
+    { field: "correo", header: "Correo",  render: (item) => item.correo },
     {
       field: "rol_id",
       header: "Rol",
@@ -113,9 +99,9 @@ export default function GestionUsuarios() {
   ];
 
   const tableActions = [
-    { label: "Ver detalles", type: "view", onClick: (row) => navigate(`detalle/${row.id}`) },
-    { label: "Editar", type: "edit", onClick: (row) => navigate(`editar/${row.id}`) },
-    { label: "Eliminar", type: "delete", onClick: (row) => handleDelete(row.id, row.nombre) },
+    { label: "Ver detalles", type: "view",   onClick: (row) => navigate(`detalle/${row.id}`) },
+    { label: "Editar",       type: "edit",   onClick: (row) => navigate(`editar/${row.id}`)  },
+    { label: "Eliminar",     type: "delete", onClick: (row) => handleDelete(row.id, row.nombre) },
   ];
 
   return (
@@ -128,35 +114,55 @@ export default function GestionUsuarios() {
         searchValue={search}
         onSearchChange={setSearch}
         searchFilters={STATUS_FILTERS}
-        filterEstado={filterStatus}
-        onFilterChange={setFilterStatus}
+        filterEstado={filterEstado}
+        onFilterChange={setFilterEstado}
       >
         {error && (
-          <div style={{ padding: 16, backgroundColor: "#ffebee", color: "#c62828", borderRadius: 4, marginBottom: 16 }}>
+          <div
+            style={{
+              padding: 16,
+              backgroundColor: "#ffebee",
+              color: "#c62828",
+              borderRadius: 4,
+              marginBottom: 16,
+            }}
+          >
             ⚠️ {error?.message || "No se pudieron cargar los usuarios"}
           </div>
         )}
+
         <CrudTable
           columns={columns}
-          data={filteredUsers}
+          data={usuarios}
           actions={tableActions}
-          loading={isLoading}
+          loading={loading}
           onChangeStatus={handleChangeStatus}
-          emptyMessage="No hay usuarios registrados"
+          emptyMessage={
+            search || filterEstado
+              ? "No se encontraron usuarios para los filtros aplicados"
+              : "No hay usuarios registrados"
+          }
+        />
+
+        <CrudPagination
+          totalPages={totalPages}
+          page={page}
+          onChange={setPage}
+          show={true}
+        />
+
+        <Modal
+          open={deleteModal.open}
+          type="warning"
+          title="¿Eliminar Usuario?"
+          message={`Esta acción eliminará al usuario "${deleteModal.name}" y no se puede deshacer.`}
+          confirmText="Eliminar"
+          cancelText="Cancelar"
+          showCancel
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteModal({ open: false, id: null, name: "" })}
         />
       </CrudLayout>
-
-      <Modal
-        open={deleteModal.open}
-        type="warning"
-        title="¿Eliminar Usuario?"
-        message={`Esta acción eliminará al usuario "${deleteModal.name}" y no se puede deshacer.`}
-        confirmText="Eliminar"
-        cancelText="Cancelar"
-        showCancel
-        onConfirm={confirmDelete}
-        onCancel={() => setDeleteModal({ open: false, id: null, name: "" })}
-      />
 
       <CrudNotification
         isVisible={notification.isVisible}
