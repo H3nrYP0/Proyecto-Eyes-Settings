@@ -3,9 +3,19 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getCompras, deleteCompra, anularCompra } from "../services/comprasService";
 import { formatCurrency, formatDate } from "../utils/comprasUtils";
 
+// Normaliza cualquier valor de estado_compra que pueda venir del backend:
+//   true / 1 / "true" / "1" / "completada" → "completada"
+//   false / 0 / "false" / "0" / "anulada"  → "anulada"
+//   null / undefined                         → "anulada"  (fallback seguro)
 function normalizarEstado(estado_compra) {
-  if (estado_compra === true || estado_compra === 1 || estado_compra === "true" || estado_compra === "1" || estado_compra === "completada")
-    return "completada";
+  if (
+    estado_compra === true  ||
+    estado_compra === 1     ||
+    estado_compra === "true"  ||
+    estado_compra === "1"     ||
+    (typeof estado_compra === "string" &&
+      estado_compra.toLowerCase() === "completada")
+  ) return "completada";
   return "anulada";
 }
 
@@ -15,51 +25,33 @@ export function useCompras() {
   const [filterEstado, setFilterEstado] = useState("");
   const [page, setPage] = useState(1);
 
-  const estadoBool = filterEstado === "completada" ? true : (filterEstado === "anulada" ? false : null);
+  const cargarCompras = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await getAllCompras();
 
-  const {
-    data: queryData,
-    isLoading: loading,
-    error,
-    refetch,
-  } = useQuery({
-    queryKey: ["compras", page, search, filterEstado],
-    queryFn: () =>
-      getCompras({
-        page,
-        per_page: 10,
-        search: search || undefined,
-        estado_compra: estadoBool,
-      }),
-    keepPreviousData: true,
-  });
+      const normalizadas = (Array.isArray(data) ? data : []).map((c) => ({
+        id:              c.id,
+        proveedorNombre: c.proveedor_nombre || c.proveedorNombre || "—",
+        fechaFormateada: formatDate(c.fecha),
+        totalFormateado: formatCurrency(c.total),
+        total:           c.total,
+        numeroCompra:    c.numeroCompra || c.numero_compra || `C-${c.id}`,
+        observaciones:   c.observaciones || "",
+        // Usa el normalizador canónico — siempre "completada" | "anulada"
+        estado:          normalizarEstado(c.estado_compra ?? c.estado),
+      }));
 
-  const comprasRaw = queryData?.data ?? [];
-  const pagination = queryData?.pagination ?? {
-    current_page: 1,
-    total_pages: 1,
-    total: 0,
-    has_next: false,
-    has_prev: false,
-  };
-
-  const compras = comprasRaw.map((c) => ({
-    id: c.id,
-    proveedorNombre: c.proveedor_nombre || "—",
-    fechaFormateada: formatDate(c.fecha),
-    totalFormateado: formatCurrency(c.total),
-    total: c.total,
-    numeroCompra: c.numeroCompra || `C-${c.id}`,
-    observaciones: c.observaciones || "",
-    estado: normalizarEstado(c.estado_compra),
-  }));
-
-  useEffect(() => {
-    setPage(1);
-  }, [search, filterEstado]);
-
-  const [modalDelete, setModalDelete] = useState({ open: false, id: null, numeroCompra: "" });
-  const [modalAnular, setModalAnular] = useState({ open: false, row: null });
+      setCompras(normalizadas);
+    } catch (err) {
+      console.error("Error cargando compras:", err);
+      setError("No se pudieron cargar las compras");
+      setCompras([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const eliminarCompra = useCallback(async (id) => {
     try {
@@ -94,6 +86,20 @@ export function useCompras() {
   const cerrarModalAnular = useCallback(() => {
     setModalAnular({ open: false, row: null });
   }, []);
+
+  const comprasFiltradas = compras.filter((c) => {
+    const term = search.toLowerCase();
+    const matchesSearch =
+      (c.proveedorNombre || "").toLowerCase().includes(term) ||
+      (c.observaciones   || "").toLowerCase().includes(term) ||
+      (c.numeroCompra    || "").toLowerCase().includes(term) ||
+      String(c.total || 0).includes(term);
+
+    const matchesFilter =
+      !filterEstado || c.estado === filterEstado;
+
+    return matchesSearch && matchesFilter;
+  });
 
   const estadoFilters = [
     { value: "",           label: "Todos"       },

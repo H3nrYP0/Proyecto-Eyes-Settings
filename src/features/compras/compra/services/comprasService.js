@@ -1,49 +1,26 @@
 import api from '@lib/axios';
 import { getAllProveedores } from '../../proveedor/services/proveedoresService';
 
-// ── Obtener compras con paginación y filtros ───────────────────────────────────
-export async function getCompras({ page = 1, per_page = 10, search = '', estado_compra = null } = {}) {
-  try {
-    const params = new URLSearchParams();
-    params.append('page', page);
-    params.append('per_page', per_page);
-    if (search) params.append('search', search);
-    if (estado_compra !== null) params.append('estado_compra', estado_compra ? 'true' : 'false');
-
-    const comprasRes = await api.get(`/compras?${params.toString()}`);
-    const comprasData = comprasRes.data;
-
-    // Obtener proveedores para mapear nombres
-    const proveedoresRes = await getAllProveedores();
-    const proveedoresMap = {};
-    proveedoresRes.forEach((p) => {
-      proveedoresMap[p.id] = p.razon_social_o_nombre || p.razonSocial || p.nombre || '';
-    });
-
-    let comprasList = [];
-    let pagination = { current_page: 1, total_pages: 1, total: 0, has_next: false, has_prev: false };
-
-    if (comprasData && typeof comprasData === 'object' && 'data' in comprasData) {
-      comprasList = comprasData.data.map((c) => ({
-        ...c,
-        proveedor_nombre: proveedoresMap[c.proveedor_id] || 'Proveedor no encontrado',
-      }));
-      pagination = comprasData.pagination;
-    } else if (Array.isArray(comprasData)) {
-      comprasList = comprasData.map((c) => ({
-        ...c,
-        proveedor_nombre: proveedoresMap[c.proveedor_id] || 'Proveedor no encontrado',
-      }));
-    }
-
-    return { data: comprasList, pagination };
-  } catch (error) {
-    console.error('Error en getCompras:', error);
-    throw error;
+// ── Helper: extrae array de cualquier forma que devuelva el backend ────────────
+function extractArray(data, keys = ['compras', 'data', 'items', 'results']) {
+  if (Array.isArray(data)) return data;
+  for (const key of keys) {
+    if (Array.isArray(data?.[key])) return data[key];
   }
+  return [];
 }
 
-// ── Mantener getAllCompras para compatibilidad ─────────────────────────────────
+// ── Helper: construye mapa id→nombre de proveedores de forma segura ───────────
+function buildProveedoresMap(proveedoresRes) {
+  const list = extractArray(proveedoresRes);
+  const map = {};
+  list.forEach((p) => {
+    map[p.id] = p.razon_social_o_nombre || p.razonSocial || p.nombre || '';
+  });
+  return map;
+}
+
+// ── Obtener todas las compras ─────────────────────────────────────────────────
 export async function getAllCompras() {
   try {
     const [comprasRes, proveedoresRes] = await Promise.all([
@@ -51,12 +28,10 @@ export async function getAllCompras() {
       getAllProveedores(),
     ]);
 
-    const proveedoresMap = {};
-    proveedoresRes.forEach((p) => {
-      proveedoresMap[p.id] = p.razon_social_o_nombre || p.razonSocial || p.nombre || '';
-    });
+    const proveedoresMap = buildProveedoresMap(proveedoresRes);
+    const rawCompras = extractArray(comprasRes.data);
 
-    return comprasRes.data.map((compra) => ({
+    return rawCompras.map((compra) => ({
       ...compra,
       proveedor_nombre: proveedoresMap[compra.proveedor_id] || 'Proveedor no encontrado',
     }));
@@ -75,13 +50,16 @@ export async function getCompraById(id) {
       api.get(`/compras/${id}/detalles`).catch(() => ({ data: [] })),
     ]);
 
-    const compra   = compraRes.data;
-    const detalles = Array.isArray(detallesRes.data) ? detallesRes.data : [];
+    // El objeto compra puede venir envuelto: { compra: {...} } o directo
+    const compra =
+      compraRes.data?.compra ?? compraRes.data?.data ?? compraRes.data;
 
-    const proveedoresMap = {};
-    proveedoresRes.forEach((p) => {
-      proveedoresMap[p.id] = p.razon_social_o_nombre || p.razonSocial || p.nombre || '';
-    });
+    // Los detalles pueden venir en varias claves
+    const detalles = extractArray(detallesRes.data, [
+      'detalles', 'items', 'productos', 'data',
+    ]);
+
+    const proveedoresMap = buildProveedoresMap(proveedoresRes);
 
     return {
       ...compra,
