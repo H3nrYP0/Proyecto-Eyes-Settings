@@ -3,17 +3,19 @@ import { getAllCompras, deleteCompra, anularCompra } from "../services/comprasSe
 import { formatCurrency, formatDate } from "../utils/comprasUtils";
 
 // Normaliza cualquier valor de estado_compra que pueda venir del backend:
-// true, 1, "true", "1", "completada" → "completada"
-// todo lo demás → null
+//   true / 1 / "true" / "1" / "completada" → "completada"
+//   false / 0 / "false" / "0" / "anulada"  → "anulada"
+//   null / undefined                         → "anulada"  (fallback seguro)
 function normalizarEstado(estado_compra) {
   if (
-    estado_compra === true ||
-    estado_compra === 1 ||
-    estado_compra === "true" ||
-    estado_compra === "1" ||
-    estado_compra === "completada"
+    estado_compra === true  ||
+    estado_compra === 1     ||
+    estado_compra === "true"  ||
+    estado_compra === "1"     ||
+    (typeof estado_compra === "string" &&
+      estado_compra.toLowerCase() === "completada")
   ) return "completada";
-  return null;
+  return "anulada";
 }
 
 export function useCompras() {
@@ -37,9 +39,10 @@ export function useCompras() {
         fechaFormateada: formatDate(c.fecha),
         totalFormateado: formatCurrency(c.total),
         total:           c.total,
-        numeroCompra:    c.numeroCompra || `C-${c.id}`,
+        numeroCompra:    c.numeroCompra || c.numero_compra || `C-${c.id}`,
         observaciones:   c.observaciones || "",
-        estado:          normalizarEstado(c.estado_compra),
+        // Usa el normalizador canónico — siempre "completada" | "anulada"
+        estado:          normalizarEstado(c.estado_compra ?? c.estado),
       }));
 
       setCompras(normalizadas);
@@ -93,8 +96,7 @@ export function useCompras() {
       String(c.total || 0).includes(term);
 
     const matchesFilter =
-      !filterEstado ||
-      (filterEstado === "completada" ? c.estado === "completada" : c.estado === null);
+      !filterEstado || c.estado === filterEstado;
 
     return matchesSearch && matchesFilter;
   });

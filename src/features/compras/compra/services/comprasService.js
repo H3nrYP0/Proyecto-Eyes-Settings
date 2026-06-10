@@ -1,6 +1,25 @@
 import api from '@lib/axios';
 import { getAllProveedores } from '../../proveedor/services/proveedoresService';
 
+// ── Helper: extrae array de cualquier forma que devuelva el backend ────────────
+function extractArray(data, keys = ['compras', 'data', 'items', 'results']) {
+  if (Array.isArray(data)) return data;
+  for (const key of keys) {
+    if (Array.isArray(data?.[key])) return data[key];
+  }
+  return [];
+}
+
+// ── Helper: construye mapa id→nombre de proveedores de forma segura ───────────
+function buildProveedoresMap(proveedoresRes) {
+  const list = extractArray(proveedoresRes);
+  const map = {};
+  list.forEach((p) => {
+    map[p.id] = p.razon_social_o_nombre || p.razonSocial || p.nombre || '';
+  });
+  return map;
+}
+
 // ── Obtener todas las compras ─────────────────────────────────────────────────
 export async function getAllCompras() {
   try {
@@ -9,12 +28,10 @@ export async function getAllCompras() {
       getAllProveedores(),
     ]);
 
-    const proveedoresMap = {};
-    proveedoresRes.forEach((p) => {
-      proveedoresMap[p.id] = p.razon_social_o_nombre || p.razonSocial || p.nombre || '';
-    });
+    const proveedoresMap = buildProveedoresMap(proveedoresRes);
+    const rawCompras = extractArray(comprasRes.data);
 
-    return comprasRes.data.map((compra) => ({
+    return rawCompras.map((compra) => ({
       ...compra,
       proveedor_nombre:
         proveedoresMap[compra.proveedor_id] || 'Proveedor no encontrado',
@@ -34,13 +51,16 @@ export async function getCompraById(id) {
       api.get(`/compras/${id}/detalles`).catch(() => ({ data: [] })),
     ]);
 
-    const compra   = compraRes.data;
-    const detalles = Array.isArray(detallesRes.data) ? detallesRes.data : [];
+    // El objeto compra puede venir envuelto: { compra: {...} } o directo
+    const compra =
+      compraRes.data?.compra ?? compraRes.data?.data ?? compraRes.data;
 
-    const proveedoresMap = {};
-    proveedoresRes.forEach((p) => {
-      proveedoresMap[p.id] = p.razon_social_o_nombre || p.razonSocial || p.nombre || '';
-    });
+    // Los detalles pueden venir en varias claves
+    const detalles = extractArray(detallesRes.data, [
+      'detalles', 'items', 'productos', 'data',
+    ]);
+
+    const proveedoresMap = buildProveedoresMap(proveedoresRes);
 
     return {
       ...compra,
@@ -68,7 +88,6 @@ export async function getCompraById(id) {
 }
 
 // ── Crear compra ──────────────────────────────────────────────────────────────
-// El backend maneja el incremento de stock en el mismo POST /compras
 export async function createCompra(data) {
   try {
     const payload = {
@@ -92,7 +111,6 @@ export async function createCompra(data) {
 }
 
 // ── Actualizar compra ─────────────────────────────────────────────────────────
-// [REVISAR] Confirma el endpoint PUT /compras/:id con tu backend Flask.
 export async function updateCompra(id, data) {
   try {
     const payload = {
@@ -128,7 +146,6 @@ export async function deleteCompra(id) {
 }
 
 // ── Anular compra ─────────────────────────────────────────────────────────────
-// PUT /compras/:id  { estado_compra: false }
 export async function anularCompra(id) {
   try {
     const res = await api.put(`/compras/${id}`, { estado_compra: false });
