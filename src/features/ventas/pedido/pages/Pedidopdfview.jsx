@@ -453,4 +453,4 @@ export default function PedidoPDFView() {
       </div>
     </div>
   );
-}
+} 
