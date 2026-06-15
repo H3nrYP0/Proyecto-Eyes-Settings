@@ -75,13 +75,20 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
   }, [initialData, isView, isEdit]);
 
   // Calcular total incluyendo costo de envío si es domicilio
+  const COSTO_ENVIO = 20000;
+
+  const calcularSubtotal = () =>
+    itemsSeleccionados.reduce((sum, item) => sum + (item.precio ?? 0) * item.cantidad, 0);
+
   const calcularTotal = () => {
-    const subtotal = itemsSeleccionados.reduce((sum, item) => sum + (item.precio ?? 0) * item.cantidad, 0);
+    const subtotal = calcularSubtotal();
     if (formData.metodo_entrega === "domicilio") {
-      return subtotal + 20000;
+      return subtotal + COSTO_ENVIO;
     }
     return subtotal;
   };
+
+
 
   const agregarItem = (item) => {
     setStockWarning("");
@@ -242,7 +249,7 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
       setNotification({ isVisible: true, message: "Seleccione el método de entrega.", type: "error" });
       return;
     }
-    if (formData.metodo_entrega === "domicilio" && !formData.direccion_entrega.trim()) {
+if (formData.metodo_entrega === "domicilio" && !formData.direccion_entrega.trim()) {
       setNotification({ isVisible: true, message: "Ingrese la dirección de entrega.", type: "error" });
       return;
     }
@@ -299,9 +306,9 @@ export function usePedidoForm({ mode = "create", initialData = null, onSuccess, 
     saving, isView, isEdit, isCreate,
     clienteNombreVisible, mostrarTabla, stockWarning,
     pedidoAnulado, pedidoPagado,
-    calcularTotal, formatCurrency,
+    calcularTotal, calcularSubtotal, COSTO_ENVIO, formatCurrency,
     agregarItem, removerItem, actualizarCantidad, guardarPedido,
     ESTADOS_PEDIDO, METODOS_PAGO, METODOS_ENTREGA,
-    modalConfirm, closeModalConfirm,
+modalConfirm, closeModalConfirm,
   };
 }

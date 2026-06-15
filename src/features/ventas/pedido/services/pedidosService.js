@@ -55,6 +55,7 @@ export const pedidosService = {
         direccion_entrega: p.direccion_entrega ?? "",
         transferencia_comprobante: p.transferencia_comprobante ?? "",
         total: p.total ?? 0,
+        costo_envio: p.costo_envio ?? 0,
         abono_acumulado: p.abono_acumulado ?? 0,
         saldo_pendiente: p.saldo_pendiente ?? p.total ?? 0,
         items: items,

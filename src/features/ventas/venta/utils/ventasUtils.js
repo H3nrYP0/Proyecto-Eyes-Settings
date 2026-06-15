@@ -3,7 +3,7 @@ export const ESTADOS_VENTA = [
   { value: "anulada",    label: "Anulada"    },
 ];
 
-export const METODOS_PAGO    = ["efectivo", "transferencia", "tarjeta"];
+export const METODOS_PAGO    = ["efectivo", "transferencia"];
 export const METODOS_ENTREGA = ["tienda", "domicilio"];
 
 export const COLORES_ESTADO_VENTA = {

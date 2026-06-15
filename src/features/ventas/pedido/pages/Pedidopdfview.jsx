@@ -329,6 +329,23 @@ export default function PedidoPDFView() {
               </span>
             </div>
 
+            {pedido.metodo_entrega === "domicilio" && (pedido.costo_envio ?? 0) > 0 && (
+              <div style={{ borderTop: "1px solid #e5e7eb", marginTop: 8, paddingTop: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, fontSize: "0.88rem" }}>
+                  <span style={{ color: "#6b7280" }}>Subtotal</span>
+                  <span>{formatCurrency((pedido.total ?? 0) - (pedido.costo_envio ?? 0))}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, fontSize: "0.88rem" }}>
+                  <span style={{ color: "#6b7280" }}>Costo de envío</span>
+                  <span style={{ color: "#f59e0b", fontWeight: 600 }}>+{formatCurrency(pedido.costo_envio)}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 700, borderTop: "1px solid #e5e7eb", paddingTop: 6, marginTop: 4 }}>
+                  <span style={{ color: "#6b7280" }}>Total</span>
+                  <span>{formatCurrency(pedido.total)}</span>
+                </div>
+              </div>
+            )}
+
             {abonos.length > 0 && (
               <>
                 <div

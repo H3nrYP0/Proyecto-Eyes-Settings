@@ -35,28 +35,6 @@ export default function Ventas() {
       render: (row) => row.fecha_venta || "—",
     },
     {
-      header: "Tipo",
-      render: (row) => {
-        if (row.esCita)
-          return (
-            <span style={{ fontSize: "0.8rem", color: "#6366f1", fontWeight: 600 }}>
-              Cita
-            </span>
-          );
-        if (row.esPedido)
-          return (
-            <span style={{ fontSize: "0.8rem", color: "#0891b2", fontWeight: 600 }}>
-              Pedido
-            </span>
-          );
-        return (
-          <span style={{ fontSize: "0.8rem", color: "#10b981", fontWeight: 600 }}>
-            Directa
-          </span>
-        );
-      },
-    },
-    {
       field: "total",
       header: "Total",
       render: (row) => formatCurrency(row.total),
