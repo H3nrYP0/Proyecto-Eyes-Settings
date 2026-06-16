@@ -1,7 +1,7 @@
-/* ============================================================
-   PaymentModal.css — Drawer lateral premium
-   Fondo teal oscuro, QR grande, comprobante compacto
-   ============================================================ */
+/* =============================================================
+   PaymentModal.css — Drawer lateral de pago con OCR
+   React puro, sin HTML tags, sin inline styles
+   ============================================================= */
 
 .pm-backdrop {
   position: fixed; inset: 0;
@@ -10,11 +10,11 @@
   z-index: 1400;
   animation: pmIn 0.2s ease;
 }
-@keyframes pmIn { from { opacity:0; } to { opacity:1; } }
+@keyframes pmIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* ── Drawer ── */
+/* ── Drawer ─────────────────────────────────────────────────── */
 .pm-drawer {
-  position: fixed; top:0; right:0; bottom:0;
+  position: fixed; top: 0; right: 0; bottom: 0;
   width: 420px; max-width: 100vw;
   background: #0a2525;
   z-index: 1500;
@@ -25,7 +25,7 @@
 }
 .pm-drawer--open { transform: translateX(0); }
 
-/* ── Header ── */
+/* ── Header ─────────────────────────────────────────────────── */
 .pm-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 1.1rem 1.4rem;
@@ -33,14 +33,12 @@
   flex-shrink: 0;
   background: rgba(255,255,255,0.02);
 }
-.pm-header-info { display: flex; flex-direction: column; gap: 0.1rem; }
 .pm-header-title {
   font-size: 0.88rem; font-weight: 800;
   color: #fff; margin: 0; letter-spacing: 0.01em;
 }
-.pm-header-sub {
-  font-size: 0.65rem; color: rgba(255,255,255,0.4); margin: 0;
-}
+.pm-header-sub { font-size: 0.65rem; color: rgba(255,255,255,0.4); margin: 0; }
+
 .pm-close {
   width: 28px; height: 28px; border-radius: 50%;
   background: rgba(255,255,255,0.08); border: none;
@@ -48,9 +46,9 @@
   cursor: pointer; display: flex; align-items: center; justify-content: center;
   transition: all 0.15s; font-family: inherit; flex-shrink: 0;
 }
-.pm-close:hover { background: rgba(255,255,255,0.16); color: #fff; }
+.pm-close:hover { background: rgba(255,255,255,0.18); color: #fff; }
 
-/* ── Total strip ── */
+/* ── Total strip ─────────────────────────────────────────────── */
 .pm-total-strip {
   display: flex; align-items: center; justify-content: space-between;
   padding: 0.85rem 1.4rem;
@@ -62,32 +60,26 @@
   font-size: 0.58rem; font-weight: 800; letter-spacing: 0.14em;
   color: rgba(255,255,255,0.45); text-transform: uppercase;
 }
-.pm-total-value {
-  font-size: 1.4rem; font-weight: 900; color: #fff;
-  letter-spacing: -0.03em;
-}
+.pm-total-value { font-size: 1.4rem; font-weight: 900; color: #fff; letter-spacing: -0.03em; }
 
-/* ── Body ── */
+/* ── Body ────────────────────────────────────────────────────── */
 .pm-body {
   flex: 1; overflow-y: auto; padding: 1.25rem 1.4rem;
   display: flex; flex-direction: column; gap: 0.875rem;
   scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.12) transparent;
 }
 
-/* ── QR card GRANDE ── */
+/* ── QR card ─────────────────────────────────────────────────── */
 .pm-qr-card {
-  background: #ffffff;
-  border-radius: 1.1rem;
+  background: #fff; border-radius: 1.1rem;
   padding: 1.25rem 1rem 1rem;
   display: flex; flex-direction: column; align-items: center; gap: 0.6rem;
   box-shadow: 0 8px 32px rgba(0,0,0,0.25);
 }
 .pm-qr-img {
-  width: 100%; max-width: 280px;
-  height: auto; aspect-ratio: 1/1;
-  object-fit: contain;
-  border-radius: 0.5rem;
-  display: block;
+  width: 100%; max-width: 280px; height: auto;
+  aspect-ratio: 1 / 1; object-fit: contain;
+  border-radius: 0.5rem; display: block;
   image-rendering: crisp-edges;
 }
 .pm-qr-divider {
@@ -99,12 +91,11 @@
   font-size: 1rem; font-weight: 800; color: #0d2e2e;
   letter-spacing: 0.02em;
   background: #f0fafa; border: 1.5px solid #c4e0e0;
-  padding: 0.35rem 1.1rem; border-radius: 999px;
-  margin: 0;
+  padding: 0.35rem 1.1rem; border-radius: 999px; margin: 0;
 }
-.pm-qr-hint { font-size: 0.65rem; color: #8aaeae; margin: 0; }
+.pm-qr-hint { font-size: 0.65rem; color: #8aaeae; margin: 0; text-align: center; }
 
-/* ── Instrucción ── */
+/* ── Instrucción ─────────────────────────────────────────────── */
 .pm-instruccion {
   display: flex; align-items: center; gap: 0.75rem;
   padding: 0.7rem 0.875rem;
@@ -112,159 +103,186 @@
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 0.65rem;
 }
-.pm-instruccion--done { background: rgba(42,122,90,0.12); border-color: rgba(42,122,90,0.25); }
 .pm-instruccion-num {
   min-width: 24px; height: 24px; border-radius: 50%;
   background: #3d8080; color: #fff;
   font-size: 0.7rem; font-weight: 800;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
-.pm-instruccion-num--done { background: #2a7a5a; }
 .pm-instruccion-titulo { font-size: 0.8rem; font-weight: 700; color: #fff; margin: 0; }
 .pm-instruccion-monto  { font-size: 1rem; font-weight: 900; color: #6aaeae; margin: 0; }
 .pm-instruccion-sub    { font-size: 0.67rem; color: rgba(255,255,255,0.45); margin: 0; }
 
-/* ── Upload compacto (solo en paso qr) ── */
-.pm-upload-compact {
+/* ── Upload zona ─────────────────────────────────────────────── */
+.pm-upload-zone {
   display: flex; align-items: center; gap: 0.75rem;
   padding: 0.8rem 1rem;
   border: 1.5px dashed rgba(255,255,255,0.18);
-  border-radius: 0.75rem;
-  cursor: pointer; transition: all 0.18s;
-  background: rgba(255,255,255,0.02);
-  flex-shrink: 0;
+  border-radius: 0.75rem; cursor: pointer;
+  transition: all 0.18s; background: rgba(255,255,255,0.02);
 }
-.pm-upload-compact:hover, .pm-upload-compact--drag {
+.pm-upload-zone:hover, .pm-upload-zone--drag {
   border-color: #6aaeae; background: rgba(106,174,174,0.07);
 }
-.pm-upload-compact svg { width: 20px; height: 20px; color: rgba(255,255,255,0.4); flex-shrink: 0; }
-.pm-upload-compact span { font-size: 0.8rem; font-weight: 600; color: rgba(255,255,255,0.7); }
-.pm-upload-compact-hint {
-  font-size: 0.62rem; color: rgba(255,255,255,0.3);
-  margin-left: auto; white-space: nowrap;
-}
+.pm-upload-zone__icon { width: 20px; height: 20px; color: rgba(255,255,255,0.4); flex-shrink: 0; }
+.pm-upload-zone__label { font-size: 0.8rem; font-weight: 600; color: rgba(255,255,255,0.7); }
+.pm-upload-zone__hint  { font-size: 0.62rem; color: rgba(255,255,255,0.3); margin-left: auto; white-space: nowrap; }
+.pm-file-input         { display: none; }
 
-/* ── Preview compacto (paso upload) ── */
-.pm-preview-compact {
-  border: 1.5px solid rgba(61,128,128,0.45);
-  border-radius: 0.75rem;
+/* ── Badge OCR OK ────────────────────────────────────────────── */
+.pm-ocr-ok {
+  display: flex; align-items: center; gap: 0.65rem;
+  padding: 0.7rem 0.875rem;
+  background: rgba(42,122,90,0.15);
+  border: 1px solid rgba(42,122,90,0.4);
+  border-radius: 0.65rem;
+}
+.pm-ocr-ok__icon   { color: #4ade80; flex-shrink: 0; }
+.pm-ocr-ok__titulo { font-size: 0.78rem; font-weight: 700; color: #4ade80; margin: 0; }
+.pm-ocr-ok__sub    { font-size: 0.65rem; color: rgba(255,255,255,0.5); margin: 0; }
+
+/* ── Preview comprobante ─────────────────────────────────────── */
+.pm-preview {
+  border: 1.5px solid rgba(61,128,128,0.45); border-radius: 0.75rem;
   overflow: hidden; cursor: pointer;
   background: rgba(61,128,128,0.08);
   transition: border-color 0.15s;
 }
-.pm-preview-compact:hover { border-color: #6aaeae; }
-.pm-preview-compact-inner { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.875rem; }
-.pm-preview-thumb {
+.pm-preview:hover { border-color: #6aaeae; }
+.pm-preview__inner { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.875rem; }
+.pm-preview__thumb {
   width: 52px; height: 52px; border-radius: 0.4rem;
   object-fit: cover; flex-shrink: 0;
   border: 1px solid rgba(255,255,255,0.12);
 }
-.pm-preview-pdf-icon {
+.pm-preview__pdf-icon {
   width: 52px; height: 52px; border-radius: 0.4rem;
   background: rgba(255,255,255,0.07);
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
-.pm-preview-pdf-icon svg { width: 26px; height: 26px; color: rgba(255,255,255,0.5); }
-.pm-preview-meta { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
-.pm-preview-nombre {
+.pm-preview__pdf-icon svg { width: 26px; height: 26px; color: rgba(255,255,255,0.5); }
+.pm-preview__meta  { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.pm-preview__name  {
   font-size: 0.78rem; font-weight: 600; color: #fff; margin: 0;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px;
 }
-.pm-preview-cambiar { font-size: 0.62rem; color: rgba(255,255,255,0.3); margin: 0; }
+.pm-preview__hint  { font-size: 0.62rem; color: rgba(255,255,255,0.3); margin: 0; }
 
-/* ── Resumen del pedido ── */
+/* ── Tienda: estado visual ───────────────────────────────────── */
+.pm-tienda-icon {
+  display: flex; justify-content: center; align-items: center;
+  padding: 1rem 0;
+}
+.pm-tienda-icon svg { width: 56px; height: 56px; }
+
+/* ── Resumen pedido ──────────────────────────────────────────── */
 .pm-resumen {
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.07);
   border-radius: 0.75rem; padding: 0.875rem 1rem;
   display: flex; flex-direction: column; gap: 0.4rem;
 }
-.pm-resumen-titulo {
+.pm-resumen__titulo {
   font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em;
   text-transform: uppercase; color: rgba(255,255,255,0.35); margin: 0 0 0.25rem;
 }
-.pm-resumen-row {
-  display: flex; justify-content: space-between; align-items: center;
-}
-.pm-resumen-nombre { font-size: 0.75rem; color: rgba(255,255,255,0.65); }
-.pm-resumen-precio { font-size: 0.75rem; font-weight: 700; color: rgba(255,255,255,0.85); }
-.pm-resumen-total {
+.pm-resumen__row   { display: flex; justify-content: space-between; align-items: center; }
+.pm-resumen__name  { font-size: 0.75rem; color: rgba(255,255,255,0.65); }
+.pm-resumen__price { font-size: 0.75rem; font-weight: 700; color: rgba(255,255,255,0.85); }
+.pm-resumen__total {
   display: flex; justify-content: space-between; align-items: center;
   border-top: 1px solid rgba(255,255,255,0.07);
   padding-top: 0.4rem; margin-top: 0.2rem;
   font-size: 0.82rem; font-weight: 800; color: #fff;
 }
-.pm-resumen-entrega {
+.pm-resumen__dir {
   display: flex; align-items: flex-start; gap: 0.4rem;
   font-size: 0.65rem; color: rgba(255,255,255,0.35);
   border-top: 1px solid rgba(255,255,255,0.06);
   padding-top: 0.4rem; margin-top: 0.15rem; line-height: 1.4;
 }
-.pm-resumen-entrega svg { flex-shrink: 0; margin-top: 1px; }
+.pm-resumen__dir svg { flex-shrink: 0; margin-top: 1px; }
 
-/* ── Estados centrados ── */
-.pm-estado-centro {
+/* ── Estados centrados ───────────────────────────────────────── */
+.pm-center {
   display: flex; flex-direction: column; align-items: center;
   justify-content: center; text-align: center;
-  padding: 2rem 1rem; gap: 1rem; flex: 1; min-height: 300px;
+  padding: 2rem 1rem; gap: 1rem; flex: 1; min-height: 280px;
 }
-.pm-estado-titulo { font-size: 0.95rem; font-weight: 800; color: #fff; margin: 0; }
-.pm-estado-sub    { font-size: 0.72rem; color: rgba(255,255,255,0.4); margin: 0; }
+.pm-center__title { font-size: 0.95rem; font-weight: 800; color: #fff; margin: 0; }
+.pm-center__sub   { font-size: 0.72rem; color: rgba(255,255,255,0.4); margin: 0; }
 
-/* Progreso */
+/* Subida animación */
 .pm-upload-anim svg {
   width: 52px; height: 52px; color: #6aaeae;
   animation: pmBounce 1.1s ease-in-out infinite;
 }
-@keyframes pmBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
-.pm-progress-wrap { display: flex; align-items: center; gap: 0.6rem; width: 100%; max-width: 260px; }
-.pm-progress-bar  { flex:1; height: 4px; background: rgba(255,255,255,0.1); border-radius: 999px; overflow: hidden; }
-.pm-progress-fill { height: 100%; background: linear-gradient(90deg, #3d8080, #6aaeae); border-radius: 999px; transition: width 0.3s ease; }
-.pm-progress-pct  { font-size: 0.68rem; font-weight: 700; color: rgba(255,255,255,0.5); min-width: 28px; }
+@keyframes pmBounce { 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-7px); } }
 
-/* Spinner */
+/* Progress bar */
+.pm-progress {
+  display: flex; align-items: center; gap: 0.6rem;
+  width: 100%; max-width: 260px;
+}
+.pm-progress__track {
+  flex: 1; height: 4px;
+  background: rgba(255,255,255,0.1); border-radius: 999px; overflow: hidden;
+}
+.pm-progress__fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3d8080, #6aaeae);
+  border-radius: 999px; transition: width 0.3s ease;
+}
+.pm-progress__pct {
+  font-size: 0.68rem; font-weight: 700;
+  color: rgba(255,255,255,0.5); min-width: 28px;
+}
+
+/* Spinners */
 .pm-spinner {
   width: 34px; height: 34px;
-  border: 3px solid rgba(255,255,255,0.12); border-top-color: #6aaeae;
+  border: 3px solid rgba(255,255,255,0.12);
+  border-top-color: #6aaeae;
   border-radius: 50%; animation: pmSpin 0.75s linear infinite;
 }
 .pm-spinner-sm {
   display: inline-block; width: 13px; height: 13px;
-  border: 2px solid rgba(255,255,255,0.25); border-top-color: #fff;
+  border: 2px solid rgba(255,255,255,0.25);
+  border-top-color: #fff;
   border-radius: 50%; animation: pmSpin 0.7s linear infinite;
   vertical-align: middle; margin-right: 0.35rem;
 }
-@keyframes pmSpin { to{transform:rotate(360deg)} }
+@keyframes pmSpin { to { transform: rotate(360deg); } }
 
 /* Éxito */
-.pm-exito-icono svg { width: 56px; height: 56px; }
-.pm-exito-titulo { font-size: 1.05rem; font-weight: 800; color: #6aaeae; margin: 0; }
-.pm-exito-id     { font-size: 0.72rem; color: rgba(255,255,255,0.4); margin: 0; }
-.pm-exito-aviso  {
+.pm-success__icon svg { width: 56px; height: 56px; }
+.pm-success__title    { font-size: 1.05rem; font-weight: 800; color: #6aaeae; margin: 0; }
+.pm-success__id       { font-size: 0.72rem; color: rgba(255,255,255,0.4); margin: 0; }
+.pm-success__msg {
   font-size: 0.72rem; color: rgba(255,255,255,0.45); line-height: 1.6;
   background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
   border-radius: 0.55rem; padding: 0.7rem 0.875rem; text-align: center; max-width: 300px;
 }
 
-/* Error */
-.pm-error-icono svg { width: 52px; height: 52px; }
-.pm-error {
+/* Error inline */
+.pm-error-icon svg { width: 52px; height: 52px; opacity: 0.5; }
+.pm-error-box {
   padding: 0.6rem 0.875rem;
   background: rgba(220,38,38,0.12); border: 1px solid rgba(220,38,38,0.3);
-  border-radius: 0.5rem; color: #fca5a5; font-size: 0.75rem; line-height: 1.5;
-  max-width: 300px; text-align: center;
+  border-radius: 0.5rem; color: #fca5a5; font-size: 0.75rem;
+  line-height: 1.5; width: 100%; text-align: center; box-sizing: border-box;
 }
 
-/* ── Footer ── */
+/* ── Footer ──────────────────────────────────────────────────── */
 .pm-footer {
   padding: 1rem 1.4rem;
   border-top: 1px solid rgba(255,255,255,0.07);
   flex-shrink: 0; background: #0a2525;
   display: flex; flex-direction: column; gap: 0.5rem;
 }
-.pm-footer-seguridad {
+.pm-footer__security {
   display: flex; align-items: center; justify-content: center; gap: 0.4rem;
-  font-size: 0.62rem; color: rgba(255,255,255,0.28);
+  text-align: center; font-size: 0.62rem; color: rgba(255,255,255,0.28);
 }
 .pm-btn-primary {
   width: 100%; padding: 0.85rem;
@@ -275,8 +293,15 @@
   display: flex; align-items: center; justify-content: center; gap: 0.45rem;
   letter-spacing: 0.01em;
 }
-.pm-btn-primary:hover:not(:disabled) { background: linear-gradient(135deg, #4a9090, #235f5f); transform: translateY(-1px); }
-.pm-btn-primary:disabled { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.3); cursor: default; transform: none; }
+.pm-btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4a9090, #235f5f);
+  transform: translateY(-1px);
+}
+.pm-btn-primary:disabled {
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.3);
+  cursor: default; transform: none;
+}
 .pm-btn-ghost {
   width: 100%; padding: 0.5rem; background: transparent; border: none;
   color: rgba(255,255,255,0.35); font-size: 0.75rem; cursor: pointer;
@@ -284,7 +309,8 @@
 }
 .pm-btn-ghost:hover { color: rgba(255,255,255,0.65); }
 
+/* ── Responsive ──────────────────────────────────────────────── */
 @media (max-width: 480px) {
-  .pm-drawer { width: 100vw; }
-  .pm-qr-img { max-width: 240px; }
+  .pm-drawer  { width: 100vw; }
+  .pm-qr-img  { max-width: 240px; }
 }
