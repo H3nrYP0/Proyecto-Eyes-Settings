@@ -126,7 +126,8 @@ const MisCitas = ({ readOnly = false, onCitaCancelada, refreshKey }) => {
     return [...grupos[1], ...grupos[2], ...grupos[3], ...grupos[4]];
   }, [citasData]);
 
-  const cancelMutation = useMutation(cancelarCita, {
+  const cancelMutation = useMutation({
+    mutationFn: cancelarCita,
     onSuccess: () => {
       refetch();
     },
