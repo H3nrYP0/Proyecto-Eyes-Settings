@@ -1,20 +1,19 @@
-import { Box, Typography, Paper, Link, Alert } from "@mui/material";
-import { Gavel } from "@mui/icons-material";
+import { Box, Typography, Paper, Link } from "@mui/material";
 
 const Licencias = ({ canEdit = false }) => {
   return (
-    <Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-        <Typography variant="h6" component="h2">
-          Licencias de Software Open Source
-        </Typography>
-      </Box>
-      
-      <Paper elevation={2} sx={{ p: 2, mb: 2, backgroundColor: 'background.default' }}>
+    <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+      <Paper elevation={3} sx={{ maxWidth: 'lg', width: '100%', p: 3, borderRadius: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+          <Typography variant="h6" component="h2">
+            Licencias de Software Open Source
+          </Typography>
+        </Box>
+
         <Typography variant="h6" gutterBottom color="primary">
           Aviso de Uso de Software Open Source
         </Typography>
-        
+
         <Typography variant="body1" paragraph>
           <strong>Visual Outtle © 2025</strong> - Sistema de Gestión para Ópticas
         </Typography>
@@ -28,7 +27,7 @@ const Licencias = ({ canEdit = false }) => {
           <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
             Tecnologías Utilizadas:
           </Typography>
-          
+
           <Box component="ul" sx={{ pl: 3, '& li': { mb: 1 } }}>
             <li>
               <strong>React</strong> © Meta Platforms, Inc. — Licencia MIT —{" "}
@@ -65,14 +64,14 @@ const Licencias = ({ canEdit = false }) => {
             © 2025 Visual Outtle — Todos los derechos reservados.
           </Typography>
         </Box>
-      </Paper>
 
-      <Box sx={{ mt: 2 }}>
-        <Typography variant="caption" color="text.secondary">
-          <strong>Nota:</strong> Esta información sobre licencias es de acceso público y 
-          cumple con los requisitos de transparencia de las licencias open source utilizadas.
-        </Typography>
-      </Box>
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="caption" color="text.secondary">
+            <strong>Nota:</strong> Esta información sobre licencias es de acceso público y 
+            cumple con los requisitos de transparencia de las licencias open source utilizadas.
+          </Typography>
+        </Box>
+      </Paper>
     </Box>
   );
 };

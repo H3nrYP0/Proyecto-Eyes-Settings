@@ -82,7 +82,7 @@ export default function AparienciaCliente({ user, onUserUpdate, configuracion, c
 
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-      <Paper elevation={3} sx={{ maxWidth: 'md', width: '100%', p: 3, borderRadius: 2 }}>
+      <Paper elevation={3} sx={{ maxWidth: 'lg', width: '100%', p: 3, borderRadius: 2 }}>
         <CrudNotification
           isVisible={notification.isVisible}
           message={notification.message}
