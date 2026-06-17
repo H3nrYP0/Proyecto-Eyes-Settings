@@ -39,7 +39,7 @@ export default function ForgotPassword() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  // ❌ debugCode eliminado
+  const [debugCode, setDebugCode] = useState(null); // ← solo desarrollo
 
   const stepDescriptions = {
     1: 'Ingresa tu correo y te enviaremos un código para restablecer tu contraseña.',
@@ -50,13 +50,17 @@ export default function ForgotPassword() {
   const handleSendCode = async (e) => {
     e.preventDefault();
     setError('');
-
+    setDebugCode(null);
     const err = validateForgotEmail(correo);
     if (err) { setError(err); return; }
     setLoading(true);
     try {
-      await authServices.sendForgotPasswordCode(correo.trim().toLowerCase());
-
+      const response = await authServices.sendForgotPasswordCode(correo.trim().toLowerCase());
+      // ========== BLOQUE DE DEPURACIÓN (SOLO DESARROLLO) ==========
+      if (response.debug_code) {
+        setDebugCode(response.debug_code);
+      }
+      // ========== FIN BLOQUE DEPURACIÓN ==========
       setStep(2);
     } catch (err) {
       setError(err.response?.data?.error || 'Error al enviar el código');
@@ -101,8 +105,12 @@ export default function ForgotPassword() {
     setError('');
     setLoading(true);
     try {
-      await authServices.sendForgotPasswordCode(correo.trim().toLowerCase());
-
+      const response = await authServices.sendForgotPasswordCode(correo.trim().toLowerCase());
+      // ========== BLOQUE DE DEPURACIÓN (SOLO DESARROLLO) ==========
+      if (response.debug_code) {
+        setDebugCode(response.debug_code);
+      }
+      // ========== FIN BLOQUE DEPURACIÓN ==========
       setCodigo('');
     } catch {
       setError('Error al reenviar el código');
@@ -199,6 +207,18 @@ export default function ForgotPassword() {
                     maxLength={6}
                     inputProps={{ maxLength: 6 }}
                   />
+                  {/* ========== BLOQUE DE DEPURACIÓN (SOLO DESARROLLO) ========== */}
+                  {debugCode && (
+                    <Typography
+                      variant="caption"
+                      display="block"
+                      align="center"
+                      sx={{ color: 'gray', fontSize: '0.75rem', mb: 1, fontFamily: 'monospace' }}
+                    >
+                      [Solo pruebas] Código: {debugCode}
+                    </Typography>
+                  )}
+                  {/* ========== FIN BLOQUE DEPURACIÓN ========== */}
                   <Button type="submit" fullWidth variant="contained"
                     disabled={loading || codigo.length !== 6}
                     sx={{ mt: 1, mb: 1, py: 1.1, textTransform: 'none', fontSize: '0.95rem', fontWeight: '600' }}>
