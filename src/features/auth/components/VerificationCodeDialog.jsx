@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 
-export default function VerificationCodeDialog({ open, email, onClose, onVerify, onResend, loading, debugCode }) {
+export default function VerificationCodeDialog({ open, email, onClose, onVerify, onResend, loading }) {
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [resendTimer, setResendTimer] = useState(30);
   const [canResend, setCanResend] = useState(false);
@@ -81,22 +81,6 @@ export default function VerificationCodeDialog({ open, email, onClose, onVerify,
           Hemos enviado un código de 6 dígitos a:
         </Typography>
         <Typography variant="body1" fontWeight="600" paragraph>{email}</Typography>
-
-        {/* ========== BLOQUE DE DEPURACIÓN (SOLO DESARROLLO) ========== */}
-        {/* Muestra el código directamente en el panel cuando está en modo TEST_EVENTS. */}
-        {/* ELIMINAR ESTAS LÍNEAS EN PRODUCCIÓN (o cuando RESEND_MODE=REAL) */}
-        {debugCode && (
-          <Typography
-            variant="caption"
-            display="block"
-            align="center"
-            sx={{ color: 'gray', fontSize: '0.75rem', mb: 2, fontFamily: 'monospace' }}
-          >
-            [Solo pruebas] Código: {debugCode}
-          </Typography>
-        )}
-        {/* ========== FIN BLOQUE DEPURACIÓN ========== */}
-
         <Box display="flex" justifyContent="center" gap={{ xs: 0.5, sm: 1 }} mb={3}>
           {code.map((digit, index) => (
             <TextField

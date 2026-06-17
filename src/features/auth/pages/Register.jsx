@@ -36,7 +36,7 @@ export default function Register() {
   const [showVerificationDialog, setShowVerificationDialog] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [debugCode, setDebugCode] = useState(null); // ← solo desarrollo
+  // debugCode eliminado, para volver a la versión anterior de desarollo tomarla del github
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -48,7 +48,6 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setDebugCode(null); // limpiar código anterior
 
     const formErrors = validateRegisterForm(formData);
     if (Object.keys(formErrors).length > 0) {
@@ -59,12 +58,7 @@ export default function Register() {
 
     setLoading(true);
     try {
-      const response = await authServices.sendRegisterCode(buildRegisterPayload(formData));
-      // ========== BLOQUE DE DEPURACIÓN (SOLO DESARROLLO) ==========
-      if (response.debug_code) {
-        setDebugCode(response.debug_code);
-      }
-      // ========== FIN BLOQUE DEPURACIÓN ==========
+      await authServices.sendRegisterCode(buildRegisterPayload(formData));
       setShowVerificationDialog(true);
     } catch (err) {
       setError(err.response?.data?.error || 'Error al enviar el código de verificación');
@@ -96,12 +90,7 @@ export default function Register() {
 
   const handleResendCode = async () => {
     try {
-      const response = await authServices.sendRegisterCode(buildRegisterPayload(formData));
-      // ========== BLOQUE DE DEPURACIÓN (SOLO DESARROLLO) ==========
-      if (response.debug_code) {
-        setDebugCode(response.debug_code);
-      }
-      // ========== FIN BLOQUE DEPURACIÓN ==========
+      await authServices.sendRegisterCode(buildRegisterPayload(formData));
     } catch {
       setError('Error al reenviar el código');
     }
@@ -418,7 +407,6 @@ export default function Register() {
           onVerify={handleVerifyCode}
           onResend={handleResendCode}
           loading={loading}
-          debugCode={debugCode}
         />
       </Box>
     </ThemeProvider>
