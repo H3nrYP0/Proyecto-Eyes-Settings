@@ -273,7 +273,7 @@ export default function Register() {
                       disabled={success || loading}
                       error={!!errors.telefono}
                       helperText={errors.telefono}
-                      maxLength={15}
+                      maxLength={10}
                     />
                   </Grid>
 
