@@ -9,7 +9,7 @@ export { default as Licencias } from './components/legal/Licencias';
 export { useConfiguracion } from './hooks/useConfiguracion';
 
 // ==================== SERVICIOS ====================
-export { getMiPerfil, updateMiPerfil, cambiarContrasenia } from './services/perfilService';
+//export { getMiPerfil, updateMiPerfil, cambiarContrasenia } from './services/perfilService';
 
 // ==================== UTILS ====================
 export * from './utils/configuracionHelpers';

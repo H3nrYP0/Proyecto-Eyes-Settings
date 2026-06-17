@@ -34,4 +34,4 @@ export default function Apariencia({ user, onUserUpdate, canEdit = false }) {
       configuracion={configuracion}
     />
   );
-} 
+}
