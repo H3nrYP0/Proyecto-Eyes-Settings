@@ -81,7 +81,9 @@ const CitaForm = ({ cliente, servicios, estadosCita, preServicioId, onCitaAgenda
   const horasMap = horasData?.horasMap ?? new Map();
   const horasDisponibles = Array.from(horasMap.keys()).sort();
 
-  const citaMutation = useMutation(crearCitaLanding);
+  const citaMutation = useMutation({
+    mutationFn: crearCitaLanding,
+  });
 
   const getEstadoPendienteId = () => {
     const ep = estadosCita.find((e) => e.nombre?.toLowerCase().includes("pendiente"));
