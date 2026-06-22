@@ -4,7 +4,7 @@ export const ESTADOS_PEDIDO = [
   { value: "anulado",   label: "Anulado"   },
 ];
 
-export const METODOS_PAGO    = ["efectivo", "transferencia", "tarjeta"];
+export const METODOS_PAGO    = ["efectivo", "transferencia"];
 export const METODOS_ENTREGA = ["tienda", "domicilio"];
 
 export const ESTADOS_ABONABLE = ["pendiente"];

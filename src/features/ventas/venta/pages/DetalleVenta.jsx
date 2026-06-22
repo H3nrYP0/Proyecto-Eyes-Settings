@@ -114,7 +114,7 @@ export default function DetalleVenta() {
               border: "1px solid #e5e7eb", overflow: "hidden",
             }}>
               <div style={{ padding: "14px 16px 10px", borderBottom: "1px solid #e5e7eb" }}>
-                <div style={sectionTitle}>{esCita ? "Servicio" : "Productos"}</div>
+                <div style={sectionTitle}>{esCita ? "Servicio" : "Ítems"}</div>
               </div>
               <div style={{
                 display: "grid", gridTemplateColumns: "3fr 1fr 1.5fr 1.5fr",
@@ -122,24 +122,39 @@ export default function DetalleVenta() {
                 color: "#9ca3af", borderBottom: "1px solid #e5e7eb",
                 textTransform: "uppercase", letterSpacing: "0.04em",
               }}>
-                <div>{esCita ? "Servicio" : "Producto"}</div>
+                <div>{esCita ? "Servicio" : "Ítem"}</div>
                 <div style={{ textAlign: "center" }}>Cant.</div>
                 <div style={{ textAlign: "right" }}>Precio</div>
                 <div style={{ textAlign: "right" }}>Subtotal</div>
               </div>
-              {venta.detalles.map((item, i) => (
-                <div key={i} style={{
-                  display: "grid", gridTemplateColumns: "3fr 1fr 1.5fr 1.5fr",
-                  padding: "10px 16px", fontSize: "0.88rem",
-                  borderBottom: i < venta.detalles.length - 1 ? "1px solid #f3f4f6" : "none",
-                  alignItems: "center",
-                }}>
-                  <div style={{ fontWeight: 500 }}>{item.nombre_display}</div>
-                  <div style={{ textAlign: "center", color: "#6b7280" }}>{item.cantidad}</div>
-                  <div style={{ textAlign: "right", color: "#6b7280" }}>{formatCurrency(item.precio_unitario ?? item.precio)}</div>
-                  <div style={{ textAlign: "right", fontWeight: 600 }}>{formatCurrency(item.subtotal)}</div>
-                </div>
-              ))}
+              {venta.detalles.map((item, i) => {
+                const esServicio = !!(item.servicio_id || item.servicio_nombre) && !item.producto_id;
+                return (
+                  <div key={i} style={{
+                    display: "grid", gridTemplateColumns: "3fr 1fr 1.5fr 1.5fr",
+                    padding: "10px 16px", fontSize: "0.88rem",
+                    borderBottom: i < venta.detalles.length - 1 ? "1px solid #f3f4f6" : "none",
+                    alignItems: "center",
+                  }}>
+                    <div style={{ fontWeight: 500 }}>
+                      {item.nombre_display}
+                      {!esCita && (
+                        <span style={{
+                          marginLeft: 6, fontSize: "0.68rem", fontWeight: 600,
+                          padding: "1px 6px", borderRadius: 10,
+                          background: esServicio ? "#ede9fe" : "#dbeafe",
+                          color:      esServicio ? "#7c3aed" : "#1d4ed8",
+                        }}>
+                          {esServicio ? "Servicio" : "Producto"}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ textAlign: "center", color: "#6b7280" }}>{item.cantidad}</div>
+                    <div style={{ textAlign: "right", color: "#6b7280" }}>{formatCurrency(item.precio_unitario ?? item.precio)}</div>
+                    <div style={{ textAlign: "right", fontWeight: 600 }}>{formatCurrency(item.subtotal)}</div>
+                  </div>
+                );
+              })}
               <div style={{
                 display: "flex", justifyContent: "space-between",
                 padding: "12px 16px", fontWeight: 700, fontSize: "1rem",

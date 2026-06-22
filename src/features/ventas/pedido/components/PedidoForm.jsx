@@ -75,6 +75,7 @@ export default function PedidoForm({
   const {
     clientes,
     productos,
+    servicios,
     catalogLoading,
     abonosInfo,
     formData,
@@ -92,6 +93,8 @@ export default function PedidoForm({
     pedidoAnulado,
     pedidoPagado,
     calcularTotal,
+    calcularSubtotal,
+    COSTO_ENVIO,
     formatCurrency,
     agregarItem,
     removerItem,
@@ -100,6 +103,7 @@ export default function PedidoForm({
     ESTADOS_PEDIDO,
     METODOS_PAGO,
     METODOS_ENTREGA,
+    soloServicios,
     modalConfirm,
     closeModalConfirm,
   } = usePedidoForm({ mode, initialData, onSuccess });
@@ -244,22 +248,28 @@ export default function PedidoForm({
                 InputLabelProps={{ shrink: true }}
               />
             ) : (
-              <FormControl fullWidth disabled={isDisabled}>
-                <InputLabel>Metodo de Entrega</InputLabel>
-                <Select
-                  value={formData.metodo_entrega}
-                  label="Metodo de Entrega"
-                  onChange={(e) =>
-                    setFormData({ ...formData, metodo_entrega: e.target.value })
-                  }
-                >
-                  {METODOS_ENTREGA.map((m) => (
-                    <MenuItem key={m} value={m}>
-                      {m.charAt(0).toUpperCase() + m.slice(1)}
+              <>
+                <FormControl fullWidth disabled={isDisabled}>
+                  <InputLabel>Metodo de Entrega</InputLabel>
+                  <Select
+                    value={formData.metodo_entrega}
+                    label="Metodo de Entrega"
+                    onChange={(e) =>
+                      setFormData({ ...formData, metodo_entrega: e.target.value })
+                    }
+                  >
+                    <MenuItem value="tienda">Tienda</MenuItem>
+                    <MenuItem value="domicilio" disabled={soloServicios}>
+                      Domicilio{soloServicios ? " (no disponible para servicios)" : ""}
                     </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+                  </Select>
+                </FormControl>
+                {soloServicios && (
+                  <p style={{ margin: "4px 0 0", fontSize: "0.78rem", color: "#f59e0b" }}>
+                    ⚠️ Los servicios no requieren entrega a domicilio.
+                  </p>
+                )}
+              </>
             )}
           </BaseFormField>
 
@@ -340,24 +350,14 @@ export default function PedidoForm({
                     }}
                   >
                     {catalogLoading ? (
-                      <MenuItem disabled>
-                        <em>Cargando...</em>
-                      </MenuItem>
+                      <MenuItem disabled><em>Cargando...</em></MenuItem>
                     ) : productos.length === 0 ? (
-                      <MenuItem disabled>
-                        <em>Sin stock disponible</em>
-                      </MenuItem>
+                      <MenuItem disabled><em>Sin stock disponible</em></MenuItem>
                     ) : (
                       productos.map((p) => (
                         <MenuItem key={p.id} value={p.id}>
                           {p.nombre} — {formatCurrency(p.precio)}
-                          <span
-                            style={{
-                              color: "#9ca3af",
-                              fontSize: "0.82em",
-                              marginLeft: 6,
-                            }}
-                          >
+                          <span style={{ color: "#9ca3af", fontSize: "0.82em", marginLeft: 6 }}>
                             (stock: {p.stock})
                           </span>
                         </MenuItem>
@@ -367,18 +367,37 @@ export default function PedidoForm({
                 </FormControl>
               </BaseFormField>
 
-              {stockWarning && (
-                <div
-                  style={{
-                    background: "#fef3c7",
-                    border: "1px solid #f59e0b",
-                    borderRadius: 8,
-                    padding: "8px 14px",
-                    marginTop: 4,
-                    fontSize: "0.85rem",
-                    color: "#92400e",
-                  }}
+              <BaseFormField>
+                <FormControl
+                  fullWidth
+                  disabled={catalogLoading || servicios.length === 0}
                 >
+                  <InputLabel>Agregar Servicio</InputLabel>
+                  <Select
+                    value=""
+                    label="Agregar Servicio"
+                    onChange={(e) => {
+                      const serv = servicios.find((s) => s.id === e.target.value);
+                      if (serv) agregarItem(serv);
+                    }}
+                  >
+                    {catalogLoading ? (
+                      <MenuItem disabled><em>Cargando...</em></MenuItem>
+                    ) : servicios.length === 0 ? (
+                      <MenuItem disabled><em>No hay servicios activos</em></MenuItem>
+                    ) : (
+                      servicios.map((s) => (
+                        <MenuItem key={s.id} value={s.id}>
+                          {s.nombre} — {formatCurrency(s.precio)}
+                        </MenuItem>
+                      ))
+                    )}
+                  </Select>
+                </FormControl>
+              </BaseFormField>
+
+              {stockWarning && (
+                <div style={{ background: "#fef3c7", border: "1px solid #f59e0b", borderRadius: 8, padding: "8px 14px", marginTop: 4, fontSize: "0.85rem", color: "#92400e" }}>
                   {stockWarning}
                 </div>
               )}
@@ -440,7 +459,7 @@ export default function PedidoForm({
                     textAlign: "center",
                   }}
                 >
-                  <div style={{ textAlign: "left" }}>Producto</div>
+                  <div style={{ textAlign: "left" }}>Ítem</div>
                   <div>Cant.</div>
                   <div style={{ textAlign: "right" }}>Precio</div>
                   <div style={{ textAlign: "right" }}>Subtotal</div>
@@ -463,14 +482,16 @@ export default function PedidoForm({
                   >
                     <div style={{ textAlign: "left", fontWeight: 500 }}>
                       {item.nombre}
+                      <span style={{
+                        marginLeft: 6, fontSize: "0.68rem", fontWeight: 600,
+                        padding: "1px 6px", borderRadius: 10,
+                        background: item.tipo === "servicio" ? "#ede9fe" : "#dbeafe",
+                        color:      item.tipo === "servicio" ? "#7c3aed" : "#1d4ed8",
+                      }}>
+                        {item.tipo === "servicio" ? "Servicio" : "Producto"}
+                      </span>
                       {!formBloqueado && item.stock !== null && (
-                        <span
-                          style={{
-                            color: "#9ca3af",
-                            fontSize: "0.72rem",
-                            marginLeft: 6,
-                          }}
-                        >
+                        <span style={{ color: "#9ca3af", fontSize: "0.72rem", marginLeft: 6 }}>
                           (max. {item.stock})
                         </span>
                       )}
@@ -556,15 +577,48 @@ export default function PedidoForm({
                       <button
                         type="button"
                         onClick={() => removerItem(index)}
+                        title="Eliminar producto"
+                        aria-label="Eliminar producto"
                         style={{
-                          background: "none",
-                          border: "none",
+                          justifySelf: "center",
+                          width: 26,
+                          height: 26,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          background: "#fff",
+                          border: "1px solid #fecaca",
+                          borderRadius: "50%",
                           cursor: "pointer",
                           color: "#ef4444",
-                          fontSize: "1rem",
+                          padding: 0,
+                          transition: "background 0.15s, border-color 0.15s, transform 0.1s",
+                        }}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.background = "#fee2e2";
+                          e.currentTarget.style.borderColor = "#fca5a5";
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.background = "#fff";
+                          e.currentTarget.style.borderColor = "#fecaca";
                         }}
                       >
-                        Eliminar
+                        <svg
+                          width="13"
+                          height="13"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                          <path d="M10 11v6" />
+                          <path d="M14 11v6" />
+                          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                        </svg>
                       </button>
                     )}
                   </div>
@@ -583,28 +637,29 @@ export default function PedidoForm({
               >
                 <div style={{ marginBottom: 8 }}>
                   <span style={{ color: "#9ca3af" }}>Pago</span>
-                  <strong
-                    style={{ float: "right", textTransform: "capitalize" }}
-                  >
+                  <strong style={{ float: "right", textTransform: "capitalize" }}>
                     {formData.metodo_pago || "—"}
                   </strong>
                 </div>
                 <div style={{ marginBottom: 8 }}>
                   <span style={{ color: "#9ca3af" }}>Entrega</span>
-                  <strong
-                    style={{ float: "right", textTransform: "capitalize" }}
-                  >
+                  <strong style={{ float: "right", textTransform: "capitalize" }}>
                     {formData.metodo_entrega || "—"}
                   </strong>
                 </div>
-                <div
-                  style={{
-                    marginTop: 12,
-                    paddingTop: 12,
-                    borderTop: "2px solid #e5e7eb",
-                    fontSize: 15,
-                  }}
-                >
+                {formData.metodo_entrega === "domicilio" && (
+                  <>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
+                      <span style={{ color: "#9ca3af" }}>Subtotal</span>
+                      <span>{formatCurrency(calcularSubtotal())}</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
+                      <span style={{ color: "#9ca3af" }}>Envío</span>
+                      <span style={{ color: "#f59e0b", fontWeight: 600 }}>+{formatCurrency(COSTO_ENVIO)}</span>
+                    </div>
+                  </>
+                )}
+                <div style={{ marginTop: 10, paddingTop: 10, borderTop: "2px solid #e5e7eb", fontSize: 15 }}>
                   <span style={{ color: "#9ca3af" }}>Total</span>
                   <strong style={{ float: "right" }}>
                     {formatCurrency(calcularTotal())}
