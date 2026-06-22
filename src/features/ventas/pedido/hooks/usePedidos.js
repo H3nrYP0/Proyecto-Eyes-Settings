@@ -197,9 +197,14 @@ export function usePedidos() {
 
   const obtenerResumenItems = (pedido) => {
     if (!pedido.items || pedido.items.length === 0) return "Sin items";
-    const totalItems = pedido.items.length;
-    const totalCantidad = pedido.items.reduce((s, i) => s + (i.cantidad ?? 1), 0);
-    return `${totalItems} prod. · ${totalCantidad} und.`;
+    const prods = pedido.items.filter((i) => i.tipo === "producto" || (i.producto_id && !i.servicio_id));
+    const servs = pedido.items.filter((i) => i.tipo === "servicio" || (i.servicio_id && !i.producto_id));
+    const cantProds = prods.reduce((s, i) => s + (i.cantidad ?? 1), 0);
+    const cantServs = servs.reduce((s, i) => s + (i.cantidad ?? 1), 0);
+    const partes = [];
+    if (cantProds > 0) partes.push(`${cantProds} prod.`);
+    if (cantServs > 0) partes.push(`${cantServs} serv.`);
+    return partes.join(" · ");
   };
 
   return {
