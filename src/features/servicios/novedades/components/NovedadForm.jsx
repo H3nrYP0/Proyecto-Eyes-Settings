@@ -30,7 +30,7 @@ export default function NovedadForm({
   };
 
   const empleadoOptions = [
-    { value: "", label: "-- Seleccione empleado --" },
+    { value: "", label: "Seleccionar empleado" }, // 🔥 Texto más corto
     ...empleados.map((emp) => ({ value: emp.id, label: emp.nombre })),
   ];
 
@@ -46,14 +46,12 @@ export default function NovedadForm({
     handleChange({ target: { name: "activo", value: nuevoEstado } });
   };
 
-  // Convertir string "YYYY-MM-DD" a objeto Date
   const getDateFromString = (dateStr) => {
     if (!dateStr) return null;
     const [year, month, day] = dateStr.split("-");
     return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
   };
 
-  // Convertir objeto Date a string "YYYY-MM-DD"
   const formatDateToString = (date) => {
     if (!date) return "";
     const year = date.getFullYear();
@@ -62,7 +60,6 @@ export default function NovedadForm({
     return `${year}-${month}-${day}`;
   };
 
-  // Convertir string "HH:MM" a objeto Date (hora actual + minutos)
   const getTimeFromString = (timeStr) => {
     if (!timeStr) return null;
     const [hours, minutes] = timeStr.split(":");
@@ -71,7 +68,6 @@ export default function NovedadForm({
     return date;
   };
 
-  // Convertir objeto Date a string "HH:MM"
   const formatTimeToString = (date) => {
     if (!date) return "";
     const hours = String(date.getHours()).padStart(2, "0");
@@ -79,7 +75,6 @@ export default function NovedadForm({
     return `${hours}:${minutes}`;
   };
 
-  // Handlers para DatePicker y TimePicker
   const handleDateChange = (name, date) => {
     handleChange({ target: { name, value: formatDateToString(date) } });
   };
@@ -90,8 +85,16 @@ export default function NovedadForm({
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={esLocale}>
-      <form id={id} onSubmit={onSubmitForm}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <form id={id} onSubmit={onSubmitForm} style={{ width: '100%' }}>
+        <Box sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2.5,
+          width: '100%',
+          maxHeight: 'calc(70vh - 120px)',
+          overflowY: 'auto',
+          paddingRight: '5px',
+        }}>
           {submitError && (
             <CrudNotification
               message={submitError}
@@ -100,9 +103,9 @@ export default function NovedadForm({
               onClose={() => {}}
             />
           )}
-
+          <Box sx={{ height: 16 }} />
           {/* Empleado */}
-          <BaseFormField>
+          <BaseFormField >
             <BaseInputField
               label="Empleado"
               name="empleado_id"
@@ -127,7 +130,7 @@ export default function NovedadForm({
               value={formData.tipo}
               onChange={handleChange}
               disabled={isDisabled}
-              options={[{ value: "", label: "-- Seleccione tipo --" }, ...tiposNovedad]}
+              options={[{ value: "", label: "Seleccionar tipo" }, ...tiposNovedad]} // 🔥 Texto más corto
               required
               error={!!errors.tipo}
               fullWidth
@@ -135,31 +138,45 @@ export default function NovedadForm({
             {errors.tipo && <FormHelperText error>{errors.tipo}</FormHelperText>}
           </BaseFormField>
 
-          {/* Fecha Inicio (DatePicker) */}
+          {/* Fecha Inicio */}
           <BaseFormField>
             <DatePicker
-              label="Fecha Inicio"
+              label="Fecha Inicio" // 🔥 Quitamos el "*" manual
               value={getDateFromString(formData.fecha_inicio)}
               onChange={(date) => handleDateChange("fecha_inicio", date)}
               disabled={isDisabled}
-              slotProps={{ textField: { fullWidth: true, size: "small", error: !!errors.fecha_inicio, required: true } }}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                  size: "small",
+                  error: !!errors.fecha_inicio,
+                  required: true, // MUI añadirá el asterisco automáticamente
+                }
+              }}
             />
-            <FormHelperText error>{errors.fecha_inicio || " "}</FormHelperText>
+            {errors.fecha_inicio && <FormHelperText error>{errors.fecha_inicio}</FormHelperText>}
           </BaseFormField>
 
-          {/* Fecha Fin (DatePicker) */}
+          {/* Fecha Fin */}
           <BaseFormField>
             <DatePicker
-              label="Fecha Fin"
+              label="Fecha Fin" // 🔥 Quitamos el "*" manual
               value={getDateFromString(formData.fecha_fin)}
               onChange={(date) => handleDateChange("fecha_fin", date)}
               disabled={isDisabled}
-              slotProps={{ textField: { fullWidth: true, size: "small", error: !!errors.fecha_fin, required: true } }}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                  size: "small",
+                  error: !!errors.fecha_fin,
+                  required: true, // MUI añadirá el asterisco automáticamente
+                }
+              }}
             />
-            <FormHelperText error>{errors.fecha_fin || " "}</FormHelperText>
+            {errors.fecha_fin && <FormHelperText error>{errors.fecha_fin}</FormHelperText>}
           </BaseFormField>
 
-          {/* Hora Inicio (TimePicker) */}
+          {/* Hora Inicio */}
           <BaseFormField>
             <TimePicker
               label="Hora Inicio (opcional)"
@@ -168,12 +185,18 @@ export default function NovedadForm({
               disabled={isDisabled}
               ampm={true}
               ampmInClock={true}
-              slotProps={{ textField: { fullWidth: true, size: "small", error: !!errors.hora_inicio } }}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                  size: "small",
+                  error: !!errors.hora_inicio,
+                }
+              }}
             />
-            <FormHelperText error>{errors.hora_inicio || " "}</FormHelperText>
+            {errors.hora_inicio && <FormHelperText error>{errors.hora_inicio}</FormHelperText>}
           </BaseFormField>
 
-          {/* Hora Fin (TimePicker) */}
+          {/* Hora Fin */}
           <BaseFormField>
             <TimePicker
               label="Hora Fin (opcional)"
@@ -182,9 +205,15 @@ export default function NovedadForm({
               disabled={isDisabled}
               ampm={true}
               ampmInClock={true}
-              slotProps={{ textField: { fullWidth: true, size: "small", error: !!errors.hora_fin } }}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                  size: "small",
+                  error: !!errors.hora_fin,
+                }
+              }}
             />
-            <FormHelperText error>{errors.hora_fin || " "}</FormHelperText>
+            {errors.hora_fin && <FormHelperText error>{errors.hora_fin}</FormHelperText>}
           </BaseFormField>
 
           {/* Motivo */}
@@ -196,10 +225,12 @@ export default function NovedadForm({
               onChange={handleChange}
               disabled={isDisabled}
               fullWidth
+              multiline
+              rows={2}
             />
           </BaseFormField>
 
-          {/* Estado (solo en edición/vista) */}
+          {/* Estado */}
           {mode !== "create" && (
             <BaseFormField>
               <BaseInputField

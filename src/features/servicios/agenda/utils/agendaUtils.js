@@ -65,6 +65,9 @@ export const mapearCitasEventos = (citas, empleados, estados) => {
 
       if (!fechaEvento) return null;
 
+      const clienteNombre = c.cliente?.nombre || c.cliente_nombre || 'Cliente';
+      const servicioNombre = c.servicio?.nombre || c.servicio_nombre || '';
+
       const estadoLower = estado?.nombre?.toLowerCase() || '';
       let color = COLORES_ESTADO.default;
       if (estadoLower.includes('cancelada')) color = COLORES_ESTADO.cancelada;
@@ -74,7 +77,8 @@ export const mapearCitasEventos = (citas, empleados, estados) => {
 
       return {
         id: `cita-${c.id}`,
-        title: c.cliente_nombre || 'Cliente',
+        // 🔥 Aquí cambiamos para mostrar nombre + servicio
+        title: `${clienteNombre}${servicioNombre ? ` - ${servicioNombre}` : ''}`,
         start: fechaEvento,
         end: new Date(fechaEvento.getTime() + (c.duracion || 30) * 60000),
         backgroundColor: color,
@@ -86,8 +90,8 @@ export const mapearCitasEventos = (citas, empleados, estados) => {
           cita_id: c.id,
           empleado_id: c.empleado_id,
           empleado_nombre: empleado?.nombre,
-          cliente: c.cliente_nombre,
-          servicio: c.servicio_nombre,
+          cliente: clienteNombre,
+          servicio: servicioNombre,
           estado: estado?.nombre,
         },
       };
@@ -105,7 +109,6 @@ export const mapearNovedadesEventos = (novedades, empleados) => {
       const fechaInicio = n.fecha_inicio;
       const fechaFin = n.fecha_fin;
 
-      // Con horas específicas
       if (n.hora_inicio && n.hora_fin) {
         const fechaEvento = crearFechaEvento(fechaInicio, n.hora_inicio);
         if (!fechaEvento) return null;
@@ -130,7 +133,6 @@ export const mapearNovedadesEventos = (novedades, empleados) => {
           },
         };
       } else {
-        // Día completo
         const startDate = new Date(fechaInicio);
         const endDate = new Date(fechaFin);
         endDate.setDate(endDate.getDate() + 1);

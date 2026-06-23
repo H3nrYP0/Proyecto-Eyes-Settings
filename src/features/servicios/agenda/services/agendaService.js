@@ -27,12 +27,13 @@ export async function getEmpleadosAgenda() {
 }
 
 // ============================
-// OBTENER CITAS (con paginación)
+// OBTENER CITAS (CON PAGINACIÓN FORZADA)
 // ============================
 export async function getCitasAgenda() {
   try {
-    const res = await api.get("/citas");
-    // El endpoint devuelve { data: [], total, page, per_page, total_pages }
+    // 🔥 Forzar paginación para obtener siempre { data: [], pagination: {...} }
+    const res = await api.get("/citas?page=1&per_page=1000");
+    // Ahora res.data.data siempre existirá
     return res.data.data || [];
   } catch (error) {
     console.error("Error cargando citas:", error);
