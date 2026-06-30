@@ -191,16 +191,7 @@ const FeaturesSection = () => {
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="features-cta">
-          <div className="cta-content">
-            <h3>¿Quieres ver más opciones?</h3>
-            <p>Explora nuestra colección completa de productos especializados en óptica</p>
-            <button className="btn btn-primary btn-large" onClick={() => navigate("/productos")}>
-              Ver Todos los Productos →
-            </button>
-          </div>
-        </div>
+        {/* CTA removido */}
 
       </div>
     </section>

@@ -99,7 +99,7 @@ export default function ProductCard({ producto }) {
       }}
       aria-label={`Ver ${nombre}`}
     >
-      <div className="pc-image-wrap">
+      <div className="pc-image-wrap" style={{ minHeight: "260px", height: "260px" }}>
 
         {img1 && !imgError1 ? (
           <img

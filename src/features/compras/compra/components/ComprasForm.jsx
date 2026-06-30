@@ -83,8 +83,6 @@ export default function ComprasForm({
     submitting,
     apiError,
     subtotal,
-    iva,
-    total,
     formatCurrency,
     handleChange,
     handleProductoChange,
@@ -540,17 +538,11 @@ export default function ComprasForm({
               </table>
             </Box>
 
-            {/* Totales */}
+            {/* Totales — empresa de salud, exenta de IVA */}
             <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1.5 }}>
               <Box sx={{ width: 260, backgroundColor: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 1.5, p: "12px 16px", fontSize: "0.88rem" }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.8, color: "text.secondary" }}>
-                  <span>Subtotal</span><span>{formatCurrency(subtotal)}</span>
-                </Box>
-                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.8, color: "text.secondary" }}>
-                  <span>IVA (19%)</span><span>{formatCurrency(iva)}</span>
-                </Box>
-                <Box sx={{ display: "flex", justifyContent: "space-between", borderTop: "2px solid #e5e7eb", pt: 1, mt: 0.5, fontWeight: 700, fontSize: "0.95rem", color: "primary.main" }}>
-                  <span>TOTAL</span><span>{formatCurrency(total)}</span>
+                <Box sx={{ display: "flex", justifyContent: "space-between", borderTop: "2px solid #e5e7eb", pt: 1, fontWeight: 700, fontSize: "0.95rem", color: "primary.main" }}>
+                  <span>TOTAL</span><span>{formatCurrency(subtotal)}</span>
                 </Box>
               </Box>
             </Box>

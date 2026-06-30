@@ -15,19 +15,24 @@ import {
 import authServices from "@auth/services/authServices";
 import "@shared/styles/features/home/ServicesPage.css";
 
-// Material UI icons
+// Material UI icons — solo los funcionales, no los decorativos del hero
 import LockIcon from "@mui/icons-material/Lock";
 import WarningIcon from "@mui/icons-material/Warning";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
-import EventIcon from "@mui/icons-material/Event";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import BuildIcon from "@mui/icons-material/Build";
-import BoltIcon from "@mui/icons-material/Bolt";
-import StarIcon from "@mui/icons-material/Star";
-import SparklesIcon from "@mui/icons-material/AutoAwesome";
 
 // Carrito
 import ShoppingCart, { CartProvider, WishlistDrawer } from "../../home/components/Products/ShoppingCart";
+
+// ── Elementos flotantes del hero — mismos círculos geométricos que ProductsPage ──
+const HeroAnimatedElements = () => (
+  <div className="hero-animated-elements">
+    <div className="floating-element element-1" style={{ width:18, height:18, borderRadius:"50%", background:"#3d8080", opacity:0.5 }} />
+    <div className="floating-element element-2" style={{ width:28, height:28, borderRadius:"50%", background:"#1a4a4a", opacity:0.35 }} />
+    <div className="floating-element element-3" style={{ width:12, height:12, borderRadius:"50%", background:"#3d8080", opacity:0.6 }} />
+    <div className="floating-element element-4" style={{ width:22, height:22, borderRadius:4, background:"#0d2e2e", opacity:0.3, transform:"rotate(30deg)" }} />
+    <div className="floating-element element-5" style={{ width:10, height:10, borderRadius:"50%", background:"#1a4a4a", opacity:0.5 }} />
+  </div>
+);
 
 const ServicesPageContent = ({ user, setUser }) => {
   const navigate = useNavigate();
@@ -149,22 +154,7 @@ const ServicesPageContent = ({ user, setUser }) => {
               <p className="hero-description">Servicios optométricos profesionales para el cuidado integral de tu salud visual</p>
             </div>
           </div>
-          <div className="hero-animated-elements">
-            <div className="pulse-element pulse-1"><VisibilityIcon sx={{ fontSize: "1.8rem" }} /></div>
-            <div className="pulse-element pulse-2"><BuildIcon sx={{ fontSize: "1.8rem" }} /></div>
-            <div className="pulse-element pulse-3"><BoltIcon sx={{ fontSize: "1.8rem" }} /></div>
-            <div className="pulse-element pulse-4"><StarIcon sx={{ fontSize: "1.8rem" }} /></div>
-            <div className="pulse-element pulse-5"><SparklesIcon sx={{ fontSize: "1.8rem" }} /></div>
-          </div>
-          <div className="floating-particles">
-            {[...Array(15)].map((_, i) => (
-              <div
-                key={i}
-                className="particle"
-                style={{ left: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 5}s`, animationDuration: `${5 + Math.random() * 10}s` }}
-              />
-            ))}
-          </div>
+          <HeroAnimatedElements />
         </section>
 
         <section className="services-section" style={{ padding: "4rem 0" }}>
@@ -224,22 +214,7 @@ const ServicesPageContent = ({ user, setUser }) => {
               <p className="hero-description">Servicios optométricos profesionales para el cuidado integral de tu salud visual</p>
             </div>
           </div>
-          <div className="hero-animated-elements">
-            <div className="pulse-element pulse-1"><VisibilityIcon sx={{ fontSize: "1.8rem" }} /></div>
-            <div className="pulse-element pulse-2"><BuildIcon sx={{ fontSize: "1.8rem" }} /></div>
-            <div className="pulse-element pulse-3"><BoltIcon sx={{ fontSize: "1.8rem" }} /></div>
-            <div className="pulse-element pulse-4"><StarIcon sx={{ fontSize: "1.8rem" }} /></div>
-            <div className="pulse-element pulse-5"><SparklesIcon sx={{ fontSize: "1.8rem" }} /></div>
-          </div>
-          <div className="floating-particles">
-            {[...Array(15)].map((_, i) => (
-              <div
-                key={i}
-                className="particle"
-                style={{ left: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 5}s`, animationDuration: `${5 + Math.random() * 10}s` }}
-              />
-            ))}
-          </div>
+          <HeroAnimatedElements />
         </section>
         <div className="admin-banner">
           <AdminPanelSettingsIcon sx={{ fontSize: "1rem", marginRight: "0.5rem", verticalAlign: "middle" }} />
@@ -345,22 +320,7 @@ const ServicesPageContent = ({ user, setUser }) => {
             <p className="hero-description">Servicios optométricos profesionales para el cuidado integral de tu salud visual</p>
           </div>
         </div>
-        <div className="hero-animated-elements">
-          <div className="pulse-element pulse-1"><VisibilityIcon sx={{ fontSize: "1.8rem" }} /></div>
-          <div className="pulse-element pulse-2"><BuildIcon sx={{ fontSize: "1.8rem" }} /></div>
-          <div className="pulse-element pulse-3"><BoltIcon sx={{ fontSize: "1.8rem" }} /></div>
-          <div className="pulse-element pulse-4"><StarIcon sx={{ fontSize: "1.8rem" }} /></div>
-          <div className="pulse-element pulse-5"><SparklesIcon sx={{ fontSize: "1.8rem" }} /></div>
-        </div>
-        <div className="floating-particles">
-          {[...Array(15)].map((_, i) => (
-            <div
-              key={i}
-              className="particle"
-              style={{ left: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 5}s`, animationDuration: `${5 + Math.random() * 10}s` }}
-            />
-          ))}
-        </div>
+        <HeroAnimatedElements />
       </section>
 
       <section className="services-section" style={{ padding: "4rem 0" }}>
@@ -383,14 +343,14 @@ const ServicesPageContent = ({ user, setUser }) => {
         </div>
       </section>
 
-      <section className="services-section" style={{ padding: "4rem 0", background: "#f8fbfb" }}>
+      <section className="appointment-section">
         <div className="services-container">
           <div className="section-header">
-            <h2 className="section-title">Agenda tu cita</h2>
+            <h2 className="section-title">Agenda tu <span className="blue-gradient-text">Cita</span></h2>
             <p className="section-description">Selecciona el servicio, la fecha y el horario que mejor se ajusten a ti.</p>
           </div>
-          <div className="services-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem" }}>
-            <div>
+          <div className="appointment-container">
+            <div className="appointment-form-container" style={{ padding: 0, boxShadow: "none", border: "none", background: "transparent" }}>
               <CitaForm
                 cliente={clienteActual}
                 servicios={serviciosCargados}

@@ -78,32 +78,6 @@ const HeroSection = ({ onGetStarted, user }) => {
             {carouselTexts[currentSlide]}
           </p>
         </div>
-
-        <div className="hero-visual">
-          <div className="dashboard-preview">
-            <div className="preview-header">
-              <div className="preview-dots">
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
-            </div>
-            <div className="preview-content">
-              <div className="preview-chart">
-                <div className="chart-bar" style={{ height: "60%" }}></div>
-                <div className="chart-bar" style={{ height: "80%" }}></div>
-                <div className="chart-bar" style={{ height: "45%" }}></div>
-                <div className="chart-bar" style={{ height: "90%" }}></div>
-                <div className="chart-bar" style={{ height: "70%" }}></div>
-              </div>
-              <div className="preview-metrics">
-                <div className="metric-card"></div>
-                <div className="metric-card"></div>
-                <div className="metric-card"></div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div className="hero-background">
