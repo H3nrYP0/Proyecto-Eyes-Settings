@@ -582,7 +582,7 @@ const PaymentModal = ({
               <button className="pm-btn-primary" onClick={() => crearPedido("")}>
                 Confirmar reserva <IconArrow />
               </button>
-              <p className="pm-footer__security">🏪 Pagas en efectivo cuando retires en tienda</p>
+              <p className="pm-footer__security">Pagas con cualquier metodo de pago cuando retires en tienda</p>
             </>
           )}
 

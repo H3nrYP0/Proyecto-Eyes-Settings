@@ -51,6 +51,20 @@ export default function ProveedorForm({
     }
   };
 
+  // ── Bloquea cualquier carácter no numérico en documento ──────────────────
+  const handleDocumentoKeyDown = (e) => {
+    const allowed = ["Backspace","Delete","ArrowLeft","ArrowRight","Tab","Enter","Home","End"];
+    if (allowed.includes(e.key)) return;
+    if (!/^\d$/.test(e.key)) e.preventDefault();
+  };
+
+  // ── Bloquea cualquier carácter no numérico en teléfono ───────────────────
+  const handleTelefonoKeyDown = (e) => {
+    const allowed = ["Backspace","Delete","ArrowLeft","ArrowRight","Tab","Enter","Home","End"];
+    if (allowed.includes(e.key)) return;
+    if (!/^\d$/.test(e.key)) e.preventDefault();
+  };
+
   const isDisabled = isView || submitting;
 
   // ============================
@@ -127,13 +141,15 @@ export default function ProveedorForm({
           />
         </BaseFormField>
 
-        {/* Número de Documento */}
+        {/* Número de Documento — solo acepta dígitos */}
         <BaseFormField>
           <BaseInputField
             label="Número de Documento"
             name="documento"
             value={formData.documento}
             onChange={handleDocumentChange}
+            onKeyDown={handleDocumentoKeyDown}
+            inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
             disabled={isDisabled}
             required
             error={!!errors.documento}
@@ -155,17 +171,19 @@ export default function ProveedorForm({
           />
         </BaseFormField>
 
-        {/* Teléfono */}
+        {/* Teléfono — solo acepta dígitos */}
         <BaseFormField>
           <BaseInputField
             label="Teléfono"
             name="telefono"
             value={formData.telefono}
             onChange={handlePhoneChange}
+            onKeyDown={handleTelefonoKeyDown}
+            inputProps={{ inputMode: "numeric", pattern: "[0-9]*", maxLength: 10 }}
             disabled={isDisabled}
             required
             error={!!errors.telefono}
-            helperText={errors.telefono}
+            helperText={errors.telefono || (formData.telefono && formData.telefono.replace(/\D/g,"").length < 10 && !isDisabled ? "Debe tener 10 dígitos" : "")}
           />
         </BaseFormField>
 
