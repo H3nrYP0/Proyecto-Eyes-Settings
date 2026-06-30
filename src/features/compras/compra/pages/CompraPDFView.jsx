@@ -24,11 +24,10 @@ export default function CompraPDFView() {
   if (loading) return <Loading text="Cargando compra..." />;
   if (!compra) return null;
 
+  // Empresa de salud — exenta de IVA: total = subtotal directo
   const subtotal = (compra.productos || []).reduce(
     (acc, p) => acc + Number(p.total || 0), 0
   );
-  const iva = subtotal * 0.19;
-  const total = compra.total ?? subtotal + iva;
 
   const handleDescargar = async () => {
     const { default: html2canvas } = await import("html2canvas");
@@ -228,27 +227,18 @@ export default function CompraPDFView() {
               fontSize: "0.95rem",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-              <span style={{ color: "#6b7280" }}>Subtotal</span>
-              <span>{formatCurrency(subtotal)}</span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-              <span style={{ color: "#6b7280" }}>IVA (19%)</span>
-              <span>{formatCurrency(iva)}</span>
-            </div>
             <div
               style={{
                 display: "flex",
                 justifyContent: "space-between",
                 borderTop: "2px solid #e5e7eb",
                 paddingTop: 10,
-                marginTop: 8,
                 fontWeight: 700,
                 fontSize: "1rem",
               }}
             >
               <span>TOTAL</span>
-              <span>{formatCurrency(total)}</span>
+              <span>{formatCurrency(subtotal)}</span>
             </div>
           </div>
         </div>

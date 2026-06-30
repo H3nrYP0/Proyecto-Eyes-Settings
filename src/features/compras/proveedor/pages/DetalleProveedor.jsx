@@ -32,7 +32,20 @@ export default function DetalleProveedor() {
       onCancel={() => navigate("/admin/compras/proveedores")}
       extraActions={
         <button
-          className="crud-btn crud-btn-primary"
+          className="crud-btn crud-btn-edit"
+          style={{
+            backgroundColor: "#1e4db7",
+            color: "#fff",
+            border: "none",
+            padding: "8px 18px",
+            borderRadius: 6,
+            fontWeight: 600,
+            fontSize: "0.875rem",
+            cursor: "pointer",
+            transition: "background-color 0.15s",
+          }}
+          onMouseEnter={e => e.currentTarget.style.backgroundColor = "#1a3f9e"}
+          onMouseLeave={e => e.currentTarget.style.backgroundColor = "#1e4db7"}
           onClick={() => navigate(`/admin/compras/proveedores/editar/${proveedor.id}`)}
         >
           Editar
