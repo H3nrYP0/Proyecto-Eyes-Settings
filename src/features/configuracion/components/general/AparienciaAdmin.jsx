@@ -28,7 +28,6 @@ const LIMITS = {
   NOMBRE: 70, APELLIDO: 70, TELEFONO: 10, NUMERO_DOCUMENTO: 10,
   MUNICIPIO: 50, DEPARTAMENTO: 50, DIRECCION: 100, BARRIO: 50,
   CODIGO_POSTAL: 10, OCUPACION: 20, TELEFONO_EMERGENCIA: 10,
-  CIUDAD: 50, APTO: 20, NOMBRE_RECEPTOR: 70, TELEFONO_ENTREGA: 10, INDICACIONES: 200,
 };
 
 // Componente con icono de ojo
@@ -253,85 +252,9 @@ export default function AparienciaAdmin({ user, onUserUpdate, configuracion, can
             </Grid>
           </Grid>
 
-          {/* ========== SECCIÓN DIRECCIÓN DE ENTREGA ========== */}
-          <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>
-            Dirección de entrega
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={4}>
-              <TextFieldLetters
-                fullWidth label="Departamento *" name="departamento"
-                value={formData.departamento || ''} onChange={handleChange}
-                disabled={!editMode} size="small" maxLength={LIMITS.DEPARTAMENTO}
-                error={!!validationErrors.departamento}
-                helperText={validationErrors.departamento}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextFieldLetters
-                fullWidth label="Ciudad *" name="ciudad"
-                value={formData.ciudad || ''} onChange={handleChange}
-                disabled={!editMode} size="small" maxLength={LIMITS.CIUDAD}
-                error={!!validationErrors.ciudad}
-                helperText={validationErrors.ciudad}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextFieldAlphanumeric
-                fullWidth label="Dirección principal *" name="direccion"
-                value={formData.direccion || ''} onChange={handleChange}
-                disabled={!editMode} size="small" maxLength={LIMITS.DIRECCION}
-                error={!!validationErrors.direccion}
-                helperText={validationErrors.direccion}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextFieldAlphanumeric
-                fullWidth label="Apto / Torre" name="apto_torre"
-                value={formData.apto_torre || ''} onChange={handleChange}
-                disabled={!editMode} size="small" maxLength={LIMITS.APTO}
-                error={!!validationErrors.apto_torre}
-                helperText={validationErrors.apto_torre}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextFieldLetters
-                fullWidth label="Barrio *" name="barrio"
-                value={formData.barrio || ''} onChange={handleChange}
-                disabled={!editMode} size="small" maxLength={LIMITS.BARRIO}
-                error={!!validationErrors.barrio}
-                helperText={validationErrors.barrio}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextFieldLetters
-                fullWidth label="Nombre del receptor *" name="nombre_receptor"
-                value={formData.nombre_receptor || ''} onChange={handleChange}
-                disabled={!editMode} size="small" maxLength={LIMITS.NOMBRE_RECEPTOR}
-                error={!!validationErrors.nombre_receptor}
-                helperText={validationErrors.nombre_receptor}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextFieldNumbers
-                fullWidth label="Celular *" name="telefono_entrega"
-                value={formData.telefono_entrega || ''} onChange={handleChange}
-                disabled={!editMode} size="small" maxLength={LIMITS.TELEFONO_ENTREGA}
-                placeholder="3001234567"
-                error={!!validationErrors.telefono_entrega}
-                helperText={validationErrors.telefono_entrega}
-              />
-            </Grid>
-            <Grid item xs={12} sm={12}>
-              <TextField
-                fullWidth label="Indicaciones" name="indicaciones"
-                value={formData.indicaciones || ''} onChange={handleChange}
-                disabled={!editMode} size="small" multiline rows={2}
-                error={!!validationErrors.indicaciones}
-                helperText={validationErrors.indicaciones}
-              />
-            </Grid>
-          </Grid>
+          {/* No se incluye sección "Dirección de entrega": el admin/empleado no
+              recibe pedidos a su nombre, por lo que ese dato no aplica aquí.
+              Esa sección solo existe en AparienciaCliente.jsx. */}
 
           {puedeEditar && (
             <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>

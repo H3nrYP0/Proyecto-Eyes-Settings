@@ -175,9 +175,6 @@ export const validarFormulario = (formData) => {
   if (telefonoEmergenciaErr) errors.telefono_emergencia = telefonoEmergenciaErr;
 
   // Nuevos campos
-  const ciudadErr = validarCiudad(formData.ciudad);
-  if (ciudadErr) errors.ciudad = ciudadErr;
-
   const aptoErr = validarAptoTorre(formData.apto_torre);
   if (aptoErr) errors.apto_torre = aptoErr;
 

@@ -36,7 +36,7 @@ const LIMITS = {
   NOMBRE: 70, APELLIDO: 70, TELEFONO: 10, NUMERO_DOCUMENTO: 10,
   MUNICIPIO: 50, DEPARTAMENTO: 50, DIRECCION: 100, BARRIO: 50,
   CODIGO_POSTAL: 10, OCUPACION: 20, TELEFONO_EMERGENCIA: 10,
-  CIUDAD: 50, APTO: 20, NOMBRE_RECEPTOR: 70, TELEFONO_ENTREGA: 10, INDICACIONES: 200,
+  APTO: 20, NOMBRE_RECEPTOR: 70, TELEFONO_ENTREGA: 10, INDICACIONES: 200,
 };
 
 const PasswordField = ({ label, name, value, onChange, required, disabled, size, fullWidth, error, helperText, ...rest }) => {
@@ -245,40 +245,9 @@ export default function AparienciaCliente({ user, onUserUpdate, configuracion, c
                 helperText={validationErrors.telefono_emergencia}
               />
             </Grid>
-          </Grid>
 
-          {/* ========== SECCIÓN DIRECCIÓN DE ENTREGA ========== */}
-          <Typography variant="h6" sx={{ mt: 4, mb: 2, color: PRIMARY_COLOR }}>
-            Dirección de entrega
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={4}>
-              <TextFieldLetters
-                fullWidth label="Departamento *" name="departamento"
-                value={formData.departamento || ''} onChange={handleChange}
-                disabled={!editMode} size="small" maxLength={LIMITS.DEPARTAMENTO}
-                error={!!validationErrors.departamento}
-                helperText={validationErrors.departamento}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextFieldLetters
-                fullWidth label="Ciudad *" name="ciudad"
-                value={formData.ciudad || ''} onChange={handleChange}
-                disabled={!editMode} size="small" maxLength={LIMITS.CIUDAD}
-                error={!!validationErrors.ciudad}
-                helperText={validationErrors.ciudad}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextFieldAlphanumeric
-                fullWidth label="Dirección principal *" name="direccion"
-                value={formData.direccion || ''} onChange={handleChange}
-                disabled={!editMode} size="small" maxLength={LIMITS.DIRECCION}
-                error={!!validationErrors.direccion}
-                helperText={validationErrors.direccion}
-              />
-            </Grid>
+            {/* Campos específicos de entrega (no se repiten Departamento/Municipio/
+                Dirección/Barrio porque ya están arriba en esta misma sección) */}
             <Grid item xs={12} sm={4}>
               <TextFieldAlphanumeric
                 fullWidth label="Apto / Torre" name="apto_torre"
@@ -286,15 +255,6 @@ export default function AparienciaCliente({ user, onUserUpdate, configuracion, c
                 disabled={!editMode} size="small" maxLength={LIMITS.APTO}
                 error={!!validationErrors.apto_torre}
                 helperText={validationErrors.apto_torre}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextFieldLetters
-                fullWidth label="Barrio *" name="barrio"
-                value={formData.barrio || ''} onChange={handleChange}
-                disabled={!editMode} size="small" maxLength={LIMITS.BARRIO}
-                error={!!validationErrors.barrio}
-                helperText={validationErrors.barrio}
               />
             </Grid>
             <Grid item xs={12} sm={4}>

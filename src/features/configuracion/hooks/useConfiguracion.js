@@ -21,7 +21,7 @@ import {
   validarNombre, validarApellido, validarTelefono, validarNumeroDocumento,
   validarFechaNacimiento, validarMunicipio, validarDepartamento, validarDireccion,
   validarBarrio, validarCodigoPostal, validarOcupacion, validarTelefonoEmergencia,
-  validarCiudad, validarAptoTorre, validarNombreReceptor, validarTelefonoEntrega,
+  validarAptoTorre, validarNombreReceptor, validarTelefonoEntrega,
   validarIndicaciones,
   validarPassword, normalizeGender, denormalizeGender
 } from '../utils/configuracionHelpers';
@@ -33,8 +33,7 @@ const EMPTY_FORM = {
   // Dirección y ubicación (cliente)
   municipio: '', departamento: '', direccion: '', barrio: '',
   codigo_postal: '', ocupacion: '', telefono_emergencia: '',
-  // Dirección de entrega (nuevos campos)
-  ciudad: '',
+  // Dirección de entrega (campos exclusivos de envío, en Cliente)
   apto_torre: '',
   nombre_receptor: '',
   telefono_entrega: '',
@@ -63,7 +62,6 @@ export const useConfiguracion = (initialUser, onUserUpdate) => {
       codigo_postal:        initialUser.codigo_postal        || '',
       ocupacion:            initialUser.ocupacion            || '',
       telefono_emergencia:  initialUser.telefono_emergencia  || '',
-      ciudad:               initialUser.ciudad               || '',
       apto_torre:           initialUser.apto_torre           || '',
       nombre_receptor:      initialUser.nombre_receptor      || '',
       telefono_entrega:     initialUser.telefono_entrega     || '',
@@ -131,7 +129,6 @@ export const useConfiguracion = (initialUser, onUserUpdate) => {
       codigo_postal:        cliente?.codigo_postal     || '',
       ocupacion:            cliente?.ocupacion         || '',
       telefono_emergencia:  cliente?.telefono_emergencia || '',
-      ciudad:               cliente?.ciudad            || '',
       apto_torre:           cliente?.apto_torre        || '',
       nombre_receptor:      cliente?.nombre_receptor   || '',
       telefono_entrega:     cliente?.telefono_entrega  || '',
@@ -267,8 +264,7 @@ export const useConfiguracion = (initialUser, onUserUpdate) => {
     if (formData.ocupacion          !== originalData.ocupacion)          clientePayload.ocupacion          = formData.ocupacion;
     if (formData.telefono_emergencia !== originalData.telefono_emergencia) clientePayload.telefono_emergencia = formData.telefono_emergencia;
 
-    // Campos de entrega
-    if (formData.ciudad             !== originalData.ciudad)             clientePayload.ciudad             = formData.ciudad;
+    // Campos de entrega (exclusivos de envío, no se repiten con Dirección y ubicación)
     if (formData.apto_torre         !== originalData.apto_torre)         clientePayload.apto_torre         = formData.apto_torre;
     if (formData.nombre_receptor    !== originalData.nombre_receptor)    clientePayload.nombre_receptor    = formData.nombre_receptor;
     if (formData.telefono_entrega   !== originalData.telefono_entrega)   clientePayload.telefono_entrega   = formData.telefono_entrega;
@@ -296,7 +292,6 @@ export const useConfiguracion = (initialUser, onUserUpdate) => {
     if (clientePayload.codigo_postal     !== undefined) { const e = validarCodigoPostal(clientePayload.codigo_postal);          if (e) errors.codigo_postal = e; }
     if (clientePayload.ocupacion         !== undefined) { const e = validarOcupacion(clientePayload.ocupacion);                 if (e) errors.ocupacion = e; }
     if (clientePayload.telefono_emergencia !== undefined) { const e = validarTelefonoEmergencia(clientePayload.telefono_emergencia); if (e) errors.telefono_emergencia = e; }
-    if (clientePayload.ciudad            !== undefined) { const e = validarCiudad(clientePayload.ciudad);                       if (e) errors.ciudad = e; }
     if (clientePayload.apto_torre        !== undefined) { const e = validarAptoTorre(clientePayload.apto_torre);               if (e) errors.apto_torre = e; }
     if (clientePayload.nombre_receptor   !== undefined) { const e = validarNombreReceptor(clientePayload.nombre_receptor);     if (e) errors.nombre_receptor = e; }
     if (clientePayload.telefono_entrega  !== undefined) { const e = validarTelefonoEntrega(clientePayload.telefono_entrega);   if (e) errors.telefono_entrega = e; }

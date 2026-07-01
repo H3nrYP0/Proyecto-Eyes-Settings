@@ -40,7 +40,6 @@ export const cambiarContrasenia = async (contraseniaActual, nuevaContrasenia) =>
   // Si tu instancia axios tiene baseURL configurada, úsala aquí también.
   const baseURL =
     import.meta.env?.VITE_API_URL ||
-    process.env?.REACT_APP_API_URL ||
     api.defaults?.baseURL ||
     '';
 
