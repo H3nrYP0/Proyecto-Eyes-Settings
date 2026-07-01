@@ -17,17 +17,12 @@ import TextFieldLetters from '@shared/components/base/TextFieldLetters';
 import TextFieldNumbers from '@shared/components/base/TextFieldNumbers';
 import TextFieldAlphanumeric from '@shared/components/base/TextFieldAlphanumeric';
 
-// Colores para el perfil (cliente)
-const PRIMARY_COLOR = '#1a4a4a';
-const PRIMARY_DARK  = '#0d2e2e';
-const SUCCESS_COLOR = '#1f7a6a';
-const GRAY_500      = '#4e6e6e';
-const GRAY_300      = '#b8d4d4';
-
-// Colores para la sección de contraseña (unificados con admin)
-const BRAND_COLOR    = '#1a2540';
-const BRAND_HOVER    = '#2d3a6b';
-const BORDER_COLOR   = '#cbd5e1';
+// ── Paleta teal (extraída de la tarjeta corporativa / landing) ──────────────
+const DEEP_BLUE   = '#0d2e2e';   // teal casi negro — hover oscuro
+const ROYAL_BLUE  = '#1a4a4a';   // teal oscuro principal — botones primarios
+const BRIGHT_BLUE = '#235f5f';   // teal medio — subtítulos / acentos
+const LIGHT_BLUE  = '#3d8080';   // teal claro — bordes activos / hover suave
+const SKY_BLUE    = '#6aaeae';   // teal muy claro — texto secundario / bordes
 
 const genderOptions  = ['Masculino', 'Femenino', 'Otro'];
 const docTypeOptions = ['CC', 'CE', 'PA'];
@@ -82,7 +77,9 @@ export default function AparienciaCliente({ user, onUserUpdate, configuracion, c
 
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-      <Paper elevation={3} sx={{ maxWidth: 'lg', width: '100%', p: 3, borderRadius: 2 }}>
+      <Paper elevation={3} sx={{
+        maxWidth: 'lg', width: '100%', p: 3, borderRadius: 2
+      }}>
         <CrudNotification
           isVisible={notification.isVisible}
           message={notification.message}
@@ -177,7 +174,7 @@ export default function AparienciaCliente({ user, onUserUpdate, configuracion, c
             </Grid>
 
             <Grid item xs={12}>
-              <Typography variant="subtitle1" sx={{ mt: 1, mb: 1, color: PRIMARY_COLOR }}>
+              <Typography variant="subtitle1" sx={{ mt: 1, mb: 1, color: BRIGHT_BLUE, fontWeight: 600 }}>
                 Dirección y ubicación
               </Typography>
             </Grid>
@@ -294,8 +291,8 @@ export default function AparienciaCliente({ user, onUserUpdate, configuracion, c
                 onClick={() => setEditMode(true)}
                 disabled={isUpdating}
                 sx={{
-                  bgcolor: PRIMARY_COLOR,
-                  '&:hover': { bgcolor: PRIMARY_DARK },
+                  bgcolor: ROYAL_BLUE,
+                  '&:hover': { bgcolor: DEEP_BLUE },
                   textTransform: 'none',
                   px: 4,
                 }}
@@ -308,7 +305,12 @@ export default function AparienciaCliente({ user, onUserUpdate, configuracion, c
                   variant="outlined"
                   onClick={handleCancelEdit}
                   disabled={isUpdating}
-                  sx={{ textTransform: 'none', borderColor: GRAY_300, color: GRAY_500 }}
+                  sx={{
+                    textTransform: 'none',
+                    borderColor: SKY_BLUE,
+                    color: BRIGHT_BLUE,
+                    '&:hover': { borderColor: LIGHT_BLUE, bgcolor: '#f0f7f7' },
+                  }}
                 >
                   Cancelar
                 </Button>
@@ -317,8 +319,8 @@ export default function AparienciaCliente({ user, onUserUpdate, configuracion, c
                   variant="contained"
                   disabled={isUpdating || !hasAnyChange()}
                   sx={{
-                    bgcolor: SUCCESS_COLOR,
-                    '&:hover': { bgcolor: PRIMARY_DARK },
+                    bgcolor: ROYAL_BLUE,
+                    '&:hover': { bgcolor: DEEP_BLUE },
                     textTransform: 'none',
                     px: 4,
                   }}
@@ -332,7 +334,7 @@ export default function AparienciaCliente({ user, onUserUpdate, configuracion, c
 
         {/* ========== CAMBIAR CONTRASEÑA (unificado con admin) ========== */}
         <Divider sx={{ my: 3 }} />
-        <Typography variant="h6" gutterBottom>
+        <Typography variant="h6" gutterBottom sx={{ color: ROYAL_BLUE, fontWeight: 600 }}>
           Cambiar Contraseña
         </Typography>
 
@@ -343,8 +345,8 @@ export default function AparienciaCliente({ user, onUserUpdate, configuracion, c
               onClick={() => setShowPasswordForm(true)}
               disabled={isUpdatingPassword}
               sx={{
-                backgroundColor: BRAND_COLOR,
-                '&:hover': { backgroundColor: BRAND_HOVER },
+                backgroundColor: ROYAL_BLUE,
+                '&:hover': { backgroundColor: DEEP_BLUE },
                 textTransform: 'none',
               }}
             >
@@ -399,7 +401,12 @@ export default function AparienciaCliente({ user, onUserUpdate, configuracion, c
                 variant="outlined"
                 onClick={handleCancelPassword}
                 disabled={isUpdatingPassword}
-                sx={{ textTransform: 'none' }}
+                sx={{
+                  textTransform: 'none',
+                  borderColor: SKY_BLUE,
+                  color: BRIGHT_BLUE,
+                  '&:hover': { borderColor: LIGHT_BLUE, bgcolor: '#f0f7f7' },
+                }}
               >
                 Cancelar
               </Button>
@@ -408,12 +415,12 @@ export default function AparienciaCliente({ user, onUserUpdate, configuracion, c
                 variant="contained"
                 disabled={isUpdatingPassword || !passwordData.nueva_contrasenia}
                 sx={{
-                  backgroundColor: BRAND_COLOR,
-                  '&:hover': { backgroundColor: BRAND_HOVER },
+                  backgroundColor: ROYAL_BLUE,
+                  '&:hover': { backgroundColor: DEEP_BLUE },
                   textTransform: 'none',
                 }}
               >
-                {isUpdatingPassword ? 'Actualizando...' : 'Actualizar'}
+                {isUpdatingPassword ? 'Actualizando...' : 'Actualizar Contraseña'}
               </Button>
             </Box>
           </form>

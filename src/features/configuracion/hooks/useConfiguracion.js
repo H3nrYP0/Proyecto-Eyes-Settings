@@ -21,7 +21,7 @@ import {
   validarNombre, validarApellido, validarTelefono, validarNumeroDocumento,
   validarFechaNacimiento, validarMunicipio, validarDepartamento, validarDireccion,
   validarBarrio, validarCodigoPostal, validarOcupacion, validarTelefonoEmergencia,
-  validarAptoTorre, validarNombreReceptor, validarTelefonoEntrega,
+  validarCiudad, validarAptoTorre, validarNombreReceptor, validarTelefonoEntrega,
   validarIndicaciones,
   validarPassword, normalizeGender, denormalizeGender
 } from '../utils/configuracionHelpers';
@@ -33,7 +33,8 @@ const EMPTY_FORM = {
   // Dirección y ubicación (cliente)
   municipio: '', departamento: '', direccion: '', barrio: '',
   codigo_postal: '', ocupacion: '', telefono_emergencia: '',
-  // Dirección de entrega (campos exclusivos de envío, en Cliente)
+  // Dirección de entrega (nuevos campos)
+  ciudad: '',
   apto_torre: '',
   nombre_receptor: '',
   telefono_entrega: '',
@@ -62,6 +63,7 @@ export const useConfiguracion = (initialUser, onUserUpdate) => {
       codigo_postal:        initialUser.codigo_postal        || '',
       ocupacion:            initialUser.ocupacion            || '',
       telefono_emergencia:  initialUser.telefono_emergencia  || '',
+      ciudad:               initialUser.ciudad               || '',
       apto_torre:           initialUser.apto_torre           || '',
       nombre_receptor:      initialUser.nombre_receptor      || '',
       telefono_entrega:     initialUser.telefono_entrega     || '',
@@ -85,20 +87,6 @@ export const useConfiguracion = (initialUser, onUserUpdate) => {
     isVisible: false, message: '', type: 'success'
   });
 
-  // ─── Determinación de rol (cliente) ──────────────────────
-  // FIX: el backend devuelve `rol_nombre`, no `rol`.
-  // Un usuario es cliente cuando NO tiene rol_nombre asignado
-  // (cliente_id presente y rol_id nulo) o cuando su rol es explícitamente 'cliente'.
-  const esCliente = useMemo(() => {
-    if (!initialUser) return false;
-    // Primero revisa rol_nombre (campo real del to_dict del backend)
-    const rolNombre = (initialUser.rol_nombre || '').toLowerCase();
-    if (rolNombre === 'cliente') return true;
-    // Fallback: si no tiene rol asignado pero tiene cliente_id, es cliente
-    if (!initialUser.rol_id && initialUser.cliente_id) return true;
-    return false;
-  }, [initialUser]);
-
   // ─── React Query: GET /mi-perfil ──────────────────────────
   const { data: perfilData, isLoading: loading } = useQuery({
     queryKey: ['miPerfil'],
@@ -107,6 +95,29 @@ export const useConfiguracion = (initialUser, onUserUpdate) => {
     retry: 1,
     onError: () => showNotification('Error al cargar perfil', 'error'),
   });
+
+  // ─── Determinación de rol (cliente) ──────────────────────
+  // FIX TIMING: usamos perfilData (respuesta real del backend) como fuente
+  // de verdad cuando ya está disponible. Así evitamos que initialUser
+  // (que viene del localStorage y puede no tener cliente_id) decida
+  // incorrectamente el rol antes de que llegue la respuesta del servidor.
+  // Solo usamos initialUser como fallback inmediato mientras carga.
+  const esCliente = useMemo(() => {
+    // Prioridad 1: datos reales del servidor (ya cargaron)
+    if (perfilData?.usuario) {
+      const u = perfilData.usuario;
+      const rolNombre = (u.rol_nombre || '').toLowerCase();
+      if (rolNombre === 'cliente') return true;
+      if (!u.rol_id && u.cliente_id) return true;
+      return false;
+    }
+    // Prioridad 2: initialUser como estado transitorio mientras carga
+    if (!initialUser) return false;
+    const rolNombre = (initialUser.rol_nombre || '').toLowerCase();
+    if (rolNombre === 'cliente') return true;
+    if (!initialUser.rol_id && initialUser.cliente_id) return true;
+    return false;
+  }, [perfilData, initialUser]);
 
   // ─── Sincronizar cuando lleguen datos del servidor ────────
   useEffect(() => {
@@ -129,6 +140,7 @@ export const useConfiguracion = (initialUser, onUserUpdate) => {
       codigo_postal:        cliente?.codigo_postal     || '',
       ocupacion:            cliente?.ocupacion         || '',
       telefono_emergencia:  cliente?.telefono_emergencia || '',
+      ciudad:               cliente?.ciudad            || '',
       apto_torre:           cliente?.apto_torre        || '',
       nombre_receptor:      cliente?.nombre_receptor   || '',
       telefono_entrega:     cliente?.telefono_entrega  || '',
@@ -264,7 +276,8 @@ export const useConfiguracion = (initialUser, onUserUpdate) => {
     if (formData.ocupacion          !== originalData.ocupacion)          clientePayload.ocupacion          = formData.ocupacion;
     if (formData.telefono_emergencia !== originalData.telefono_emergencia) clientePayload.telefono_emergencia = formData.telefono_emergencia;
 
-    // Campos de entrega (exclusivos de envío, no se repiten con Dirección y ubicación)
+    // Campos de entrega
+    if (formData.ciudad             !== originalData.ciudad)             clientePayload.ciudad             = formData.ciudad;
     if (formData.apto_torre         !== originalData.apto_torre)         clientePayload.apto_torre         = formData.apto_torre;
     if (formData.nombre_receptor    !== originalData.nombre_receptor)    clientePayload.nombre_receptor    = formData.nombre_receptor;
     if (formData.telefono_entrega   !== originalData.telefono_entrega)   clientePayload.telefono_entrega   = formData.telefono_entrega;
@@ -292,6 +305,7 @@ export const useConfiguracion = (initialUser, onUserUpdate) => {
     if (clientePayload.codigo_postal     !== undefined) { const e = validarCodigoPostal(clientePayload.codigo_postal);          if (e) errors.codigo_postal = e; }
     if (clientePayload.ocupacion         !== undefined) { const e = validarOcupacion(clientePayload.ocupacion);                 if (e) errors.ocupacion = e; }
     if (clientePayload.telefono_emergencia !== undefined) { const e = validarTelefonoEmergencia(clientePayload.telefono_emergencia); if (e) errors.telefono_emergencia = e; }
+    if (clientePayload.ciudad            !== undefined) { const e = validarCiudad(clientePayload.ciudad);                       if (e) errors.ciudad = e; }
     if (clientePayload.apto_torre        !== undefined) { const e = validarAptoTorre(clientePayload.apto_torre);               if (e) errors.apto_torre = e; }
     if (clientePayload.nombre_receptor   !== undefined) { const e = validarNombreReceptor(clientePayload.nombre_receptor);     if (e) errors.nombre_receptor = e; }
     if (clientePayload.telefono_entrega  !== undefined) { const e = validarTelefonoEntrega(clientePayload.telefono_entrega);   if (e) errors.telefono_entrega = e; }

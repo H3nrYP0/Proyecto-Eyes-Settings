@@ -15,6 +15,12 @@ export default function Apariencia({ user, onUserUpdate, canEdit = false }) {
   // Una única instancia del hook para toda la jerarquía
   const configuracion = useConfiguracion(user, onUserUpdate);
 
+  // Mientras llega la respuesta real del servidor no renderizamos nada,
+  // para evitar el "flash" de mostrar AparienciaAdmin cuando el usuario
+  // es cliente (esCliente calculado sobre initialUser que viene de
+  // localStorage sin cliente_id).
+  if (configuracion.loading) return null;
+
   if (configuracion.esCliente) {
     return (
       <AparienciaCliente
