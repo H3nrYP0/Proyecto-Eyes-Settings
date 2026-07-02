@@ -713,11 +713,39 @@ export const CartProvider = ({ children, user }) => {
           isOpen={pagoOpen}
           onClose={closePagoModal}
           onPedidoCreado={(_id) => {
-            const idsComprados = new Set(items.map(i=>i.id));
-            setWishlist(prev => { const nueva=prev.filter(w=>!idsComprados.has(w.id)); saveLS(wishKey(uid),nueva); return nueva; });
-            clearCart();
-            closePagoModal();
-          }}
+          // 1. Actualizar perfil del cliente con la dirección usada (si es domicilio)
+          const token = getToken();
+          if (token && pedidoData?.metodoEntrega === 'domicilio') {
+            const savedAddr = loadLS(addrKey(uid));
+            if (savedAddr && savedAddr.departamento) {
+              fetch(`${BASE_URL}/mi-perfil`, {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                  cliente: {
+                    departamento:    savedAddr.departamento,
+                    municipio:       savedAddr.ciudad,
+                    direccion:       savedAddr.direccion,
+                    barrio:          savedAddr.barrio,
+                    apto_torre:      savedAddr.complemento,
+                    nombre_receptor: savedAddr.receptor,
+                    telefono_entrega: savedAddr.celular,
+                    indicaciones:    savedAddr.indicaciones,
+                  }
+                })
+              }).catch(() => { /* silenciamos errores para no bloquear el flujo */ });
+            }
+          }
+
+          // 2. Limpiar wishlist y carrito (como ya estaba)
+          const idsComprados = new Set(items.map(i=>i.id));
+          setWishlist(prev => { const nueva=prev.filter(w=>!idsComprados.has(w.id)); saveLS(wishKey(uid),nueva); return nueva; });
+          clearCart();
+          closePagoModal();
+        }}
           items={pedidoData.items}
           total={pedidoData.total}
           metodoEntrega={pedidoData.metodoEntrega}
@@ -917,8 +945,39 @@ const ShoppingCart = ({ user }) => {
   const [deliveryErrors, setDeliveryErrors] = useState({});
   const [errorMsg,       setErrorMsg]       = useState("");
 
-  useEffect(() => { setDelivery(loadLS(addrKey(uid))||emptyAddr); }, [uid]);
+  useEffect(() => {
+    // Intentar precargar desde localStorage (instantáneo)
+    const saved = loadLS(addrKey(uid));
+    if (saved && saved.departamento) { setDelivery(saved); return; }
 
+    // Si no hay nada guardado, buscar en el perfil del cliente
+    const token = getToken();
+    if (!token || !uid) return;
+    fetch(`${BASE_URL}/mi-perfil`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        const c = data?.cliente;
+        if (!c) return;
+        const precargado = {
+          departamento: c.departamento || '',
+          ciudad:       c.municipio    || '',   // municipio → campo ciudad del carrito
+          direccion:    c.direccion    || '',
+          complemento:  c.apto_torre   || '',
+          barrio:       c.barrio       || '',
+          receptor:     c.nombre_receptor   || '',
+          celular:      c.telefono_entrega  || '',
+          indicaciones: c.indicaciones      || '',
+        };
+        // Solo precargar si hay algo útil
+        if (precargado.departamento || precargado.direccion) {
+          setDelivery(precargado);
+          saveLS(addrKey(uid), precargado);
+        }
+      })
+      .catch(() => {});
+  }, [uid]);
   const validateDelivery = () => {
     const e={};
     if(!delivery.departamento.trim()) e.departamento="Requerido";
