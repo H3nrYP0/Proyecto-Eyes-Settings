@@ -354,7 +354,7 @@ const PaymentModal = ({
                 <div>
                   <p className="pm-instruccion-titulo">Cómo funciona</p>
                   <p className="pm-instruccion-sub">
-                    Reservamos tus productos. Retíralos y paga en efectivo en nuestra tienda.
+                    Reservamos tus productos. Retíralos y paga con cualquier metodo de pago en nuestra tienda.
                   </p>
                 </div>
               </div>
@@ -421,7 +421,7 @@ const PaymentModal = ({
             <div className="pm-center">
               <div className="pm-spinner" />
               <p className="pm-center__title">Verificando comprobante…</p>
-              <p className="pm-center__sub">La IA está leyendo el monto del comprobante</p>
+              <p className="pm-center__sub">Se está leyendo el monto del comprobante</p>
             </div>
           )}
 
@@ -582,7 +582,7 @@ const PaymentModal = ({
               <button className="pm-btn-primary" onClick={() => crearPedido("")}>
                 Confirmar reserva <IconArrow />
               </button>
-              <p className="pm-footer__security">Pagas con cualquier metodo de pago cuando retires en tienda</p>
+              <p className="pm-footer__security">Pagas con cualquier metodo de pago cuando estes en la tienda</p>
             </>
           )}
 
