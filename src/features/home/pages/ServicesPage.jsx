@@ -14,6 +14,7 @@ import {
 } from "../components/Services/citasLandingService";
 import authServices from "@auth/services/authServices";
 import "@shared/styles/features/home/ServicesPage.css";
+import "@shared/styles/features/home/ShoppingCart.css";
 
 // Material UI icons — solo los funcionales, no los decorativos del hero
 import LockIcon from "@mui/icons-material/Lock";
@@ -373,6 +374,8 @@ const ServicesPageContent = ({ user, setUser }) => {
 const ServicesPage = ({ user, setUser }) => (
   <CartProvider user={user}>
     <ServicesPageContent user={user} setUser={setUser} />
+      <ShoppingCart user={user} />
+    <WishlistDrawer />
   </CartProvider>
 );
 

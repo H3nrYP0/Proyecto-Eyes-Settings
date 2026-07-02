@@ -5,7 +5,7 @@
  * Ya no depende de getMiPerfil de userServices, sino que usa el flujo unificado.
  */
 
-import { Box, Tab, Tabs, Button, CircularProgress, Typography } from '@mui/material';
+import { Box, Tab, Tabs, Button } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@auth/hooks/useAuth';
@@ -27,9 +27,6 @@ export default function Configuration({ user: propUser, onUserUpdate }) {
   const { isAdmin } = useAuth();
   const [tabValue, setTabValue] = useState(0);
   const canViewLicencias = isAdmin();
-
-  // Simplemente pasamos propUser (opcional) y onUserUpdate.
-  // El hook useConfiguracion dentro de Apariencia hará la llamada a GET /mi-perfil.
 
   const handleVolver = () => navigate(-1);
 
