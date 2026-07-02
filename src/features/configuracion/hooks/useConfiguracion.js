@@ -12,6 +12,9 @@
  *   actualiza el hash, no invalida sesiones.
  * - passwordMutation.onError ahora extrae el mensaje correctamente desde
  *   axios (error.response?.data?.error) y también cubre el caso de red.
+ * - esCliente se calcula solo con perfilData; si no hay datos, es undefined
+ *   para mostrar el componente de carga hasta que se resuelva la consulta.
+ * - Se agrega `error` al retorno para manejar fallos en la consulta.
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -88,7 +91,7 @@ export const useConfiguracion = (initialUser, onUserUpdate) => {
   });
 
   // ─── React Query: GET /mi-perfil ──────────────────────────
-  const { data: perfilData, isLoading: loading } = useQuery({
+  const { data: perfilData, isLoading: loading, error: queryError } = useQuery({
     queryKey: ['miPerfil'],
     queryFn: getMiPerfil,
     staleTime: 5 * 60 * 1000,
@@ -97,27 +100,16 @@ export const useConfiguracion = (initialUser, onUserUpdate) => {
   });
 
   // ─── Determinación de rol (cliente) ──────────────────────
-  // FIX TIMING: usamos perfilData (respuesta real del backend) como fuente
-  // de verdad cuando ya está disponible. Así evitamos que initialUser
-  // (que viene del localStorage y puede no tener cliente_id) decida
-  // incorrectamente el rol antes de que llegue la respuesta del servidor.
-  // Solo usamos initialUser como fallback inmediato mientras carga.
+  // Se basa ÚNICAMENTE en perfilData (respuesta real del servidor).
+  // Si perfilData no está disponible, retorna undefined.
   const esCliente = useMemo(() => {
-    // Prioridad 1: datos reales del servidor (ya cargaron)
-    if (perfilData?.usuario) {
-      const u = perfilData.usuario;
-      const rolNombre = (u.rol_nombre || '').toLowerCase();
-      if (rolNombre === 'cliente') return true;
-      if (!u.rol_id && u.cliente_id) return true;
-      return false;
-    }
-    // Prioridad 2: initialUser como estado transitorio mientras carga
-    if (!initialUser) return false;
-    const rolNombre = (initialUser.rol_nombre || '').toLowerCase();
+    if (!perfilData?.usuario) return undefined;
+    const u = perfilData.usuario;
+    const rolNombre = (u.rol_nombre || '').toLowerCase();
     if (rolNombre === 'cliente') return true;
-    if (!initialUser.rol_id && initialUser.cliente_id) return true;
+    if (!u.rol_id && u.cliente_id) return true;
     return false;
-  }, [perfilData, initialUser]);
+  }, [perfilData]);
 
   // ─── Sincronizar cuando lleguen datos del servidor ────────
   useEffect(() => {
@@ -175,9 +167,6 @@ export const useConfiguracion = (initialUser, onUserUpdate) => {
   });
 
   // ─── React Query: POST /usuario/cambiar-contrasenia ──────
-  // FIX: onSuccess ya NO cierra sesión ni hace nada fuera del formulario.
-  // El token JWT sigue siendo válido tras el cambio de contraseña porque
-  // el backend solo actualiza el hash, no invalida el token existente.
   const passwordMutation = useMutation({
     mutationFn: ({ contraseniaActual, nuevaContrasenia }) =>
       cambiarContrasenia(contraseniaActual, nuevaContrasenia),
@@ -190,14 +179,10 @@ export const useConfiguracion = (initialUser, onUserUpdate) => {
       setPasswordErrors({});
     },
     onError: (error) => {
-      // FIX: extraer el mensaje del error de axios correctamente.
-      // El backend devuelve { error: "..." } en el body.
       const mensaje = error.response?.data?.error
         || error.message
         || 'Error al cambiar contraseña';
 
-      // Distinguir error de contraseña actual incorrecta para mostrarlo
-      // en el campo correspondiente en lugar de solo en la notificación.
       if (error.response?.status === 401) {
         setPasswordErrors({ contrasenia_actual: 'Contraseña actual incorrecta' });
         showNotification('La contraseña actual no es correcta', 'error');
@@ -230,7 +215,6 @@ export const useConfiguracion = (initialUser, onUserUpdate) => {
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
     setPasswordData(prev => ({ ...prev, [name]: value }));
-    // Limpiar error del campo al escribir
     if (passwordErrors[name]) {
       setPasswordErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -321,28 +305,24 @@ export const useConfiguracion = (initialUser, onUserUpdate) => {
   };
 
   // ─── Submit contraseña ────────────────────────────────────
-  // FIX: validar campo a campo antes de enviar y limpiar errores previos.
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     setPasswordErrors({});
 
-    // Validar que la contraseña actual no esté vacía
     if (!passwordData.contrasenia_actual || passwordData.contrasenia_actual.trim() === '') {
       setPasswordErrors({ contrasenia_actual: 'Ingresa tu contraseña actual' });
       showNotification('Ingresa tu contraseña actual', 'error');
       return;
     }
 
-    // 🔽 Pasamos nombre y correo del usuario desde formData
     const error = validarPassword(
       passwordData.nueva_contrasenia,
       passwordData.confirmar_contrasenia,
-      formData.nombre,   // nombre del usuario
-      formData.correo    // correo del usuario
+      formData.nombre,
+      formData.correo
     );
 
     if (error) {
-      // Identificar si el error es de coincidencia o de formato
       if (error.includes('coinciden')) {
         setPasswordErrors({ confirmar_contrasenia: error });
       } else if (error.includes('común') || error.includes('nombre') || error.includes('correo')) {
@@ -354,7 +334,6 @@ export const useConfiguracion = (initialUser, onUserUpdate) => {
       return;
     }
 
-    // Asegurarse de que nueva ≠ actual (evita petición innecesaria)
     if (passwordData.contrasenia_actual === passwordData.nueva_contrasenia) {
       setPasswordErrors({ nueva_contrasenia: 'La nueva contraseña debe ser diferente a la actual' });
       showNotification('La nueva contraseña debe ser diferente a la actual', 'error');
@@ -378,12 +357,13 @@ export const useConfiguracion = (initialUser, onUserUpdate) => {
     formData,
     fotoPerfil,
     loading,
+    error: queryError,         // ← EXPUESTO PARA MANEJAR ERRORES EN EL PADRE
     editMode,
     showPasswordForm,
     validationErrors,
     passwordData,
-    passwordErrors,   // <-- NUEVO: errores por campo del formulario de contraseña
-    esCliente,
+    passwordErrors,
+    esCliente,                 // ← undefined mientras no haya datos
     notification,
     isUpdating:         updateMutation.isPending,
     isUpdatingPassword: passwordMutation.isPending,

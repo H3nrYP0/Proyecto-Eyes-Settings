@@ -1,27 +1,35 @@
 /**
  * Componente que decide qué vista de perfil mostrar según el rol del usuario.
  * 
- * FIX: El hook useConfiguracion se instancia UNA SOLA VEZ aquí y se pasa
- * como prop `useConfiguracionHook` a los hijos. Antes se llamaba dos veces
- * (aquí para leer `esCliente` y otra vez dentro del hijo), duplicando la
- * llamada al API y causando el error "useConfiguracionHook is not a function".
+ * FIX: Se agrega componente de carga y se espera a que esCliente esté definido.
  */
 
 import { useConfiguracion } from '../../hooks/useConfiguracion';
 import AparienciaAdmin from './AparienciaAdmin';
 import AparienciaCliente from './AparienciaCliente';
+import Loading from '@shared/components/ui/Loading';
 
 export default function Apariencia({ user, onUserUpdate, canEdit = false }) {
   // Una única instancia del hook para toda la jerarquía
   const configuracion = useConfiguracion(user, onUserUpdate);
+  const { loading, error, esCliente } = configuracion;
 
-  // Mientras llega la respuesta real del servidor no renderizamos nada,
-  // para evitar el "flash" de mostrar AparienciaAdmin cuando el usuario
-  // es cliente (esCliente calculado sobre initialUser que viene de
-  // localStorage sin cliente_id).
-  if (configuracion.loading) return null;
+  // Mientras carga o el rol aún no se ha determinado, mostrar loading
+  if (loading || esCliente === undefined) {
+    return <Loading />;
+  }
 
-  if (configuracion.esCliente) {
+  // Si hay error en la consulta, mostrar mensaje
+  if (error) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center', color: '#d32f2f' }}>
+        <Typography variant="h6">Error al cargar el perfil</Typography>
+        <Typography variant="body2">{error.message || 'Intenta nuevamente más tarde'}</Typography>
+      </div>
+    );
+  }
+
+  if (esCliente) {
     return (
       <AparienciaCliente
         user={user}
