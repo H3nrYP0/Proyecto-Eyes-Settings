@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Navbar from "./Navbar";
@@ -96,14 +96,6 @@ const ServicesPageContent = ({ user, setUser }) => {
       : "";
 
   const loadingData = loadingServicios || loadingEstados;
-
-  useEffect(() => {
-    if (clienteActual && !isAdminMode) {
-      setTimeout(() => {
-        document.getElementById("appointment-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 80);
-    }
-  }, [clienteActual, isAdminMode]);
 
   const handleNavigation = (path) => {
     navigate(path);
